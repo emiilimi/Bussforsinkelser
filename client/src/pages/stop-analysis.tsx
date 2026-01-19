@@ -1,18 +1,29 @@
 import Layout from "@/components/layout";
-import { STOPS, getStopStats, Stop } from "@/lib/mockData";
+import { STOPS, getStopStats, REGIONAL_STOPS } from "@/lib/mockData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Check, ChevronsUpDown, MapPin, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useRegion } from "@/lib/RegionContext";
 
 export default function StopAnalysis() {
+  const { region } = useRegion();
+  const regionalStops = REGIONAL_STOPS[region] || REGIONAL_STOPS.vestland;
+  
   const [open, setOpen] = useState(false);
-  const [selectedStop, setSelectedStop] = useState<string>("olav_kyrres");
+  const [selectedStop, setSelectedStop] = useState<string>(regionalStops[0]?.id || "");
   const stats = getStopStats(selectedStop);
+
+  // Update selected stop when region changes
+  useEffect(() => {
+    if (regionalStops.length > 0) {
+      setSelectedStop(regionalStops[0].id);
+    }
+  }, [region]);
 
   const selectedStopName = STOPS.find((stop) => stop.id === selectedStop)?.name;
 
@@ -20,8 +31,8 @@ export default function StopAnalysis() {
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold tracking-tight">Stop Analysis</h2>
-          <p className="text-muted-foreground">Detailed breakdown of delays at specific transit hubs.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Stop Analysis: {region.charAt(0).toUpperCase() + region.slice(1)}</h2>
+          <p className="text-muted-foreground">Detailed breakdown of delays at regional transit hubs.</p>
           
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -42,12 +53,12 @@ export default function StopAnalysis() {
                 <CommandList>
                   <CommandEmpty>No stop found.</CommandEmpty>
                   <CommandGroup>
-                    {STOPS.map((stop) => (
+                    {regionalStops.map((stop) => (
                       <CommandItem
                         key={stop.id}
                         value={stop.id}
                         onSelect={(currentValue) => {
-                          setSelectedStop(currentValue === selectedStop ? "" : currentValue);
+                          setSelectedStop(currentValue);
                           setOpen(false);
                         }}
                       >

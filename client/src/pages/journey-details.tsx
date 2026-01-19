@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Clock, Search, Timer, AlertCircle } from "lucide-react";
+import { useRegion } from "@/lib/RegionContext";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 export default function JourneyDetails() {
+  const { region } = useRegion();
   const [selectedLine, setSelectedLine] = useState("6");
   const [time, setTime] = useState("16:15");
   const [showStats, setShowStats] = useState(false);
@@ -23,14 +25,14 @@ export default function JourneyDetails() {
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Journey Check</h2>
-          <p className="text-muted-foreground mt-1">Investigate specific scheduled departures.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Journey Check: {region.charAt(0).toUpperCase() + region.slice(1)}</h2>
+          <p className="text-muted-foreground mt-1">Investigate specific regional scheduled departures.</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Lookup Journey</CardTitle>
-            <CardDescription>Select a line and departure time to see historical performance.</CardDescription>
+            <CardDescription>Select a line and departure time to see historical performance in {region}.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 items-end">
@@ -102,7 +104,7 @@ export default function JourneyDetails() {
             <Card>
               <CardHeader>
                 <CardTitle>Typical Delay Progression</CardTitle>
-                <CardDescription>How delay typically accumulates on this specific journey.</CardDescription>
+                <CardDescription>How delay typically accumulates on this specific journey in {region}.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
