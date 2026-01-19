@@ -1,9 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Bus, BarChart3, AlertTriangle, Map, Clock, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRegion } from "@/lib/RegionContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { region, setRegion } = useRegion();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
@@ -15,15 +18,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground flex flex-col md:flex-row">
-      <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/50 backdrop-blur-sm p-4 md:h-screen md:sticky md:top-0 flex flex-col gap-8 z-50">
+      <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/50 backdrop-blur-sm p-4 md:h-screen md:sticky md:top-0 flex flex-col gap-6 z-50">
         <div className="flex items-center gap-3 px-2">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+          <div className="bg-primary text-primary-foreground p-2 rounded-lg shadow-lg">
             <Bus className="w-6 h-6" />
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-tight leading-none text-primary">bussforsinkelser.no</h1>
-            <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mt-1">Vestland & Entur</p>
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">Realtime Analysis</p>
           </div>
+        </div>
+
+        <div className="px-2 space-y-2">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Current Region</label>
+          <Select value={region} onValueChange={(v: any) => setRegion(v)}>
+            <SelectTrigger className="w-full h-9 bg-background/50 text-sm">
+              <SelectValue placeholder="Select County" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vestland">Vestland</SelectItem>
+              <SelectItem value="viken">Viken</SelectItem>
+              <SelectItem value="oslo">Oslo</SelectItem>
+              <SelectItem value="rogaland">Rogaland</SelectItem>
+              <SelectItem value="trondelag">Trøndelag</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
@@ -34,7 +53,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <a className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   isActive 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
+                    ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" 
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}>
                   <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
@@ -46,10 +65,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="mt-auto hidden md:block px-2">
-          <div className="p-4 rounded-lg bg-muted/50 border border-border text-xs text-muted-foreground">
-            <p className="font-semibold mb-1">Entur Data Hub</p>
-            <p>Unified Siri Realtime Dataset</p>
-            <p className="mt-1 opacity-70">Region: All Norway</p>
+          <div className="p-4 rounded-lg bg-muted/50 border border-border text-[10px] text-muted-foreground space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold">Live Entur Data</span>
+            </div>
+            <p>Processing last recorded Siri ET records.</p>
+            <p className="opacity-70">Unified Norwegian Dataset</p>
           </div>
         </div>
       </aside>
