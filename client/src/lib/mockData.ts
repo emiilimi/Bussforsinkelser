@@ -9,6 +9,8 @@ export interface Line {
 export interface Stop {
   id: string;
   name: string;
+  lat: number;
+  lng: number;
 }
 
 export interface JourneyDelayPoint {
@@ -28,34 +30,32 @@ export const LINES: Line[] = [
 ];
 
 export const STOPS: Stop[] = [
-  { id: "festplassen", name: "Festplassen" },
-  { id: "olav_kyrres", name: "Olav Kyrres gate" },
-  { id: "asane_term", name: "Åsane Terminal" },
-  { id: "oasen_term", name: "Oasen Terminal" },
-  { id: "lagunen", name: "Lagunen Terminal" },
-  { id: "byparken", name: "Byparken" },
-  { id: "flesland", name: "Bergen Lufthavn" },
-  { id: "danmarksplass", name: "Danmarksplass" },
-  { id: "nhh", name: "NHH" },
-  { id: "bryggen", name: "Bryggen" },
+  { id: "festplassen", name: "Festplassen", lat: 60.3913, lng: 5.3261 },
+  { id: "olav_kyrres", name: "Olav Kyrres gate", lat: 60.3920, lng: 5.3240 },
+  { id: "asane_term", name: "Åsane Terminal", lat: 60.4680, lng: 5.3230 },
+  { id: "oasen_term", name: "Oasen Terminal", lat: 60.3600, lng: 5.3300 },
+  { id: "lagunen", name: "Lagunen Terminal", lat: 60.2980, lng: 5.3330 },
+  { id: "byparken", name: "Byparken", lat: 60.3925, lng: 5.3275 },
+  { id: "flesland", name: "Bergen Lufthavn", lat: 60.2930, lng: 5.2180 },
+  { id: "danmarksplass", name: "Danmarksplass", lat: 60.3780, lng: 5.3340 },
+  { id: "nhh", name: "NHH", lat: 60.4230, lng: 5.3040 },
+  { id: "bryggen", name: "Bryggen", lat: 60.3975, lng: 5.3245 },
 ];
 
-// Mock Data Generators
-
 export const getGeneralStats = (period: string) => {
-  // Simulate API latency if needed, but for mock just return
   return {
-    avgDelay: period === "week" ? 2.4 : 3.1, // minutes
+    avgDelay: period === "week" ? 2.4 : 3.1,
     worstJourney: {
       line: "6",
       departure: "16:15",
       date: subDays(new Date(), 2),
-      totalDelay: 18, // minutes
+      totalDelay: 18,
     },
     worstLine: { id: "6", name: "6 Birkelundstoppen", avgDelay: 5.2 },
     bestLine: { id: "Bybanen 1", name: "1 Bergen Lufthavn", avgDelay: 0.3 },
     totalDepartures: 14502,
-    delayedDepartures: 3240, // > 2 mins
+    delayedDepartures: 3240,
+    dataValidityScore: 88, // % of departures with realtime data
   };
 };
 
@@ -75,14 +75,10 @@ export const getWeeklyDelayTrend = () => {
 export const getWorstJourneyData = (): JourneyDelayPoint[] => {
   const stops = ["Birkelundstoppen", "Mannsverk", "Haukeland", "Bergen Busstasjon", "Festplassen", "Olav Kyrres gate", "Dokken", "Laksevåg", "Lyngbø"];
   let currentDelay = 0;
-  
   return stops.map((stop, index) => {
-    // Delay accumulates mostly in city center
     if (index > 2 && index < 6) currentDelay += Math.floor(Math.random() * 5) + 2;
-    // Sometimes creates up
     if (index > 6) currentDelay -= Math.floor(Math.random() * 2);
     if (currentDelay < 0) currentDelay = 0;
-
     return {
       stopName: stop,
       scheduledTime: `16:${15 + index * 5}`,
@@ -93,18 +89,16 @@ export const getWorstJourneyData = (): JourneyDelayPoint[] => {
 };
 
 export const getJourneyStats = (lineId: string, time: string) => {
-  // Generate random stats based on input
   const baseDelay = Math.random() * 5;
   const isRushHour = time.startsWith("07") || time.startsWith("08") || time.startsWith("15") || time.startsWith("16");
   const multiplier = isRushHour ? 2.5 : 1.0;
-  
   return {
     avgDelay: (baseDelay * multiplier).toFixed(1),
     punctuality: Math.floor(100 - (baseDelay * multiplier * 5)),
     cancellations: Math.random() > 0.9 ? 1 : 0,
     trend: getWorstJourneyData().map(p => ({
       ...p,
-      delaySeconds: Math.max(0, p.delaySeconds * (Math.random() + 0.5)) // randomize slightly
+      delaySeconds: Math.max(0, p.delaySeconds * (Math.random() + 0.5))
     }))
   };
 };
@@ -140,4 +134,12 @@ export const getStopStats = (stopId: string) => {
       avgDelayAtStop: Math.floor(Math.random() * 5),
     })).sort((a, b) => b.avgDelayAtStop - a.avgDelayAtStop),
   };
+};
+
+export const getMapData = () => {
+  return STOPS.map(stop => ({
+    ...stop,
+    avgDelay: (Math.random() * 6).toFixed(1),
+    dataQuality: Math.floor(Math.random() * 40) + 60,
+  }));
 };
