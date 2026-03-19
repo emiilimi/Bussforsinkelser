@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Bus, BarChart3, AlertTriangle, Map, Clock, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRegion } from "@/lib/RegionContext";
+import { useRegion, REGION_LABEL, type Region } from "@/lib/RegionContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -10,10 +10,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
-    { href: "/map", label: "Delay Map", icon: MapIcon },
-    { href: "/stops", label: "Stop Analysis", icon: Map },
-    { href: "/worst", label: "Worst Lists", icon: AlertTriangle },
-    { href: "/journey", label: "Journey Check", icon: Clock },
+    { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
+    { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
+    { href: "/worst", label: "Topplister", icon: BarChart3 },
+    { href: "/journey", label: "Linjeanalyse", icon: Clock },
   ];
 
   return (
@@ -25,22 +25,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-tight leading-none text-primary">bussforsinkelser.no</h1>
-            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">Realtime Analysis</p>
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">Historisk statistikk</p>
           </div>
         </div>
 
         <div className="px-2 space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Current Region</label>
-          <Select value={region} onValueChange={(v: any) => setRegion(v)}>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Region</label>
+          <Select value={region} onValueChange={(v) => setRegion(v as Region)}>
             <SelectTrigger className="w-full h-9 bg-background/50 text-sm">
-              <SelectValue placeholder="Select County" />
+              <SelectValue placeholder="Velg region" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="vestland">Vestland</SelectItem>
-              <SelectItem value="viken">Viken</SelectItem>
-              <SelectItem value="oslo">Oslo</SelectItem>
-              <SelectItem value="rogaland">Rogaland</SelectItem>
-              <SelectItem value="trondelag">Trøndelag</SelectItem>
+              {(Object.entries(REGION_LABEL) as [Region, string][]).map(([key, label]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -52,8 +50,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link key={item.href} href={item.href}>
                 <a className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                  isActive 
-                    ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" 
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}>
                   <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
@@ -67,11 +65,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="mt-auto hidden md:block px-2">
           <div className="p-4 rounded-lg bg-muted/50 border border-border text-[10px] text-muted-foreground space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-semibold">Live Entur Data</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-semibold">Entur åpne data</span>
             </div>
-            <p>Processing last recorded Siri ET records.</p>
-            <p className="opacity-70">Unified Norwegian Dataset</p>
+            <p>Historiske SIRI ET-data. Oppdateres nightly.</p>
+            <p className="opacity-70">Kilde: ent-data-sharing-ext-prd</p>
           </div>
         </div>
       </aside>
