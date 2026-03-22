@@ -3,10 +3,11 @@ import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { MapPin, Search, Route } from "lucide-react";
-import { ResponsiveContainer, ComposedChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Line, ReferenceLine } from "recharts";
+import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Line, ReferenceLine, Legend } from "recharts";
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
@@ -33,12 +34,21 @@ type StopStatsResponse = {
   hourly: Array<{
     hour: number;
     avgDelayMin: number | null;
+    maxAvgDelayMin: number | null;
+    minAvgDelayMin: number | null;
     numSamples: number | null;
   }>;
 };
 
 type LineAtStop = {
   lineRef: string;
+  avgDelayMin: number | null;
+  numSamples: number | null;
+};
+
+type LineHourlyAtStop = {
+  lineRef: string;
+  hour: number;
   avgDelayMin: number | null;
   numSamples: number | null;
 };
@@ -63,25 +73,53 @@ function delayColor(delay: number | null) {
 // Page
 // ---------------------------------------------------------------------------
 
+// Custom hourly tooltip with max/min explanation
+function HourlyTooltip({ active, payload }: any) {
+  if (!active || !payload?.[0]) return null;
+  const d = payload[0].payload as { hour: string; avgDelay: number | null; maxAvgDelay: number | null; minAvgDelay: number | null; numSamples: number | null };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
+      <p className="font-medium">{d.hour}</p>
+      <div className="font-mono mt-1 space-y-0.5 text-xs">
+        <p className="text-orange-500">Snitt: {d.avgDelay != null ? `${d.avgDelay.toFixed(2)}m` : "—"}</p>
+        {d.maxAvgDelay != null && <p className="text-destructive">Verste dag: {d.maxAvgDelay.toFixed(2)}m</p>}
+        {d.minAvgDelay != null && <p className="text-emerald-500">Beste dag: {d.minAvgDelay.toFixed(2)}m</p>}
+      </div>
+      {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{d.numSamples} avganger totalt</p>}
+      <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">Verste/beste dag = høyeste/laveste dagsnitt for denne timen siste 30 dager</p>
+    </div>
+  );
+}
+
 export default function StopAnalysis() {
   const [, navigate] = useLocation();
   const { operator } = useRegion();
   const [query, setQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [direction, setDirection] = useState<"all" | "0" | "1">("all");
 
   const { data: searchResults = [] } = useQuery<SearchResult[]>({
     queryKey: [`/api/stops/search?q=${encodeURIComponent(query)}`],
     enabled: query.length >= 2,
   });
 
+  const stopStatsUrl = selectedStop
+    ? `/api/stop/${encodeURIComponent(selectedStop.ref)}?operator=${operator}${direction !== "all" ? `&direction=${direction}` : ""}`
+    : null;
+
   const { data: stats } = useQuery<StopStatsResponse>({
-    queryKey: [`/api/stop/${encodeURIComponent(selectedStop?.ref ?? "")}`],
-    enabled: selectedStop != null,
+    queryKey: [stopStatsUrl],
+    enabled: stopStatsUrl != null,
   });
 
   const { data: linesAtStop = [] } = useQuery<LineAtStop[]>({
     queryKey: [`/api/stop/${encodeURIComponent(selectedStop?.ref ?? "")}/lines`],
+    enabled: selectedStop != null,
+  });
+
+  const { data: lineHourlyRaw = [] } = useQuery<LineHourlyAtStop[]>({
+    queryKey: [`/api/stop/${encodeURIComponent(selectedStop?.ref ?? "")}/lines/hourly`],
     enabled: selectedStop != null,
   });
 
@@ -92,10 +130,20 @@ export default function StopAnalysis() {
     bandRange: ((r.maxDelayMin ?? r.avgDelayMin ?? 0) - (r.minDelayMin ?? r.avgDelayMin ?? 0)),
   }));
 
-  const hourlyData = (stats?.hourly ?? []).map((r) => ({
-    hour: `${r.hour}:00`,
-    avgDelay: r.avgDelayMin,
-  }));
+  const hourlyData = (stats?.hourly ?? []).map((r) => {
+    const avg = r.avgDelayMin ?? 0;
+    const max = r.maxAvgDelayMin ?? avg;
+    const min = r.minAvgDelayMin ?? avg;
+    return {
+      hour: `${r.hour}:00`,
+      avgDelay: r.avgDelayMin,
+      maxAvgDelay: r.maxAvgDelayMin,
+      minAvgDelay: r.minAvgDelayMin,
+      numSamples: r.numSamples,
+      bandBase: min,
+      bandRange: Math.max(0, max - min),
+    };
+  });
 
   const avgPctDelayed =
     stats && stats.daily.length > 0
@@ -104,6 +152,22 @@ export default function StopAnalysis() {
 
   // Max delay for relative bar width in lines list
   const maxLineDelay = linesAtStop.reduce((m, l) => Math.max(m, l.avgDelayMin ?? 0), 0.01);
+
+  // Pivot lineHourlyRaw into [{hour, "SKY:Line:6": 1.2, "SKY:Line:3": 0.8, ...}] for recharts
+  const LINE_COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4"];
+  const uniqueLines = Array.from(new Set(lineHourlyRaw.map((r) => r.lineRef))).slice(0, 7);
+  const lineHourlyPivot: Record<string, any>[] = [];
+  if (uniqueLines.length > 0) {
+    const hoursSet = new Set(lineHourlyRaw.map((r) => r.hour));
+    Array.from(hoursSet).sort((a, b) => a - b).forEach((h) => {
+      const row: Record<string, any> = { hour: `${h}:00` };
+      uniqueLines.forEach((lRef) => {
+        const match = lineHourlyRaw.find((r) => r.lineRef === lRef && r.hour === h);
+        row[lRef] = match?.avgDelayMin ?? null;
+      });
+      lineHourlyPivot.push(row);
+    });
+  }
 
   return (
     <Layout>
@@ -153,6 +217,23 @@ export default function StopAnalysis() {
                 stopRef={selectedStop?.ref}
               />
             )}
+
+            {/* Direction toggle — applies to hourly + historical charts */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Retning:</span>
+              {(["all", "0", "1"] as const).map((d) => (
+                <Button
+                  key={d}
+                  size="sm"
+                  variant={direction === d ? "default" : "outline"}
+                  onClick={() => setDirection(d)}
+                  className="h-7 px-3 text-xs"
+                >
+                  {d === "all" ? "Begge" : d === "0" ? "Retning 0 (utover)" : "Retning 1 (innover)"}
+                </Button>
+              ))}
+            </div>
+
             {/* ---- Stat cards ---- */}
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
@@ -220,25 +301,25 @@ export default function StopAnalysis() {
               <Card>
                 <CardHeader>
                   <CardTitle>Forsinkelse etter time på dagen</CardTitle>
-                  <CardDescription>Gjennomsnittlig forsinkelse per avgangstid ved {formatStopName(stats.stopName, stats.stopRef)} (siste 30 dager).</CardDescription>
+                  <CardDescription>
+                    Snittforsinkelse per time siste 30 dager. Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={hourlyData} margin={{ left: 0, right: 20 }}>
+                      <ComposedChart data={hourlyData} margin={{ left: 0, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                          formatter={(v: number) => [`${v.toFixed(2)}m`, "Snitt forsinkelse"]}
-                        />
-                        <Bar dataKey="avgDelay" radius={[4, 4, 0, 0]} barSize={20}>
-                          {hourlyData.map((entry, i) => (
-                            <Cell key={i} fill={delayColor(entry.avgDelay)} />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                        <Tooltip content={<HourlyTooltip />} />
+                        {/* Min-max band */}
+                        <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                        <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                        {/* Average line */}
+                        <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--destructive))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
+                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>
@@ -293,6 +374,47 @@ export default function StopAnalysis() {
                         </button>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ---- Multi-line hourly chart ---- */}
+            {lineHourlyPivot.length > 0 && uniqueLines.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Forsinkelse per linje etter time</CardTitle>
+                  <CardDescription>
+                    Gjennomsnittlig forsinkelse per time for hver linje ved {formatStopName(stats.stopName, stats.stopRef)} (siste 4 uker, fra reisedata).
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={lineHourlyPivot} margin={{ left: 0, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                          formatter={(v: number, name: string) => [`${v?.toFixed(2)}m`, lineDisplayName(name)]}
+                        />
+                        <Legend formatter={(v) => lineDisplayName(v)} />
+                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
+                        {uniqueLines.map((lRef, i) => (
+                          <Line
+                            key={lRef}
+                            type="monotone"
+                            dataKey={lRef}
+                            stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                            strokeWidth={2}
+                            dot={false}
+                            connectNulls
+                            isAnimationActive={false}
+                          />
+                        ))}
+                      </ComposedChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>

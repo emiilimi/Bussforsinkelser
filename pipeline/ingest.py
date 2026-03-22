@@ -224,7 +224,7 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
     if act.empty:
         return
     rows = []
-    for (stop_ref, vehicle_mode), grp in act.groupby(["stopPointRef", "vehicleMode"]):
+    for (stop_ref, vehicle_mode, direction_ref), grp in act.groupby(["stopPointRef", "vehicleMode", "directionRef"]):
         # Use the most common non-null stop name in the group.
         # Store NULL (not the ref) when SIRI ET has no name — lets the DB-side
         # COALESCE with stop_coords provide the proper NSR name instead.
@@ -235,6 +235,7 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
         rows.append((
             date_str,
             str(stop_ref),
+            str(direction_ref),
             str(vehicle_mode),
             OPERATOR,
             stop_name,  # None stays as SQL NULL (str(None) would give the string "None")
@@ -247,9 +248,9 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
     conn.executemany(
         """
         INSERT OR REPLACE INTO stop_daily
-            (date, stop_ref, vehicle_mode, operator, stop_name, avg_delay_min,
+            (date, stop_ref, direction_ref, vehicle_mode, operator, stop_name, avg_delay_min,
              max_delay_min, min_delay_min, pct_delayed_2plus, num_departures)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -263,10 +264,11 @@ def upsert_line_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     if act.empty:
         return
     rows = []
-    for (line_ref, hour), grp in act.groupby(["lineRef", "hour"]):
+    for (line_ref, direction_ref, hour), grp in act.groupby(["lineRef", "directionRef", "hour"]):
         rows.append((
             date_str,
             str(line_ref),
+            str(direction_ref),
             line_display_name(str(line_ref)),
             int(hour),
             round(grp["delay_min"].mean(), 2),
@@ -275,31 +277,41 @@ def upsert_line_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     conn.executemany(
         """
         INSERT OR REPLACE INTO line_hourly_raw
-            (date, line_ref, line_name, hour, avg_delay_min, num_samples)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (date, line_ref, direction_ref, line_name, hour, avg_delay_min, num_samples)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
 
 
 def refresh_line_hourly_profile(conn: sqlite3.Connection) -> None:
-    """Rebuild 30-day rolling hourly profile from raw daily buckets."""
+    """Rebuild 30-day rolling hourly profile from raw daily buckets.
+
+    avg_delay_min  = weighted average across all samples in the window.
+    max_avg_delay_min = worst single-day average for this (line, dir, hour) over 30 days.
+    min_avg_delay_min = best single-day average for this (line, dir, hour) over 30 days.
+    """
     conn.execute("DELETE FROM line_hourly_profile")
     conn.execute(
         """
-        INSERT INTO line_hourly_profile (line_ref, line_name, hour, avg_delay_min, num_samples)
+        INSERT INTO line_hourly_profile
+            (line_ref, direction_ref, line_name, hour,
+             avg_delay_min, max_avg_delay_min, min_avg_delay_min, num_samples)
         SELECT
             line_ref,
+            direction_ref,
             line_name,
             hour,
             ROUND(
                 SUM(avg_delay_min * num_samples) * 1.0 / SUM(num_samples),
                 2
             ) AS avg_delay_min,
+            ROUND(MAX(avg_delay_min), 2) AS max_avg_delay_min,
+            ROUND(MIN(avg_delay_min), 2) AS min_avg_delay_min,
             SUM(num_samples) AS num_samples
         FROM line_hourly_raw
         WHERE date >= date('now', '-30 days')
-        GROUP BY line_ref, line_name, hour
+        GROUP BY line_ref, direction_ref, line_name, hour
         """
     )
 
@@ -311,11 +323,12 @@ def upsert_stop_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     if act.empty:
         return
     rows = []
-    for (stop_ref, hour), grp in act.groupby(["stopPointRef", "hour"]):
+    for (stop_ref, hour, direction_ref), grp in act.groupby(["stopPointRef", "hour", "directionRef"]):
         rows.append((
             date_str,
             str(stop_ref),
             int(hour),
+            str(direction_ref),
             OPERATOR,
             round(grp["delay_min"].mean(), 2),
             len(grp),
@@ -323,31 +336,41 @@ def upsert_stop_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     conn.executemany(
         """
         INSERT OR REPLACE INTO stop_hourly_raw
-            (date, stop_ref, hour, operator, avg_delay_min, num_samples)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (date, stop_ref, hour, direction_ref, operator, avg_delay_min, num_samples)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
 
 
 def refresh_stop_hourly_profile(conn: sqlite3.Connection) -> None:
-    """Rebuild 30-day rolling hourly profile per stop from raw daily buckets."""
+    """Rebuild 30-day rolling hourly profile per stop from raw daily buckets.
+
+    avg_delay_min  = weighted average across all samples in the window.
+    max_avg_delay_min = worst single-day average for this (stop, dir, hour) over 30 days.
+    min_avg_delay_min = best single-day average for this (stop, dir, hour) over 30 days.
+    """
     conn.execute("DELETE FROM stop_hourly_profile")
     conn.execute(
         """
-        INSERT INTO stop_hourly_profile (stop_ref, hour, operator, avg_delay_min, num_samples)
+        INSERT INTO stop_hourly_profile
+            (stop_ref, hour, direction_ref, operator,
+             avg_delay_min, max_avg_delay_min, min_avg_delay_min, num_samples)
         SELECT
             stop_ref,
             hour,
+            direction_ref,
             operator,
             ROUND(
                 SUM(avg_delay_min * num_samples) * 1.0 / SUM(num_samples),
                 2
             ) AS avg_delay_min,
+            ROUND(MAX(avg_delay_min), 2) AS max_avg_delay_min,
+            ROUND(MIN(avg_delay_min), 2) AS min_avg_delay_min,
             SUM(num_samples) AS num_samples
         FROM stop_hourly_raw
         WHERE date >= date('now', '-30 days')
-        GROUP BY stop_ref, hour, operator
+        GROUP BY stop_ref, hour, direction_ref, operator
         """
     )
 

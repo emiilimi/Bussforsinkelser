@@ -23,6 +23,7 @@ import {
   getJourneyProfile,
   getWorstStopsForLine,
   getLinesAtStop,
+  getLineHourlyAtStop,
   getDataQuality,
 } from "./storage";
 
@@ -104,15 +105,17 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/line/:lineref?days=30
+   * GET /api/line/:lineref?days=30&direction=all|0|1
    * Stats for one line: daily trend + hourly profile.
+   * direction: 'all' (default) aggregates both, '0' = outbound only, '1' = inbound only.
    */
   app.get("/api/line/:lineref", async (req, res) => {
     const lineRef = req.params.lineref;
     const days = Math.min(Number(req.query.days) || 30, 365);
+    const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const [daily, hourly] = await Promise.all([
-      getLineStats(lineRef, daysAgoIso(days)),
-      getLineHourlyProfile(lineRef),
+      getLineStats(lineRef, daysAgoIso(days), direction),
+      getLineHourlyProfile(lineRef, direction),
     ]);
     if (daily.length === 0 && hourly.length === 0) {
       return res.status(404).json({ message: "Linje ikke funnet" });
@@ -163,16 +166,18 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/stop/:stopref?days=30&operator=SKY
+   * GET /api/stop/:stopref?days=30&operator=SKY&direction=all|0|1
    * Stats for one stop: daily trend + hourly profile.
+   * direction: 'all' (default) aggregates both directions, '0' = outbound, '1' = inbound.
    */
   app.get("/api/stop/:stopref", async (req, res) => {
     const stopRef = req.params.stopref;
     const days = Math.min(Number(req.query.days) || 30, 365);
     const operator = parseOperator(req.query.operator);
+    const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const [rows, hourly] = await Promise.all([
-      getStopStats(stopRef, daysAgoIso(days), operator),
-      getStopHourlyProfile(stopRef, operator),
+      getStopStats(stopRef, daysAgoIso(days), operator, direction),
+      getStopHourlyProfile(stopRef, operator, direction),
     ]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Stoppested ikke funnet" });
@@ -200,6 +205,18 @@ export async function registerRoutes(
     const stopRef = req.params.stopref;
     const weeks = Math.min(Number(req.query.weeks) || 4, 13);
     const rows = await getLinesAtStop(stopRef, daysAgoIso(weeks * 7));
+    return res.json(rows);
+  });
+
+  /**
+   * GET /api/stop/:stopref/lines/hourly?weeks=4
+   * Hourly delay profile per line at a given stop (from journey_stop_weekly).
+   * Returns one row per (lineRef, hour) with weighted average delay.
+   */
+  app.get("/api/stop/:stopref/lines/hourly", async (req, res) => {
+    const stopRef = req.params.stopref;
+    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
+    const rows = await getLineHourlyAtStop(stopRef, daysAgoIso(weeks * 7));
     return res.json(rows);
   });
 

@@ -4,3 +4,29 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Database and local data cache
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/stop_coords.json
+
+# Python pipeline
+pipeline/__pycache__/
+pipeline/*.pyc
+.venv/
+
+# GCP credentials – ALDRI commit denne filen
+gcp-credentials.json
+service-account*.json
+
+# Env
+.env
+.env.local
+
+# Claude memory / project context (local only)
+.claude/
+
+# Stray directories that don't belong in the repo
+Skrivebord/
+emiliesBussprosjekt/

@@ -51,13 +51,15 @@ CREATE TABLE IF NOT EXISTS line_daily (
     PRIMARY KEY (date, line_ref, direction_ref, vehicle_mode)
 );
 
--- One row per stop per vehicle mode per operator per calendar date.
+-- One row per stop per direction per vehicle mode per operator per calendar date.
+-- direction_ref: '0' = outbound, '1' = inbound (Entur convention, relative to route).
 -- operator IS a separate column here because stop_ref (NSR:Quay:xxxxx)
 --   is operator-agnostic: the same physical stop can be served by both
 --   SKY and RUT buses, and their stats must be stored independently.
 CREATE TABLE IF NOT EXISTS stop_daily (
     date              TEXT    NOT NULL,
     stop_ref          TEXT    NOT NULL,
+    direction_ref     TEXT    NOT NULL DEFAULT '0',
     vehicle_mode      TEXT    NOT NULL DEFAULT 'bus',
     operator          TEXT    NOT NULL DEFAULT 'SKY',
     stop_name         TEXT,
@@ -66,53 +68,65 @@ CREATE TABLE IF NOT EXISTS stop_daily (
     min_delay_min     REAL,
     pct_delayed_2plus REAL,
     num_departures    INTEGER,
-    PRIMARY KEY (date, stop_ref, vehicle_mode, operator)
+    PRIMARY KEY (date, stop_ref, direction_ref, vehicle_mode, operator)
 );
 
--- Raw hourly buckets per line per day (aggregated across directions).
+-- Raw hourly buckets per line per direction per day.
 -- operator embedded in line_ref — no separate column needed.
 -- Used to rebuild the 30-day rolling hourly profile each night.
 CREATE TABLE IF NOT EXISTS line_hourly_raw (
     date          TEXT    NOT NULL,
     line_ref      TEXT    NOT NULL,
+    direction_ref TEXT    NOT NULL DEFAULT '0',
     line_name     TEXT,
     hour          INTEGER NOT NULL,
     avg_delay_min REAL,
     num_samples   INTEGER,
-    PRIMARY KEY (date, line_ref, hour)
+    PRIMARY KEY (date, line_ref, direction_ref, hour)
 );
 
--- 30-day rolling average delay per line per hour-of-day (rebuilt nightly).
+-- 30-day rolling average delay per line per direction per hour-of-day (rebuilt nightly).
+-- max_avg_delay_min / min_avg_delay_min: worst/best single-day average for that hour
+--   over the 30-day window — shows the range of typical variation.
 -- operator embedded in line_ref.
 CREATE TABLE IF NOT EXISTS line_hourly_profile (
-    line_ref      TEXT    NOT NULL,
-    line_name     TEXT,
-    hour          INTEGER NOT NULL,
-    avg_delay_min REAL,
-    num_samples   INTEGER,
-    PRIMARY KEY (line_ref, hour)
+    line_ref          TEXT    NOT NULL,
+    direction_ref     TEXT    NOT NULL DEFAULT '0',
+    line_name         TEXT,
+    hour              INTEGER NOT NULL,
+    avg_delay_min     REAL,
+    max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
+    min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
+    num_samples       INTEGER,
+    PRIMARY KEY (line_ref, direction_ref, hour)
 );
 
--- Raw hourly buckets per stop per day (bus only).
+-- Raw hourly buckets per stop per direction per day (bus only).
 -- operator IS a separate column (NSR stop refs are operator-agnostic).
 CREATE TABLE IF NOT EXISTS stop_hourly_raw (
     date          TEXT    NOT NULL,
     stop_ref      TEXT    NOT NULL,
     hour          INTEGER NOT NULL,
+    direction_ref TEXT    NOT NULL DEFAULT '0',
     operator      TEXT    NOT NULL DEFAULT 'SKY',
     avg_delay_min REAL,
     num_samples   INTEGER,
-    PRIMARY KEY (date, stop_ref, hour, operator)
+    PRIMARY KEY (date, stop_ref, hour, direction_ref, operator)
 );
 
--- 30-day rolling average delay per stop per hour-of-day (rebuilt nightly, bus only).
+-- 30-day rolling average delay per stop per direction per hour-of-day (rebuilt nightly, bus only).
+-- max_avg_delay_min / min_avg_delay_min: worst/best single-day average for that hour
+--   over the 30-day window — shows the range of typical variation.
 CREATE TABLE IF NOT EXISTS stop_hourly_profile (
-    stop_ref      TEXT    NOT NULL,
-    hour          INTEGER NOT NULL,
-    operator      TEXT    NOT NULL DEFAULT 'SKY',
-    avg_delay_min REAL,
-    num_samples   INTEGER,
-    PRIMARY KEY (stop_ref, hour, operator)
+    stop_ref          TEXT    NOT NULL,
+    hour              INTEGER NOT NULL,
+    direction_ref     TEXT    NOT NULL DEFAULT '0',
+    operator          TEXT    NOT NULL DEFAULT 'SKY',
+    avg_delay_min     REAL,
+    max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
+    min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
+    num_samples       INTEGER,
+    PRIMARY KEY (stop_ref, hour, direction_ref, operator)
 );
 
 -- All-time line leaderboard (rebuilt nightly, bus only, aggregated across directions).

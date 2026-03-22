@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useSearch } from "wouter";
 import { Search, Clock, CheckCircle, AlertCircle, ChevronsUpDown, Check, MapPin, ArrowRight } from "lucide-react";
 import { cn, formatStopName } from "@/lib/utils";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, Area, ComposedChart, Line, ReferenceLine } from "recharts";
+import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Area, ComposedChart, Line, ReferenceLine } from "recharts";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 
@@ -33,8 +33,11 @@ type LineDaily = {
 
 type HourlyProfile = {
   lineRef: string;
+  directionRef?: string;
   hour: number;
   avgDelayMin: number | null;
+  maxAvgDelayMin: number | null;
+  minAvgDelayMin: number | null;
   numSamples: number | null;
 };
 
@@ -77,6 +80,23 @@ function delayColor(delay: number | null) {
   return "hsl(var(--primary))";
 }
 
+function HourlyTooltip({ active, payload }: any) {
+  if (!active || !payload?.[0]) return null;
+  const d = payload[0].payload as { hour: string; avgDelay: number | null; maxAvgDelay: number | null; minAvgDelay: number | null; numSamples: number | null };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
+      <p className="font-medium">{d.hour}</p>
+      <div className="font-mono mt-1 space-y-0.5 text-xs">
+        <p className="text-orange-500">Snitt: {d.avgDelay != null ? `${d.avgDelay.toFixed(2)}m` : "—"}</p>
+        {d.maxAvgDelay != null && <p className="text-destructive">Verste dag: {d.maxAvgDelay.toFixed(2)}m</p>}
+        {d.minAvgDelay != null && <p className="text-emerald-500">Beste dag: {d.minAvgDelay.toFixed(2)}m</p>}
+      </div>
+      {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{d.numSamples} avganger totalt</p>}
+      <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">Verste/beste dag = høyeste/laveste dagsnitt for denne timen siste 30 dager</p>
+    </div>
+  );
+}
+
 function ProfileTooltip({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload as JourneyStop & { label: string };
@@ -104,6 +124,9 @@ export default function JourneyDetails() {
   const { region, operator } = useRegion();
   const search = useSearch();
 
+  // Direction filter for stats charts ('all' = both directions aggregated)
+  const [direction, setDirection] = useState<"all" | "0" | "1">("all");
+
   // Line picker state
   const [lineOpen, setLineOpen] = useState(false);
   const [selectedLine, setSelectedLine] = useState<string>("");
@@ -128,9 +151,13 @@ export default function JourneyDetails() {
     queryKey: [`/api/lines/all?operator=${operator}`],
   });
 
+  const lineStatsUrl = fetchedLine
+    ? `/api/line/${encodeURIComponent(fetchedLine)}${direction !== "all" ? `?direction=${direction}` : ""}`
+    : null;
+
   const { data: lineStats } = useQuery<LineStatsResponse>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}`],
-    enabled: fetchedLine.length > 0,
+    queryKey: [lineStatsUrl],
+    enabled: lineStatsUrl != null,
   });
 
   const { data: journeys = [] } = useQuery<JourneyEntry[]>({
@@ -169,10 +196,21 @@ export default function JourneyDetails() {
     ? daily.reduce((s, r) => s + (r.pctDelayed10plus ?? 0), 0) / daily.length
     : null;
 
-  const hourlyData = (lineStats?.hourly ?? []).map((r) => ({
-    hour: `${r.hour}:00`,
-    avgDelay: r.avgDelayMin,
-  }));
+  const hourlyData = (lineStats?.hourly ?? []).map((r) => {
+    const avg = r.avgDelayMin ?? 0;
+    const max = r.maxAvgDelayMin ?? avg;
+    const min = r.minAvgDelayMin ?? avg;
+    return {
+      hour: `${r.hour}:00`,
+      avgDelay: r.avgDelayMin,
+      maxAvgDelay: r.maxAvgDelayMin,
+      minAvgDelay: r.minAvgDelayMin,
+      numSamples: r.numSamples,
+      // stacked area band: transparent base from 0 to min, then fill from min to max
+      bandBase: min,
+      bandRange: Math.max(0, max - min),
+    };
+  });
 
   const trendData = daily.map((r) => ({
     date: r.date.slice(5),
@@ -282,6 +320,23 @@ export default function JourneyDetails() {
                 lineRef={fetchedLine}
               />
             )}
+
+            {/* Direction toggle — applies to hourly + historical charts */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Retning:</span>
+              {(["all", "0", "1"] as const).map((d) => (
+                <Button
+                  key={d}
+                  size="sm"
+                  variant={direction === d ? "default" : "outline"}
+                  onClick={() => setDirection(d)}
+                  className="h-7 px-3 text-xs"
+                >
+                  {d === "all" ? "Begge" : d === "0" ? "Retning 0 (utover)" : "Retning 1 (innover)"}
+                </Button>
+              ))}
+            </div>
+
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -325,25 +380,25 @@ export default function JourneyDetails() {
               <Card>
                 <CardHeader>
                   <CardTitle>Forsinkelse etter time på dagen</CardTitle>
-                  <CardDescription>Gjennomsnittlig forsinkelse per avgangstid (siste 30 dager).</CardDescription>
+                  <CardDescription>
+                    Snittforsinkelse per time siste 30 dager. Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={hourlyData} margin={{ left: 0, right: 20 }}>
+                      <ComposedChart data={hourlyData} margin={{ left: 0, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                          formatter={(v: number) => [`${v.toFixed(2)}m`, "Snitt forsinkelse"]}
-                        />
-                        <Bar dataKey="avgDelay" radius={[4, 4, 0, 0]} barSize={20}>
-                          {hourlyData.map((entry, i) => (
-                            <Cell key={i} fill={delayColor(entry.avgDelay)} />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                        <Tooltip content={<HourlyTooltip />} />
+                        {/* Min-max band: transparent base + shaded range */}
+                        <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                        <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                        {/* Average line */}
+                        <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
+                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>

@@ -54,6 +54,8 @@ export const stopDaily = sqliteTable(
   {
     date: text("date").notNull(),
     stopRef: text("stop_ref").notNull(),
+    // '0' = outbound, '1' = inbound (Entur convention, relative to route).
+    directionRef: text("direction_ref").notNull().default("0"),
     // 'bus', 'tram', 'water' — in PK so bus/tram at same stop are separate rows.
     vehicleMode: text("vehicle_mode").notNull().default("bus"),
     // operator IS a separate column: NSR stop refs are operator-agnostic.
@@ -67,7 +69,7 @@ export const stopDaily = sqliteTable(
     numDepartures: integer("num_departures"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.stopRef, table.vehicleMode, table.operator] }),
+    pk: primaryKey({ columns: [table.date, table.stopRef, table.directionRef, table.vehicleMode, table.operator] }),
   }),
 );
 
@@ -76,13 +78,14 @@ export const lineHourlyRaw = sqliteTable(
   {
     date: text("date").notNull(),
     lineRef: text("line_ref").notNull(),
+    directionRef: text("direction_ref").notNull().default("0"),
     lineName: text("line_name"),
     hour: integer("hour").notNull(),
     avgDelayMin: real("avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.lineRef, table.hour] }),
+    pk: primaryKey({ columns: [table.date, table.lineRef, table.directionRef, table.hour] }),
   }),
 );
 
@@ -90,13 +93,17 @@ export const lineHourlyProfile = sqliteTable(
   "line_hourly_profile",
   {
     lineRef: text("line_ref").notNull(),
+    directionRef: text("direction_ref").notNull().default("0"),
     lineName: text("line_name"),
     hour: integer("hour").notNull(),
     avgDelayMin: real("avg_delay_min"),
+    // worst/best single-day average for this hour over the 30-day window
+    maxAvgDelayMin: real("max_avg_delay_min"),
+    minAvgDelayMin: real("min_avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.lineRef, table.hour] }),
+    pk: primaryKey({ columns: [table.lineRef, table.directionRef, table.hour] }),
   }),
 );
 
@@ -106,13 +113,14 @@ export const stopHourlyRaw = sqliteTable(
     date: text("date").notNull(),
     stopRef: text("stop_ref").notNull(),
     hour: integer("hour").notNull(),
+    directionRef: text("direction_ref").notNull().default("0"),
     // operator is separate: same NSR stop can be served by multiple operators.
     operator: text("operator").notNull().default("SKY"),
     avgDelayMin: real("avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.stopRef, table.hour, table.operator] }),
+    pk: primaryKey({ columns: [table.date, table.stopRef, table.hour, table.directionRef, table.operator] }),
   }),
 );
 
@@ -121,12 +129,16 @@ export const stopHourlyProfile = sqliteTable(
   {
     stopRef: text("stop_ref").notNull(),
     hour: integer("hour").notNull(),
+    directionRef: text("direction_ref").notNull().default("0"),
     operator: text("operator").notNull().default("SKY"),
     avgDelayMin: real("avg_delay_min"),
+    // worst/best single-day average for this hour over the 30-day window
+    maxAvgDelayMin: real("max_avg_delay_min"),
+    minAvgDelayMin: real("min_avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.stopRef, table.hour, table.operator] }),
+    pk: primaryKey({ columns: [table.stopRef, table.hour, table.directionRef, table.operator] }),
   }),
 );
 
