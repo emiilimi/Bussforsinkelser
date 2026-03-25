@@ -1,0 +1,1804 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:12.212</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Husavik - Sandvikvåg</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3917258">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3917246">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3917259">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1023-1">
+              <Name>Husavik ferjekai-Sandvikvåg ferjekai, til Husavik</Name>
+              <ShortName>Husavik ferjekai-Sandvikvåg ferjekai, til Husavik</ShortName>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917247">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50273"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917248">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52112"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1023-2">
+              <Name>Sandvikvåg ferjekai, til Husavik-Husavik ferjekai</Name>
+              <ShortName>Sandvikvåg ferjekai, til Husavik-Husavik ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917249">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52112"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917250">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50273"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1023">
+              <Name>Husavik - Sandvikvåg</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1023</PublicCode>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1023-1">
+              <Name>Husavik ferjekai-Sandvikvåg ferjekai, til Husavik</Name>
+              <RouteRef ref="SKY:Route:1023-1" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1023-1-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50273"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9251"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1023-1-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52112"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917251">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50273-52112"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1023-2">
+              <Name>Sandvikvåg ferjekai, til Husavik-Husavik ferjekai</Name>
+              <RouteRef ref="SKY:Route:1023-2" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1023-2-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52112"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9250"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1023-2-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50273"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917253">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52112-50273"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3917260">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137007">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>590</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137007-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137007-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136984">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>592</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136984-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136984-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136985">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>594</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136985-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136985-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136986">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>596</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136986-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136986-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136987">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>598</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136987-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136987-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136988">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>600</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136988-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136988-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136989">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>602</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136989-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136989-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136990">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>604</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136990-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136990-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136991">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>606</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136991-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136991-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136992">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>608</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136992-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136992-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136993">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>610</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136993-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136993-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136994">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>612</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136994-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136994-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137008">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>614</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137008-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137008-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137111">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137111-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137111-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137112">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137112-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137112-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137113">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137113-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137113-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137114">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137114-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137114-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137115">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137115-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137115-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137116">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137116-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137116-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137117">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137117-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137117-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137127">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137127-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137127-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137128">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137128-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137128-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137238">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137238-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137238-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137239">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137239-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137239-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137240">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137240-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137240-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137241">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137241-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137241-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137242">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137242-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137242-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137243">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137243-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137243-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137244">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137244-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137244-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137245">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137245-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137245-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137246">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137246-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137246-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137247">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137247-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137247-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153273">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153273-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153273-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153274">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153274-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153274-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153275">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153275-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153275-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153276">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153276-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153276-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153277">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153277-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153277-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153278">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153278-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153278-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153279">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153279-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153279-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153280">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153280-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153280-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153281">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153281-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153281-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153282">
+              <Name>Sandvikvåg</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153282-50273-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153282-52112-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136995">
+              <Name>Husavik</Name>
+              <PrivateCode>591</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136995-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136995-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136996">
+              <Name>Husavik</Name>
+              <PrivateCode>593</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136996-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136996-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136997">
+              <Name>Husavik</Name>
+              <PrivateCode>595</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136997-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136997-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136998">
+              <Name>Husavik</Name>
+              <PrivateCode>597</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136998-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136998-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15136999">
+              <Name>Husavik</Name>
+              <PrivateCode>599</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136999-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15136999-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137000">
+              <Name>Husavik</Name>
+              <PrivateCode>601</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137000-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137000-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137001">
+              <Name>Husavik</Name>
+              <PrivateCode>603</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137001-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137001-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137002">
+              <Name>Husavik</Name>
+              <PrivateCode>605</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137002-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137002-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137003">
+              <Name>Husavik</Name>
+              <PrivateCode>607</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137003-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137003-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137004">
+              <Name>Husavik</Name>
+              <PrivateCode>609</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137004-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137004-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137005">
+              <Name>Husavik</Name>
+              <PrivateCode>611</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137005-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137005-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137006">
+              <Name>Husavik</Name>
+              <PrivateCode>613</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137006-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137006-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167776-15137009">
+              <Name>Husavik</Name>
+              <PrivateCode>615</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137009-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167776-15137009-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137118">
+              <Name>Husavik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137118-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137118-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137119">
+              <Name>Husavik</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137119-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137119-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137120">
+              <Name>Husavik</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137120-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137120-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137122">
+              <Name>Husavik</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137122-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137122-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137123">
+              <Name>Husavik</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137123-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137123-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137121">
+              <Name>Husavik</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137121-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137121-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137124">
+              <Name>Husavik</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137124-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137124-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137125">
+              <Name>Husavik</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137125-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137125-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-167786-15137126">
+              <Name>Husavik</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137126-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-167786-15137126-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137248">
+              <Name>Husavik</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137248-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137248-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137249">
+              <Name>Husavik</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137249-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137249-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137250">
+              <Name>Husavik</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137250-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137250-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137251">
+              <Name>Husavik</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137251-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137251-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137252">
+              <Name>Husavik</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137252-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137252-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137253">
+              <Name>Husavik</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137253-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137253-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137254">
+              <Name>Husavik</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137254-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137254-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137255">
+              <Name>Husavik</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137255-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137255-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137256">
+              <Name>Husavik</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137256-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137256-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179138-15137257">
+              <Name>Husavik</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137257-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179138-15137257-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153283">
+              <Name>Husavik</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153283-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153283-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153284">
+              <Name>Husavik</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153284-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153284-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153285">
+              <Name>Husavik</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153285-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153285-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153286">
+              <Name>Husavik</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153286-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153286-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153287">
+              <Name>Husavik</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153287-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153287-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153288">
+              <Name>Husavik</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153288-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153288-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153289">
+              <Name>Husavik</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153289-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153289-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153290">
+              <Name>Husavik</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153290-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153290-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153291">
+              <Name>Husavik</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153291-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153291-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1023-179144-17153292">
+              <Name>Husavik</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1023-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1023" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153292-52112-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1023-179144-17153292-50273-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1023-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

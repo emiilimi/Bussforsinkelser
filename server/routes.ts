@@ -22,6 +22,7 @@ import {
   getJourneysForLine,
   getJourneyProfile,
   getWorstStopsForLine,
+  getLineStopProfile,
   getLinesAtStop,
   getLineHourlyAtStop,
   getDataQuality,
@@ -147,6 +148,19 @@ export async function registerRoutes(
   });
 
   /**
+   * GET /api/line/:lineref/stop-profile?direction=0|1&weeks=4
+   * All stops on a line in route order with avg/max/min delay.
+   * direction defaults to '0'. Route order is direction-specific.
+   */
+  app.get("/api/line/:lineref/stop-profile", async (req, res) => {
+    const lineRef = req.params.lineref;
+    const direction = typeof req.query.direction === "string" ? req.query.direction : "0";
+    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
+    const rows = await getLineStopProfile(lineRef, direction, daysAgoIso(weeks * 7));
+    return res.json(rows);
+  });
+
+  /**
    * GET /api/journey?line=SKY:Line:6&dir=0&time=05:48
    * Delay profile at each stop, aggregated across all dated variants of this
    * logical journey (identified by line + direction + first-stop departure time).
@@ -177,7 +191,7 @@ export async function registerRoutes(
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const [rows, hourly] = await Promise.all([
       getStopStats(stopRef, daysAgoIso(days), operator, direction),
-      getStopHourlyProfile(stopRef, operator, direction),
+      getStopHourlyProfile(stopRef, operator, direction).catch(() => []),
     ]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Stoppested ikke funnet" });
@@ -228,7 +242,18 @@ export async function registerRoutes(
     const q = String(req.query.q ?? "").trim();
     if (q.length < 2) return res.json([]);
     const rows = await searchStops(q, 20);
-    return res.json(rows);
+    return res.json(rows.map((r) => ({
+      stopRef: r.stopRef,
+      stopName: r.stopName,
+      platformCodes: r.platformCodes,
+      // Parse "NSR:Quay:53114|J,NSR:Quay:53115|F" → [{stopRef, platformCode}]
+      quays: r.quayData
+        ? r.quayData.split(",").map((s) => {
+            const idx = s.lastIndexOf("|");
+            return { stopRef: s.slice(0, idx), platformCode: s.slice(idx + 1) };
+          }).filter((q) => q.platformCode)
+        : [],
+    })));
   });
 
   /**

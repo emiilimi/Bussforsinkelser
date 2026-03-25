@@ -86,7 +86,7 @@ def fetch_day(client: bigquery.Client, target_date: date) -> pd.DataFrame:
         AND dataSource = '{OPERATOR}'
     """
     log.info("Querying BigQuery for %s (all modes) …", target_date)
-    df = client.query(query).to_dataframe()
+    df = client.query(query).to_dataframe(create_bqstorage_client=False)
     log.info("  Received %s rows", f"{len(df):,}")
     return df
 

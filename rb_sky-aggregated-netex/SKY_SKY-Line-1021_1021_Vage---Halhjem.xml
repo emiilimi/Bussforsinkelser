@@ -1,0 +1,1964 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:05.527</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Våge - Halhjem</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3915621">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3915609">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3915622">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1021-10">
+              <Name>Våge ferjekai-Halhjem ferjekai, til Våge</Name>
+              <ShortName>Våge ferjekai-Halhjem ferjekai, til Våge</ShortName>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915610">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52371"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915611">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49976"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1021-11">
+              <Name>Halhjem ferjekai, til Våge-Våge ferjekai</Name>
+              <ShortName>Halhjem ferjekai, til Våge-Våge ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915612">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49976"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915613">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52371"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1021">
+              <Name>Våge - Halhjem</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1021</PublicCode>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1021-10">
+              <Name>Våge ferjekai-Halhjem ferjekai, til Våge</Name>
+              <RouteRef ref="SKY:Route:1021-10" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1021-10-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52371"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9240"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1021-10-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49976"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915614">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52371-49976"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1021-11">
+              <Name>Halhjem ferjekai, til Våge-Våge ferjekai</Name>
+              <RouteRef ref="SKY:Route:1021-11" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1021-11-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49976"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9241"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1021-11-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52371"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915616">
+                  <ServiceLinkRef ref="SKY:ServiceLink:49976-52371"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3915623">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136916">
+              <Name>Halhjem</Name>
+              <PrivateCode>520</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136916-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136916-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136917">
+              <Name>Halhjem</Name>
+              <PrivateCode>522</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136917-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136917-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136918">
+              <Name>Halhjem</Name>
+              <PrivateCode>524</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136918-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136918-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136919">
+              <Name>Halhjem</Name>
+              <PrivateCode>526</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136919-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136919-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136923">
+              <Name>Halhjem</Name>
+              <PrivateCode>528</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136923-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136923-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136924">
+              <Name>Halhjem</Name>
+              <PrivateCode>530</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136924-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136924-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136925">
+              <Name>Halhjem</Name>
+              <PrivateCode>534</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136925-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136925-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136926">
+              <Name>Halhjem</Name>
+              <PrivateCode>536</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136926-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136926-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136927">
+              <Name>Halhjem</Name>
+              <PrivateCode>538</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136927-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136927-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136928">
+              <Name>Halhjem</Name>
+              <PrivateCode>540</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136928-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136928-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136929">
+              <Name>Halhjem</Name>
+              <PrivateCode>542</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136929-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136929-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136930">
+              <Name>Halhjem</Name>
+              <PrivateCode>544</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136930-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136930-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137061">
+              <Name>Halhjem</Name>
+              <PrivateCode>520</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137061-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137061-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137062">
+              <Name>Halhjem</Name>
+              <PrivateCode>522</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137062-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137062-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137063">
+              <Name>Halhjem</Name>
+              <PrivateCode>524</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137063-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137063-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137064">
+              <Name>Halhjem</Name>
+              <PrivateCode>526</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137064-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137064-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137068">
+              <Name>Halhjem</Name>
+              <PrivateCode>528</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137068-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137068-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137069">
+              <Name>Halhjem</Name>
+              <PrivateCode>532</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137069-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137069-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137070">
+              <Name>Halhjem</Name>
+              <PrivateCode>534</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137070-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137070-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137071">
+              <Name>Halhjem</Name>
+              <PrivateCode>536</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137071-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137071-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137072">
+              <Name>Halhjem</Name>
+              <PrivateCode>538</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137072-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137072-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137073">
+              <Name>Halhjem</Name>
+              <PrivateCode>540</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137073-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137073-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137074">
+              <Name>Halhjem</Name>
+              <PrivateCode>542</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137074-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137074-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137075">
+              <Name>Halhjem</Name>
+              <PrivateCode>544</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137075-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137075-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137182">
+              <Name>Halhjem</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137182-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137182-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137183">
+              <Name>Halhjem</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137183-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137183-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137184">
+              <Name>Halhjem</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137184-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137184-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137185">
+              <Name>Halhjem</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137185-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137185-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137186">
+              <Name>Halhjem</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137186-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137186-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137187">
+              <Name>Halhjem</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137187-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137187-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137188">
+              <Name>Halhjem</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137188-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137188-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137189">
+              <Name>Halhjem</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137189-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137189-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137190">
+              <Name>Halhjem</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137190-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137190-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137191">
+              <Name>Halhjem</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137191-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137191-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137192">
+              <Name>Halhjem</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137192-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137192-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153293">
+              <Name>Halhjem</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153293-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153293-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153294">
+              <Name>Halhjem</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153294-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153294-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153295">
+              <Name>Halhjem</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153295-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153295-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153296">
+              <Name>Halhjem</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153296-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153296-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153297">
+              <Name>Halhjem</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153297-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153297-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153298">
+              <Name>Halhjem</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153298-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153298-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153299">
+              <Name>Halhjem</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153299-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153299-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153400">
+              <Name>Halhjem</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153400-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153400-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153401">
+              <Name>Halhjem</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153401-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153401-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153402">
+              <Name>Halhjem</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153402-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153402-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153403">
+              <Name>Halhjem</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153403-52371-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153403-49976-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136920">
+              <Name>Våge</Name>
+              <PrivateCode>521</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136920-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136920-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136921">
+              <Name>Våge</Name>
+              <PrivateCode>523</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136921-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136921-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136922">
+              <Name>Våge</Name>
+              <PrivateCode>525</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136922-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136922-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136931">
+              <Name>Våge</Name>
+              <PrivateCode>527</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136931-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136931-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136932">
+              <Name>Våge</Name>
+              <PrivateCode>529</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136932-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136932-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136933">
+              <Name>Våge</Name>
+              <PrivateCode>533</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136933-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136933-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136934">
+              <Name>Våge</Name>
+              <PrivateCode>535</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136934-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136934-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136935">
+              <Name>Våge</Name>
+              <PrivateCode>537</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136935-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136935-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136936">
+              <Name>Våge</Name>
+              <PrivateCode>539</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136936-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136936-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136937">
+              <Name>Våge</Name>
+              <PrivateCode>541</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136937-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136937-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136938">
+              <Name>Våge</Name>
+              <PrivateCode>543</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136938-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136938-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167776-15136939">
+              <Name>Våge</Name>
+              <PrivateCode>545</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167776-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136939-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167776-15136939-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137065">
+              <Name>Våge</Name>
+              <PrivateCode>521</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137065-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137065-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137066">
+              <Name>Våge</Name>
+              <PrivateCode>523</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137066-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137066-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137067">
+              <Name>Våge</Name>
+              <PrivateCode>525</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137067-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137067-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137076">
+              <Name>Våge</Name>
+              <PrivateCode>527</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137076-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137076-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137077">
+              <Name>Våge</Name>
+              <PrivateCode>529</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137077-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137077-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137078">
+              <Name>Våge</Name>
+              <PrivateCode>533</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137078-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137078-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137079">
+              <Name>Våge</Name>
+              <PrivateCode>535</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137079-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137079-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137080">
+              <Name>Våge</Name>
+              <PrivateCode>537</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137080-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137080-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137081">
+              <Name>Våge</Name>
+              <PrivateCode>539</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137081-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137081-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137082">
+              <Name>Våge</Name>
+              <PrivateCode>541</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137082-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137082-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137083">
+              <Name>Våge</Name>
+              <PrivateCode>543</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137083-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137083-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-167786-15137084">
+              <Name>Våge</Name>
+              <PrivateCode>545</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167786-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137084-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-167786-15137084-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137194">
+              <Name>Våge</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137194-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137194-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137195">
+              <Name>Våge</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137195-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137195-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137196">
+              <Name>Våge</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137196-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137196-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137197">
+              <Name>Våge</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137197-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137197-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137198">
+              <Name>Våge</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137198-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137198-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137199">
+              <Name>Våge</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137199-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137199-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137200">
+              <Name>Våge</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137200-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137200-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137201">
+              <Name>Våge</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137201-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137201-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137202">
+              <Name>Våge</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137202-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137202-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137203">
+              <Name>Våge</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137203-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137203-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179138-15137193">
+              <Name>Våge</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179138-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137193-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179138-15137193-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153405">
+              <Name>Våge</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153405-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153405-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153406">
+              <Name>Våge</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153406-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153406-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153407">
+              <Name>Våge</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153407-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153407-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153408">
+              <Name>Våge</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153408-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153408-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153409">
+              <Name>Våge</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153409-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153409-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153410">
+              <Name>Våge</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153410-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153410-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153411">
+              <Name>Våge</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153411-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153411-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153412">
+              <Name>Våge</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153412-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153412-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153413">
+              <Name>Våge</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153413-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153413-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153414">
+              <Name>Våge</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153414-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153414-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1021-179144-17153404">
+              <Name>Våge</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179144-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1021-11" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1021" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153404-49976-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1021-179144-17153404-52371-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1021-11-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

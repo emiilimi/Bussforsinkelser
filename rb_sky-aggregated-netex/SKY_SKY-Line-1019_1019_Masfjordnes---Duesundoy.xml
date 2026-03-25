@@ -1,0 +1,2484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:05.257</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Masfjordnes - Duesundøy</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3915591">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3915579">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3915592">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1019-13">
+              <Name>Duesund ferjekai-Masfjordnes ferjekai</Name>
+              <ShortName>Duesund ferjekai-Masfjordnes ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915580">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58133"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915581">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58017"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1019-14">
+              <Name>Masfjordnes ferjekai-Duesund ferjekai</Name>
+              <ShortName>Masfjordnes ferjekai-Duesund ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915582">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58017"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915583">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58133"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1019">
+              <Name>Masfjordnes - Duesundøy</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1019</PublicCode>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1019-13">
+              <Name>Duesund ferjekai-Masfjordnes ferjekai</Name>
+              <RouteRef ref="SKY:Route:1019-13" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1019-13-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58133"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9271"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1019-13-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58017"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915584">
+                  <ServiceLinkRef ref="SKY:ServiceLink:58133-58017"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1019-14">
+              <Name>Masfjordnes ferjekai-Duesund ferjekai</Name>
+              <RouteRef ref="SKY:Route:1019-14" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1019-14-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58017"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9272"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1019-14-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58133"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915586">
+                  <ServiceLinkRef ref="SKY:ServiceLink:58017-58133"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3915593">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134234">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>758</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134234-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134234-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134210">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>760</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134210-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134210-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134211">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>762</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134211-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134211-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134212">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>764</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134212-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134212-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134213">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>766</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134213-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134213-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134214">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>768</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134214-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134214-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134215">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>770</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134215-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134215-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134216">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>772</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134216-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134216-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134217">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>774</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134217-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134217-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134218">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>776</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134218-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134218-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134233">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>778</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134233-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134233-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134219">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>780</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134219-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134219-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134220">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>782</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134220-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134220-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134221">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>784</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134221-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134221-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134222">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>786</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134222-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134222-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134223">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>788</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134223-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134223-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134224">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>790</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134224-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134224-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134225">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>792</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134225-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134225-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134226">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>794</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134226-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134226-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134227">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>796</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134227-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134227-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134228">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>798</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134228-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134228-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134229">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>800</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134229-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134229-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134230">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>802</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134230-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134230-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134231">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>804</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134231-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134231-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134254">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134254-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>02:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134254-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>02:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134255">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134255-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134255-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134256">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134256-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134256-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134257">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134257-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134257-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134258">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134258-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134258-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134259">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134259-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134259-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134260">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134260-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134260-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134261">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134261-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134261-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134262">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134262-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134262-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134263">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>28</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134263-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134263-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134264">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134264-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134264-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134265">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>30</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134265-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134265-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134266">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>31</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134266-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134266-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134267">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>32</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134267-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134267-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134268">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>34</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134268-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134268-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134269">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134269-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134269-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134270">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>36</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134270-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>23:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134270-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134272">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>38</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134272-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134272-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134290">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134290-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>02:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134290-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>02:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134291">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134291-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134291-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134292">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134292-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134292-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134293">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134293-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134293-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134294">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134294-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134294-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134295">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134295-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134295-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134296">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134296-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134296-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134297">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134297-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134297-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134298">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134298-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134298-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134299">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134299-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134299-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134300">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>28</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134300-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134300-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134301">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134301-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134301-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134302">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>30</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134302-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134302-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134303">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>31</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134303-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134303-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134304">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>33</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134304-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134304-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134305">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>34</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134305-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134305-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134307">
+              <Name>Masfjordnes</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134307-58133-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134307-58017-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134235">
+              <Name>Duesund</Name>
+              <PrivateCode>759</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134235-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134235-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134188">
+              <Name>Duesund</Name>
+              <PrivateCode>761</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134188-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134188-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134189">
+              <Name>Duesund</Name>
+              <PrivateCode>763</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134189-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134189-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134190">
+              <Name>Duesund</Name>
+              <PrivateCode>765</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134190-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134190-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134191">
+              <Name>Duesund</Name>
+              <PrivateCode>767</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134191-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134191-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134192">
+              <Name>Duesund</Name>
+              <PrivateCode>769</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134192-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134192-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134193">
+              <Name>Duesund</Name>
+              <PrivateCode>771</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134193-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134193-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134194">
+              <Name>Duesund</Name>
+              <PrivateCode>773</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134194-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134194-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134195">
+              <Name>Duesund</Name>
+              <PrivateCode>775</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134195-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134195-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134196">
+              <Name>Duesund</Name>
+              <PrivateCode>777</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134196-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134196-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134232">
+              <Name>Duesund</Name>
+              <PrivateCode>779</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134232-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134232-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134197">
+              <Name>Duesund</Name>
+              <PrivateCode>781</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134197-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134197-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134198">
+              <Name>Duesund</Name>
+              <PrivateCode>783</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134198-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134198-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134199">
+              <Name>Duesund</Name>
+              <PrivateCode>785</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134199-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134199-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134200">
+              <Name>Duesund</Name>
+              <PrivateCode>787</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134200-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134200-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134201">
+              <Name>Duesund</Name>
+              <PrivateCode>789</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134201-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134201-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134202">
+              <Name>Duesund</Name>
+              <PrivateCode>791</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134202-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134202-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134203">
+              <Name>Duesund</Name>
+              <PrivateCode>793</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134203-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134203-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134204">
+              <Name>Duesund</Name>
+              <PrivateCode>795</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134204-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134204-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134205">
+              <Name>Duesund</Name>
+              <PrivateCode>797</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134205-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134205-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134206">
+              <Name>Duesund</Name>
+              <PrivateCode>799</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134206-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134206-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134207">
+              <Name>Duesund</Name>
+              <PrivateCode>801</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134207-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134207-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134208">
+              <Name>Duesund</Name>
+              <PrivateCode>803</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134208-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134208-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167695-15134209">
+              <Name>Duesund</Name>
+              <PrivateCode>805</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167695-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134209-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167695-15134209-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134237">
+              <Name>Duesund</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134237-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>02:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134237-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>02:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134238">
+              <Name>Duesund</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134238-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134238-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134239">
+              <Name>Duesund</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134239-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134239-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134240">
+              <Name>Duesund</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134240-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134240-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134241">
+              <Name>Duesund</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134241-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134241-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134242">
+              <Name>Duesund</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134242-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134242-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134243">
+              <Name>Duesund</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134243-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134243-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134244">
+              <Name>Duesund</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134244-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134244-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134245">
+              <Name>Duesund</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134245-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134245-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134246">
+              <Name>Duesund</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134246-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134246-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134247">
+              <Name>Duesund</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134247-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134247-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134248">
+              <Name>Duesund</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134248-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134248-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134249">
+              <Name>Duesund</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134249-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134249-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134250">
+              <Name>Duesund</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134250-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134250-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134251">
+              <Name>Duesund</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134251-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134251-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134252">
+              <Name>Duesund</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134252-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134252-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134253">
+              <Name>Duesund</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134253-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>23:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134253-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167697-15134271">
+              <Name>Duesund</Name>
+              <PrivateCode>37</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167697-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134271-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167697-15134271-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134274">
+              <Name>Duesund</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134274-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>02:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134274-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>02:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134275">
+              <Name>Duesund</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134275-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134275-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134276">
+              <Name>Duesund</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134276-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134276-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134277">
+              <Name>Duesund</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134277-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134277-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134278">
+              <Name>Duesund</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134278-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134278-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134279">
+              <Name>Duesund</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134279-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134279-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134280">
+              <Name>Duesund</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134280-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134280-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134281">
+              <Name>Duesund</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134281-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134281-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134282">
+              <Name>Duesund</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134282-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134282-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134283">
+              <Name>Duesund</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134283-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134283-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134284">
+              <Name>Duesund</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134284-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134284-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134285">
+              <Name>Duesund</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134285-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134285-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134286">
+              <Name>Duesund</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134286-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134286-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134287">
+              <Name>Duesund</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134287-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134287-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134288">
+              <Name>Duesund</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134288-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134288-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134289">
+              <Name>Duesund</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134289-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134289-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1019-167699-15134306">
+              <Name>Duesund</Name>
+              <PrivateCode>36</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167699-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1019-14" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:W-H"></OperatorRef>
+              <LineRef ref="SKY:Line:1019" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134306-58017-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1019-167699-15134306-58133-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1019-14-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

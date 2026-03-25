@@ -69,6 +69,16 @@ type WorstStop = {
   numSamples: number | null;
 };
 
+type LineStopProfile = {
+  stopRef: string;
+  stopSequence: number;
+  avgDelayMin: number | null;
+  maxDelayMin: number | null;
+  minDelayMin: number | null;
+  numSamples: number | null;
+  stopName: string | null;
+};
+
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
@@ -111,6 +121,30 @@ function ProfileTooltip({ active, payload }: any) {
       </div>
       {d.numSamples != null && (
         <p className="text-muted-foreground text-xs mt-1">{d.numSamples} målinger</p>
+      )}
+    </div>
+  );
+}
+
+function DailyTrendTooltip({ active, payload }: any) {
+  if (!active || !payload?.[0]) return null;
+  const d = payload[0].payload as {
+    date: string;
+    avgDelay: number | null;
+    maxDelay: number | null;
+    minDelay: number | null;
+    numDepartures: number | null;
+  };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[200px]">
+      <p className="font-medium">{d.date}</p>
+      <div className="font-mono mt-1 space-y-0.5 text-xs">
+        <p className="text-orange-500">Snitt: {d.avgDelay != null ? `${d.avgDelay.toFixed(2)}m` : "—"}</p>
+        {d.maxDelay != null && <p className="text-destructive">Maks: {d.maxDelay.toFixed(2)}m</p>}
+        {d.minDelay != null && <p className="text-emerald-500">Min: {d.minDelay.toFixed(2)}m</p>}
+      </div>
+      {d.numDepartures != null && (
+        <p className="text-muted-foreground text-xs mt-1">{d.numDepartures.toLocaleString("nb-NO")} avganger</p>
       )}
     </div>
   );
@@ -170,6 +204,13 @@ export default function JourneyDetails() {
     enabled: fetchedLine.length > 0,
   });
 
+  const [stopProfileDir, setStopProfileDir] = useState<"0" | "1">("0");
+
+  const { data: lineStopProfile = [] } = useQuery<LineStopProfile[]>({
+    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}`],
+    enabled: fetchedLine.length > 0,
+  });
+
   const journeyProfileUrl = selectedJourney
     ? `/api/journey?line=${encodeURIComponent(fetchedLine)}&dir=${encodeURIComponent(selectedJourney.directionRef)}&time=${encodeURIComponent(selectedJourney.firstStopTime)}`
     : null;
@@ -215,6 +256,9 @@ export default function JourneyDetails() {
   const trendData = daily.map((r) => ({
     date: r.date.slice(5),
     avgDelay: r.avgDelayMin,
+    maxDelay: r.maxDelayMin,
+    minDelay: r.minDelayMin,
+    numDepartures: r.numDepartures,
     bandBase: r.minDelayMin ?? r.avgDelayMin ?? 0,
     bandRange: ((r.maxDelayMin ?? r.avgDelayMin ?? 0) - (r.minDelayMin ?? r.avgDelayMin ?? 0)),
   }));
@@ -233,6 +277,17 @@ export default function JourneyDetails() {
     bandRange: ((s.maxDelayMin ?? s.avgDelayMin ?? 0) - (s.minDelayMin ?? s.avgDelayMin ?? 0)),
   }));
   const profileWidth = Math.max(700, profileData.length * 44);
+
+  // ---- Line stop profile chart data (all stops in route order) ----
+  const stopProfileData = lineStopProfile.map((s) => ({
+    ...s,
+    shortName: s.stopName
+      ? s.stopName.length > 14 ? s.stopName.slice(0, 13) + "…" : s.stopName
+      : s.stopRef,
+    bandBase: s.minDelayMin ?? s.avgDelayMin ?? 0,
+    bandRange: Math.max(0, (s.maxDelayMin ?? s.avgDelayMin ?? 0) - (s.minDelayMin ?? s.avgDelayMin ?? 0)),
+  }));
+  const stopProfileWidth = Math.max(700, stopProfileData.length * 44);
 
   // ---- Journey label helper ----
   function journeyLabel(j: JourneyEntry) {
@@ -418,13 +473,7 @@ export default function JourneyDetails() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                          formatter={(v: number, name: string) => {
-                            if (name === "bandBase" || name === "bandRange") return null;
-                            return [`${v.toFixed(2)}m`, "Snitt forsinkelse"];
-                          }}
-                        />
+                        <Tooltip content={<DailyTrendTooltip />} />
                         {/* Min-max band */}
                         <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                         <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
@@ -472,6 +521,74 @@ export default function JourneyDetails() {
                         </span>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ---- C: Line stop profile (all stops in route order) ---- */}
+            {stopProfileData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Forsinkelsesprofil langs ruten</CardTitle>
+                  <CardDescription>
+                    Gjennomsnittlig forsinkelse per stopp langs hele ruten — viser hvor forsinkelsen bygger seg opp.
+                    Båndet viser spennet mellom beste og verste enkeltavgang siste 4 uker.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Direction picker */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Retning:</span>
+                    {(["0", "1"] as const).map((d) => (
+                      <Button
+                        key={d}
+                        size="sm"
+                        variant={stopProfileDir === d ? "default" : "outline"}
+                        onClick={() => setStopProfileDir(d)}
+                        className="h-7 px-3 text-xs"
+                      >
+                        Retning {d}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {stopProfileData.length} stopp · {stopProfileData.reduce((s, r) => s + (r.numSamples ?? 0), 0).toLocaleString("nb-NO")} målinger totalt
+                  </div>
+                  <div className="overflow-x-auto">
+                    <div style={{ width: stopProfileWidth, height: 320 }}>
+                      <ComposedChart
+                        width={stopProfileWidth}
+                        height={320}
+                        data={stopProfileData}
+                        margin={{ top: 10, right: 10, bottom: 80, left: 35 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="shortName"
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={9}
+                          tickLine={false}
+                          axisLine={false}
+                          angle={-50}
+                          textAnchor="end"
+                          interval={0}
+                          tick={{ dy: 6 }}
+                        />
+                        <YAxis
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={11}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(v) => `${v.toFixed(0)}m`}
+                        />
+                        <Tooltip content={<ProfileTooltip />} />
+                        <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                        <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                        <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
+                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
+                      </ComposedChart>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

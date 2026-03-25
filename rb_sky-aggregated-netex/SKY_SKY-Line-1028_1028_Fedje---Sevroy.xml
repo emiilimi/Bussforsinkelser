@@ -1,0 +1,1324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:11.839</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Fedje - Sævrøy</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3917213">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3917201">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3917214">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1028-1">
+              <Name>Sævrøy ferjekai-Fedje ferjekai</Name>
+              <ShortName>Sævrøy ferjekai-Fedje ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917202">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57859"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917203">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57905"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1028-2">
+              <Name>Fedje ferjekai-Sævrøy ferjekai</Name>
+              <ShortName>Fedje ferjekai-Sævrøy ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917204">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57905"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917205">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57859"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1028">
+              <Name>Fedje - Sævrøy</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1028</PublicCode>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1028-1">
+              <Name>Sævrøy ferjekai-Fedje ferjekai</Name>
+              <RouteRef ref="SKY:Route:1028-1" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1028-1-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57859"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9267"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1028-1-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57905"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917206">
+                  <ServiceLinkRef ref="SKY:ServiceLink:57859-57905"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1028-2">
+              <Name>Fedje ferjekai-Sævrøy ferjekai</Name>
+              <RouteRef ref="SKY:Route:1028-2" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1028-2-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57905"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9268"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1028-2-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57859"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917208">
+                  <ServiceLinkRef ref="SKY:ServiceLink:57905-57859"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3917215">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136232">
+              <Name>Fedje</Name>
+              <PrivateCode>669</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136232-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136232-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136223">
+              <Name>Fedje</Name>
+              <PrivateCode>671</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136223-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136223-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136224">
+              <Name>Fedje</Name>
+              <PrivateCode>673</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136224-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136224-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136225">
+              <Name>Fedje</Name>
+              <PrivateCode>677</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136225-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136225-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136226">
+              <Name>Fedje</Name>
+              <PrivateCode>679</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136226-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136226-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136227">
+              <Name>Fedje</Name>
+              <PrivateCode>681</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136227-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136227-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136228">
+              <Name>Fedje</Name>
+              <PrivateCode>683</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136228-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136228-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136229">
+              <Name>Fedje</Name>
+              <PrivateCode>685</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136229-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136229-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136230">
+              <Name>Fedje</Name>
+              <PrivateCode>689</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136230-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136230-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136231">
+              <Name>Fedje</Name>
+              <PrivateCode>691</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136231-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136231-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136235">
+              <Name>Fedje</Name>
+              <PrivateCode>695</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136235-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136235-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136234">
+              <Name>Fedje</Name>
+              <PrivateCode>696</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136234-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136234-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136292">
+              <Name>Fedje</Name>
+              <PrivateCode>669</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136292-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136292-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136284">
+              <Name>Fedje</Name>
+              <PrivateCode>671</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136284-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136284-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136285">
+              <Name>Fedje</Name>
+              <PrivateCode>673</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136285-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136285-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136286">
+              <Name>Fedje</Name>
+              <PrivateCode>677</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136286-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136286-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136287">
+              <Name>Fedje</Name>
+              <PrivateCode>679</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136287-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136287-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136288">
+              <Name>Fedje</Name>
+              <PrivateCode>681</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136288-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136288-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136289">
+              <Name>Fedje</Name>
+              <PrivateCode>683</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136289-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136289-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136290">
+              <Name>Fedje</Name>
+              <PrivateCode>685</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136290-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136290-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136291">
+              <Name>Fedje</Name>
+              <PrivateCode>691</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136291-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136291-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136294">
+              <Name>Fedje</Name>
+              <PrivateCode>695</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136294-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136294-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136339">
+              <Name>Fedje</Name>
+              <PrivateCode>673</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136339-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136339-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136340">
+              <Name>Fedje</Name>
+              <PrivateCode>677</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136340-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136340-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136341">
+              <Name>Fedje</Name>
+              <PrivateCode>679</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136341-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136341-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136342">
+              <Name>Fedje</Name>
+              <PrivateCode>681</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136342-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136342-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136343">
+              <Name>Fedje</Name>
+              <PrivateCode>683</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136343-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136343-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136344">
+              <Name>Fedje</Name>
+              <PrivateCode>685</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136344-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136344-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136345">
+              <Name>Fedje</Name>
+              <PrivateCode>691</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136345-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136345-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136347">
+              <Name>Fedje</Name>
+              <PrivateCode>695</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136347-57859-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136347-57905-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136212">
+              <Name>Sævrøy</Name>
+              <PrivateCode>668</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136212-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136212-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136213">
+              <Name>Sævrøy</Name>
+              <PrivateCode>670</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136213-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136213-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136214">
+              <Name>Sævrøy</Name>
+              <PrivateCode>672</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136214-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136214-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136215">
+              <Name>Sævrøy</Name>
+              <PrivateCode>674</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136215-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136215-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136216">
+              <Name>Sævrøy</Name>
+              <PrivateCode>676</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136216-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136216-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136217">
+              <Name>Sævrøy</Name>
+              <PrivateCode>678</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136217-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136217-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136218">
+              <Name>Sævrøy</Name>
+              <PrivateCode>680</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136218-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136218-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136219">
+              <Name>Sævrøy</Name>
+              <PrivateCode>682</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136219-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136219-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136220">
+              <Name>Sævrøy</Name>
+              <PrivateCode>684</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136220-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136220-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136222">
+              <Name>Sævrøy</Name>
+              <PrivateCode>687</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136222-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136222-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136221">
+              <Name>Sævrøy</Name>
+              <PrivateCode>690</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136221-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136221-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167721-15136233">
+              <Name>Sævrøy</Name>
+              <PrivateCode>692</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136233-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167721-15136233-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136275">
+              <Name>Sævrøy</Name>
+              <PrivateCode>668</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136275-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136275-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136276">
+              <Name>Sævrøy</Name>
+              <PrivateCode>670</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136276-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136276-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136277">
+              <Name>Sævrøy</Name>
+              <PrivateCode>672</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136277-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136277-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136278">
+              <Name>Sævrøy</Name>
+              <PrivateCode>676</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136278-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136278-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136279">
+              <Name>Sævrøy</Name>
+              <PrivateCode>678</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136279-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136279-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136280">
+              <Name>Sævrøy</Name>
+              <PrivateCode>680</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136280-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136280-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136281">
+              <Name>Sævrøy</Name>
+              <PrivateCode>682</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136281-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136281-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136282">
+              <Name>Sævrøy</Name>
+              <PrivateCode>684</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136282-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136282-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136283">
+              <Name>Sævrøy</Name>
+              <PrivateCode>690</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136283-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136283-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167727-15136293">
+              <Name>Sævrøy</Name>
+              <PrivateCode>692</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136293-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167727-15136293-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136332">
+              <Name>Sævrøy</Name>
+              <PrivateCode>670</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136332-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136332-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136333">
+              <Name>Sævrøy</Name>
+              <PrivateCode>676</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136333-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136333-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136334">
+              <Name>Sævrøy</Name>
+              <PrivateCode>678</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136334-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136334-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136335">
+              <Name>Sævrøy</Name>
+              <PrivateCode>680</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136335-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136335-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136336">
+              <Name>Sævrøy</Name>
+              <PrivateCode>682</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136336-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136336-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136337">
+              <Name>Sævrøy</Name>
+              <PrivateCode>684</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136337-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136337-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136338">
+              <Name>Sævrøy</Name>
+              <PrivateCode>690</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136338-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136338-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1028-167733-15136346">
+              <Name>Sævrøy</Name>
+              <PrivateCode>692</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1028-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1028" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136346-57905-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1028-167733-15136346-57859-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1028-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

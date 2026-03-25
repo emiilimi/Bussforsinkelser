@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:ns2="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+    <PublicationTimestamp>2024-04-22T09:09:10.03</PublicationTimestamp>
+    <ParticipantRef>Skyss__Hordaland_</ParticipantRef>
+    <Description>Flexible lines</Description>
+    <dataObjects>
+        <CompositeFrame created="2024-04-22T09:09:10.03" version="1" id="SKY:CompositeFrame:2">
+            <validityConditions>
+                <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:2_UTTU">
+                    <FromDate>2023-09-01T00:00:00</FromDate>
+                    <ToDate>2024-09-30T00:00:00</ToDate>
+                </AvailabilityCondition>
+            </validityConditions>
+            <codespaces>
+                <Codespace id="sky">
+                    <Xmlns>SKY</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+                </Codespace>
+                <Codespace id="nsr">
+                    <Xmlns>NSR</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+                </Codespace>
+            </codespaces>
+            <FrameDefaults>
+                <DefaultLocale>
+                    <TimeZone>Europe/Oslo</TimeZone>
+                    <DefaultLanguage>no</DefaultLanguage>
+                </DefaultLocale>
+            </FrameDefaults>
+            <frames>
+                <ServiceFrame version="1" id="SKY:ServiceFrame:2">
+                    <routes>
+                        <Route version="0" id="SKY:Route:70d70d26-b711-42ee-bbe1-73365ed9c9e7">
+                            <Name>Tertnes-totalområde</Name>
+                            <FlexibleLineRef ref="SKY:FlexibleLine:2dd4cfcc-82d3-4ffb-9677-0597ee3740ef" version="20"/>
+                            <pointsInSequence>
+<PointOnRoute order="1" version="18" id="SKY:PointOnRoute:cbe2d8b9-140b-436f-97a9-66d2bca78c95">
+    <RoutePointRef ref="SKY:RoutePoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf"/>
+</PointOnRoute>
+<PointOnRoute order="2" version="0" id="SKY:PointOnRoute:a8e3ef78-ea52-48ac-ae4f-3ae0e6f0d63d">
+    <RoutePointRef ref="SKY:RoutePoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf"/>
+</PointOnRoute>
+                            </pointsInSequence>
+                        </Route>
+                    </routes>
+                    <lines>
+                        <FlexibleLine version="20" id="SKY:FlexibleLine:2dd4cfcc-82d3-4ffb-9677-0597ee3740ef">
+                            <Name>BE1 Tertnes</Name>
+                            <Description>Midlertidig oppsett</Description>
+                            <TransportMode>bus</TransportMode>
+                            <TransportSubmode>
+<BusSubmode>localBus</BusSubmode>
+                            </TransportSubmode>
+                            <PublicCode>BE1</PublicCode>
+                            <OperatorRef ref="SKY:Operator:SKY"/>
+                            <RepresentedByGroupRef ref="SKY:Network:1c17fd80-dc8c-41f4-9be7-6b6b4a9a0683"/>
+                            <FlexibleLineType>flexibleAreasOnly</FlexibleLineType>
+                            <BookingContact>
+<Phone>+47 55 55 90 99</Phone>
+<Url>https://bestilling.skyss.no/</Url>
+                            </BookingContact>
+                            <BookingMethods>callOffice online</BookingMethods>
+                            <BookingAccess>public</BookingAccess>
+                            <BuyWhen>onReservation beforeBoarding</BuyWhen>
+                            <MinimumBookingPeriod>PT30M</MinimumBookingPeriod>
+                            <BookingNote>Du kan etter avtale bli plukka opp og køyrd dit du vil på Tertnes og sentrale område i Åsane, til dømes Åsane Terminal, Åsane senter, Horisont, Gullgruven og Åsane gamle kirke.</BookingNote>
+                        </FlexibleLine>
+                    </lines>
+                    <journeyPatterns>
+                        <JourneyPattern version="0" id="SKY:JourneyPattern:70d70d26-b711-42ee-bbe1-73365ed9c9e7">
+                            <Name>Tertnes-totalområde</Name>
+                            <RouteRef ref="SKY:Route:70d70d26-b711-42ee-bbe1-73365ed9c9e7" version="0"/>
+                            <pointsInSequence>
+<StopPointInJourneyPattern order="1" version="18" id="SKY:StopPointInJourneyPattern:cbe2d8b9-140b-436f-97a9-66d2bca78c95">
+    <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf"/>
+    <ForAlighting>false</ForAlighting>
+    <ForBoarding>true</ForBoarding>
+    <DestinationDisplayRef ref="SKY:DestinationDisplay:e897148a-2546-45a2-a360-844e2b83e4e6"/>
+</StopPointInJourneyPattern>
+<StopPointInJourneyPattern order="2" version="0" id="SKY:StopPointInJourneyPattern:a8e3ef78-ea52-48ac-ae4f-3ae0e6f0d63d">
+    <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf"/>
+    <ForAlighting>true</ForAlighting>
+    <ForBoarding>false</ForBoarding>
+</StopPointInJourneyPattern>
+                            </pointsInSequence>
+                        </JourneyPattern>
+                    </journeyPatterns>
+                </ServiceFrame>
+                <TimetableFrame version="1" id="SKY:TimetableFrame:2">
+                    <vehicleJourneys>
+                        <ServiceJourney version="18" id="SKY:ServiceJourney:4035c7fc-086b-4eee-88c8-fe743fae1def">
+                            <Name>ÅpningstidFormiddag</Name>
+                            <dayTypes>
+<DayTypeRef ref="SKY:DayType:6c1c36c8-e13d-49cc-9575-6cfc418273ca"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="SKY:JourneyPattern:70d70d26-b711-42ee-bbe1-73365ed9c9e7" version="0"/>
+                            <passingTimes>
+<TimetabledPassingTime version="0" id="SKY:TimetabledPassingTime:d9e7a2e4-b20d-4db3-8fbd-b1b8004d041c">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:cbe2d8b9-140b-436f-97a9-66d2bca78c95" version="18"/>
+    <LatestArrivalTime>12:00:00</LatestArrivalTime>
+    <EarliestDepartureTime>08:30:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="0" id="SKY:TimetabledPassingTime:ad252bff-cfb5-4e33-b714-0baac7d87fa4">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:a8e3ef78-ea52-48ac-ae4f-3ae0e6f0d63d" version="0"/>
+    <LatestArrivalTime>12:00:00</LatestArrivalTime>
+    <EarliestDepartureTime>08:30:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                        <ServiceJourney version="16" id="SKY:ServiceJourney:acb87d9f-3d5a-48a9-bfac-ff25d1d195bd">
+                            <Name>ÅpningstidEttermiddag</Name>
+                            <dayTypes>
+<DayTypeRef ref="SKY:DayType:6c1c36c8-e13d-49cc-9575-6cfc418273ca"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="SKY:JourneyPattern:70d70d26-b711-42ee-bbe1-73365ed9c9e7" version="0"/>
+                            <passingTimes>
+<TimetabledPassingTime version="0" id="SKY:TimetabledPassingTime:bb11b795-5a2e-4540-9c46-962a7aaa876d">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:cbe2d8b9-140b-436f-97a9-66d2bca78c95" version="18"/>
+    <LatestArrivalTime>16:30:00</LatestArrivalTime>
+    <EarliestDepartureTime>12:30:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="0" id="SKY:TimetabledPassingTime:d0dc3fa1-cfe5-4eda-909d-72881d901f8e">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:a8e3ef78-ea52-48ac-ae4f-3ae0e6f0d63d" version="0"/>
+    <LatestArrivalTime>16:30:00</LatestArrivalTime>
+    <EarliestDepartureTime>12:30:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                    </vehicleJourneys>
+                </TimetableFrame>
+            </frames>
+        </CompositeFrame>
+    </dataObjects>
+</PublicationDelivery>

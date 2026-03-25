@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:ns2="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+    <PublicationTimestamp>2024-04-22T09:09:10.03</PublicationTimestamp>
+    <ParticipantRef>Skyss__Hordaland_</ParticipantRef>
+    <Description>Flexible lines</Description>
+    <dataObjects>
+        <CompositeFrame created="2024-04-22T09:09:10.03" version="1" id="SKY:CompositeFrame:3">
+            <validityConditions>
+                <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3_UTTU">
+                    <FromDate>2023-09-01T00:00:00</FromDate>
+                    <ToDate>2024-09-30T00:00:00</ToDate>
+                </AvailabilityCondition>
+            </validityConditions>
+            <codespaces>
+                <Codespace id="sky">
+                    <Xmlns>SKY</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+                </Codespace>
+                <Codespace id="nsr">
+                    <Xmlns>NSR</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+                </Codespace>
+            </codespaces>
+            <FrameDefaults>
+                <DefaultLocale>
+                    <TimeZone>Europe/Oslo</TimeZone>
+                    <DefaultLanguage>no</DefaultLanguage>
+                </DefaultLocale>
+            </FrameDefaults>
+            <frames>
+                <ResourceFrame version="1" id="SKY:ResourceFrame:1">
+                    <organisations>
+                        <Authority version="7" id="SKY:Authority:SKY">
+                            <Name>Skyss</Name>
+                            <LegalName>VESTLAND FYLKESKOMMUNE SKYSS</LegalName>
+                            <ContactDetails>
+<Email></Email>
+<Phone></Phone>
+<Url>https://www.skyss.no/</Url>
+                            </ContactDetails>
+                        </Authority>
+                        <Operator version="7" id="SKY:Operator:SKY">
+                            <Name>Skyss</Name>
+                            <LegalName>VESTLAND FYLKESKOMMUNE SKYSS</LegalName>
+                            <ContactDetails>
+<Email></Email>
+<Phone></Phone>
+<Url>https://www.skyss.no/</Url>
+                            </ContactDetails>
+                            <CustomerServiceContactDetails>
+<Email></Email>
+<Phone></Phone>
+<Url>https://www.skyss.no/</Url>
+                            </CustomerServiceContactDetails>
+                        </Operator>
+                    </organisations>
+                </ResourceFrame>
+                <SiteFrame version="1" id="SKY:SiteFrame:1">
+                    <flexibleStopPlaces>
+                        <FlexibleStopPlace version="6" id="SKY:FlexibleStopPlace:97a04f4a-cec8-49f4-ae99-8b72e149efcf">
+                            <Name>Tertnes/Åsane</Name>
+                            <Description>Alle områdene for Tertnes Flex.</Description>
+                            <TransportMode>bus</TransportMode>
+                            <areas>
+<FlexibleArea version="0" id="SKY:FlexibleArea:1">
+    <keyList>
+        <KeyValue>
+            <Key>FlexibleStopAreaType</Key>
+            <Value>UnrestrictedPublicTransportAreas</Value>
+        </KeyValue>
+    </keyList>
+    <ns2:Polygon srsName="ESPG:4326" srsDimension="2" ns2:id="P1">
+        <ns2:exterior>
+            <ns2:LinearRing>
+                <ns2:posList>60.46383917587 5.31883027606 60.46381388843 5.31938373506 60.46299011053 5.3205612275 60.46293589789 5.32089113653 60.46361951474 5.32092064351 60.462717298187485 5.329709056246977 60.46207435219601 5.332047951001281 60.46220382032693 5.3326177088293125 60.462490688471746 5.3327684225409175 60.46267584479896 5.330545608030244 60.46425602588 5.32450058695 60.46597875762 5.32512355798 60.46845996712 5.3258532232 60.46905224809 5.32560645998 60.46926113031 5.32530068815 60.46918709626 5.32454430521 60.46936953701 5.32331585348 60.46978465201 5.32446920335 60.46982695643 5.32541334093 60.46992478518 5.32581567228 60.47060825486 5.32641648978 60.47124676505 5.32754301757 60.47150190123 5.32864808768 60.47230695639 5.33005892694 60.47241424663302 5.332162631399747 60.47320804777283 5.333008451952242 60.47287440805654 5.331120980693924 60.47300625948886 5.330715825362766 60.47315296846 5.33062219083 60.4739328663 5.33063828409 60.47414964813 5.33050417364 60.47448286761 5.33026939938 60.47479349322 5.32971615819 60.47599501146 5.3286122672 60.47681589411 5.32819087447 60.47669313781 5.3266984891 60.47558635002 5.32611379164 60.47525705051 5.3257889597 60.47510612044 5.32544556596 60.47499733822 5.32524629471 60.47481744013 5.32514322192 60.47468410325 5.32572300638 60.47451690227 5.32631567493 60.47436421479 5.32688953647 60.47427279473 5.32726083679 60.47418137441 5.32748129636 60.47415921626 5.32790900851 60.47415478752 5.328294806 60.47421470228 5.32911383765 60.47430456077 5.32999947613 60.47410130908 5.33032941988 60.47383601022 5.33039019899 60.47332038284 5.33033376126 60.47284753891 5.33022088578 60.4723360371 5.32994627684 60.47153891563 5.32851129502 60.47132077162 5.3274766125 60.4706862516 5.32638162106 60.470432431 5.32611340016 60.46996967505 5.32571889016 60.46988622389 5.32525870546 60.47002426747 5.324788999 60.47085552799 5.32376527585 60.47133695966 5.32330509114 60.47161297725 5.32271900684 60.47165149115 5.32191585429 60.47158730129 5.32106494672 60.47151883197 5.3198840954 60.47159478344 5.31873969823 60.47177559117 5.31757883052 60.47183263804 5.31638234655 60.47184178626 5.31502733339 60.47179698769 5.31472655365 60.47166218945 5.31450080266 60.47023165994 5.31237299251 60.46924358834 5.31408068034 60.46818229274 5.31663293116 60.46777514858 5.31823852896 60.46712848634 5.31926090657 60.46659838062 5.31966826442 60.46630119635 5.31954605707 60.46588754345 5.31877207714 60.46542569175 5.31753370925 60.46502536688 5.31692434034 60.46470827056 5.31709110972 60.46452036017 5.31782965981 60.46428547065 5.31872306718 60.46401534559 5.31891366075 60.46383917587 5.31883027606</ns2:posList>
+            </ns2:LinearRing>
+        </ns2:exterior>
+    </ns2:Polygon>
+</FlexibleArea>
+<FlexibleArea version="0" id="SKY:FlexibleArea:2">
+    <keyList>
+        <KeyValue>
+            <Key>FlexibleStopAreaType</Key>
+            <Value>UnrestrictedRoadNetwork</Value>
+        </KeyValue>
+    </keyList>
+    <ns2:Polygon srsName="ESPG:4326" srsDimension="2" ns2:id="P2">
+        <ns2:exterior>
+            <ns2:LinearRing>
+                <ns2:posList>60.46315868636854 5.316997647167956 60.46331603610854 5.3161903049379555 60.46331735837854 5.315696778477956 60.46335967113854 5.315136196787956 60.46346016371854 5.314497831047956 60.463806596288535 5.3132532860579555 60.463997001728536 5.312706112737956 60.46422442739854 5.311858534687956 60.46436193849854 5.311000230487956 60.46446242797854 5.310466470897956 60.464568206038535 5.309640350517956 60.464623739388536 5.308771314797956 60.46463828381854 5.308039071737956 60.46459861716854 5.306984963597956 60.464449205698536 5.304967942417956 60.464194014588536 5.302323284327956 60.46401154511854 5.301073374927956 60.46381849657854 5.300169470487956 60.462787865820815 5.296418565424668 60.46308431942768 5.296462351831391 60.46338270552974 5.295949909247992 60.46352921851408 5.295329981202448 60.46360344668213 5.294789854193537 60.46330381393271 5.294361268965864 60.46261661216909 5.295731256070056 60.46214844660854 5.2937107111779556 60.46209026437854 5.293120625197956 60.46210084296854 5.292522492587956 60.46216431446854 5.291916313347956 60.46230976951854 5.291213574587956 60.46350247629854 5.2884053017479555 60.46371536058854 5.287901046457956 60.46547127221854 5.283456626117956 60.46586660368854 5.282563450517956 60.46610327138854 5.282171847997956 60.466573957328535 5.281638088407956 60.466919034538535 5.281546893297956 60.46774535394854 5.280672493157956 60.46807323166854 5.280366721327956 60.46837863090854 5.279942932307956 60.46866684186854 5.279414534447956 60.46893918440854 5.278808355207956 60.46933976042854 5.277630868137956 60.469847415708536 5.275839152517956 60.47023211925854 5.274881601207956 60.470655154238536 5.274044751997956 60.470879889328536 5.273492216947956 60.470858737858535 5.273202538367956 60.47065207200854 5.272362173607956 60.470405446858535 5.271406607797956 60.47030481205854 5.269986628247956 60.47000748012854 5.270023751897956 60.46972844306854 5.271740720627956 60.46935791473854 5.272427508127956 60.46797317220854 5.274008201427956 60.46691879545854 5.274918437747956 60.46366571518854 5.271186468827956 60.46153783288854 5.268231526497956 60.46058848378854 5.267701985667956 60.459401758368536 5.268135246337956 60.45740876305854 5.270862894817956 60.45272280458854 5.293116365007956 60.45265326978854 5.297934900887956 60.452673129468536 5.299102781827956 60.453586661308535 5.300552565057956 60.45391764476854 5.3022976745079555 60.45548646045854 5.304405229767956 60.45480199860854 5.305997636927956 60.45537126675854 5.309018018667956 60.45455707783854 5.309971116907956 60.45450412175854 5.311957856897956 60.45375610785854 5.312561933257956 60.45323976961854 5.314280194867956 60.452213688508536 5.312615628937956 60.45163774490854 5.314535249327956 60.45066457561854 5.314602368937956 60.44977082302854 5.316723348117956 60.449338822665226 5.315125412852554 60.449645469203766 5.308365934430105 60.4494546729908 5.308007981765845 60.45018640918765 5.30568861612631 60.45171486444822 5.3001143866387785 60.450655063530164 5.299809784380656 60.44934348995433 5.303056568827646 60.448590711975484 5.306538509053489 60.449377820342036 5.308986392387148 60.44913871269519 5.313093459810526 60.44873095021334 5.315412186535381 60.44888687162535 5.315922505859833 60.44911665742826 5.316798471916678 60.449210924078535 5.318204300827956 60.44940425609854 5.319323137287956 60.45026070606854 5.318847998847956 60.45225467794854 5.318004023127956 60.45257401644854 5.317825605227956 60.452986127788535 5.317603153637956 60.45326745475854 5.317452538067956 60.45349388037854 5.317567327967956 60.45410239141854 5.317825605217956 60.45546088658854 5.318284764797956 60.455598739645474 5.319309656732401 60.45601875830093 5.3191096510944265 60.45711290104825 5.318475614025489 60.45740714484353 5.318676786529205 60.45770908567217 5.319303916525495 60.45843901906308 5.320169756301253 60.458838221470145 5.3203102942139475 60.45978404975854 5.320597171657956 60.460160199268536 5.321170384397956 60.46072697818854 5.322035400867956 60.46114339285854 5.322868252337956 60.46149106300854 5.324741688637956 60.461860180408536 5.325478792067956 60.46250811756854 5.325773835057956 60.46273555367854 5.325532436247956 60.46315604180854 5.325333952787956 60.46348396587854 5.323960661767956 60.46189456107854 5.321460842967956 60.461378847288536 5.320838570477956 60.46168563186854 5.317973971247956 60.462338861768536 5.317298054577956 60.46269324009854 5.317196130627956 60.46315868636854 5.316997647167956</ns2:posList>
+            </ns2:LinearRing>
+        </ns2:exterior>
+    </ns2:Polygon>
+</FlexibleArea>
+<FlexibleArea version="0" id="SKY:FlexibleArea:3">
+    <keyList>
+        <KeyValue>
+            <Key>FlexibleStopAreaType</Key>
+            <Value>UnrestrictedPublicTransportAreas</Value>
+        </KeyValue>
+    </keyList>
+    <ns2:Polygon srsName="ESPG:4326" srsDimension="2" ns2:id="P3">
+        <ns2:exterior>
+            <ns2:LinearRing>
+                <ns2:posList>60.47052761396 5.2748912546 60.47092288464 5.27415901154 60.47102996383 5.27427166432 60.47104714934 5.27437090605 60.47104053953 5.27448355883 60.47098633902 5.27465790242 60.47092949448 5.27474909753 60.47056727344 5.27499049634 60.47052761396 5.2748912546</ns2:posList>
+            </ns2:LinearRing>
+        </ns2:exterior>
+    </ns2:Polygon>
+</FlexibleArea>
+                            </areas>
+                        </FlexibleStopPlace>
+                        <FlexibleStopPlace version="5" id="SKY:FlexibleStopPlace:b5fefb11-3019-41b0-a4fe-4d622feaf9ac">
+                            <keyList>
+<KeyValue>
+    <Key>FlexibleStopAreaType</Key>
+    <Value>UnrestrictedPublicTransportAreas</Value>
+</KeyValue>
+                            </keyList>
+                            <Name>HentMeg i Odda </Name>
+                            <Description>Ny variant for HentMeg i Odda fra 01.01.21 </Description>
+                            <TransportMode>bus</TransportMode>
+                            <areas>
+<FlexibleArea version="0" id="SKY:FlexibleArea:4">
+    <ns2:Polygon srsName="ESPG:4326" srsDimension="2" ns2:id="P4">
+        <ns2:exterior>
+            <ns2:LinearRing>
+                <ns2:posList>60.05152769166109 6.54570613898639 60.05350934663668 6.5547183612764295 60.05492321151738 6.555555210489076 60.06426207350026 6.55841601472308 60.06734832124064 6.557396880184343 60.06873097077387 6.558516367035858 60.06995886210967 6.558104199254831 60.07114401572257 6.558046024898656 60.07243424581302 6.558457317416078 60.073525959181495 6.557573229468646 60.07456602313099 6.557111717151497 60.075549857194645 6.556591907036939 60.0767730137932 6.554207550938599 60.077609373920154 6.5533020156424495 60.077478315381306 6.552268225193512 60.074724341280316 6.553045624482201 60.073948920420435 6.55267175045763 60.073082369149276 6.552577705861823 60.07211245951634 6.55331372170506 60.07204306868684 6.55306254588814 60.072787566472556 6.552442884590392 60.07348940662652 6.551077011482875 60.07753229443019 6.5509390059734764 60.09730030696453 6.53746639289264 60.102648429530234 6.533432350534242 60.1012366095158 6.522188530343811 60.09096700730778 6.516437874215883 60.04857105552908 6.530342445749086 60.046642671908394 6.533861503976625 60.0468997962322 6.5368655780733045 60.04715691855364 6.539268837350647 60.05152769166109 6.54570613898639</ns2:posList>
+            </ns2:LinearRing>
+        </ns2:exterior>
+    </ns2:Polygon>
+</FlexibleArea>
+                            </areas>
+                        </FlexibleStopPlace>
+                    </flexibleStopPlaces>
+                </SiteFrame>
+                <ServiceFrame version="1" id="SKY:ServiceFrame:3">
+                    <Network version="3" id="SKY:Network:1c17fd80-dc8c-41f4-9be7-6b6b4a9a0683">
+                        <Name>Skyss</Name>
+                        <Description>Bestillings og servicetilbud fra Skyss</Description>
+                        <AuthorityRef ref="SKY:Authority:SKY" version="7"/>
+                    </Network>
+                    <routePoints>
+                        <RoutePoint version="6" id="SKY:RoutePoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf">
+                            <projections>
+<PointProjection version="6" id="SKY:PointProjection:97a04f4a-cec8-49f4-ae99-8b72e149efcf">
+    <ProjectToPointRef ref="SKY:ScheduledStopPoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf" version="6"/>
+</PointProjection>
+                            </projections>
+                        </RoutePoint>
+                        <RoutePoint version="5" id="SKY:RoutePoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac">
+                            <projections>
+<PointProjection version="5" id="SKY:PointProjection:b5fefb11-3019-41b0-a4fe-4d622feaf9ac">
+    <ProjectToPointRef ref="SKY:ScheduledStopPoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac" version="5"/>
+</PointProjection>
+                            </projections>
+                        </RoutePoint>
+                    </routePoints>
+                    <destinationDisplays>
+                        <DestinationDisplay version="0" id="SKY:DestinationDisplay:eef23684-658c-4033-965f-32b6d006c5d6">
+                            <FrontText>HentMeg </FrontText>
+                        </DestinationDisplay>
+                        <DestinationDisplay version="0" id="SKY:DestinationDisplay:e897148a-2546-45a2-a360-844e2b83e4e6">
+                            <FrontText>Tertnes/Åsane</FrontText>
+                        </DestinationDisplay>
+                    </destinationDisplays>
+                    <scheduledStopPoints>
+                        <ScheduledStopPoint version="5" id="SKY:ScheduledStopPoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac"/>
+                        <ScheduledStopPoint version="6" id="SKY:ScheduledStopPoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf"/>
+                    </scheduledStopPoints>
+                    <stopAssignments>
+                        <FlexibleStopAssignment version="6" id="SKY:FlexibleStopAssignment:97a04f4a-cec8-49f4-ae99-8b72e149efcf">
+                            <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:97a04f4a-cec8-49f4-ae99-8b72e149efcf" version="6"/>
+                            <FlexibleStopPlaceRef ref="SKY:FlexibleStopPlace:97a04f4a-cec8-49f4-ae99-8b72e149efcf" version="6"/>
+                        </FlexibleStopAssignment>
+                        <FlexibleStopAssignment version="5" id="SKY:FlexibleStopAssignment:b5fefb11-3019-41b0-a4fe-4d622feaf9ac">
+                            <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac" version="5"/>
+                            <FlexibleStopPlaceRef ref="SKY:FlexibleStopPlace:b5fefb11-3019-41b0-a4fe-4d622feaf9ac" version="5"/>
+                        </FlexibleStopAssignment>
+                    </stopAssignments>
+                </ServiceFrame>
+                <ServiceCalendarFrame version="1" id="SKY:ServiceCalendarFrame:1">
+                    <dayTypes>
+                        <DayType version="17" id="SKY:DayType:6c1c36c8-e13d-49cc-9575-6cfc418273ca">
+                            <properties>
+<PropertyOfDay>
+    <DaysOfWeek>Monday Tuesday Wednesday Thursday Friday</DaysOfWeek>
+</PropertyOfDay>
+                            </properties>
+                        </DayType>
+                    </dayTypes>
+                    <operatingDays>
+                        <OperatingDay version="0" id="SKY:OperatingDay:1">
+                            <CalendarDate>2023-09-01</CalendarDate>
+                        </OperatingDay>
+                        <OperatingDay version="0" id="SKY:OperatingDay:2">
+                            <CalendarDate>2024-09-30</CalendarDate>
+                        </OperatingDay>
+                    </operatingDays>
+                    <operatingPeriods>
+                        <OperatingPeriod version="0" id="SKY:OperatingPeriod:1">
+                            <FromOperatingDayRef ref="SKY:OperatingDay:1" version="0"/>
+                            <ToOperatingDayRef ref="SKY:OperatingDay:2" version="0"/>
+                        </OperatingPeriod>
+                    </operatingPeriods>
+                    <dayTypeAssignments>
+                        <DayTypeAssignment order="1" version="0" id="SKY:DayTypeAssignment:1">
+                            <OperatingPeriodRef ref="SKY:OperatingPeriod:1" version="0"/>
+                            <DayTypeRef ref="SKY:DayType:6c1c36c8-e13d-49cc-9575-6cfc418273ca" version="17"/>
+                            <isAvailable>true</isAvailable>
+                        </DayTypeAssignment>
+                    </dayTypeAssignments>
+                </ServiceCalendarFrame>
+            </frames>
+        </CompositeFrame>
+    </dataObjects>
+</PublicationDelivery>

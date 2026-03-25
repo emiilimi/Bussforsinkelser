@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { Loader2, AlertCircle } from "lucide-react";
 import { MapPin, Search, Route } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Line, ReferenceLine, Legend } from "recharts";
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
@@ -16,7 +18,13 @@ import { DataQualityBanner } from "@/components/data-quality-banner";
 // Types
 // ---------------------------------------------------------------------------
 
-type SearchResult = { stopRef: string; stopName: string | null };
+type Quay = { stopRef: string; platformCode: string };
+type SearchResult = {
+  stopRef: string;
+  stopName: string | null;
+  platformCodes: string | null;
+  quays: Quay[];
+};
 
 type StopStatsResponse = {
   stopRef: string;
@@ -73,6 +81,27 @@ function delayColor(delay: number | null) {
 // Page
 // ---------------------------------------------------------------------------
 
+function DailyTrendTooltip({ active, payload }: any) {
+  if (!active || !payload?.[0]) return null;
+  const d = payload[0].payload as {
+    date: string; avgDelay: number | null;
+    maxDelay: number | null; minDelay: number | null; numDepartures: number | null;
+  };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[200px]">
+      <p className="font-medium">{d.date}</p>
+      <div className="font-mono mt-1 space-y-0.5 text-xs">
+        <p className="text-orange-500">Snitt: {d.avgDelay != null ? `${d.avgDelay.toFixed(2)}m` : "—"}</p>
+        {d.maxDelay != null && <p className="text-destructive">Maks: {d.maxDelay.toFixed(2)}m</p>}
+        {d.minDelay != null && <p className="text-emerald-500">Min: {d.minDelay.toFixed(2)}m</p>}
+      </div>
+      {d.numDepartures != null && (
+        <p className="text-muted-foreground text-xs mt-1">{d.numDepartures.toLocaleString("nb-NO")} avganger</p>
+      )}
+    </div>
+  );
+}
+
 // Custom hourly tooltip with max/min explanation
 function HourlyTooltip({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
@@ -95,7 +124,8 @@ export default function StopAnalysis() {
   const [, navigate] = useLocation();
   const { operator } = useRegion();
   const [query, setQuery] = useState("");
-  const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
+  const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string; quays: Quay[] } | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null); // null = all platforms
   const [showResults, setShowResults] = useState(false);
   const [direction, setDirection] = useState<"all" | "0" | "1">("all");
 
@@ -104,30 +134,36 @@ export default function StopAnalysis() {
     enabled: query.length >= 2,
   });
 
-  const stopStatsUrl = selectedStop
-    ? `/api/stop/${encodeURIComponent(selectedStop.ref)}?operator=${operator}${direction !== "all" ? `&direction=${direction}` : ""}`
+  // Use specific quay ref when a platform is selected, otherwise use the stop place ref
+  const activeRef = selectedPlatform ?? selectedStop?.ref ?? null;
+  const stopStatsUrl = activeRef
+    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;
 
-  const { data: stats } = useQuery<StopStatsResponse>({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
     queryKey: [stopStatsUrl],
     enabled: stopStatsUrl != null,
+    placeholderData: keepPreviousData, // keep old charts visible while switching platform
   });
 
   const { data: linesAtStop = [] } = useQuery<LineAtStop[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(selectedStop?.ref ?? "")}/lines`],
-    enabled: selectedStop != null,
+    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/lines`],
+    enabled: activeRef != null,
   });
 
   const { data: lineHourlyRaw = [] } = useQuery<LineHourlyAtStop[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(selectedStop?.ref ?? "")}/lines/hourly`],
-    enabled: selectedStop != null,
+    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/lines/hourly`],
+    enabled: activeRef != null,
   });
 
   const trendData = (stats?.daily ?? []).map((r) => ({
     date: r.date.slice(5),
     avgDelay: r.avgDelayMin,
+    maxDelay: r.maxDelayMin,
+    minDelay: r.minDelayMin,
+    numDepartures: r.numDepartures,
     bandBase: r.minDelayMin ?? r.avgDelayMin ?? 0,
-    bandRange: ((r.maxDelayMin ?? r.avgDelayMin ?? 0) - (r.minDelayMin ?? r.avgDelayMin ?? 0)),
+    bandRange: Math.max(0, (r.maxDelayMin ?? r.avgDelayMin ?? 0) - (r.minDelayMin ?? r.avgDelayMin ?? 0)),
   }));
 
   const hourlyData = (stats?.hourly ?? []).map((r) => {
@@ -189,26 +225,154 @@ export default function StopAnalysis() {
             />
             {showResults && searchResults.length > 0 && (
               <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-                {searchResults.map((r) => (
-                  <button
-                    key={r.stopRef}
-                    className="w-full text-left px-3 py-2 hover:bg-muted text-sm flex items-center gap-2"
-                    onMouseDown={() => {
-                      setSelectedStop({ ref: r.stopRef, name: formatStopName(r.stopName, r.stopRef) });
-                      setQuery(formatStopName(r.stopName, r.stopRef));
-                      setShowResults(false);
-                    }}
-                  >
-                    <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                    {formatStopName(r.stopName, r.stopRef)}
-                  </button>
-                ))}
+                {searchResults.map((r) => {
+                  const name = formatStopName(r.stopName, r.stopRef);
+                  const platforms = r.platformCodes
+                    ? r.platformCodes.split(",").filter(Boolean).join(", ")
+                    : null;
+                  return (
+                    <button
+                      key={r.stopRef}
+                      className="w-full text-left px-3 py-2 hover:bg-muted text-sm flex items-center gap-2"
+                      onMouseDown={() => {
+                        setSelectedStop({ ref: r.stopRef, name, quays: r.quays });
+                        setSelectedPlatform(null);
+                        setDirection("all");
+                        setQuery(name);
+                        setShowResults(false);
+                      }}
+                    >
+                      <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="flex-1 min-w-0">
+                        {name}
+                        {platforms && (
+                          <span className="ml-1.5 text-xs text-muted-foreground">
+                            plattform {platforms}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
 
-        {stats && (
+        {/* Direction toggle — outside stats block so it stays visible even when no data */}
+        {selectedStop && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-muted-foreground">Retning:</span>
+            {(["all", "0", "1"] as const).map((d) => (
+              <Button
+                key={d}
+                size="sm"
+                variant={direction === d ? "default" : "outline"}
+                onClick={() => setDirection(d)}
+                className="h-7 px-3 text-xs"
+              >
+                {d === "all" ? "Begge" : d === "0" ? "Retning 0 (utover)" : "Retning 1 (innover)"}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {/* Platform picker — outside stats block so it stays visible while loading */}
+        {selectedStop && selectedStop.quays.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-muted-foreground">Plattform:</span>
+            <Button
+              size="sm"
+              variant={selectedPlatform === null ? "default" : "outline"}
+              onClick={() => setSelectedPlatform(null)}
+              className="h-7 px-3 text-xs"
+            >
+              Alle
+            </Button>
+            {selectedStop.quays.map((q) => (
+              <Button
+                key={q.stopRef}
+                size="sm"
+                variant={selectedPlatform === q.stopRef ? "default" : "outline"}
+                onClick={() => setSelectedPlatform(q.stopRef)}
+                className="h-7 px-3 text-xs"
+              >
+                {q.platformCode}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {/* Loading state */}
+        {statsLoading && !stats && (
+          <div className="flex items-center gap-3 text-muted-foreground py-8">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Laster data...</span>
+          </div>
+        )}
+
+        {/* No data / error state */}
+        {!statsLoading && selectedStop && (statsError || (!stats && stopStatsUrl != null)) && (
+          <div className="flex flex-col items-start gap-3 py-6">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              <span className="font-medium">
+                {selectedPlatform
+                  ? "Ingen data for denne plattformen"
+                  : "Ingen data funnet for dette stoppestedet"}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {selectedPlatform
+                ? <>Det finnes ingen forsinkelsesdata for plattform{" "}
+                    <span className="font-medium">
+                      {selectedStop.quays.find(q => q.stopRef === selectedPlatform)?.platformCode ?? ""}
+                    </span> ved <span className="font-medium">{selectedStop.name}</span>.</>
+                : direction !== "all"
+                ? <>Det finnes ingen forsinkelsesdata for{" "}
+                    <span className="font-medium">{selectedStop.name}</span> i{" "}
+                    {direction === "0" ? "retning 0 (utover)" : "retning 1 (innover)"}. Prøv en annen retning.</>
+                : <>Det finnes ingen forsinkelsesdata for{" "}
+                    <span className="font-medium">{selectedStop.name}</span> i den valgte perioden.
+                    Stoppestedet kan være et ferjekai, trikk eller ha for lite trafikk til å vises.</>
+              }
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {direction !== "all" && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setDirection("all")}
+                >
+                  Tilbake til alle retninger
+                </Button>
+              )}
+              {selectedPlatform && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setSelectedPlatform(null)}
+                >
+                  Tilbake til alle plattformer
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedStop(null);
+                  setSelectedPlatform(null);
+                  setDirection("all");
+                  setQuery("");
+                }}
+              >
+                Tilbakestill søk
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {stats && selectedStop && (
           <div className="grid gap-6 animate-in slide-in-from-bottom-4 duration-300">
             {stats.daily.length > 0 && (
               <DataQualityBanner
@@ -218,21 +382,13 @@ export default function StopAnalysis() {
               />
             )}
 
-            {/* Direction toggle — applies to hourly + historical charts */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Retning:</span>
-              {(["all", "0", "1"] as const).map((d) => (
-                <Button
-                  key={d}
-                  size="sm"
-                  variant={direction === d ? "default" : "outline"}
-                  onClick={() => setDirection(d)}
-                  className="h-7 px-3 text-xs"
-                >
-                  {d === "all" ? "Begge" : d === "0" ? "Retning 0 (utover)" : "Retning 1 (innover)"}
-                </Button>
-              ))}
-            </div>
+            {/* Loading indicator overlay when switching platforms */}
+            {statsLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Oppdaterer...
+              </div>
+            )}
 
             {/* ---- Stat cards ---- */}
             <div className="grid gap-4 md:grid-cols-3">
@@ -277,13 +433,7 @@ export default function StopAnalysis() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                       <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                        formatter={(v: number, name: string) => {
-                          if (name === "bandBase" || name === "bandRange") return null;
-                          return [`${v.toFixed(2)}m`, "Snitt forsinkelse"];
-                        }}
-                      />
+                      <Tooltip content={<DailyTrendTooltip />} />
                       {/* Min-max band */}
                       <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                       <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />

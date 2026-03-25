@@ -174,40 +174,39 @@ export async function getAllLines(operator?: string) {
 // ---------------------------------------------------------------------------
 
 export async function getStopStats(stopRef: string, fromDate: string, operator = "SKY", direction?: string) {
-  // When direction is '0' or '1': return only rows for that direction (one per date).
-  // When 'all' or undefined: aggregate both directions into one row per date.
-  if (direction === "0" || direction === "1") {
-    return db
-      .select({
-        date: schema.stopDaily.date,
-        stopRef: schema.stopDaily.stopRef,
-        stopName: sql<string>`COALESCE(${schema.stopCoords.stopName}, ${schema.stopDaily.stopName})`,
-        avgDelayMin: schema.stopDaily.avgDelayMin,
-        maxDelayMin: schema.stopDaily.maxDelayMin,
-        minDelayMin: schema.stopDaily.minDelayMin,
-        pctDelayed2plus: schema.stopDaily.pctDelayed2plus,
-        numDepartures: schema.stopDaily.numDepartures,
-      })
-      .from(schema.stopDaily)
-      .leftJoin(schema.stopCoords, eq(schema.stopCoords.stopRef, schema.stopDaily.stopRef))
-      .where(
-        and(
-          eq(schema.stopDaily.stopRef, stopRef),
-          gte(schema.stopDaily.date, fromDate),
-          eq(schema.stopDaily.vehicleMode, "bus"),
-          eq(schema.stopDaily.operator, operator),
-          eq(schema.stopDaily.directionRef, direction),
-        ),
-      )
-      .orderBy(schema.stopDaily.date)
-      .all();
+  // stopRef can be either NSR:Quay:XXXXX (single quay) or NSR:StopPlace:XXXXX
+  // (parent stop place, which groups multiple quays together in search results).
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const stopFilter = isStopPlace
+    ? `sd.stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `sd.stop_ref = ?`;
+
+  // 'all': aggregate across directions (and across quays if stop place)
+  if (!direction || direction === "all") {
+    return sqlite.prepare(`
+      SELECT
+        sd.date,
+        ? AS stopRef,
+        COALESCE(MAX(sc.stop_place_name), MAX(sc.stop_name), MAX(sd.stop_name)) AS stopName,
+        ROUND(SUM(sd.avg_delay_min * sd.num_departures) * 1.0 / NULLIF(SUM(sd.num_departures), 0), 2) AS avgDelayMin,
+        ROUND(MAX(sd.max_delay_min), 2) AS maxDelayMin,
+        ROUND(MIN(sd.min_delay_min), 2) AS minDelayMin,
+        ROUND(SUM(sd.pct_delayed_2plus * sd.num_departures) * 1.0 / NULLIF(SUM(sd.num_departures), 0), 1) AS pctDelayed2plus,
+        SUM(sd.num_departures) AS numDepartures
+      FROM stop_daily sd
+      LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
+      WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode = 'bus' AND sd.operator = ?
+      GROUP BY sd.date
+      ORDER BY sd.date
+    `).all(stopRef, stopRef, fromDate, operator) as any[];
   }
-  // 'all': aggregate across directions per date
+
+  // Direction-specific: aggregate quays if stop place, keep direction filter
   return sqlite.prepare(`
     SELECT
       sd.date,
-      sd.stop_ref AS stopRef,
-      COALESCE(MAX(sc.stop_name), MAX(sd.stop_name)) AS stopName,
+      ? AS stopRef,
+      COALESCE(MAX(sc.stop_place_name), MAX(sc.stop_name), MAX(sd.stop_name)) AS stopName,
       ROUND(SUM(sd.avg_delay_min * sd.num_departures) * 1.0 / NULLIF(SUM(sd.num_departures), 0), 2) AS avgDelayMin,
       ROUND(MAX(sd.max_delay_min), 2) AS maxDelayMin,
       ROUND(MIN(sd.min_delay_min), 2) AS minDelayMin,
@@ -215,57 +214,83 @@ export async function getStopStats(stopRef: string, fromDate: string, operator =
       SUM(sd.num_departures) AS numDepartures
     FROM stop_daily sd
     LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
-    WHERE sd.stop_ref = ? AND sd.date >= ? AND sd.vehicle_mode = 'bus' AND sd.operator = ?
+    WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode = 'bus' AND sd.operator = ? AND sd.direction_ref = ?
     GROUP BY sd.date
     ORDER BY sd.date
-  `).all(stopRef, fromDate, operator) as any[];
+  `).all(stopRef, stopRef, fromDate, operator, direction) as any[];
 }
 
 export async function getStopHourlyProfile(stopRef: string, operator = "SKY", direction?: string) {
-  // When direction is '0' or '1': return that direction's profile.
-  // When 'all' or undefined: aggregate both directions (weighted avg + max/min over both).
-  if (direction === "0" || direction === "1") {
-    return db
-      .select()
-      .from(schema.stopHourlyProfile)
-      .where(
-        and(
-          eq(schema.stopHourlyProfile.stopRef, stopRef),
-          eq(schema.stopHourlyProfile.operator, operator),
-          eq(schema.stopHourlyProfile.directionRef, direction),
-        ),
-      )
-      .orderBy(schema.stopHourlyProfile.hour)
-      .all();
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const stopFilter = isStopPlace
+    ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `stop_ref = ?`;
+
+  if (!direction || direction === "all") {
+    return sqlite.prepare(`
+      SELECT
+        hour,
+        ROUND(SUM(avg_delay_min * num_samples) * 1.0 / NULLIF(SUM(num_samples), 0), 2) AS avgDelayMin,
+        ROUND(MAX(max_avg_delay_min), 2) AS maxAvgDelayMin,
+        ROUND(MIN(min_avg_delay_min), 2) AS minAvgDelayMin,
+        SUM(num_samples) AS numSamples
+      FROM stop_hourly_profile
+      WHERE ${stopFilter} AND operator = ?
+      GROUP BY hour
+      ORDER BY hour
+    `).all(stopRef, operator);
   }
-  // 'all': aggregate across directions
+
   return sqlite.prepare(`
     SELECT
-      stop_ref AS stopRef,
       hour,
-      operator,
       ROUND(SUM(avg_delay_min * num_samples) * 1.0 / NULLIF(SUM(num_samples), 0), 2) AS avgDelayMin,
       ROUND(MAX(max_avg_delay_min), 2) AS maxAvgDelayMin,
       ROUND(MIN(min_avg_delay_min), 2) AS minAvgDelayMin,
       SUM(num_samples) AS numSamples
     FROM stop_hourly_profile
-    WHERE stop_ref = ? AND operator = ?
+    WHERE ${stopFilter} AND operator = ? AND direction_ref = ?
     GROUP BY hour
     ORDER BY hour
-  `).all(stopRef, operator);
+  `).all(stopRef, operator, direction);
 }
 
 export async function searchStops(query: string, limit = 20) {
-  return db
-    .selectDistinct({
-      stopRef: schema.stopCoords.stopRef,
-      stopName: schema.stopCoords.stopName,
-    })
-    .from(schema.stopCoords)
-    .innerJoin(schema.stopDaily, eq(schema.stopDaily.stopRef, schema.stopCoords.stopRef))
-    .where(like(schema.stopCoords.stopName, `%${query}%`))
-    .limit(limit)
-    .all();
+  // Group quays by their parent stop place so "Olav Kyrres gate" appears once
+  // with platform letters aggregated (e.g. "E, F, G, H, J") instead of 5× separately.
+  // For quays without a stop_place_ref mapping we fall back to the quay itself.
+  // quayData: "NSR:Quay:53114|J,NSR:Quay:53115|F,..." for individual platform picker.
+  // Uses DISTINCT subquery on stop_daily to avoid duplicating quays across dates.
+  return sqlite
+    .prepare(
+      `
+      SELECT
+        COALESCE(sc.stop_place_ref, sc.stop_ref)             AS stopRef,
+        COALESCE(sc.stop_place_name, MAX(sc.stop_name))      AS stopName,
+        GROUP_CONCAT(
+          DISTINCT sc.platform_code
+          ORDER BY sc.platform_code
+        )                                                      AS platformCodes,
+        GROUP_CONCAT(
+          DISTINCT sc.stop_ref || '|' || sc.platform_code
+          ORDER BY sc.platform_code
+        )                                                      AS quayData
+      FROM stop_coords sc
+      INNER JOIN (SELECT DISTINCT stop_ref FROM stop_daily) sd
+        ON sd.stop_ref = sc.stop_ref
+      WHERE sc.stop_name LIKE ?
+         OR sc.stop_place_name LIKE ?
+      GROUP BY COALESCE(sc.stop_place_ref, sc.stop_ref)
+      ORDER BY stopName
+      LIMIT ?
+      `,
+    )
+    .all(`%${query}%`, `%${query}%`, limit) as Array<{
+      stopRef: string;
+      stopName: string | null;
+      platformCodes: string | null;
+      quayData: string | null;
+    }>;
 }
 
 export async function getStopsForMap(date: string, operator = "SKY") {
@@ -422,6 +447,43 @@ export async function getWorstStopsForLine(lineRef: string, fromWeek: string, li
     .all();
 }
 
+/** All stops on a line in route order with their average delay.
+ *  Unlike getWorstStopsForLine (sorted by delay desc), this preserves the
+ *  canonical stop sequence so you can visualise where delay builds up along
+ *  the route. direction_ref is required because route order is direction-specific.
+ */
+export async function getLineStopProfile(
+  lineRef: string,
+  directionRef: string,
+  fromWeek: string,
+): Promise<Array<{
+  stopRef: string;
+  stopSequence: number;
+  avgDelayMin: number | null;
+  maxDelayMin: number | null;
+  minDelayMin: number | null;
+  numSamples: number;
+  stopName: string | null;
+}>> {
+  return sqlite.prepare(`
+    SELECT
+      jsw.stop_ref           AS stopRef,
+      MIN(jsw.stop_sequence) AS stopSequence,
+      ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
+            / NULLIF(SUM(jsw.num_samples), 0), 2)   AS avgDelayMin,
+      ROUND(MAX(jsw.max_delay_min), 2)               AS maxDelayMin,
+      ROUND(MIN(jsw.min_delay_min), 2)               AS minDelayMin,
+      SUM(jsw.num_samples)                           AS numSamples,
+      COALESCE(MAX(sc.stop_name), jsw.stop_ref)      AS stopName
+    FROM journey_stop_weekly jsw
+    LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
+    WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
+    GROUP BY jsw.stop_ref
+    HAVING SUM(jsw.num_samples) >= 3
+    ORDER BY MIN(jsw.stop_sequence)
+  `).all(lineRef, directionRef, fromWeek) as any;
+}
+
 /** Lines serving a stop with their avg delay (from journey_stop_weekly).
  *  Used to filter stop analysis by line and show which lines drive delay.
  */
@@ -429,6 +491,10 @@ export async function getLineHourlyAtStop(
   stopRef: string,
   fromWeek: string,
 ): Promise<Array<{ lineRef: string; hour: number; avgDelayMin: number; numSamples: number }>> {
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const stopFilter = isStopPlace
+    ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `stop_ref = ?`;
   return sqlite
     .prepare(
       `SELECT
@@ -440,7 +506,7 @@ export async function getLineHourlyAtStop(
          ) AS avgDelayMin,
          SUM(num_samples) AS numSamples
        FROM journey_stop_weekly
-       WHERE stop_ref = ? AND week_start >= ? AND aimed_time IS NOT NULL
+       WHERE ${stopFilter} AND week_start >= ? AND aimed_time IS NOT NULL
        GROUP BY line_ref, CAST(SUBSTR(aimed_time, 1, 2) AS INTEGER)
        ORDER BY line_ref, hour`,
     )
@@ -448,23 +514,20 @@ export async function getLineHourlyAtStop(
 }
 
 export async function getLinesAtStop(stopRef: string, fromWeek: string) {
-  const avgExpr = sql<number>`ROUND(SUM(${schema.journeyStopWeekly.avgDelayMin} * ${schema.journeyStopWeekly.numSamples}) * 1.0 / SUM(${schema.journeyStopWeekly.numSamples}), 2)`;
-  return db
-    .select({
-      lineRef: schema.journeyStopWeekly.lineRef,
-      avgDelayMin: avgExpr,
-      numSamples: sql<number>`SUM(${schema.journeyStopWeekly.numSamples})`,
-    })
-    .from(schema.journeyStopWeekly)
-    .where(
-      and(
-        eq(schema.journeyStopWeekly.stopRef, stopRef),
-        gte(schema.journeyStopWeekly.weekStart, fromWeek),
-      ),
-    )
-    .groupBy(schema.journeyStopWeekly.lineRef)
-    .orderBy(desc(avgExpr))
-    .all();
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const stopFilter = isStopPlace
+    ? `jsw.stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `jsw.stop_ref = ?`;
+  return sqlite.prepare(`
+    SELECT
+      jsw.line_ref AS lineRef,
+      ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0 / SUM(jsw.num_samples), 2) AS avgDelayMin,
+      SUM(jsw.num_samples) AS numSamples
+    FROM journey_stop_weekly jsw
+    WHERE ${stopFilter} AND jsw.week_start >= ?
+    GROUP BY jsw.line_ref
+    ORDER BY avgDelayMin DESC
+  `).all(stopRef, fromWeek) as any;
 }
 
 // ---------------------------------------------------------------------------

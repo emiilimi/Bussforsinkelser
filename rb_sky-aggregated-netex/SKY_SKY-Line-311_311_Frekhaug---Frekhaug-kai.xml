@@ -1,0 +1,1666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:28:22.043</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Frekhaug - Frekhaug kai</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3940454">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3940445">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3940455">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:311-461">
+              <Name>Frekhaug terminal-Frekhaug kai</Name>
+              <ShortName>Frekhaug terminal-Frekhaug kai</ShortName>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3940446">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58351"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3940447">
+                  <RoutePointRef ref="SKY:RoutePoint:default-101385"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:311-462">
+              <Name>Frekhaug kai-Frekhaug terminal</Name>
+              <ShortName>Frekhaug kai-Frekhaug terminal</ShortName>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3940448">
+                  <RoutePointRef ref="SKY:RoutePoint:default-101385"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3940449">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58351"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:311">
+              <Name>Frekhaug - Frekhaug kai</Name>
+              <TransportMode>bus</TransportMode>
+              <TransportSubmode>
+                <BusSubmode>localBus</BusSubmode>
+              </TransportSubmode>
+              <PublicCode>311</PublicCode>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:311-461">
+              <Name>Frekhaug terminal-Frekhaug kai</Name>
+              <RouteRef ref="SKY:Route:311-461" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:311-461-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58351"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:4390"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:311-461-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-101385"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3940450">
+                  <ServiceLinkRef ref="SKY:ServiceLink:58351-101385"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:311-462">
+              <Name>Frekhaug kai-Frekhaug terminal</Name>
+              <RouteRef ref="SKY:Route:311-462" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:311-462-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-101385"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:4378"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:311-462-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58351"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3940451">
+                  <ServiceLinkRef ref="SKY:ServiceLink:101385-58351"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3940456">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974032">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>358</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974032-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974032-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:54:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974030">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>366</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974030-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974030-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974031">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>378</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974031-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974031-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974033">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>409</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974033-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974033-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974034">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>419</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974034-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974034-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974035">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>428</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974035-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974035-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817553">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>358</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817553-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817553-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:54:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817551">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>366</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817551-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817551-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817552">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>378</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817552-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817552-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817554">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>409</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817554-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817554-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817555">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>419</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817555-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817555-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817556">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>428</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817556-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817556-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155572">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>358</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155572-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155572-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:54:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155570">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>366</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155570-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155570-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155571">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>378</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155571-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155571-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155573">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>409</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155573-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155573-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155574">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>419</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155574-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155574-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155575">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>428</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155575-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155575-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817553">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>358</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817553-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817553-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:54:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817551">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>366</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817551-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817551-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817552">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>378</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817552-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817552-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817554">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>409</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817554-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817554-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817555">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>419</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817555-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817555-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817556">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>428</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817556-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817556-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985075">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>358</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985075-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985075-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:54:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985073">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>366</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985073-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985073-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985074">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>378</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985074-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985074-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:51:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985076">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>409</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985076-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985076-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985077">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>419</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985077-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985077-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985078">
+              <Name>Frekhaug båtkai</Name>
+              <PrivateCode>428</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-461" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985078-58351-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985078-101385-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-461-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974042">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974042-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974042-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974036">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>360</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974036-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974036-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974040">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>369</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974040-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974040-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974041">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>380</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974041-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974041-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974038">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>413</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974038-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974038-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974037">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>422</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974037-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974037-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178191-16974039">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>432</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974039-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178191-16974039-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817563">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817563-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817563-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817557">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>360</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817557-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817557-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817561">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>369</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817561-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817561-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817562">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>380</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817562-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817562-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817559">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>413</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817559-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817559-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817558">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>422</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817558-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817558-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-178194-16817560">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>432</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817560-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-178194-16817560-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155582">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155582-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155582-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155576">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>360</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155576-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155576-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155580">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>369</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155580-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155580-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155581">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>380</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155581-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155581-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155578">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>413</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155578-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155578-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155577">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>422</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155577-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155577-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179219-17155579">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>432</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155579-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179219-17155579-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817563">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817563-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817563-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817557">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>360</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817557-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817557-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817561">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>369</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817561-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817561-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817562">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>380</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817562-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817562-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817559">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>413</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817559-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817559-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817558">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>422</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817558-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817558-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179276-16817560">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>432</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817560-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179276-16817560-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985085">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985085-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985085-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985079">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>360</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985079-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985079-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985083">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>369</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985083-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985083-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985084">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>380</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985084-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985084-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:04:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985081">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>413</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985081-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985081-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985080">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>422</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985080-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985080-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:311-179281-15985082">
+              <Name>Frekhaug terminal</Name>
+              <PrivateCode>432</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:311-462" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:311" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985082-101385-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:311-179281-15985082-58351-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:311-462-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:57:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <journeyInterchanges>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155678-17155570">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155678"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155570" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975375-16817551">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975375"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817551" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817411-16817554">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817411"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817554" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975416-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975416"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817382-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817382"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975396-16817555">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975396"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817555" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817414-16817551">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817414"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817551" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155699-17155574">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155699"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155574" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155719-17155572">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155719"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155572" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155753-17155575">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155753"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155575" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975385-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975385"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155717-17155573">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155717"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155573" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817392-16817554">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817392"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817554" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155871-17155572">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:312-179219-17155871"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155572" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817372-16817551">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817372"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817551" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155720-17155570">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155720"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155570" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817447-16817556">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817447"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817556" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16817695-16817552">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:313-178194-16817695"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817552" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975395-16817554">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975395"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817554" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155698-17155573">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155698"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155573" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975417-16817551">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975417"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817551" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16814341-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:312-178194-16814341"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155436-17155571">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:313-179219-17155436"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155571" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817695-16817552">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:313-179276-16817695"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817552" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975414-16817554">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975414"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817554" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-178194-16975450-16817556">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-178194-16975450"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-178194-16817556" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179219-17155688-17155572">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179219-17155688"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179219-17155572" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16814341-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:312-179276-16814341"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817413-16817553">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817413"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817553" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:58351-58351-179276-16817393-16817555">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-58351"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-58351"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:310-179276-16817393"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:311-179276-16817555" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+          </journeyInterchanges>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

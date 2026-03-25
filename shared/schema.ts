@@ -171,6 +171,9 @@ export const stopCoords = sqliteTable("stop_coords", {
   stopName: text("stop_name"),
   lat: real("lat"),
   lng: real("lng"),
+  stopPlaceRef: text("stop_place_ref"),
+  platformCode: text("platform_code"),
+  stopPlaceName: text("stop_place_name"),
 });
 
 // Per-journey per-stop weekly aggregates (bus only, 13-week rolling window).

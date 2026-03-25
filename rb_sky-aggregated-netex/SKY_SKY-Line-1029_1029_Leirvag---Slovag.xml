@@ -1,0 +1,2204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:11.956</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Leirvåg - Sløvåg</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3917228">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3917216">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3917229">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1029-1">
+              <Name>Leirvåg ferjekai-Sløvåg ferjekai</Name>
+              <ShortName>Leirvåg ferjekai-Sløvåg ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917217">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57883"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917218">
+                  <RoutePointRef ref="SKY:RoutePoint:default-64710"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1029-2">
+              <Name>Sløvåg ferjekai-Leirvåg ferjekai</Name>
+              <ShortName>Sløvåg ferjekai-Leirvåg ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917219">
+                  <RoutePointRef ref="SKY:RoutePoint:default-64710"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917220">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57883"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1029">
+              <Name>Leirvåg - Sløvåg</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1029</PublicCode>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1029-1">
+              <Name>Leirvåg ferjekai-Sløvåg ferjekai</Name>
+              <RouteRef ref="SKY:Route:1029-1" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1029-1-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57883"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9378"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1029-1-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-64710"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917221">
+                  <ServiceLinkRef ref="SKY:ServiceLink:57883-64710"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1029-2">
+              <Name>Sløvåg ferjekai-Leirvåg ferjekai</Name>
+              <RouteRef ref="SKY:Route:1029-2" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1029-2-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-64710"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9379"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1029-2-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57883"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917223">
+                  <ServiceLinkRef ref="SKY:ServiceLink:64710-57883"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3917230">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136237">
+              <Name>Sløvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136237-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136237-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136238">
+              <Name>Sløvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136238-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136238-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136239">
+              <Name>Sløvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136239-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136239-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136240">
+              <Name>Sløvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136240-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136240-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136241">
+              <Name>Sløvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136241-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136241-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136242">
+              <Name>Sløvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136242-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136242-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136243">
+              <Name>Sløvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136243-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136243-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136244">
+              <Name>Sløvåg</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136244-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136244-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136245">
+              <Name>Sløvåg</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136245-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136245-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136246">
+              <Name>Sløvåg</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136246-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136246-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136247">
+              <Name>Sløvåg</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136247-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136247-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136248">
+              <Name>Sløvåg</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136248-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136248-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136249">
+              <Name>Sløvåg</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136249-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136249-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136250">
+              <Name>Sløvåg</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136250-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136250-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136251">
+              <Name>Sløvåg</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136251-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136251-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136252">
+              <Name>Sløvåg</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136252-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136252-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136253">
+              <Name>Sløvåg</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136253-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136253-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136254">
+              <Name>Sløvåg</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136254-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>23:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136254-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136296">
+              <Name>Sløvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136296-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136296-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136297">
+              <Name>Sløvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136297-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136297-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136298">
+              <Name>Sløvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136298-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136298-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136299">
+              <Name>Sløvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136299-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136299-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136300">
+              <Name>Sløvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136300-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136300-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136301">
+              <Name>Sløvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136301-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136301-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136302">
+              <Name>Sløvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136302-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136302-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136303">
+              <Name>Sløvåg</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136303-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136303-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136304">
+              <Name>Sløvåg</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136304-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136304-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136305">
+              <Name>Sløvåg</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136305-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136305-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136306">
+              <Name>Sløvåg</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136306-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136306-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136307">
+              <Name>Sløvåg</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136307-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136307-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136308">
+              <Name>Sløvåg</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136308-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136308-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136309">
+              <Name>Sløvåg</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136309-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136309-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136310">
+              <Name>Sløvåg</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136310-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136310-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136311">
+              <Name>Sløvåg</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136311-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136311-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136312">
+              <Name>Sløvåg</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136312-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136312-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136349">
+              <Name>Sløvåg</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136349-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>23:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136349-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136350">
+              <Name>Sløvåg</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136350-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136350-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136351">
+              <Name>Sløvåg</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136351-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136351-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136352">
+              <Name>Sløvåg</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136352-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136352-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136353">
+              <Name>Sløvåg</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136353-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136353-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136354">
+              <Name>Sløvåg</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136354-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136354-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136355">
+              <Name>Sløvåg</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136355-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136355-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136356">
+              <Name>Sløvåg</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136356-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136356-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136357">
+              <Name>Sløvåg</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136357-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136357-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136358">
+              <Name>Sløvåg</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136358-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136358-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136359">
+              <Name>Sløvåg</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136359-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136359-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136360">
+              <Name>Sløvåg</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136360-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136360-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136361">
+              <Name>Sløvåg</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136361-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136361-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136362">
+              <Name>Sløvåg</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136362-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136362-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136363">
+              <Name>Sløvåg</Name>
+              <PrivateCode>15</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136363-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136363-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136364">
+              <Name>Sløvåg</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136364-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136364-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136365">
+              <Name>Sløvåg</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136365-57883-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136365-64710-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136255">
+              <Name>Leirvåg</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136255-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136255-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136256">
+              <Name>Leirvåg</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136256-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136256-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136257">
+              <Name>Leirvåg</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136257-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136257-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136258">
+              <Name>Leirvåg</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136258-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136258-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136259">
+              <Name>Leirvåg</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136259-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136259-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136260">
+              <Name>Leirvåg</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136260-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136260-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136261">
+              <Name>Leirvåg</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136261-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136261-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136262">
+              <Name>Leirvåg</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136262-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136262-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136263">
+              <Name>Leirvåg</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136263-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136263-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136264">
+              <Name>Leirvåg</Name>
+              <PrivateCode>28</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136264-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136264-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136265">
+              <Name>Leirvåg</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136265-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136265-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136266">
+              <Name>Leirvåg</Name>
+              <PrivateCode>30</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136266-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136266-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136267">
+              <Name>Leirvåg</Name>
+              <PrivateCode>31</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136267-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136267-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136268">
+              <Name>Leirvåg</Name>
+              <PrivateCode>32</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136268-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136268-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136269">
+              <Name>Leirvåg</Name>
+              <PrivateCode>33</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136269-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136269-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136270">
+              <Name>Leirvåg</Name>
+              <PrivateCode>34</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136270-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136270-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136271">
+              <Name>Leirvåg</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136271-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136271-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167721-15136272">
+              <Name>Leirvåg</Name>
+              <PrivateCode>36</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167721-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136272-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167721-15136272-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136313">
+              <Name>Leirvåg</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136313-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136313-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136314">
+              <Name>Leirvåg</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136314-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136314-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136315">
+              <Name>Leirvåg</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136315-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136315-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136316">
+              <Name>Leirvåg</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136316-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136316-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136317">
+              <Name>Leirvåg</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136317-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136317-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136318">
+              <Name>Leirvåg</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136318-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136318-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136319">
+              <Name>Leirvåg</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136319-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136319-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136320">
+              <Name>Leirvåg</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136320-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136320-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136321">
+              <Name>Leirvåg</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136321-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136321-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136322">
+              <Name>Leirvåg</Name>
+              <PrivateCode>28</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136322-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136322-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136323">
+              <Name>Leirvåg</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136323-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136323-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136324">
+              <Name>Leirvåg</Name>
+              <PrivateCode>30</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136324-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136324-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136325">
+              <Name>Leirvåg</Name>
+              <PrivateCode>31</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136325-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136325-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136326">
+              <Name>Leirvåg</Name>
+              <PrivateCode>32</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136326-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136326-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136327">
+              <Name>Leirvåg</Name>
+              <PrivateCode>33</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136327-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136327-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136328">
+              <Name>Leirvåg</Name>
+              <PrivateCode>34</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136328-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136328-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167727-15136329">
+              <Name>Leirvåg</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167727-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136329-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167727-15136329-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136366">
+              <Name>Leirvåg</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136366-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136366-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136367">
+              <Name>Leirvåg</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136367-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136367-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136368">
+              <Name>Leirvåg</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136368-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136368-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136369">
+              <Name>Leirvåg</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136369-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136369-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136370">
+              <Name>Leirvåg</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136370-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136370-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136371">
+              <Name>Leirvåg</Name>
+              <PrivateCode>24</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136371-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136371-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136372">
+              <Name>Leirvåg</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136372-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136372-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136373">
+              <Name>Leirvåg</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136373-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136373-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136374">
+              <Name>Leirvåg</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136374-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136374-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136375">
+              <Name>Leirvåg</Name>
+              <PrivateCode>28</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136375-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136375-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136376">
+              <Name>Leirvåg</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136376-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136376-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136377">
+              <Name>Leirvåg</Name>
+              <PrivateCode>30</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136377-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136377-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136378">
+              <Name>Leirvåg</Name>
+              <PrivateCode>31</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136378-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136378-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136379">
+              <Name>Leirvåg</Name>
+              <PrivateCode>32</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136379-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136379-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136380">
+              <Name>Leirvåg</Name>
+              <PrivateCode>33</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136380-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136380-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136381">
+              <Name>Leirvåg</Name>
+              <PrivateCode>34</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136381-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136381-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1029-167733-15136382">
+              <Name>Leirvåg</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167733-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1029-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:FJORD1"></OperatorRef>
+              <LineRef ref="SKY:Line:1029" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136382-64710-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1029-167733-15136382-57883-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1029-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

@@ -1,0 +1,269 @@
+agency_id,route_id,route_short_name,route_long_name,route_type
+SKY:Authority:SKY,SKY:Line:1,1,Bergen lufthavn Flesland- Lagunen - Byparken,901
+SKY:Authority:SKY,SKY:Line:10,10,Wergeland/Søndre Skogveien - Mulen,704
+SKY:Authority:SKY,SKY:Line:1018,1018,Halhjem - Sandvikvåg,1004
+SKY:Authority:SKY,SKY:Line:1019,1019,Masfjordnes - Duesundøy,1004
+SKY:Authority:SKY,SKY:Line:1020,1020,Hatvik - Venjaneset,1004
+SKY:Authority:SKY,SKY:Line:1021,1021,Våge - Halhjem,1004
+SKY:Authority:SKY,SKY:Line:1022,1022,Hufthamar - Krokeide,1004
+SKY:Authority:SKY,SKY:Line:1023,1023,Husavik - Sandvikvåg,1004
+SKY:Authority:SKY,SKY:Line:1024,1024,Utne - Kvanndal,1004
+SKY:Authority:SKY,SKY:Line:1025,1025,Kinsarvik - Utne,1004
+SKY:Authority:SKY,SKY:Line:1026,1026,Jondal - Tørvikbygd,1004
+SKY:Authority:SKY,SKY:Line:1027,1027,Gjermundshamn - Varaldsøy - Årsnes,1004
+SKY:Authority:SKY,SKY:Line:1028,1028,Fedje - Sævrøy,1004
+SKY:Authority:SKY,SKY:Line:1029,1029,Leirvåg - Sløvåg,1004
+SKY:Authority:SKY,SKY:Line:1030,1030,Langevåg - Buavåg,1004
+SKY:Authority:SKY,SKY:Line:1031,1031,Skånevik - Matre -Utåker,1004
+SKY:Authority:SKY,SKY:Line:1032,1032,Skjersholmane - Ranavik,1004
+SKY:Authority:SKY,SKY:Line:1033,1033,Jektavik - Nordhuglo - Hodnanes,1004
+SKY:Authority:SKY,SKY:Line:1034,1034,Fjelberg - Sydnes - Utbjoa - Skjersholmane,1004
+SKY:Authority:SKY,SKY:Line:1035,1035,Klokkarvik - Lerøy - Bjelkarøy - Hjellestad,1004
+SKY:Authority:SKY,SKY:Line:1036,1036,Valestrandfossen - Breistein,1004
+SKY:Authority:SKY,SKY:Line:11,11,Nordnes - Starefossen,704
+SKY:Authority:SKY,SKY:Line:12,12,Lønborglien - Lægdene - Montana,704
+SKY:Authority:SKY,SKY:Line:13,13,Bergen sentrum - Solheimsviken,704
+SKY:Authority:SKY,SKY:Line:14,14,Bergen busstasjon - Fyllingsdalen terminal,704
+SKY:Authority:SKY,SKY:Line:15,15,Bergen sentrum - Bønes,704
+SKY:Authority:SKY,SKY:Line:16E,16E,Nesttun - Helldalsåsen - Øyjorden,704
+SKY:Authority:SKY,SKY:Line:18,18,Barlieveien - Formanns vei,704
+SKY:Authority:SKY,SKY:Line:19,19,Åsane - Løvstakkskiftet,704
+SKY:Authority:SKY,SKY:Line:2,2,Bybane Fyllingsdalen,901
+SKY:Authority:SKY,SKY:Line:20,20,Storavatnet - Haukeland sjukehus,704
+SKY:Authority:SKY,SKY:Line:2060,2060,Knappskog - Geitanger,1008
+SKY:Authority:SKY,SKY:Line:2070,2070,Kleppestø - Strandkaien,1008
+SKY:Authority:SKY,SKY:Line:2071,2071,Hellesøy - Hernar,1008
+SKY:Authority:SKY,SKY:Line:2075,2075,Hardangerfjordekspressen,1008
+SKY:Authority:SKY,SKY:Line:2078,2078,Båtruter Austevoll,1008
+SKY:Authority:SKY,SKY:Line:2079,2079,Espevær - Eidesvik,1008
+SKY:Authority:SKY,SKY:Line:2080,2080,Sunnhordland - Austevoll - Bergen,1008
+SKY:Authority:SKY,SKY:Line:2085,2085,Reksteren - Våge - Os,1008
+SKY:Authority:SKY,SKY:Line:2095,2095,Turistrute indre Hardanger,1008
+SKY:Authority:SKY,SKY:Line:22,22,Lagunen terminal - Fyllingsdalen terminal,704
+SKY:Authority:SKY,SKY:Line:23,23,Storavatnet-Dolvik-Sandslimarka-Birkelandskrysset,704
+SKY:Authority:SKY,SKY:Line:23E,23E,Sandsli - Kokstad,704
+SKY:Authority:SKY,SKY:Line:24,24,Olsvikskjenet - Loddefjord terminal - Fyllingsdale,704
+SKY:Authority:SKY,SKY:Line:26,26,Åsane terminal - Lagunen terminal,704
+SKY:Authority:SKY,SKY:Line:27,27,Åsane terminal - Haukeland sjukehus,704
+SKY:Authority:SKY,SKY:Line:28,28,Åsane terminal - Ytre Arna - Arna terminal,704
+SKY:Authority:SKY,SKY:Line:29,29,Arna stasjon - Stølsvegen - Haukeland - Nesttun,704
+SKY:Authority:SKY,SKY:Line:3,3,Støbotn - Vadmyra,704
+SKY:Authority:SKY,SKY:Line:30,30,Tertnes - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:300,300,Knarvik-Åsane-Bergen,704
+SKY:Authority:SKY,SKY:Line:300E,300E,Knarvik-Bergen ekspress,704
+SKY:Authority:SKY,SKY:Line:301,301,Knarvik skysstasjon - Knarvik kai,704
+SKY:Authority:SKY,SKY:Line:302,302,Feste - Vollum - Sellevold -Alver - Knarvik,704
+SKY:Authority:SKY,SKY:Line:303,303,Nesse - Knarvik,704
+SKY:Authority:SKY,SKY:Line:304,304,Kvalvågnes-Ones-Konglevoll-Søreidet-Vatne,704
+SKY:Authority:SKY,SKY:Line:31,31,Åsane terminal - Selvik - Jordal,704
+SKY:Authority:SKY,SKY:Line:310,310,Knarvik - Flatøy - Rossland - Skjelanger,704
+SKY:Authority:SKY,SKY:Line:311,311,Frekhaug - Frekhaug kai,704
+SKY:Authority:SKY,SKY:Line:312,312,Io-Eikeland-Smugleitet - Tveit - Meland - Frekhaug,704
+SKY:Authority:SKY,SKY:Line:313,313,Odland - Myrvoll - Fossesj. - Frekhaug,704
+SKY:Authority:SKY,SKY:Line:32,32,Skinstø - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:320,320,Manger - Knarvik,704
+SKY:Authority:SKY,SKY:Line:321,321,Austmarka - Sæbø - Marås - Manger,704
+SKY:Authority:SKY,SKY:Line:322,322,Manger - Kviste,704
+SKY:Authority:SKY,SKY:Line:323,323,Valdersnes - Manger,704
+SKY:Authority:SKY,SKY:Line:324,324,Manger - Toska,704
+SKY:Authority:SKY,SKY:Line:325,325,Manger - Sætre - Villanger - Rossnes,704
+SKY:Authority:SKY,SKY:Line:326,326,Mastrevik-Austmarka-Knarvik,704
+SKY:Authority:SKY,SKY:Line:327,327,Sævrøy - Mastrevik,704
+SKY:Authority:SKY,SKY:Line:328,328,Hoplandsjøen - Lerøy - Mastrevik,704
+SKY:Authority:SKY,SKY:Line:33,33,Rolland - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:330,330,Mastrevik-Lindås-Knarvik,704
+SKY:Authority:SKY,SKY:Line:331,331,Lindås - Syslak - Risasjøen - Lauvås,704
+SKY:Authority:SKY,SKY:Line:34,34,Langarinden - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:340,340,Ostereidet - Eidsnes - Leknes - Knarvik,704
+SKY:Authority:SKY,SKY:Line:341,341,Tveitegrend - Vaet - Fammestad - Hillesvåg,704
+SKY:Authority:SKY,SKY:Line:342,342,Vågseidet - Skauge - Myking - Eikanger,704
+SKY:Authority:SKY,SKY:Line:343,343,Hindenes - Eikanger - Knarvik,704
+SKY:Authority:SKY,SKY:Line:344,344,Nesbøsjøen - Ostereidet,704
+SKY:Authority:SKY,SKY:Line:345,345,Ådnekvam - Andvik - Masfjordnes - Andås,704
+SKY:Authority:SKY,SKY:Line:346,346,Førde -  Oppedal - Knarvik - Bergen,704
+SKY:Authority:SKY,SKY:Line:35,35,Hordvik - Tellevik - Salhus - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:350,350,Sløvåg - Duesund,704
+SKY:Authority:SKY,SKY:Line:351,351,Duesund - Solheim - Matre - Haukeland,704
+SKY:Authority:SKY,SKY:Line:36,36,Hordvikneset - Åsane terminal - sentrum,704
+SKY:Authority:SKY,SKY:Line:37,37,Breistein - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:38,38,Hetlebakk - Åsane terminal,704
+SKY:Authority:SKY,SKY:Line:39,39,Viddalen - Ervik - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:390,390,Nordhordland,1008
+SKY:Authority:SKY,SKY:Line:3E,3E,Støbotn - sentrum,704
+SKY:Authority:SKY,SKY:Line:4,4,Flaktveit - Hesjaholtet,704
+SKY:Authority:SKY,SKY:Line:40,40,Storavatnet terminal - Olsvik - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:40E,40E,Olsvikskjenet - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:41,41,Hetlevikåsen - Loddefjord terminal,704
+SKY:Authority:SKY,SKY:Line:42,42,Alvøen - Loddefjord terminal,704
+SKY:Authority:SKY,SKY:Line:420,420,Skuleturar Sund,704
+SKY:Authority:SKY,SKY:Line:424,424,Ramsvik - Bergen,704
+SKY:Authority:SKY,SKY:Line:43,43,Tyssøy/Bjorøy - Loddefjord terminal,704
+SKY:Authority:SKY,SKY:Line:44,44,Gravdal - Nipedalen,704
+SKY:Authority:SKY,SKY:Line:441,441,Hjelteryggen - Bergen,704
+SKY:Authority:SKY,SKY:Line:442,442,Brattholmen - Bergen,704
+SKY:Authority:SKY,SKY:Line:445,445,Anglevik - Straume,704
+SKY:Authority:SKY,SKY:Line:448,448,Liaskjæret - Straume,704
+SKY:Authority:SKY,SKY:Line:449,449,Skuleturar Fjell,704
+SKY:Authority:SKY,SKY:Line:45,45,Loddefjord - Skålevik - Brøstaneset - Loddefjord,704
+SKY:Authority:SKY,SKY:Line:450,450,Skogsskiftet - Bergen,704
+SKY:Authority:SKY,SKY:Line:450E,450E,Skogsskiftet - Bergen,704
+SKY:Authority:SKY,SKY:Line:452,452,Kallestad/Haganes - Tellnes skule,704
+SKY:Authority:SKY,SKY:Line:454,454,Klokkarvik- Eidesjøen-Skogsskiftet,704
+SKY:Authority:SKY,SKY:Line:455,455,Forland -Skogsskiftet,704
+SKY:Authority:SKY,SKY:Line:457,457,Sæle-Viksøy - Skogsskiftet,704
+SKY:Authority:SKY,SKY:Line:458,458,Glesvær - Tælavåg - Skogsskiftet,704
+SKY:Authority:SKY,SKY:Line:459,459,Tælavåg - Glesvær - Skogsskiftet,704
+SKY:Authority:SKY,SKY:Line:46,46,Løvstakkskiftet - Fyllingsdalen Terminal,704
+SKY:Authority:SKY,SKY:Line:460,460,Ågotnes - Bergen,704
+SKY:Authority:SKY,SKY:Line:460E,460E,Ågotnes - Bergen,704
+SKY:Authority:SKY,SKY:Line:462,462,Morland/Fjæreide - Ågotnes,704
+SKY:Authority:SKY,SKY:Line:465,465,Ågotnes - Ulveset - Straume,704
+SKY:Authority:SKY,SKY:Line:466,466,Nesse/Ekren - Straume,704
+SKY:Authority:SKY,SKY:Line:467,467,Algrøy/Lokøy/Syltøy - Åse - Straume,704
+SKY:Authority:SKY,SKY:Line:470,470,Skuleturar Øygarden,704
+SKY:Authority:SKY,SKY:Line:471,471,Turøy - Vindenes - Ågotnes,704
+SKY:Authority:SKY,SKY:Line:474,474,Herdlevær - Blomvåg - Ågotnes,704
+SKY:Authority:SKY,SKY:Line:475,475,Blomvåg - Straume - Sund,704
+SKY:Authority:SKY,SKY:Line:479,479,Hellesøy - Ågotnes,704
+SKY:Authority:SKY,SKY:Line:48,48,Oasen - Løtveit,704
+SKY:Authority:SKY,SKY:Line:480,480,Skoleturer Askøy,704
+SKY:Authority:SKY,SKY:Line:481,481,Kleppestø terminal - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:482,482,Øvre Florvåg - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:483,483,Øen - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:484,484,Steinrusten - Kleppestø - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:485,485,Ravnanger - Hanevik - Kleppestø - Bergen busstasjo,704
+SKY:Authority:SKY,SKY:Line:49,49,Skoleturer Bergen Sentrum,704
+SKY:Authority:SKY,SKY:Line:490,490,Marikoven - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:491,491,Hetlevik - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:493,493,Krokåsfeltet - Øvre Kleppe - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:495,495,Ramsøy - Ravnanger - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:496,496,Breivik-Ravnanger-Kleppestø,704
+SKY:Authority:SKY,SKY:Line:497,497,Heggernes - Berland - Ravnanger - Kleppestø,704
+SKY:Authority:SKY,SKY:Line:499,499,Herdla - Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:4E,4E,Flaktveit - sentrum,704
+SKY:Authority:SKY,SKY:Line:5,5,Sletten - Fyllingsdalen terminal,704
+SKY:Authority:SKY,SKY:Line:50E,50E,Birkelandsskiftet - Sandsli - Busstasjonen,704
+SKY:Authority:SKY,SKY:Line:51,51,Birkelandsskiftet - Kokstad - Fjøsanger - Sentrum,704
+SKY:Authority:SKY,SKY:Line:52,52,Grimstad - Dolvik - Sandsli - Lagunen,704
+SKY:Authority:SKY,SKY:Line:53,53,Milde - Hjellestad - Birkelandsskiftet,704
+SKY:Authority:SKY,SKY:Line:530,530,Våge-Bekkjarvik-Husavik-Hufthamar-Bergen,704
+SKY:Authority:SKY,SKY:Line:531,531,Drøna-Kolbeinsvik-Eido-Storebø,704
+SKY:Authority:SKY,SKY:Line:532,532,Kalve - Storebø - Eidsbøen,704
+SKY:Authority:SKY,SKY:Line:552,552,Svortland-Langevåg,704
+SKY:Authority:SKY,SKY:Line:554,554,Mosterhavn-Totland-Gassasundet,704
+SKY:Authority:SKY,SKY:Line:555,555,Svortland - Rundt Storavatnet - Svortland,704
+SKY:Authority:SKY,SKY:Line:556,556,Svortland-Alvsv-Mæland-Ekorns.,704
+SKY:Authority:SKY,SKY:Line:558,558,Svortland-Urangsvåg-Brandasund,704
+SKY:Authority:SKY,SKY:Line:559,559,Svortland-Rubbestadsneset-Rolfsnes,704
+SKY:Authority:SKY,SKY:Line:56,56,Espeland - Birkelandsskiftet,704
+SKY:Authority:SKY,SKY:Line:57,57,Flesland - Birkelandsskiftet,704
+SKY:Authority:SKY,SKY:Line:6,6,Birkelundstoppen-Lyngbø,704
+SKY:Authority:SKY,SKY:Line:60,60,Fanahammeren - Lagunen,704
+SKY:Authority:SKY,SKY:Line:600,600,Halhjemsmarka - Osøyro - Busstasjonen,704
+SKY:Authority:SKY,SKY:Line:601,601,Osøyro - Ulven - Lysekloster - Helleskaret -Drange,704
+SKY:Authority:SKY,SKY:Line:602,602,Strøno - Osøyro,704
+SKY:Authority:SKY,SKY:Line:603,603,Lepsøy - Ulven - Tøsdalskiftet - Osøyro,704
+SKY:Authority:SKY,SKY:Line:606,606,Solbjørg - Osøyro,704
+SKY:Authority:SKY,SKY:Line:607,607,Hagavik/Nore Neset - Osøyro,704
+SKY:Authority:SKY,SKY:Line:61,61,Krokeide - Lagunen terminal,704
+SKY:Authority:SKY,SKY:Line:610,610,Osøyro - Nesttun -Bergen busstasjon,704
+SKY:Authority:SKY,SKY:Line:62,62,Helleskaret - Fanafjellet - Fana,704
+SKY:Authority:SKY,SKY:Line:620,620,Svortland -Føyno-Leirvik,704
+SKY:Authority:SKY,SKY:Line:631,631,Tittelsnes,704
+SKY:Authority:SKY,SKY:Line:632,632,Buavåg,704
+SKY:Authority:SKY,SKY:Line:633,633,Ålfjorden,704
+SKY:Authority:SKY,SKY:Line:64,64,Hordnes - Lagunen terminal,704
+SKY:Authority:SKY,SKY:Line:640,640,Ølen - Etne - Odda,704
+SKY:Authority:SKY,SKY:Line:641,641,Etne-Skånevik,704
+SKY:Authority:SKY,SKY:Line:642,642,Etne-Litledalen,704
+SKY:Authority:SKY,SKY:Line:643,643,Etne - Kyrping - Frette,704
+SKY:Authority:SKY,SKY:Line:644,644,Etne-Osvåg-Veste,704
+SKY:Authority:SKY,SKY:Line:65,65,Grimseid - Lagunen terminal,704
+SKY:Authority:SKY,SKY:Line:651,651,Våge-Lunde-Onarheim-Hodnanes,704
+SKY:Authority:SKY,SKY:Line:653,653,Våge-Reksteren,704
+SKY:Authority:SKY,SKY:Line:654,654,Gjermundshamn-Våge-Hodnanes,704
+SKY:Authority:SKY,SKY:Line:655,655,Våge-Neshamn,704
+SKY:Authority:SKY,SKY:Line:656,656,Tysnes skule-Våge-Uggdal skule-Kløv-Onarheim,704
+SKY:Authority:SKY,SKY:Line:67,67,Søråshøgda - Nordås - sentrum,704
+SKY:Authority:SKY,SKY:Line:671,671,Leirvik-Litlabø-Fitjar,704
+SKY:Authority:SKY,SKY:Line:673,673,Rommetveit - Vikanes,704
+SKY:Authority:SKY,SKY:Line:676,676,Ådland - Kårevik/Hornelandsvågen,704
+SKY:Authority:SKY,SKY:Line:678,678,Leirvik-Romm-Fjellgard-Leirvik,704
+SKY:Authority:SKY,SKY:Line:679,679,Nordhuglo-Tveit-Haukanes,704
+SKY:Authority:SKY,SKY:Line:680,680,Fitjar - Ostern - Skumsn - Koløyh - Dåfj - Fitjar,704
+SKY:Authority:SKY,SKY:Line:70,70,Øvsttun - Midtun - Nesttun,704
+SKY:Authority:SKY,SKY:Line:700,700,Rute 700 Stord-Haugesund,704
+SKY:Authority:SKY,SKY:Line:71,71,Totland - Dyngeland - Nesttun,704
+SKY:Authority:SKY,SKY:Line:725,725,Odda - Skare - Tveit - Røldal,704
+SKY:Authority:SKY,SKY:Line:73,73,Bontveit - Kaland,704
+SKY:Authority:SKY,SKY:Line:74,74,Haugsdal - Kalandseid,704
+SKY:Authority:SKY,SKY:Line:740,740,Bergen-Eikelandsosen-Gjermundshamn,704
+SKY:Authority:SKY,SKY:Line:741,741,Arna - Midtun - Fusa,704
+SKY:Authority:SKY,SKY:Line:743,743,Venjaneset-Strandvik,704
+SKY:Authority:SKY,SKY:Line:744,744,Tveita-Gjon-Holdhus,704
+SKY:Authority:SKY,SKY:Line:745,745,StussvikHovda - Nortveitgrend - Kilen,704
+SKY:Authority:SKY,SKY:Line:749,749,Øystese-Norheimsund-Mundheim,704
+SKY:Authority:SKY,SKY:Line:75,75,Skiparvik - Nesttun,704
+SKY:Authority:SKY,SKY:Line:76,76,Smørås - Nesttun,704
+SKY:Authority:SKY,SKY:Line:760,760,Odda-Årsand-Rosendal-Husnes-Sunde-Utåker,704
+SKY:Authority:SKY,SKY:Line:762,762,Ringbuss Husnes - Kaldestad - Sunde - Valen,704
+SKY:Authority:SKY,SKY:Line:766,766,Åkra-Rosendal,704
+SKY:Authority:SKY,SKY:Line:790,790,Halsnøy,704
+SKY:Authority:SKY,SKY:Line:791,791,Valen - Husnes - Halsnøy,704
+SKY:Authority:SKY,SKY:Line:81,81,Nattlandsfjellet - Wergeland,704
+SKY:Authority:SKY,SKY:Line:82,82,Grønnestølen - Wergeland,704
+SKY:Authority:SKY,SKY:Line:83,83,Nesttun - Storetveitveien - Wergeland,704
+SKY:Authority:SKY,SKY:Line:84,84,Landås,704
+SKY:Authority:SKY,SKY:Line:85,85,Laksevåg,704
+SKY:Authority:SKY,SKY:Line:86,86,Sandviken - sentrum,704
+SKY:Authority:SKY,SKY:Line:87,87,Åsane,704
+SKY:Authority:SKY,SKY:Line:90,90,Arna stasjon - Stølsvegen - Haukeland - Nesttun,704
+SKY:Authority:SKY,SKY:Line:900,900,Tyssebotn - Valestrand - Bergen,704
+SKY:Authority:SKY,SKY:Line:901,901,Raknes - Hamre - Valestrand,704
+SKY:Authority:SKY,SKY:Line:902,902,Myking - Lonevåg,704
+SKY:Authority:SKY,SKY:Line:91,91,Åsane terminal - Ytre Arna - Arna terminal,704
+SKY:Authority:SKY,SKY:Line:910,910,Lonevåg - Kvisti - Arna,704
+SKY:Authority:SKY,SKY:Line:911,911,Bruvik - Kvisti,704
+SKY:Authority:SKY,SKY:Line:912,912,Øvre Rivenes - Haus,704
+SKY:Authority:SKY,SKY:Line:92,92,Takvam-Garnes - Arna stasjon,704
+SKY:Authority:SKY,SKY:Line:920,920,Dale - Vaksdal - Arna - Bergen,704
+SKY:Authority:SKY,SKY:Line:921,921,Dale - Rødland,704
+SKY:Authority:SKY,SKY:Line:922,922,Eksingedalen - Dale,704
+SKY:Authority:SKY,SKY:Line:923,923,Modalen - Dale,704
+SKY:Authority:SKY,SKY:Line:924,924,Eksingedal - Mo - Ostereidet,704
+SKY:Authority:SKY,SKY:Line:925,925,Bergen-Norheimsund-Kvanndal-Voss,704
+SKY:Authority:SKY,SKY:Line:93,93,Arna stasjon - Tungeland - Lone,704
+SKY:Authority:SKY,SKY:Line:930,930,Bergen-Norheimsund-Jondal-Odda-Røldal,704
+SKY:Authority:SKY,SKY:Line:934,934,Eikelandsosen-Tysse,704
+SKY:Authority:SKY,SKY:Line:94,94,Haukeland - Unneland,704
+SKY:Authority:SKY,SKY:Line:940,940,Tysse-Solbjorg-Tysse,704
+SKY:Authority:SKY,SKY:Line:945,945,Voss - Granvin -(Bu)- Ulvik,704
+SKY:Authority:SKY,SKY:Line:95,95,Trengereid - Takvam - Arna,704
+SKY:Authority:SKY,SKY:Line:950,950,Bergen-Voss-Gudvangen,704
+SKY:Authority:SKY,SKY:Line:951,951,Voss - Dalsleitet - Bjørgemarki - Voss,704
+SKY:Authority:SKY,SKY:Line:952,952,Dalane,704
+SKY:Authority:SKY,SKY:Line:953,953,Voss - Bordalen - Rjodo,704
+SKY:Authority:SKY,SKY:Line:954,954,Voss - Lemme,704
+SKY:Authority:SKY,SKY:Line:955,955,Voss - Fenno,704
+SKY:Authority:SKY,SKY:Line:956,956,Voss - Almeland - Nedkvitno - Voss,704
+SKY:Authority:SKY,SKY:Line:957,957,Voss - Eimstad - Bulken - Voss,704
+SKY:Authority:SKY,SKY:Line:958,958,Voss - Raundalen,704
+SKY:Authority:SKY,SKY:Line:959,959,Voss - Vestbygdi,704
+SKY:Authority:SKY,SKY:Line:96,96,Skoleruter Åsane,704
+SKY:Authority:SKY,SKY:Line:960,960,Brekkhus - Evanger - Voss,704
+SKY:Authority:SKY,SKY:Line:962,962,Voss - Holbygdi,704
+SKY:Authority:SKY,SKY:Line:964,964,Voss-Skjerpe/Sivlevegen(Ringbuss),704
+SKY:Authority:SKY,SKY:Line:965,965,Sentrumsringen Voss,704
+SKY:Authority:SKY,SKY:Line:97,97,Skoleruter Arna,704
+SKY:Authority:SKY,SKY:Line:970,970,Voss-Myrkdalen-Vik-Vangsnes,704
+SKY:Authority:SKY,SKY:Line:980,980,Jondal - Utne - Odda,704
+SKY:Authority:SKY,SKY:Line:981,981,Jondal-Årvikstrand,704
+SKY:Authority:SKY,SKY:Line:982,982,Jondal-Krossdalen-Folgefonn skisenter,704
+SKY:Authority:SKY,SKY:Line:983,983,Jondal-Austrepollen-Odda,704
+SKY:Authority:SKY,SKY:Line:984,984,Eidesåsen - Toppen - Odda,704
+SKY:Authority:SKY,SKY:Line:985,985,Eitrheim - Odda,704
+SKY:Authority:SKY,SKY:Line:99,99,Skoleruter Fana-Os,704
+SKY:Authority:SKY,SKY:Line:990,990,Odda-Kinsarvik-Bu-Granvin-Voss,704
+SKY:Authority:SKY,SKY:Line:991,991,Geilo - Eidfjord - Odda,704
+SKY:Authority:SKY,SKY:Line:994,994,Freim - Ragde - Odda,704
+SKY:Authority:SKY,SKY:Line:995,995,Skogly - Tyssedal - Odda,704

@@ -152,11 +152,16 @@ CREATE TABLE IF NOT EXISTS worst_days (
 );
 
 -- Stop coordinates from NSR (populated once, refreshed rarely).
+-- stop_place_ref / platform_code / stop_place_name are populated by
+--   pipeline/populate_stop_places.py from GTFS stops.txt.
 CREATE TABLE IF NOT EXISTS stop_coords (
-    stop_ref  TEXT PRIMARY KEY,
-    stop_name TEXT,
-    lat       REAL,
-    lng       REAL
+    stop_ref        TEXT PRIMARY KEY,
+    stop_name       TEXT,
+    lat             REAL,
+    lng             REAL,
+    stop_place_ref  TEXT,   -- NSR:StopPlace:XXXXX (parent stop place)
+    platform_code   TEXT,   -- platform letter (A, B, C, …)
+    stop_place_name TEXT    -- display name of the parent stop place
 );
 
 -- Per-journey per-stop weekly aggregates (bus only, 13-week rolling window).

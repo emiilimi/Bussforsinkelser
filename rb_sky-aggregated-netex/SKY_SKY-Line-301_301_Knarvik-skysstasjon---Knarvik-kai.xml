@@ -1,0 +1,1671 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:41.414</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Knarvik skysstasjon - Knarvik kai</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3923349">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3923336">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3923350">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:301-191">
+              <Name>Knarvik terminal B-Knarvik kai</Name>
+              <ShortName>Knarvik terminal B-Knarvik kai</ShortName>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3923337">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102566"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3923338">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56420"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:301-192">
+              <Name>Knarvik kai-Knarvik terminal B</Name>
+              <ShortName>Knarvik kai-Knarvik terminal B</ShortName>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3923339">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56420"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3923340">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56345"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3923341">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102566"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:301">
+              <Name>Knarvik skysstasjon - Knarvik kai</Name>
+              <TransportMode>bus</TransportMode>
+              <TransportSubmode>
+                <BusSubmode>localBus</BusSubmode>
+              </TransportSubmode>
+              <PublicCode>301</PublicCode>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:301-191">
+              <Name>Knarvik terminal B-Knarvik kai</Name>
+              <RouteRef ref="SKY:Route:301-191" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:301-191-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102566"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:4027"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:301-191-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56420"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3923342">
+                  <ServiceLinkRef ref="SKY:ServiceLink:102566-56420"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:301-192">
+              <Name>Knarvik kai-Knarvik terminal B</Name>
+              <RouteRef ref="SKY:Route:301-192" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:301-192-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56420"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:4029"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:301-192-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56345"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:301-192-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102566"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3923344">
+                  <ServiceLinkRef ref="SKY:ServiceLink:56420-56345"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3923346">
+                  <ServiceLinkRef ref="SKY:ServiceLink:56345-102566"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3923351">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974311">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>129</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974311-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974311-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974312">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>131</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974312-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974312-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974313">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>133</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974313-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974313-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974314">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>135</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974314-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974314-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974315">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>137</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974315-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974315-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974310">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>754</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974310-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974310-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>05:48:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817811">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>129</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817811-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817811-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817812">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>131</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817812-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817812-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817813">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>133</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817813-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817813-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817814">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>135</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817814-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817814-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817815">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>137</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817815-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817815-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817810">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>754</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817810-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817810-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>05:48:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155313">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>129</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155313-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155313-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155314">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>131</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155314-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155314-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155315">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>133</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155315-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155315-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155316">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>135</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155316-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155316-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155317">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>137</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155317-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155317-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155312">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>754</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155312-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155312-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>05:48:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817811">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>129</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817811-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817811-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817812">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>131</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817812-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817812-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817813">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>133</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817813-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817813-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817814">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>135</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817814-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817814-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817815">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>137</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817815-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817815-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817810">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>754</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817810-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817810-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>05:48:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985531">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>129</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985531-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985531-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985532">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>131</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985532-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985532-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985533">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>133</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985533-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985533-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985534">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>135</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985534-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985534-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985535">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>137</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985535-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985535-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:58:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985530">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>754</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-191" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985530-102566-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985530-56420-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-191-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>05:48:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974316">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>130</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974316-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974316-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974316-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974321">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>132</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974321-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974321-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974321-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974317">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>134</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974317-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974317-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974317-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974318">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>136</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974318-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974318-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974318-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974319">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>138</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974319-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974319-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974319-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178191-16974320">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>139</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178191-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974320-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974320-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178191-16974320-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817816">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>130</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817816-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817816-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817816-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817821">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>132</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817821-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817821-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817821-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817817">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>134</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817817-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817817-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817817-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817818">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>136</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817818-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817818-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817818-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817819">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>138</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817819-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817819-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817819-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-178194-16817820">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>139</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:178194-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817820-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817820-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-178194-16817820-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155318">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>130</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155318-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155318-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155318-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155323">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>132</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155323-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155323-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155323-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155319">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>134</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155319-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155319-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155319-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155320">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>136</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155320-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155320-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155320-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155321">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>138</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155321-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155321-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155321-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179219-17155322">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>139</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179219-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155322-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155322-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179219-17155322-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817816">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>130</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817816-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817816-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817816-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817821">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>132</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817821-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817821-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817821-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817817">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>134</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817817-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817817-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817817-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817818">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>136</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817818-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817818-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817818-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817819">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>138</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817819-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817819-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817819-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179276-16817820">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>139</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179276-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817820-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817820-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179276-16817820-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985536">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>130</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985536-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985536-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985536-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985541">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>132</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985541-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985541-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985541-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985537">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>134</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985537-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985537-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985537-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985538">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>136</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985538-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985538-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985538-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985539">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>138</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985539-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985539-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985539-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:301-179281-15985540">
+              <Name>Knarvik terminal</Name>
+              <PrivateCode>139</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179281-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:301-192" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:N_BUSN"></OperatorRef>
+              <LineRef ref="SKY:Line:301" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985540-56420-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985540-56345-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:301-179281-15985540-102566-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:301-192-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:07:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <journeyInterchanges>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16973977-16974313">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:300-178191-16973977"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974313" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179276-16814381-16817813">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179276-16814381"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179276-16817813" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178194-16814381-16817813">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178194-16814381"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178194-16817813" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102567-102566-179281-17161418-15985531">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102567"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:340-179281-17161418"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179281-15985531" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102567-102566-178194-17161566-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102567"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:340-178194-17161566"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178194-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179281-15985087-15985531">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:302-179281-15985087"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179281-15985531" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179276-16814383-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179276-16814383"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179276-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179276-16814384-16817812">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179276-16814384"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179276-16817812" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178194-16814384-16817812">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178194-16814384"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178194-16817812" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179219-17155820-17155313">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179219-17155820"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179219-17155313" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16974060-16974311">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178191-16974060"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974311" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179281-15985103-15985531">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179281-15985103"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179281-15985531" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178194-16817496-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:302-178194-16817496"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178194-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179276-16817496-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:302-179276-16817496"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179276-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16974044-16974311">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:302-178191-16974044"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974311" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179281-15985101-15985533">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179281-15985101"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179281-15985533" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179281-15985104-15985532">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179281-15985104"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179281-15985532" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179219-17155821-17155314">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179219-17155821"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179219-17155314" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179219-17155818-17155315">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-179219-17155818"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179219-17155315" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16974061-16974312">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178191-16974061"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974312" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-179219-17155617-17155313">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:302-179219-17155617"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179219-17155313" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178194-16814383-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178194-16814383"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178194-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102567-102566-179276-17161566-16817811">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102567"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:340-179276-17161566"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179276-16817811" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16973975-16974312">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:300-178191-16973975"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974312" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16974058-16974313">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:320-178191-16974058"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974313" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102566-102566-178191-16973991-16974315">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102566"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:300-178191-16973991"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-178191-16974315" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+            <ServiceJourneyInterchange version="240423123258" id="SKY:ServiceJourneyInterchange:102567-102566-179219-17155364-17155313">
+              <Guaranteed>true</Guaranteed>
+              <MaximumWaitTime>PT10M</MaximumWaitTime>
+              <FromPointRef ref="SKY:ScheduledStopPoint:default-102567"></FromPointRef>
+              <ToPointRef ref="SKY:ScheduledStopPoint:default-102566"></ToPointRef>
+              <FromJourneyRef ref="SKY:ServiceJourney:340-179219-17155364"></FromJourneyRef>
+              <ToJourneyRef ref="SKY:ServiceJourney:301-179219-17155313" version="240423123258"></ToJourneyRef>
+            </ServiceJourneyInterchange>
+          </journeyInterchanges>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

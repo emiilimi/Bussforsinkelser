@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:ns2="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+    <PublicationTimestamp>2024-04-22T09:09:10.03</PublicationTimestamp>
+    <ParticipantRef>Skyss__Hordaland_</ParticipantRef>
+    <Description>Flexible lines</Description>
+    <dataObjects>
+        <CompositeFrame created="2024-04-22T09:09:10.03" version="1" id="SKY:CompositeFrame:1">
+            <validityConditions>
+                <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:1_UTTU">
+                    <FromDate>2023-09-01T00:00:00</FromDate>
+                    <ToDate>2024-09-30T00:00:00</ToDate>
+                </AvailabilityCondition>
+            </validityConditions>
+            <codespaces>
+                <Codespace id="sky">
+                    <Xmlns>SKY</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+                </Codespace>
+                <Codespace id="nsr">
+                    <Xmlns>NSR</Xmlns>
+                    <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+                </Codespace>
+            </codespaces>
+            <FrameDefaults>
+                <DefaultLocale>
+                    <TimeZone>Europe/Oslo</TimeZone>
+                    <DefaultLanguage>no</DefaultLanguage>
+                </DefaultLocale>
+            </FrameDefaults>
+            <frames>
+                <ServiceFrame version="1" id="SKY:ServiceFrame:1">
+                    <routes>
+                        <Route version="0" id="SKY:Route:2c73d450-4c73-421c-b526-c13b8758d98d">
+                            <Name>Odda</Name>
+                            <FlexibleLineRef ref="SKY:FlexibleLine:f840566b-eab4-42fe-9861-2c91a57bf72b" version="13"/>
+                            <pointsInSequence>
+<PointOnRoute order="1" version="12" id="SKY:PointOnRoute:0fa08ab7-a9b8-459d-a803-43680120e200">
+    <RoutePointRef ref="SKY:RoutePoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac"/>
+</PointOnRoute>
+<PointOnRoute order="2" version="0" id="SKY:PointOnRoute:c4970f80-eb1d-409a-b66b-06eb4ae9fcc5">
+    <RoutePointRef ref="SKY:RoutePoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac"/>
+</PointOnRoute>
+                            </pointsInSequence>
+                        </Route>
+                    </routes>
+                    <lines>
+                        <FlexibleLine version="13" id="SKY:FlexibleLine:f840566b-eab4-42fe-9861-2c91a57bf72b">
+                            <Name>BE2 HentMeg i Odda</Name>
+                            <TransportMode>bus</TransportMode>
+                            <TransportSubmode>
+<BusSubmode>localBus</BusSubmode>
+                            </TransportSubmode>
+                            <PublicCode>HentMeg</PublicCode>
+                            <OperatorRef ref="SKY:Operator:SKY"/>
+                            <RepresentedByGroupRef ref="SKY:Network:1c17fd80-dc8c-41f4-9be7-6b6b4a9a0683"/>
+                            <FlexibleLineType>flexibleAreasOnly</FlexibleLineType>
+                            <BookingContact>
+<Phone>55 55 90 70</Phone>
+<Url>www.hentmeg.no</Url>
+                            </BookingContact>
+                            <BookingMethods>callOffice online</BookingMethods>
+                            <BookingAccess>public</BookingAccess>
+                            <BuyWhen>beforeBoarding</BuyWhen>
+                            <MinimumBookingPeriod>PT1M</MinimumBookingPeriod>
+                        </FlexibleLine>
+                    </lines>
+                    <journeyPatterns>
+                        <JourneyPattern version="0" id="SKY:JourneyPattern:2c73d450-4c73-421c-b526-c13b8758d98d">
+                            <Name>Odda</Name>
+                            <RouteRef ref="SKY:Route:2c73d450-4c73-421c-b526-c13b8758d98d" version="0"/>
+                            <pointsInSequence>
+<StopPointInJourneyPattern order="1" version="12" id="SKY:StopPointInJourneyPattern:0fa08ab7-a9b8-459d-a803-43680120e200">
+    <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac"/>
+    <ForAlighting>false</ForAlighting>
+    <ForBoarding>true</ForBoarding>
+    <DestinationDisplayRef ref="SKY:DestinationDisplay:eef23684-658c-4033-965f-32b6d006c5d6"/>
+</StopPointInJourneyPattern>
+<StopPointInJourneyPattern order="2" version="0" id="SKY:StopPointInJourneyPattern:c4970f80-eb1d-409a-b66b-06eb4ae9fcc5">
+    <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:b5fefb11-3019-41b0-a4fe-4d622feaf9ac"/>
+    <ForAlighting>true</ForAlighting>
+    <ForBoarding>false</ForBoarding>
+</StopPointInJourneyPattern>
+                            </pointsInSequence>
+                        </JourneyPattern>
+                    </journeyPatterns>
+                </ServiceFrame>
+                <TimetableFrame version="1" id="SKY:TimetableFrame:1">
+                    <vehicleJourneys>
+                        <ServiceJourney version="14" id="SKY:ServiceJourney:5979d025-1d5d-45a8-a9ec-b1af9ca0fa34">
+                            <Name>HentMeg i Odda</Name>
+                            <dayTypes>
+<DayTypeRef ref="SKY:DayType:6c1c36c8-e13d-49cc-9575-6cfc418273ca"/>
+                            </dayTypes>
+                            <JourneyPatternRef ref="SKY:JourneyPattern:2c73d450-4c73-421c-b526-c13b8758d98d" version="0"/>
+                            <passingTimes>
+<TimetabledPassingTime version="2" id="SKY:TimetabledPassingTime:cfa934ba-f639-4231-b9e5-8e35a45bceff">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:0fa08ab7-a9b8-459d-a803-43680120e200" version="12"/>
+    <LatestArrivalTime>20:00:00</LatestArrivalTime>
+    <EarliestDepartureTime>16:00:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+<TimetabledPassingTime version="0" id="SKY:TimetabledPassingTime:475c05d0-31f8-4a0d-a3aa-e8e192cedbe5">
+    <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:c4970f80-eb1d-409a-b66b-06eb4ae9fcc5" version="0"/>
+    <LatestArrivalTime>20:00:00</LatestArrivalTime>
+    <EarliestDepartureTime>16:00:00</EarliestDepartureTime>
+</TimetabledPassingTime>
+                            </passingTimes>
+                        </ServiceJourney>
+                    </vehicleJourneys>
+                </TimetableFrame>
+            </frames>
+        </CompositeFrame>
+    </dataObjects>
+</PublicationDelivery>

@@ -1,0 +1,1724 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:12.96</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Espevær - Eidesvik</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3917520">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3917508">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3917521">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:2079-3">
+              <Name>Espevær båtkai-Eidesvik båtkai</Name>
+              <ShortName>Espevær båtkai-Eidesvik båtkai</ShortName>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917509">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50301"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917510">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50305"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2079-4">
+              <Name>Eidesvik båtkai-Espevær båtkai</Name>
+              <ShortName>Eidesvik båtkai-Espevær båtkai</ShortName>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917511">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50305"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917512">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50301"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:2079">
+              <Name>Espevær - Eidesvik</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localPassengerFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>2079</PublicCode>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2079-3">
+              <Name>Espevær båtkai-Eidesvik båtkai</Name>
+              <RouteRef ref="SKY:Route:2079-3" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2079-3-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50301"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9348"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2079-3-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50305"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917513">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50301-50305"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2079-4">
+              <Name>Eidesvik båtkai-Espevær båtkai</Name>
+              <RouteRef ref="SKY:Route:2079-4" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2079-4-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50305"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9347"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2079-4-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50301"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917515">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50305-50301"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3917522">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776815">
+              <Name>Eidesvik</Name>
+              <PrivateCode>210</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776815-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776815-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776816">
+              <Name>Eidesvik</Name>
+              <PrivateCode>212</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776816-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776816-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776817">
+              <Name>Eidesvik</Name>
+              <PrivateCode>214</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776817-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776817-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776818">
+              <Name>Eidesvik</Name>
+              <PrivateCode>216</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776818-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776818-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776819">
+              <Name>Eidesvik</Name>
+              <PrivateCode>218</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776819-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776819-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776820">
+              <Name>Eidesvik</Name>
+              <PrivateCode>220</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776820-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776820-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776824">
+              <Name>Eidesvik</Name>
+              <PrivateCode>222</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776824-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776824-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776821">
+              <Name>Eidesvik</Name>
+              <PrivateCode>224</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776821-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776821-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776822">
+              <Name>Eidesvik</Name>
+              <PrivateCode>226</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776822-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776822-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776823">
+              <Name>Eidesvik</Name>
+              <PrivateCode>228</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776823-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776823-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776848">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2200</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776848-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776848-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776849">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2202</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776849-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776849-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776850">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2204</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776850-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776850-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776851">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2206</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776851-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776851-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776856">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2208</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776856-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776856-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776867">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3202</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776867-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776867-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776868">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3204</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776868-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776868-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776869">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3206</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776869-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776869-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776870">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3208</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776870-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776870-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776871">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3210</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776871-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776871-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269526">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2200</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269526-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269526-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269527">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2202</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269527-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269527-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269528">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2204</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269528-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269528-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269529">
+              <Name>Eidesvik</Name>
+              <PrivateCode>2206</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269529-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269529-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269554">
+              <Name>Eidesvik</Name>
+              <PrivateCode>210</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269554-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269554-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269555">
+              <Name>Eidesvik</Name>
+              <PrivateCode>212</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269555-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269555-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269556">
+              <Name>Eidesvik</Name>
+              <PrivateCode>214</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269556-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269556-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269557">
+              <Name>Eidesvik</Name>
+              <PrivateCode>216</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269557-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269557-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269558">
+              <Name>Eidesvik</Name>
+              <PrivateCode>218</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269558-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269558-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269559">
+              <Name>Eidesvik</Name>
+              <PrivateCode>220</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269559-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269559-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269563">
+              <Name>Eidesvik</Name>
+              <PrivateCode>222</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269563-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269563-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269560">
+              <Name>Eidesvik</Name>
+              <PrivateCode>224</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269560-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269560-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269561">
+              <Name>Eidesvik</Name>
+              <PrivateCode>226</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269561-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269561-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269562">
+              <Name>Eidesvik</Name>
+              <PrivateCode>228</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269562-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269562-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269573">
+              <Name>Eidesvik</Name>
+              <PrivateCode>230</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0001000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269573-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269573-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269591">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3202</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269591-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269591-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269592">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3204</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269592-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269592-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269593">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3206</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269593-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269593-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269594">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3208</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269594-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269594-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269595">
+              <Name>Eidesvik</Name>
+              <PrivateCode>3210</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269595-50301-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269595-50305-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776825">
+              <Name>Espevær</Name>
+              <PrivateCode>211</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776825-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776825-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776826">
+              <Name>Espevær</Name>
+              <PrivateCode>213</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776826-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776826-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776827">
+              <Name>Espevær</Name>
+              <PrivateCode>215</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776827-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776827-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776836">
+              <Name>Espevær</Name>
+              <PrivateCode>217</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776836-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776836-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776828">
+              <Name>Espevær</Name>
+              <PrivateCode>219</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776828-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776828-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776829">
+              <Name>Espevær</Name>
+              <PrivateCode>221</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776829-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776829-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776833">
+              <Name>Espevær</Name>
+              <PrivateCode>223</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776833-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776833-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776830">
+              <Name>Espevær</Name>
+              <PrivateCode>225</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776830-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776830-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776831">
+              <Name>Espevær</Name>
+              <PrivateCode>227</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776831-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776831-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171692-15776832">
+              <Name>Espevær</Name>
+              <PrivateCode>229</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171692-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776832-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171692-15776832-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776852">
+              <Name>Espevær</Name>
+              <PrivateCode>2201</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776852-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776852-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776853">
+              <Name>Espevær</Name>
+              <PrivateCode>2203</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776853-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776853-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776854">
+              <Name>Espevær</Name>
+              <PrivateCode>2205</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776854-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776854-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776855">
+              <Name>Espevær</Name>
+              <PrivateCode>2207</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776855-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776855-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171696-15776857">
+              <Name>Espevær</Name>
+              <PrivateCode>2209</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171696-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776857-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171696-15776857-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776872">
+              <Name>Espevær</Name>
+              <PrivateCode>3203</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776872-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776872-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776873">
+              <Name>Espevær</Name>
+              <PrivateCode>3205</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776873-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776873-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776874">
+              <Name>Espevær</Name>
+              <PrivateCode>3207</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776874-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776874-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776875">
+              <Name>Espevær</Name>
+              <PrivateCode>3209</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776875-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776875-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-171700-15776876">
+              <Name>Espevær</Name>
+              <PrivateCode>3211</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171700-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776876-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-171700-15776876-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269530">
+              <Name>Espevær</Name>
+              <PrivateCode>2201</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269530-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269530-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269531">
+              <Name>Espevær</Name>
+              <PrivateCode>2203</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269531-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269531-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269532">
+              <Name>Espevær</Name>
+              <PrivateCode>2205</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269532-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269532-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174558-16269533">
+              <Name>Espevær</Name>
+              <PrivateCode>2207</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174558-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269533-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174558-16269533-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269564">
+              <Name>Espevær</Name>
+              <PrivateCode>211</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269564-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269564-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269565">
+              <Name>Espevær</Name>
+              <PrivateCode>213</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269565-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269565-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269566">
+              <Name>Espevær</Name>
+              <PrivateCode>215</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269566-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269566-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269575">
+              <Name>Espevær</Name>
+              <PrivateCode>217</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269575-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269575-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269567">
+              <Name>Espevær</Name>
+              <PrivateCode>219</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269567-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269567-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269568">
+              <Name>Espevær</Name>
+              <PrivateCode>221</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269568-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269568-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269572">
+              <Name>Espevær</Name>
+              <PrivateCode>223</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269572-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269572-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269569">
+              <Name>Espevær</Name>
+              <PrivateCode>225</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269569-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269569-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269570">
+              <Name>Espevær</Name>
+              <PrivateCode>227</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269570-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269570-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269571">
+              <Name>Espevær</Name>
+              <PrivateCode>229</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0110110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269571-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269571-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174566-16269574">
+              <Name>Espevær</Name>
+              <PrivateCode>231</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174566-0001000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269574-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174566-16269574-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269596">
+              <Name>Espevær</Name>
+              <PrivateCode>3203</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269596-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269596-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269597">
+              <Name>Espevær</Name>
+              <PrivateCode>3205</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269597-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269597-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269598">
+              <Name>Espevær</Name>
+              <PrivateCode>3207</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269598-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269598-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269599">
+              <Name>Espevær</Name>
+              <PrivateCode>3209</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269599-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269599-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:15:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2079-174570-16269600">
+              <Name>Espevær</Name>
+              <PrivateCode>3211</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174570-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2079-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_S"></OperatorRef>
+              <LineRef ref="SKY:Line:2079" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269600-50305-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2079-174570-16269600-50301-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2079-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

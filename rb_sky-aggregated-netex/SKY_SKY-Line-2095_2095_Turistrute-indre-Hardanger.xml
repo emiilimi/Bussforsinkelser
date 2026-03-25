@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:56.38</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Turistrute indre Hardanger</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3927157">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3927104">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3927158">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:2095-5">
+              <Name>Norheimsund båtkai-Eidfjord båtkai</Name>
+              <ShortName>Norheimsund båtkai-Eidfjord båtkai</ShortName>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3927105">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57823"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3927106">
+                  <RoutePointRef ref="SKY:RoutePoint:default-55504"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3927107">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53676"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3927108">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53448"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="5" version="240423123258" id="SKY:PointOnRoute:3927109">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53505"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="6" version="240423123258" id="SKY:PointOnRoute:3927110">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53948"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="7" version="240423123258" id="SKY:PointOnRoute:3927111">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53804"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2095-6">
+              <Name>Eidfjord båtkai-Norheimsund båtkai</Name>
+              <ShortName>Eidfjord båtkai-Norheimsund båtkai</ShortName>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3927112">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53804"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3927113">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53948"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3927114">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53505"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3927115">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53448"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="5" version="240423123258" id="SKY:PointOnRoute:3927116">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53676"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="6" version="240423123258" id="SKY:PointOnRoute:3927117">
+                  <RoutePointRef ref="SKY:RoutePoint:default-55504"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="7" version="240423123258" id="SKY:PointOnRoute:3927118">
+                  <RoutePointRef ref="SKY:RoutePoint:default-57823"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:2095">
+              <Name>Turistrute indre Hardanger</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localPassengerFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>2095</PublicCode>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2095-5">
+              <Name>Norheimsund båtkai-Eidfjord båtkai</Name>
+              <RouteRef ref="SKY:Route:2095-5" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57823"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9373"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-55504"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53676"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53448"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="5" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-5">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53505"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="6" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-6">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53948"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="7" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-5-7">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53804"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927119">
+                  <ServiceLinkRef ref="SKY:ServiceLink:57823-55504"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927121">
+                  <ServiceLinkRef ref="SKY:ServiceLink:55504-53676"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927123">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53676-53448"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="4" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927125">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53448-53505"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="5" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927127">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53505-53948"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="6" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927129">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53948-53804"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2095-6">
+              <Name>Eidfjord båtkai-Norheimsund båtkai</Name>
+              <RouteRef ref="SKY:Route:2095-6" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53804"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9370"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53948"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53505"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53448"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="5" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-5">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53676"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="6" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-6">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-55504"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="7" version="240423123258" id="SKY:StopPointInJourneyPattern:2095-6-7">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-57823"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927131">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53804-53948"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927133">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53948-53505"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927135">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53505-53448"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="4" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927137">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53448-53676"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="5" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927139">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53676-55504"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="6" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3927141">
+                  <ServiceLinkRef ref="SKY:ServiceLink:55504-57823"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3927159">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172333-15974974">
+              <Name>Eidfjord</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172333-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-57823-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-55504-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:23:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-53676-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-53505-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:33:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-53948-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974974-53804-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172335-15974977">
+              <Name>Eidfjord</Name>
+              <PrivateCode>2002</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172335-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-57823-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-55504-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:23:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-53676-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-53505-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:33:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-53948-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974977-53804-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172337-15974981">
+              <Name>Eidfjord</Name>
+              <PrivateCode>3002</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172337-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-57823-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-55504-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:23:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-53676-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-53505-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:33:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-53948-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974981-53804-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-5-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172333-15974975">
+              <Name>Norheimsund</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172333-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-53804-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-53948-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-53505-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-53676-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-55504-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172333-15974975-57823-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172335-15974978">
+              <Name>Norheimsund</Name>
+              <PrivateCode>2003</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172335-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-53804-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-53948-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-53505-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-53676-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-55504-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172335-15974978-57823-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2095-172337-15974980">
+              <Name>Norheimsund</Name>
+              <PrivateCode>3003</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172337-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2095-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:2095" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-53804-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-53948-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-53505-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-53448-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-53676-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-55504-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2095-172337-15974980-57823-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2095-6-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="2" version="1" id="SKY:NoticeAssignment:3927151">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172335-15974977" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="6" version="1" id="SKY:NoticeAssignment:3927155">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172337-15974980" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="5" version="1" id="SKY:NoticeAssignment:3927154">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172335-15974978" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="3" version="1" id="SKY:NoticeAssignment:3927152">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172337-15974981" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3927150">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172333-15974974" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="4" version="1" id="SKY:NoticeAssignment:3927153">
+              <NoticeRef ref="SKY:Notice:default-13"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2095-172333-15974975" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

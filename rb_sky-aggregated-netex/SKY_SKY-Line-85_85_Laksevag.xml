@@ -1,0 +1,1300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:26:10.148</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Laksevåg</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3883102">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3882919">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3883103">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:85-17">
+              <Name>Lyngbøtunet servicesenter-Grønnestøltunet</Name>
+              <ShortName>Lyngbøtunet servicesenter-Grønnestøltunet</ShortName>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3882920">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102219"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3882921">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54897"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3882922">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54903"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3882923">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102171"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="5" version="240423123258" id="SKY:PointOnRoute:3882924">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54847"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="6" version="240423123258" id="SKY:PointOnRoute:3882925">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54929"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="7" version="240423123258" id="SKY:PointOnRoute:3882926">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54933"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="8" version="240423123258" id="SKY:PointOnRoute:3882927">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54937"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="9" version="240423123258" id="SKY:PointOnRoute:3882928">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54940"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="10" version="240423123258" id="SKY:PointOnRoute:3882929">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51004"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="11" version="240423123258" id="SKY:PointOnRoute:3882930">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54936"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="12" version="240423123258" id="SKY:PointOnRoute:3882931">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54928"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="13" version="240423123258" id="SKY:PointOnRoute:3882932">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50123"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="14" version="240423123258" id="SKY:PointOnRoute:3882933">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50137"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="15" version="240423123258" id="SKY:PointOnRoute:3882934">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50142"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="16" version="240423123258" id="SKY:PointOnRoute:3882935">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50150"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="17" version="240423123258" id="SKY:PointOnRoute:3882936">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50157"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="18" version="240423123258" id="SKY:PointOnRoute:3882937">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50999"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="19" version="240423123258" id="SKY:PointOnRoute:3882938">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50156"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="20" version="240423123258" id="SKY:PointOnRoute:3882939">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50151"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="21" version="240423123258" id="SKY:PointOnRoute:3882940">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50144"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="22" version="240423123258" id="SKY:PointOnRoute:3882941">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50314"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="23" version="240423123258" id="SKY:PointOnRoute:3882942">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50322"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="24" version="240423123258" id="SKY:PointOnRoute:3882943">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50328"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="25" version="240423123258" id="SKY:PointOnRoute:3882944">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51102"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="26" version="240423123258" id="SKY:PointOnRoute:3882945">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51174"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:85-19">
+              <Name>Grønnestøltunet-Lyngbøtunet servicesenter</Name>
+              <ShortName>Grønnestøltunet-Lyngbøtunet servicesenter</ShortName>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3882946">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51174"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3882947">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50329"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3882948">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50317"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3882949">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50122"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="5" version="240423123258" id="SKY:PointOnRoute:3882950">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50137"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="6" version="240423123258" id="SKY:PointOnRoute:3882951">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50142"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="7" version="240423123258" id="SKY:PointOnRoute:3882952">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50150"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="8" version="240423123258" id="SKY:PointOnRoute:3882953">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50157"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="9" version="240423123258" id="SKY:PointOnRoute:3882954">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50999"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="10" version="240423123258" id="SKY:PointOnRoute:3882955">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50156"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="11" version="240423123258" id="SKY:PointOnRoute:3882956">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50151"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="12" version="240423123258" id="SKY:PointOnRoute:3882957">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50144"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="13" version="240423123258" id="SKY:PointOnRoute:3882958">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50135"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="14" version="240423123258" id="SKY:PointOnRoute:3882959">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50128"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="15" version="240423123258" id="SKY:PointOnRoute:3882960">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54837"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="16" version="240423123258" id="SKY:PointOnRoute:3882961">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54841"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="17" version="240423123258" id="SKY:PointOnRoute:3882962">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51010"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="18" version="240423123258" id="SKY:PointOnRoute:3882963">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102171"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="19" version="240423123258" id="SKY:PointOnRoute:3882964">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54847"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="20" version="240423123258" id="SKY:PointOnRoute:3882965">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54929"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="21" version="240423123258" id="SKY:PointOnRoute:3882966">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54940"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="22" version="240423123258" id="SKY:PointOnRoute:3882967">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51004"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="23" version="240423123258" id="SKY:PointOnRoute:3882968">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54928"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="24" version="240423123258" id="SKY:PointOnRoute:3882969">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54848"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="25" version="240423123258" id="SKY:PointOnRoute:3882970">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102171"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="26" version="240423123258" id="SKY:PointOnRoute:3882971">
+                  <RoutePointRef ref="SKY:RoutePoint:default-55350"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="27" version="240423123258" id="SKY:PointOnRoute:3882972">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54898"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="28" version="240423123258" id="SKY:PointOnRoute:3882973">
+                  <RoutePointRef ref="SKY:RoutePoint:default-102219"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:85">
+              <Name>Laksevåg</Name>
+              <TransportMode>bus</TransportMode>
+              <TransportSubmode>
+                <BusSubmode>localBus</BusSubmode>
+              </TransportSubmode>
+              <PublicCode>85</PublicCode>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:85-17">
+              <Name>Lyngbøtunet servicesenter-Grønnestøltunet</Name>
+              <RouteRef ref="SKY:Route:85-17" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102219"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:7953"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54897"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54903"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102171"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="5" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-5">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54847"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="6" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-6">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54929"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="7" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-7">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54933"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="8" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-8">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54937"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="9" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-9">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54940"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="10" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-10">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51004"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="11" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-11">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54936"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="12" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-12">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54928"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="13" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-13">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50123"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="14" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-14">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50137"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="15" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-15">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50142"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="16" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-16">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50150"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="17" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-17">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50157"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="18" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-18">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50999"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="19" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-19">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50156"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="20" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-20">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50151"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="21" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-21">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50144"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="22" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-22">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50314"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="23" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-23">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50322"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="24" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-24">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50328"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="25" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-25">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51102"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="26" version="240423123258" id="SKY:StopPointInJourneyPattern:85-17-26">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51174"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882974">
+                  <ServiceLinkRef ref="SKY:ServiceLink:102219-54897"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882976">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54897-54903"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882978">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54903-102171"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="4" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882980">
+                  <ServiceLinkRef ref="SKY:ServiceLink:102171-54847"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="5" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882982">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54847-54929"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="6" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882984">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54929-54933"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="7" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882986">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54933-54937"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="8" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882988">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54937-54940"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="9" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882990">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54940-51004"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="10" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882992">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51004-54936"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="11" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882994">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54936-54928"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="12" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882996">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54928-50123"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="13" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3882998">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50123-50137"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="14" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883000">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50137-50142"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="15" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883002">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50142-50150"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="16" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883004">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50150-50157"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="17" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883006">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50157-50999"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="18" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883008">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50999-50156"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="19" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883010">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50156-50151"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="20" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883012">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50151-50144"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="21" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883014">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50144-50314"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="22" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883016">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50314-50322"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="23" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883018">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50322-50328"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="24" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883020">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50328-51102"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="25" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883022">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51102-51174"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:85-19">
+              <Name>Grønnestøltunet-Lyngbøtunet servicesenter</Name>
+              <RouteRef ref="SKY:Route:85-19" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51174"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:7953"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50329"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50317"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50122"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="5" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-5">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50137"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="6" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-6">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50142"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="7" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-7">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50150"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="8" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-8">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50157"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="9" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-9">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50999"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="10" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-10">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50156"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="11" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-11">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50151"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="12" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-12">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50144"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="13" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-13">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50135"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="14" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-14">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50128"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="15" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-15">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54837"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="16" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-16">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54841"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="17" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-17">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51010"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="18" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-18">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102171"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="19" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-19">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54847"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="20" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-20">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54929"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="21" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-21">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54940"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="22" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-22">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51004"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="23" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-23">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54928"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="24" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-24">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54848"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="25" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-25">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102171"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="26" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-26">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-55350"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="27" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-27">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54898"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="28" version="240423123258" id="SKY:StopPointInJourneyPattern:85-19-28">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-102219"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883024">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51174-50329"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883026">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50329-50317"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883028">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50317-50122"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="4" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883030">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50122-50137"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="5" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883032">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50137-50142"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="6" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883033">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50142-50150"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="7" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883034">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50150-50157"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="8" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883035">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50157-50999"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="9" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883036">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50999-50156"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="10" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883037">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50156-50151"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="11" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883038">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50151-50144"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="12" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883039">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50144-50135"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="13" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883041">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50135-50128"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="14" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883043">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50128-54837"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="15" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883045">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54837-54841"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="16" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883046">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54841-51010"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="17" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883048">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51010-102171"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="18" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883050">
+                  <ServiceLinkRef ref="SKY:ServiceLink:102171-54847"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="19" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883051">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54847-54929"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="20" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883052">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54929-54940"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="21" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883054">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54940-51004"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="22" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883055">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51004-54928"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="23" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883057">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54928-54848"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="24" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883059">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54848-102171"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="25" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883061">
+                  <ServiceLinkRef ref="SKY:ServiceLink:102171-55350"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="26" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883063">
+                  <ServiceLinkRef ref="SKY:ServiceLink:55350-54898"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="27" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3883065">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54898-102219"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3883104">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904227">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-17" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-102219-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54897-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:42:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54903-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-102171-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54847-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:52:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54929-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54933-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54937-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:58:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54940-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-51004-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54936-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:04:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-54928-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50123-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:09:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50137-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:11:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50142-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:12:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50150-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50157-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:14:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50999-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50156-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:16:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50151-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:17:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50144-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:17:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50314-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:19:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50322-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-50328-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-51102-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:23:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904227-51174-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904226">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-17" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-102219-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54897-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:52:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54903-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-102171-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54847-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54929-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54933-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:07:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54937-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54940-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-51004-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:11:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54936-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:14:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-54928-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50123-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:19:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50137-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50142-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50150-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:23:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50157-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:24:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50999-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50156-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:26:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50151-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50144-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50314-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:29:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50322-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-50328-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:31:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-51102-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:33:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904226-51174-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904225">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-17" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-102219-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54897-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:32:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54903-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:33:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-102171-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54847-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:42:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54929-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54933-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:47:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54937-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:48:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54940-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-51004-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:51:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54936-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-54928-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50123-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50137-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50142-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50150-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:03:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50157-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:04:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50999-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50156-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:06:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50151-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:07:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50144-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:07:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50314-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:09:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50322-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-50328-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:11:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-51102-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904225-51174-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-17-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904230">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-19" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-51174-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50329-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:52:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50317-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50122-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50137-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:56:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50142-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50150-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:58:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50157-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:59:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50999-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50156-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50151-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50144-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:03:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50135-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:04:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-50128-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:06:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54837-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:07:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54841-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-51010-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-102171-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:12:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54847-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:14:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54929-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:17:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54940-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-51004-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54928-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54848-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:28:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-102171-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-55350-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:36:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-54898-27">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-27" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:38:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904230-102219-28">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-28" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904229">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-19" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-51174-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50329-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:32:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50317-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:34:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50122-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50137-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:36:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50142-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:37:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50150-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:38:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50157-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:39:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50999-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50156-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:41:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50151-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:42:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50144-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50135-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:44:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-50128-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54837-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:47:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54841-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:48:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-51010-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-102171-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:52:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54847-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54929-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54940-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-51004-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54928-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54848-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-102171-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-55350-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:16:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-54898-27">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-27" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:18:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904229-102219-28">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-28" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:85-177851-16904228">
+              <Name>Servicelinjen</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:177851-0011100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:85-19" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:TID_44"></OperatorRef>
+              <LineRef ref="SKY:Line:85" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-51174-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50329-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:42:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50317-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:44:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50122-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50137-5">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-5" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:46:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50142-6">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-6" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:47:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50150-7">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-7" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:48:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50157-8">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-8" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50999-9">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-9" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50156-10">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-10" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:51:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50151-11">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-11" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:52:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50144-12">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-12" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50135-13">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-13" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:54:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-50128-14">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-14" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:56:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54837-15">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-15" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54841-16">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-16" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:58:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-51010-17">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-17" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-102171-18">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-18" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:02:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54847-19">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-19" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:04:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54929-20">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-20" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:07:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54940-21">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-21" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-51004-22">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-22" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:11:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54928-23">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-23" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54848-24">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-24" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:18:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-102171-25">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-25" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-55350-26">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-26" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:26:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-54898-27">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-27" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:28:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:85-177851-16904228-102219-28">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:85-19-28" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3883100">
+              <NoticeRef ref="SKY:Notice:default-8"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:85-177851-16904227-51174-26" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

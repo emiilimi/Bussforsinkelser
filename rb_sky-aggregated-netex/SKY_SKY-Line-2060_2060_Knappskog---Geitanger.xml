@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:13.661</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Knappskog - Geitanger</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3918464">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3918391">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3918465">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:2060-5">
+              <Name>Geitanger båtkai-Knappskog båtkai</Name>
+              <ShortName>Geitanger båtkai-Knappskog båtkai</ShortName>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918392">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51209"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918393">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51214"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2060-6">
+              <Name>Knappskog båtkai-Geitanger båtkai</Name>
+              <ShortName>Knappskog båtkai-Geitanger båtkai</ShortName>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918394">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51214"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918395">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51209"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2060-7">
+              <Name>Knappskog båtkai-Geitanger båtkai</Name>
+              <ShortName>Knappskog båtkai-Geitanger båtkai</ShortName>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918396">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51214"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918397">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51209"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2060-8">
+              <Name>Geitanger båtkai-Knappskog båtkai</Name>
+              <ShortName>Geitanger båtkai-Knappskog båtkai</ShortName>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918398">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51209"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918399">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51214"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:2060">
+              <Name>Knappskog - Geitanger</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localPassengerFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>2060</PublicCode>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2060-5">
+              <Name>Geitanger båtkai-Knappskog båtkai</Name>
+              <RouteRef ref="SKY:Route:2060-5" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-5-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51209"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9376"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-5-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51214"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918400">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51209-51214"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2060-6">
+              <Name>Knappskog båtkai-Geitanger båtkai</Name>
+              <RouteRef ref="SKY:Route:2060-6" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-6-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51214"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9377"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-6-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51209"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918402">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51214-51209"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2060-7">
+              <Name>Knappskog båtkai-Geitanger båtkai</Name>
+              <RouteRef ref="SKY:Route:2060-7" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-7-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51214"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9377"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-7-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51209"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918404">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51214-51209"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2060-8">
+              <Name>Geitanger båtkai-Knappskog båtkai</Name>
+              <RouteRef ref="SKY:Route:2060-8" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-8-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51209"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9376"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2060-8-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51214"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918405">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51209-51214"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3918466">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-172343-15974996">
+              <Name>Knappskog</Name>
+              <PrivateCode>300</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172343-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172343-15974996-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172343-15974996-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238073">
+              <Name>Knappskog</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238073-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238073-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238076">
+              <Name>Knappskog</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238076-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238076-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238077">
+              <Name>Knappskog</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238077-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238077-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238082">
+              <Name>Knappskog</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238082-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238082-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157243">
+              <Name>Knappskog</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157243-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157243-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157247">
+              <Name>Knappskog</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157247-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157247-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157248">
+              <Name>Knappskog</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157248-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157248-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157250">
+              <Name>Knappskog</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157250-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157250-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157254">
+              <Name>Knappskog</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157254-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157254-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157255">
+              <Name>Knappskog</Name>
+              <PrivateCode>19</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157255-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157255-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157256">
+              <Name>Knappskog</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157256-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157256-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179268-17157262">
+              <Name>Knappskog</Name>
+              <PrivateCode>300</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179268-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157262-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157262-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179268-17157266">
+              <Name>Knappskog</Name>
+              <PrivateCode>302</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179268-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157266-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157266-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238074">
+              <Name>Geitanger</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238074-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238074-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238075">
+              <Name>Geitanger</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238075-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238075-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238078">
+              <Name>Geitanger</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238078-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238078-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-174277-16238079">
+              <Name>Geitanger</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:174277-0111000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238079-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-174277-16238079-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157244">
+              <Name>Geitanger</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157244-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157244-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157245">
+              <Name>Geitanger</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157245-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157245-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157251">
+              <Name>Geitanger</Name>
+              <PrivateCode>14</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157251-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157251-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157252">
+              <Name>Geitanger</Name>
+              <PrivateCode>16</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0111000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157252-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157252-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157253">
+              <Name>Geitanger</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157253-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157253-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:45:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157257">
+              <Name>Geitanger</Name>
+              <PrivateCode>21</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157257-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157257-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-172341-15974994">
+              <Name>Geitanger</Name>
+              <PrivateCode>200</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172341-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172341-15974994-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172341-15974994-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-172343-15974997">
+              <Name>Geitanger</Name>
+              <PrivateCode>301</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172343-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172343-15974997-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172343-15974997-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157246">
+              <Name>Geitanger</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157246-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157246-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179264-17157249">
+              <Name>Geitanger</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179264-0000010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157249-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179264-17157249-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179266-17157260">
+              <Name>Geitanger</Name>
+              <PrivateCode>200</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179266-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157260-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157260-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179266-17157265">
+              <Name>Geitanger</Name>
+              <PrivateCode>203</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179266-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157265-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157265-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179268-17157263">
+              <Name>Geitanger</Name>
+              <PrivateCode>301</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179268-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157263-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157263-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179268-17157267">
+              <Name>Geitanger</Name>
+              <PrivateCode>303</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179268-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157267-51214-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179268-17157267-51209-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-172341-15974993">
+              <Name>Knappskog</Name>
+              <PrivateCode>201</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172341-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172341-15974993-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-172341-15974993-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179266-17157259">
+              <Name>Knappskog</Name>
+              <PrivateCode>201</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179266-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157259-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157259-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2060-179266-17157264">
+              <Name>Knappskog</Name>
+              <PrivateCode>202</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179266-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2060-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:G_T"></OperatorRef>
+              <LineRef ref="SKY:Line:2060" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157264-51209-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2060-179266-17157264-51214-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2060-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="32" version="1" id="SKY:NoticeAssignment:3918439">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157252" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="44" version="1" id="SKY:NoticeAssignment:3918451">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179266-17157265" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="45" version="1" id="SKY:NoticeAssignment:3918452">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179268-17157263" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="26" version="1" id="SKY:NoticeAssignment:3918433">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238079" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="14" version="1" id="SKY:NoticeAssignment:3918421">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157255" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="24" version="1" id="SKY:NoticeAssignment:3918431">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-174277-16238075-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="23" version="1" id="SKY:NoticeAssignment:3918430">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238075" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="54" version="1" id="SKY:NoticeAssignment:3918461">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179266-17157259-51214-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="51" version="1" id="SKY:NoticeAssignment:3918458">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179266-17157259" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="15" version="1" id="SKY:NoticeAssignment:3918422">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157256" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="48" version="1" id="SKY:NoticeAssignment:3918455">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172341-15974993-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="38" version="1" id="SKY:NoticeAssignment:3918445">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-172343-15974997" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="5" version="1" id="SKY:NoticeAssignment:3918412">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238073" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="11" version="1" id="SKY:NoticeAssignment:3918418">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157248" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="18" version="1" id="SKY:NoticeAssignment:3918425">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179268-17157262-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="43" version="1" id="SKY:NoticeAssignment:3918450">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179266-17157260-51209-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="34" version="1" id="SKY:NoticeAssignment:3918441">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157257" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="4" version="1" id="SKY:NoticeAssignment:3918411">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172343-15974996-51214-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="39" version="1" id="SKY:NoticeAssignment:3918446">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157246" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="7" version="1" id="SKY:NoticeAssignment:3918414">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238077" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="41" version="1" id="SKY:NoticeAssignment:3918448">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179266-17157260" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="52" version="1" id="SKY:NoticeAssignment:3918459">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179266-17157259-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="25" version="1" id="SKY:NoticeAssignment:3918432">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238078" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="22" version="1" id="SKY:NoticeAssignment:3918429">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-174277-16238074-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="2" version="1" id="SKY:NoticeAssignment:3918409">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172343-15974996-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="19" version="1" id="SKY:NoticeAssignment:3918426">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179268-17157262-51214-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="53" version="1" id="SKY:NoticeAssignment:3918460">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179266-17157259-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="42" version="1" id="SKY:NoticeAssignment:3918449">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179266-17157260-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="9" version="1" id="SKY:NoticeAssignment:3918416">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157243" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="10" version="1" id="SKY:NoticeAssignment:3918417">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157247" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="33" version="1" id="SKY:NoticeAssignment:3918440">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157253" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="8" version="1" id="SKY:NoticeAssignment:3918415">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238082" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="3" version="1" id="SKY:NoticeAssignment:3918410">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172343-15974996-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="36" version="1" id="SKY:NoticeAssignment:3918443">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172341-15974994-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="12" version="1" id="SKY:NoticeAssignment:3918419">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157250" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="20" version="1" id="SKY:NoticeAssignment:3918427">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179268-17157266" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="29" version="1" id="SKY:NoticeAssignment:3918436">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157245" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="30" version="1" id="SKY:NoticeAssignment:3918437">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179264-17157245-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="16" version="1" id="SKY:NoticeAssignment:3918423">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179268-17157262" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="50" version="1" id="SKY:NoticeAssignment:3918457">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172341-15974993-51214-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="28" version="1" id="SKY:NoticeAssignment:3918435">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179264-17157244-51214-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="6" version="1" id="SKY:NoticeAssignment:3918413">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238076" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="35" version="1" id="SKY:NoticeAssignment:3918442">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-172341-15974994" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="55" version="1" id="SKY:NoticeAssignment:3918462">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179266-17157264" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="27" version="1" id="SKY:NoticeAssignment:3918434">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157244" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="40" version="1" id="SKY:NoticeAssignment:3918447">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157249" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3918408">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-172343-15974996" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="21" version="1" id="SKY:NoticeAssignment:3918428">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-174277-16238074" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="31" version="1" id="SKY:NoticeAssignment:3918438">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157251" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="13" version="1" id="SKY:NoticeAssignment:3918420">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179264-17157254" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="49" version="1" id="SKY:NoticeAssignment:3918456">
+              <NoticeRef ref="SKY:Notice:default-2"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172341-15974993-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="47" version="1" id="SKY:NoticeAssignment:3918454">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-172341-15974993" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="17" version="1" id="SKY:NoticeAssignment:3918424">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-179268-17157262-51209-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="46" version="1" id="SKY:NoticeAssignment:3918453">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:2060-179268-17157267" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="37" version="1" id="SKY:NoticeAssignment:3918444">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2060-172341-15974994-51209-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

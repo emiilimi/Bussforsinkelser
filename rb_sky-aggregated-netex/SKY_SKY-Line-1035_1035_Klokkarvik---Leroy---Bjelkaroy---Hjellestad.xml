@@ -1,0 +1,2022 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:05.964</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Klokkarvik - Lerøy - Bjelkarøy - Hjellestad</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3915786">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3915750">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3915787">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1035-1">
+              <Name>Hjellestad ferjekai-Klokkarvik ferjekai</Name>
+              <ShortName>Hjellestad ferjekai-Klokkarvik ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915751">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54784"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915752">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50553"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3915753">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50558"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3915754">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50896"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1035-2">
+              <Name>Hjellestad ferjekai-Bjelkarøy ferjekai</Name>
+              <ShortName>Hjellestad ferjekai-Bjelkarøy ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915755">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54784"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915756">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50553"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1035-3">
+              <Name>Klokkarvik ferjekai-Hjellestad ferjekai</Name>
+              <ShortName>Klokkarvik ferjekai-Hjellestad ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915757">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50896"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915758">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50558"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3915759">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50553"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3915760">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54784"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1035-4">
+              <Name>Bjelkarøy ferjekai-Hjellestad ferjekai</Name>
+              <ShortName>Bjelkarøy ferjekai-Hjellestad ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3915761">
+                  <RoutePointRef ref="SKY:RoutePoint:default-50553"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3915762">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54784"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1035">
+              <Name>Klokkarvik - Lerøy - Bjelkarøy - Hjellestad</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1035</PublicCode>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1035-1">
+              <Name>Hjellestad ferjekai-Klokkarvik ferjekai</Name>
+              <RouteRef ref="SKY:Route:1035-1" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-1-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54784"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9252"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-1-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50553"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-1-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50558"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-1-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50896"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915763">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54784-50553"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915765">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50553-50558"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915767">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50558-50896"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1035-2">
+              <Name>Hjellestad ferjekai-Bjelkarøy ferjekai</Name>
+              <RouteRef ref="SKY:Route:1035-2" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-2-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54784"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9254"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-2-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50553"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915769">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54784-50553"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1035-3">
+              <Name>Klokkarvik ferjekai-Hjellestad ferjekai</Name>
+              <RouteRef ref="SKY:Route:1035-3" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-3-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50896"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9253"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-3-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50558"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-3-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50553"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-3-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54784"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915770">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50896-50558"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915772">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50558-50553"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915774">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50553-54784"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1035-4">
+              <Name>Bjelkarøy ferjekai-Hjellestad ferjekai</Name>
+              <RouteRef ref="SKY:Route:1035-4" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-4-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-50553"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9253"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1035-4-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54784"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3915776">
+                  <ServiceLinkRef ref="SKY:ServiceLink:50553-54784"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3915788">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134318">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>619</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134318-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134318-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:28:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134318-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134318-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134319">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>620</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134319-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134319-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134319-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134319-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134320">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>622</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0000100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134320-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134320-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134320-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134320-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134321">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>624</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134321-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134321-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134321-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134321-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134322">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>626</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134322-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134322-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134322-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134322-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134323">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>628</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134323-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134323-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134323-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134323-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134324">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>630</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134324-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134324-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134324-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134324-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134325">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>632</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134325-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134325-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134325-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134325-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134332">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134332-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134332-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134332-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134332-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134333">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134333-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134333-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134333-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134333-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134334">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134334-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134334-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134334-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134334-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134335">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134335-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134335-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134335-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134335-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134337">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134337-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134337-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134337-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134337-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134354">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134354-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134354-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134354-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134354-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134355">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134355-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134355-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134355-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134355-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134356">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134356-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134356-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134356-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134356-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134357">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134357-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134357-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134357-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134357-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16125529">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125529-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125529-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125529-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125529-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16128731">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128731-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128731-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128731-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128731-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16128732">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128732-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128732-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128732-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16128732-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128738">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128738-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128738-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128738-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128738-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128739">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128739-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128739-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128739-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128739-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128740">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128740-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128740-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128740-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128740-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128741">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128741-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128741-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128741-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128741-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128743">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128743-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128743-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128743-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128743-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128749">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128749-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128749-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:08:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128749-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128749-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128750">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128750-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128750-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128750-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128750-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128751">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128751-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128751-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128751-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128751-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128752">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128752-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128752-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128752-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128752-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128754">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128754-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128754-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:13:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128754-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128754-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128756">
+              <Name>Klokkarvik</Name>
+              <PrivateCode>13</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128756-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128756-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:43:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128756-50558-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128756-50896-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-1-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:10:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134317">
+              <Name>Bjelkarøy</Name>
+              <PrivateCode>617</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134317-54784-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134317-50553-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134309">
+              <Name>Hjellestad</Name>
+              <PrivateCode>616</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134309-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134309-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:12:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134309-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134309-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134315">
+              <Name>Hjellestad</Name>
+              <PrivateCode>621</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0000100"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134315-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134315-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134315-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134315-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134311">
+              <Name>Hjellestad</Name>
+              <PrivateCode>623</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134311-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134311-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134311-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134311-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134312">
+              <Name>Hjellestad</Name>
+              <PrivateCode>625</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134312-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134312-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:37:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134312-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134312-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134313">
+              <Name>Hjellestad</Name>
+              <PrivateCode>627</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134313-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134313-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134313-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134313-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134314">
+              <Name>Hjellestad</Name>
+              <PrivateCode>629</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134314-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134314-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134314-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134314-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134316">
+              <Name>Hjellestad</Name>
+              <PrivateCode>631</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134316-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134316-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134316-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134316-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134326">
+              <Name>Hjellestad</Name>
+              <PrivateCode>633</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134326-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134326-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:12:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134326-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134326-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134328">
+              <Name>Hjellestad</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134328-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134328-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134328-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134328-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134329">
+              <Name>Hjellestad</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134329-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134329-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134329-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134329-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134330">
+              <Name>Hjellestad</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134330-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134330-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134330-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134330-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134331">
+              <Name>Hjellestad</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134331-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134331-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134331-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134331-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167703-15134336">
+              <Name>Hjellestad</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167703-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134336-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134336-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134336-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167703-15134336-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134350">
+              <Name>Hjellestad</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134350-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134350-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134350-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134350-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134351">
+              <Name>Hjellestad</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134351-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134351-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134351-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134351-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134352">
+              <Name>Hjellestad</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134352-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134352-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134352-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134352-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167707-15134353">
+              <Name>Hjellestad</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167707-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134353-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134353-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134353-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167707-15134353-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16125525">
+              <Name>Hjellestad</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125525-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125525-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125525-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125525-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16125527">
+              <Name>Hjellestad</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125527-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125527-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125527-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125527-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173913-16125528">
+              <Name>Hjellestad</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173913-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125528-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125528-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125528-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173913-16125528-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128734">
+              <Name>Hjellestad</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128734-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128734-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128734-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128734-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128735">
+              <Name>Hjellestad</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128735-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128735-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128735-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128735-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128736">
+              <Name>Hjellestad</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128736-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128736-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128736-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128736-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128737">
+              <Name>Hjellestad</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128737-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128737-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128737-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128737-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173915-16128742">
+              <Name>Hjellestad</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173915-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128742-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128742-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128742-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173915-16128742-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128745">
+              <Name>Hjellestad</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128745-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128745-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:22:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128745-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128745-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:50:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128746">
+              <Name>Hjellestad</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128746-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128746-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128746-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128746-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128747">
+              <Name>Hjellestad</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128747-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128747-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128747-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128747-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128748">
+              <Name>Hjellestad</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128748-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128748-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128748-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128748-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128753">
+              <Name>Hjellestad</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128753-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128753-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:27:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128753-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128753-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-173960-16128755">
+              <Name>Hjellestad</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:173960-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128755-50896-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128755-50558-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128755-50553-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-173960-16128755-54784-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-3-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:25:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1035-167701-15134310">
+              <Name>Hjellestad</Name>
+              <PrivateCode>618</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167701-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1035-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:1035" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134310-50553-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1035-167701-15134310-54784-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1035-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="3" version="1" id="SKY:NoticeAssignment:3915783">
+              <NoticeRef ref="SKY:Notice:default-60"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1035-167701-15134323" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="2" version="1" id="SKY:NoticeAssignment:3915782">
+              <NoticeRef ref="SKY:Notice:default-60"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1035-167701-15134322" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3915781">
+              <NoticeRef ref="SKY:Notice:default-60"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1035-167701-15134321" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="4" version="1" id="SKY:NoticeAssignment:3915784">
+              <NoticeRef ref="SKY:Notice:default-20"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1035-167701-15134315" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

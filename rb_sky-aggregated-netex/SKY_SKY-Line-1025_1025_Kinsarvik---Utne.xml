@@ -1,0 +1,2294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:12.461</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Kinsarvik - Utne</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3917289">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3917276">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3917290">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1025-1">
+              <Name>Kinsarvik ferjekai-Utne ferjekai</Name>
+              <ShortName>Kinsarvik ferjekai-Utne ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917277">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53510"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917278">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53414"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1025-2">
+              <Name>Utne ferjekai-Kinsarvik ferjekai</Name>
+              <ShortName>Utne ferjekai-Kinsarvik ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3917279">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53414"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3917280">
+                  <RoutePointRef ref="SKY:RoutePoint:default-53510"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1025">
+              <Name>Kinsarvik - Utne</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1025</PublicCode>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1025-1">
+              <Name>Kinsarvik ferjekai-Utne ferjekai</Name>
+              <RouteRef ref="SKY:Route:1025-1" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1025-1-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53510"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9203"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1025-1-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53414"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917281">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53510-53414"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1025-2">
+              <Name>Utne ferjekai-Kinsarvik ferjekai</Name>
+              <RouteRef ref="SKY:Route:1025-2" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1025-2-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53414"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9206"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1025-2-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-53510"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3917283">
+                  <ServiceLinkRef ref="SKY:ServiceLink:53414-53510"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3917291">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137297">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137297-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137297-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137298">
+              <Name>Utne</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137298-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137298-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137299">
+              <Name>Utne</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137299-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137299-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137300">
+              <Name>Utne</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137300-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137300-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137301">
+              <Name>Utne</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137301-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137301-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137302">
+              <Name>Utne</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137302-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137302-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137306">
+              <Name>Utne</Name>
+              <PrivateCode>59</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137306-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137306-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137307">
+              <Name>Utne</Name>
+              <PrivateCode>64</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137307-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137307-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137311">
+              <Name>Utne</Name>
+              <PrivateCode>77</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137311-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137311-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137312">
+              <Name>Utne</Name>
+              <PrivateCode>88</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137312-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137312-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137318">
+              <Name>Utne</Name>
+              <PrivateCode>96</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0101010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137318-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137318-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140002">
+              <Name>Utne</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140002-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140002-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140003">
+              <Name>Utne</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140003-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140003-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140004">
+              <Name>Utne</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140004-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140004-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140005">
+              <Name>Utne</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140005-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140005-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140006">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140006-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140006-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140013">
+              <Name>Utne</Name>
+              <PrivateCode>46</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140013-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140013-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140014">
+              <Name>Utne</Name>
+              <PrivateCode>47</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140014-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140014-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140015">
+              <Name>Utne</Name>
+              <PrivateCode>48</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140015-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140015-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161195">
+              <Name>Utne</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161195-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161195-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161196">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161196-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161196-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161204">
+              <Name>Utne</Name>
+              <PrivateCode>62</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161204-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161204-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161201">
+              <Name>Utne</Name>
+              <PrivateCode>63</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161201-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161201-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161202">
+              <Name>Utne</Name>
+              <PrivateCode>65</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161202-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161202-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161205">
+              <Name>Utne</Name>
+              <PrivateCode>67</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161205-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161205-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161206">
+              <Name>Utne</Name>
+              <PrivateCode>68</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161206-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161206-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161207">
+              <Name>Utne</Name>
+              <PrivateCode>69</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161207-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161207-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137297">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137297-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137297-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137298">
+              <Name>Utne</Name>
+              <PrivateCode>22</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137298-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137298-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137299">
+              <Name>Utne</Name>
+              <PrivateCode>23</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137299-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137299-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137300">
+              <Name>Utne</Name>
+              <PrivateCode>25</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137300-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137300-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137301">
+              <Name>Utne</Name>
+              <PrivateCode>26</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137301-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137301-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137302">
+              <Name>Utne</Name>
+              <PrivateCode>27</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137302-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137302-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137306">
+              <Name>Utne</Name>
+              <PrivateCode>59</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137306-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137306-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137307">
+              <Name>Utne</Name>
+              <PrivateCode>64</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137307-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137307-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137311">
+              <Name>Utne</Name>
+              <PrivateCode>77</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137311-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137311-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137312">
+              <Name>Utne</Name>
+              <PrivateCode>88</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137312-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137312-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137318">
+              <Name>Utne</Name>
+              <PrivateCode>96</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0101010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137318-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137318-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140002">
+              <Name>Utne</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140002-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140002-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140003">
+              <Name>Utne</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140003-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140003-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140004">
+              <Name>Utne</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140004-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140004-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140005">
+              <Name>Utne</Name>
+              <PrivateCode>18</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140005-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140005-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140006">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140006-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140006-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140013">
+              <Name>Utne</Name>
+              <PrivateCode>46</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140013-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140013-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140014">
+              <Name>Utne</Name>
+              <PrivateCode>47</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140014-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140014-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140015">
+              <Name>Utne</Name>
+              <PrivateCode>48</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140015-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140015-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161195">
+              <Name>Utne</Name>
+              <PrivateCode>17</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161195-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161195-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161196">
+              <Name>Utne</Name>
+              <PrivateCode>20</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161196-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161196-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161204">
+              <Name>Utne</Name>
+              <PrivateCode>62</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161204-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161204-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161201">
+              <Name>Utne</Name>
+              <PrivateCode>63</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161201-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:35:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161201-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:03:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161202">
+              <Name>Utne</Name>
+              <PrivateCode>65</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161202-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161202-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161205">
+              <Name>Utne</Name>
+              <PrivateCode>67</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161205-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161205-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161206">
+              <Name>Utne</Name>
+              <PrivateCode>68</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161206-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161206-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161207">
+              <Name>Utne</Name>
+              <PrivateCode>69</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-1" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161207-53510-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161207-53414-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-1-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137303">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>54</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137303-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137303-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137304">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>55</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137304-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137304-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137316">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>56</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137316-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137316-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137305">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>63</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0101010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137305-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137305-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137308">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>65</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137308-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137308-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137309">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>67</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137309-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137309-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137310">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>68</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137310-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137310-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137314">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>89</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137314-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137314-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137313">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>90</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137313-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137313-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137315">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>92</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137315-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137315-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167806-15137317">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>94</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167806-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137317-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167806-15137317-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140007">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140007-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140007-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140008">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140008-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140008-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140009">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>36</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140009-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140009-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140010">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>37</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140010-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140010-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140011">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>43</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140011-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140011-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140012">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>45</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140012-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140012-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140016">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>49</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140016-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140016-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167847-15140017">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>50</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167847-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140017-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167847-15140017-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161197">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>40</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161197-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161197-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161198">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>43</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161198-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161198-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161199">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>52</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161199-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161199-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161200">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>55</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161200-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161200-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161203">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>66</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161203-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161203-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161208">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>71</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161208-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161208-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161209">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>72</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161209-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161209-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-167890-15161210">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>73</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167890-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161210-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-167890-15161210-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137303">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>54</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137303-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137303-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137304">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>55</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137304-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137304-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137316">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>56</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137316-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137316-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137305">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>63</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0101010"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137305-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137305-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137308">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>65</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137308-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137308-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:53:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137309">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>67</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137309-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137309-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137310">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>68</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137310-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137310-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137314">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>89</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137314-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137314-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137313">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>90</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137313-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137313-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137315">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>92</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137315-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137315-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169755-15137317">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>94</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169755-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137317-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169755-15137317-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140007">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>29</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140007-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140007-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140008">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>35</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140008-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140008-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140009">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>36</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140009-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140009-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140010">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>37</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140010-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140010-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140011">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>43</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140011-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140011-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140012">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>45</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140012-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140012-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140016">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>49</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140016-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140016-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169758-15140017">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>50</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169758-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140017-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169758-15140017-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161197">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>40</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161197-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161197-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161198">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>43</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161198-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161198-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161199">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>52</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161199-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161199-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161200">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>55</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161200-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161200-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:43:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161203">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>66</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161203-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161203-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161208">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>71</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161208-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161208-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:23:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161209">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>72</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161209-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161209-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:13:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1025-169761-15161210">
+              <Name>Kinsarvik</Name>
+              <PrivateCode>73</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:169761-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1025-2" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1025" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161210-53414-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1025-169761-15161210-53510-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1025-2-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:33:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="2" version="1" id="SKY:NoticeAssignment:3917287">
+              <NoticeRef ref="SKY:Notice:default-58"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1025-169755-15137318" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3917286">
+              <NoticeRef ref="SKY:Notice:default-58"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1025-167806-15137318" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

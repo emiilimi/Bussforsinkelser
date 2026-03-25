@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:29:01.742</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Nordhordland</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3957411">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3957385">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3957412">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:390-3">
+              <Name>Strandkaiterminalen båtkai-Knarvik båtkai</Name>
+              <ShortName>Strandkaiterminalen båtkai-Knarvik båtkai</ShortName>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3957386">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51969"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3957387">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56425"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:390-4">
+              <Name>Knarvik båtkai-Strandkaiterminalen båtkai</Name>
+              <ShortName>Knarvik båtkai-Strandkaiterminalen båtkai</ShortName>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3957388">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56425"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3957389">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58357"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3957390">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51969"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:390-5">
+              <Name>Knarvik båtkai-Strandkaiterminalen båtkai</Name>
+              <ShortName>Knarvik båtkai-Strandkaiterminalen båtkai</ShortName>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3957391">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56425"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3957392">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51969"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:390-6">
+              <Name>Strandkaiterminalen båtkai-Knarvik båtkai</Name>
+              <ShortName>Strandkaiterminalen båtkai-Knarvik båtkai</ShortName>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3957393">
+                  <RoutePointRef ref="SKY:RoutePoint:default-51969"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3957394">
+                  <RoutePointRef ref="SKY:RoutePoint:default-58357"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3957395">
+                  <RoutePointRef ref="SKY:RoutePoint:default-56425"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:390">
+              <Name>Nordhordland</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localPassengerFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>390</PublicCode>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:390-3">
+              <Name>Strandkaiterminalen båtkai-Knarvik båtkai</Name>
+              <RouteRef ref="SKY:Route:390-3" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:390-3-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51969"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:0391"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:390-3-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56425"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957396">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51969-56425"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:390-4">
+              <Name>Knarvik båtkai-Strandkaiterminalen båtkai</Name>
+              <RouteRef ref="SKY:Route:390-4" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:390-4-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56425"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:0390"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:390-4-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58357"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:390-4-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51969"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957398">
+                  <ServiceLinkRef ref="SKY:ServiceLink:56425-58357"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957400">
+                  <ServiceLinkRef ref="SKY:ServiceLink:58357-51969"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:390-5">
+              <Name>Knarvik båtkai-Strandkaiterminalen båtkai</Name>
+              <RouteRef ref="SKY:Route:390-5" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:390-5-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56425"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:0390"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:390-5-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51969"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957402">
+                  <ServiceLinkRef ref="SKY:ServiceLink:56425-51969"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:390-6">
+              <Name>Strandkaiterminalen båtkai-Knarvik båtkai</Name>
+              <RouteRef ref="SKY:Route:390-6" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:390-6-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-51969"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:0391"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:390-6-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-58357"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:390-6-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-56425"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957404">
+                  <ServiceLinkRef ref="SKY:ServiceLink:51969-58357"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3957406">
+                  <ServiceLinkRef ref="SKY:ServiceLink:58357-56425"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3957413">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974970">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974970-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974970-56425-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974971">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974971-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974971-56425-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974972">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-3" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974972-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:21:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974972-56425-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-3-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:46:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974961">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974961-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:51:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974961-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:57:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974961-51969-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974962">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974962-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974962-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974962-51969-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:18:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974963">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974963-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974963-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974963-51969-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:18:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974964">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>7</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-4" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974964-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:49:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974964-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:55:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974964-51969-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-4-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:18:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974965">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>9</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974965-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974965-51969-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:26:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974966">
+              <Name>Strandkaiterminalen</Name>
+              <PrivateCode>11</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974966-56425-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:01:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974966-51969-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:26:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974967">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>8</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974967-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974967-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974967-56425-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:59:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974968">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>10</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974968-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974968-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974968-56425-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:59:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:390-172331-15974969">
+              <Name>Knarvik kai</Name>
+              <PrivateCode>12</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172331-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:390-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:NORLED"></OperatorRef>
+              <LineRef ref="SKY:Line:390" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974969-51969-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:30:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974969-58357-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:53:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:390-172331-15974969-56425-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:390-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:59:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

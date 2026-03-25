@@ -1,0 +1,2786 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:10.655</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Skånevik - Matre -Utåker</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3916507">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3916467">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3916508">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:1031-6">
+              <Name>Utåker ferjekai-Skånevik ferjekai</Name>
+              <ShortName>Utåker ferjekai-Skånevik ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3916468">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54379"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3916469">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52593"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1031-7">
+              <Name>Utåker ferjekai-Skånevik ferjekai</Name>
+              <ShortName>Utåker ferjekai-Skånevik ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3916470">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54379"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3916471">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54994"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3916472">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52593"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1031-8">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <ShortName>Skånevik ferjekai-Utåker ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3916473">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52593"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3916474">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54379"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1031-9">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <ShortName>Skånevik ferjekai-Utåker ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3916475">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52593"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3916476">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54994"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3916477">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54379"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:1031-10">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <ShortName>Skånevik ferjekai-Utåker ferjekai</ShortName>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3916478">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52593"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3916479">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54994"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3916480">
+                  <RoutePointRef ref="SKY:RoutePoint:default-54379"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:1031">
+              <Name>Skånevik - Matre -Utåker</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localCarFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>1031</PublicCode>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1031-6">
+              <Name>Utåker ferjekai-Skånevik ferjekai</Name>
+              <RouteRef ref="SKY:Route:1031-6" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-6-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54379"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9218"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-6-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52593"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916481">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54379-52593"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1031-7">
+              <Name>Utåker ferjekai-Skånevik ferjekai</Name>
+              <RouteRef ref="SKY:Route:1031-7" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-7-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54379"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9219"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-7-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54994"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-7-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52593"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916483">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54379-54994"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916485">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54994-52593"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1031-8">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <RouteRef ref="SKY:Route:1031-8" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-8-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52593"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9220"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-8-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54379"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916487">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52593-54379"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1031-9">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <RouteRef ref="SKY:Route:1031-9" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-9-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52593"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9221"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-9-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54994"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-9-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54379"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916489">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52593-54994"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916491">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54994-54379"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:1031-10">
+              <Name>Skånevik ferjekai-Utåker ferjekai</Name>
+              <RouteRef ref="SKY:Route:1031-10" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-10-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52593"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9221"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-10-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54994"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:1031-10-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-54379"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916493">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52593-54994"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3916494">
+                  <ServiceLinkRef ref="SKY:ServiceLink:54994-54379"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3916509">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136618">
+              <Name>Skånevik</Name>
+              <PrivateCode>326</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136618-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136618-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136619">
+              <Name>Skånevik</Name>
+              <PrivateCode>328</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136619-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136619-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136620">
+              <Name>Skånevik</Name>
+              <PrivateCode>330</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136620-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136620-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136621">
+              <Name>Skånevik</Name>
+              <PrivateCode>334</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136621-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136621-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136622">
+              <Name>Skånevik</Name>
+              <PrivateCode>344</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136622-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136622-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136623">
+              <Name>Skånevik</Name>
+              <PrivateCode>348</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136623-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136623-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136751">
+              <Name>Skånevik</Name>
+              <PrivateCode>328</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136751-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136751-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136752">
+              <Name>Skånevik</Name>
+              <PrivateCode>334</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136752-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136752-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136753">
+              <Name>Skånevik</Name>
+              <PrivateCode>338</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136753-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136753-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136754">
+              <Name>Skånevik</Name>
+              <PrivateCode>344</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136754-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136754-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136755">
+              <Name>Skånevik</Name>
+              <PrivateCode>348</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136755-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136755-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136756">
+              <Name>Skånevik</Name>
+              <PrivateCode>352</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136756-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136756-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136447">
+              <Name>Skånevik</Name>
+              <PrivateCode>324</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136447-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>05:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136447-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136448">
+              <Name>Skånevik</Name>
+              <PrivateCode>326</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136448-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:00:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136448-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:20:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136449">
+              <Name>Skånevik</Name>
+              <PrivateCode>328</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136449-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136449-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136450">
+              <Name>Skånevik</Name>
+              <PrivateCode>330</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136450-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136450-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136451">
+              <Name>Skånevik</Name>
+              <PrivateCode>334</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136451-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136451-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136452">
+              <Name>Skånevik</Name>
+              <PrivateCode>338</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136452-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136452-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136453">
+              <Name>Skånevik</Name>
+              <PrivateCode>344</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136453-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136453-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136454">
+              <Name>Skånevik</Name>
+              <PrivateCode>348</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136454-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136454-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136455">
+              <Name>Skånevik</Name>
+              <PrivateCode>352</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136455-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136455-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136751">
+              <Name>Skånevik</Name>
+              <PrivateCode>328</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136751-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136751-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136752">
+              <Name>Skånevik</Name>
+              <PrivateCode>334</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136752-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136752-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136753">
+              <Name>Skånevik</Name>
+              <PrivateCode>338</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136753-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136753-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136754">
+              <Name>Skånevik</Name>
+              <PrivateCode>344</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136754-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136754-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136755">
+              <Name>Skånevik</Name>
+              <PrivateCode>348</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136755-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136755-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136756">
+              <Name>Skånevik</Name>
+              <PrivateCode>352</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136756-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136756-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136618">
+              <Name>Skånevik</Name>
+              <PrivateCode>326</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136618-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136618-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136619">
+              <Name>Skånevik</Name>
+              <PrivateCode>328</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136619-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136619-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136620">
+              <Name>Skånevik</Name>
+              <PrivateCode>330</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136620-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136620-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136621">
+              <Name>Skånevik</Name>
+              <PrivateCode>334</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136621-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136621-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136622">
+              <Name>Skånevik</Name>
+              <PrivateCode>344</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136622-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136622-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136623">
+              <Name>Skånevik</Name>
+              <PrivateCode>348</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136623-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136623-52593-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136624">
+              <Name>Skånevik</Name>
+              <PrivateCode>332</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136624-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136624-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:30:00</ArrivalTime>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136624-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136625">
+              <Name>Skånevik</Name>
+              <PrivateCode>340</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136625-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136625-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:30:00</ArrivalTime>
+                  <DepartureTime>15:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136625-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136626">
+              <Name>Skånevik</Name>
+              <PrivateCode>342</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136626-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136626-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136626-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136627">
+              <Name>Skånevik</Name>
+              <PrivateCode>346</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136627-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136627-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:30:00</ArrivalTime>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136627-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136638">
+              <Name>Skånevik</Name>
+              <PrivateCode>631</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136638-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136638-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:00:00</ArrivalTime>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136638-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136757">
+              <Name>Skånevik</Name>
+              <PrivateCode>332</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136757-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136757-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:30:00</ArrivalTime>
+                  <DepartureTime>08:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136757-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136758">
+              <Name>Skånevik</Name>
+              <PrivateCode>340</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136758-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136758-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:30:00</ArrivalTime>
+                  <DepartureTime>15:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136758-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136759">
+              <Name>Skånevik</Name>
+              <PrivateCode>342</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136759-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136759-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136759-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136760">
+              <Name>Skånevik</Name>
+              <PrivateCode>346</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136760-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136760-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:30:00</ArrivalTime>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136760-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15975276">
+              <Name>Skånevik</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15975276-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15975276-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:00:00</ArrivalTime>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15975276-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136456">
+              <Name>Skånevik</Name>
+              <PrivateCode>332</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136456-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136456-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:00:00</ArrivalTime>
+                  <DepartureTime>11:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136456-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136457">
+              <Name>Skånevik</Name>
+              <PrivateCode>340</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136457-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136457-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:00:00</ArrivalTime>
+                  <DepartureTime>15:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136457-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136458">
+              <Name>Skånevik</Name>
+              <PrivateCode>342</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136458-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136458-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:30:00</ArrivalTime>
+                  <DepartureTime>16:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136458-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136459">
+              <Name>Skånevik</Name>
+              <PrivateCode>346</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136459-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136459-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:00:00</ArrivalTime>
+                  <DepartureTime>19:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136459-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136757">
+              <Name>Skånevik</Name>
+              <PrivateCode>332</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136757-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136757-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:30:00</ArrivalTime>
+                  <DepartureTime>08:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136757-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136758">
+              <Name>Skånevik</Name>
+              <PrivateCode>340</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136758-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136758-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:30:00</ArrivalTime>
+                  <DepartureTime>15:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136758-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136759">
+              <Name>Skånevik</Name>
+              <PrivateCode>342</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136759-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136759-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136759-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136760">
+              <Name>Skånevik</Name>
+              <PrivateCode>346</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136760-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136760-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:30:00</ArrivalTime>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136760-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15975276">
+              <Name>Skånevik</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15975276-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15975276-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:00:00</ArrivalTime>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15975276-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136624">
+              <Name>Skånevik</Name>
+              <PrivateCode>332</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136624-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136624-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:30:00</ArrivalTime>
+                  <DepartureTime>11:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136624-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136625">
+              <Name>Skånevik</Name>
+              <PrivateCode>340</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136625-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136625-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:30:00</ArrivalTime>
+                  <DepartureTime>15:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136625-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136626">
+              <Name>Skånevik</Name>
+              <PrivateCode>342</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136626-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136626-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:00:00</ArrivalTime>
+                  <DepartureTime>17:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136626-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136627">
+              <Name>Skånevik</Name>
+              <PrivateCode>346</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136627-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136627-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:30:00</ArrivalTime>
+                  <DepartureTime>19:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136627-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136638">
+              <Name>Skånevik</Name>
+              <PrivateCode>631</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136638-54379-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136638-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:00:00</ArrivalTime>
+                  <DepartureTime>13:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136638-52593-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-7-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136628">
+              <Name>Utåker</Name>
+              <PrivateCode>331</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136628-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136628-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136629">
+              <Name>Utåker</Name>
+              <PrivateCode>333</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136629-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136629-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136630">
+              <Name>Utåker</Name>
+              <PrivateCode>339</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136630-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136630-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136631">
+              <Name>Utåker</Name>
+              <PrivateCode>341</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136631-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136631-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136632">
+              <Name>Utåker</Name>
+              <PrivateCode>343</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136632-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136632-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136633">
+              <Name>Utåker</Name>
+              <PrivateCode>345</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136633-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136633-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136634">
+              <Name>Utåker</Name>
+              <PrivateCode>351</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136634-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136634-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136639">
+              <Name>Utåker</Name>
+              <PrivateCode>630</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136639-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136639-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136761">
+              <Name>Utåker</Name>
+              <PrivateCode>331</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136761-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136761-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136762">
+              <Name>Utåker</Name>
+              <PrivateCode>333</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136762-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136762-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136763">
+              <Name>Utåker</Name>
+              <PrivateCode>339</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136763-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136763-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136764">
+              <Name>Utåker</Name>
+              <PrivateCode>341</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136764-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136764-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136765">
+              <Name>Utåker</Name>
+              <PrivateCode>343</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136765-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136765-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136766">
+              <Name>Utåker</Name>
+              <PrivateCode>345</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136766-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136766-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136767">
+              <Name>Utåker</Name>
+              <PrivateCode>351</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136767-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136767-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136460">
+              <Name>Utåker</Name>
+              <PrivateCode>331</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136460-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136460-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136461">
+              <Name>Utåker</Name>
+              <PrivateCode>333</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136461-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>11:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136461-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136462">
+              <Name>Utåker</Name>
+              <PrivateCode>339</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136462-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136462-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136463">
+              <Name>Utåker</Name>
+              <PrivateCode>341</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136463-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136463-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136464">
+              <Name>Utåker</Name>
+              <PrivateCode>343</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136464-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136464-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>17:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136465">
+              <Name>Utåker</Name>
+              <PrivateCode>345</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136465-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136465-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136466">
+              <Name>Utåker</Name>
+              <PrivateCode>351</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136466-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136466-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136761">
+              <Name>Utåker</Name>
+              <PrivateCode>331</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136761-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136761-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136762">
+              <Name>Utåker</Name>
+              <PrivateCode>333</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136762-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136762-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136763">
+              <Name>Utåker</Name>
+              <PrivateCode>339</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136763-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136763-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136764">
+              <Name>Utåker</Name>
+              <PrivateCode>341</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136764-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136764-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136765">
+              <Name>Utåker</Name>
+              <PrivateCode>343</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136765-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136765-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136766">
+              <Name>Utåker</Name>
+              <PrivateCode>345</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136766-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136766-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136767">
+              <Name>Utåker</Name>
+              <PrivateCode>351</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136767-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136767-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136628">
+              <Name>Utåker</Name>
+              <PrivateCode>331</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136628-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136628-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136629">
+              <Name>Utåker</Name>
+              <PrivateCode>333</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136629-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136629-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>12:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136630">
+              <Name>Utåker</Name>
+              <PrivateCode>339</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136630-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>13:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136630-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136631">
+              <Name>Utåker</Name>
+              <PrivateCode>341</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136631-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136631-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>15:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136632">
+              <Name>Utåker</Name>
+              <PrivateCode>343</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136632-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136632-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136633">
+              <Name>Utåker</Name>
+              <PrivateCode>345</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136633-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>17:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136633-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>18:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136634">
+              <Name>Utåker</Name>
+              <PrivateCode>351</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136634-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>21:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136634-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136639">
+              <Name>Utåker</Name>
+              <PrivateCode>630</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136639-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>18:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136639-54379-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>19:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136636">
+              <Name>Utåker</Name>
+              <PrivateCode>329</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136636-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136636-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136636-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136637">
+              <Name>Utåker</Name>
+              <PrivateCode>349</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136637-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136637-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                  <DepartureTime>20:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136637-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136768">
+              <Name>Utåker</Name>
+              <PrivateCode>327</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136768-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136768-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                  <DepartureTime>11:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136768-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136769">
+              <Name>Utåker</Name>
+              <PrivateCode>329</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136769-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136769-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136769-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136770">
+              <Name>Utåker</Name>
+              <PrivateCode>349</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136770-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136770-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                  <DepartureTime>20:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136770-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136468">
+              <Name>Utåker</Name>
+              <PrivateCode>327</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136468-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136468-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136468-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136469">
+              <Name>Utåker</Name>
+              <PrivateCode>329</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136469-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>08:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136469-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:10:00</ArrivalTime>
+                  <DepartureTime>09:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136469-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136470">
+              <Name>Utåker</Name>
+              <PrivateCode>349</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136470-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>19:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136470-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:10:00</ArrivalTime>
+                  <DepartureTime>20:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136470-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136768">
+              <Name>Utåker</Name>
+              <PrivateCode>327</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136768-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>10:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136768-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:10:00</ArrivalTime>
+                  <DepartureTime>11:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136768-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>11:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136769">
+              <Name>Utåker</Name>
+              <PrivateCode>329</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136769-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136769-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136769-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136770">
+              <Name>Utåker</Name>
+              <PrivateCode>349</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136770-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136770-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                  <DepartureTime>20:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136770-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136636">
+              <Name>Utåker</Name>
+              <PrivateCode>329</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136636-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>09:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136636-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>09:40:00</ArrivalTime>
+                  <DepartureTime>09:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136636-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>10:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136637">
+              <Name>Utåker</Name>
+              <PrivateCode>349</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-9" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136637-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>20:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136637-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>20:40:00</ArrivalTime>
+                  <DepartureTime>20:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136637-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-9-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>21:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167751-15136635">
+              <Name>Utåker</Name>
+              <PrivateCode>325</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167751-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136635-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136635-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:10:00</ArrivalTime>
+                  <DepartureTime>08:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167751-15136635-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-167770-15136771">
+              <Name>Utåker</Name>
+              <PrivateCode>353</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:167770-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136771-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136771-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:10:00</ArrivalTime>
+                  <DepartureTime>23:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-167770-15136771-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136467">
+              <Name>Utåker</Name>
+              <PrivateCode>325</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136467-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136467-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:35:00</ArrivalTime>
+                  <DepartureTime>06:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136467-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:55:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136471">
+              <Name>Utåker</Name>
+              <PrivateCode>353</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136471-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136471-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>22:40:00</ArrivalTime>
+                  <DepartureTime>22:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136471-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-171815-15136472">
+              <Name>Utåker</Name>
+              <PrivateCode>354</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:171815-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136472-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>12:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136472-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:10:00</ArrivalTime>
+                  <DepartureTime>13:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-171815-15136472-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>13:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179127-15136771">
+              <Name>Utåker</Name>
+              <PrivateCode>353</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179127-1000000"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136771-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>22:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136771-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:10:00</ArrivalTime>
+                  <DepartureTime>23:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179127-15136771-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>23:30:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:1031-179130-15136635">
+              <Name>Utåker</Name>
+              <PrivateCode>325</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:179130-0000001"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:1031-10" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:Boreal"></OperatorRef>
+              <LineRef ref="SKY:Line:1031" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136635-52593-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136635-54994-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:10:00</ArrivalTime>
+                  <DepartureTime>08:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:1031-179130-15136635-54379-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:1031-10-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="7" version="1" id="SKY:NoticeAssignment:3916504">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:1031-179127-15136771-54994-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3916498">
+              <NoticeRef ref="SKY:Notice:default-57"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1031-167751-15136635" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="2" version="1" id="SKY:NoticeAssignment:3916499">
+              <NoticeRef ref="SKY:Notice:default-51"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1031-167770-15136771" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="8" version="1" id="SKY:NoticeAssignment:3916505">
+              <NoticeRef ref="SKY:Notice:default-57"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1031-179130-15136635" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="6" version="1" id="SKY:NoticeAssignment:3916503">
+              <NoticeRef ref="SKY:Notice:default-51"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1031-179127-15136771" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="5" version="1" id="SKY:NoticeAssignment:3916502">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:1031-171815-15136471-54994-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="3" version="1" id="SKY:NoticeAssignment:3916500">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:1031-167770-15136771-54994-2" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+            <NoticeAssignment order="4" version="1" id="SKY:NoticeAssignment:3916501">
+              <NoticeRef ref="SKY:Notice:default-51"></NoticeRef>
+              <NoticedObjectRef ref="SKY:ServiceJourney:1031-171815-15136471" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>

@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PublicationDelivery xmlns="http://www.netex.org.uk/netex" xmlns:gis="http://www.opengis.net/gml/3.2" xmlns:siri="http://www.siri.org.uk/siri" version="1.15:NO-NeTEx-networktimetable:1.5">
+  <PublicationTimestamp>2024-04-29T00:27:13.546</PublicationTimestamp>
+  <ParticipantRef>RB</ParticipantRef>
+  <Description>Reksteren - Våge - Os</Description>
+  <dataObjects>
+    <CompositeFrame created="2024-04-24T07:14:27.156" version="1" id="SKY:CompositeFrame:3918388">
+      <validityConditions>
+        <AvailabilityCondition version="1" id="SKY:AvailabilityCondition:3918349">
+          <FromDate>2024-04-27T00:00:00</FromDate>
+          <ToDate>2025-04-29T00:00:00</ToDate>
+        </AvailabilityCondition>
+      </validityConditions>
+      <codespaces>
+        <Codespace id="sky">
+          <Xmlns>SKY</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/sky</XmlnsUrl>
+        </Codespace>
+        <Codespace id="nsr">
+          <Xmlns>NSR</Xmlns>
+          <XmlnsUrl>http://www.rutebanken.org/ns/nsr</XmlnsUrl>
+        </Codespace>
+      </codespaces>
+      <FrameDefaults>
+        <DefaultLocale>
+          <TimeZone>Europe/Oslo</TimeZone>
+          <DefaultLanguage>no</DefaultLanguage>
+        </DefaultLocale>
+      </FrameDefaults>
+      <frames>
+        <ServiceFrame version="1" id="SKY:ServiceFrame:3918389">
+          <routes>
+            <Route version="240423123258" id="SKY:Route:2085-5">
+              <Name>Våge båtkai-Os båtkai</Name>
+              <ShortName>Våge båtkai-Os båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918350">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918351">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52672"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3918352">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49988"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2085-6">
+              <Name>Bruntveit båtkai-Os båtkai</Name>
+              <ShortName>Bruntveit båtkai-Os båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918353">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52672"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918354">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3918355">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49988"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2085-7">
+              <Name>Våge båtkai-Os båtkai</Name>
+              <ShortName>Våge båtkai-Os båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>inbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918356">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918357">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49988"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2085-8">
+              <Name>Os båtkai-Våge båtkai</Name>
+              <ShortName>Os båtkai-Våge båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918358">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49988"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918359">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3918360">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52672"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="4" version="240423123258" id="SKY:PointOnRoute:3918361">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2085-12">
+              <Name>Os båtkai-Våge båtkai</Name>
+              <ShortName>Os båtkai-Våge båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918362">
+                  <RoutePointRef ref="SKY:RoutePoint:default-49988"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918363">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+            <Route version="240423123258" id="SKY:Route:2085-13">
+              <Name>Våge båtkai-Våge båtkai</Name>
+              <ShortName>Våge båtkai-Våge båtkai</ShortName>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <DirectionType>outbound</DirectionType>
+              <pointsInSequence>
+                <PointOnRoute order="1" version="240423123258" id="SKY:PointOnRoute:3918364">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="2" version="240423123258" id="SKY:PointOnRoute:3918365">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52672"></RoutePointRef>
+                </PointOnRoute>
+                <PointOnRoute order="3" version="240423123258" id="SKY:PointOnRoute:3918366">
+                  <RoutePointRef ref="SKY:RoutePoint:default-52368"></RoutePointRef>
+                </PointOnRoute>
+              </pointsInSequence>
+            </Route>
+          </routes>
+          <lines>
+            <Line version="240423123258" id="SKY:Line:2085">
+              <Name>Reksteren - Våge - Os</Name>
+              <TransportMode>water</TransportMode>
+              <TransportSubmode>
+                <WaterSubmode>localPassengerFerry</WaterSubmode>
+              </TransportSubmode>
+              <PublicCode>2085</PublicCode>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <RepresentedByGroupRef ref="SKY:Network:1"></RepresentedByGroupRef>
+            </Line>
+          </lines>
+          <journeyPatterns>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-5">
+              <Name>Våge båtkai-Os båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-5" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-5-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9358"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-5-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52672"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-5-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49988"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918367">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52368-52672"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918369">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52672-49988"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-6">
+              <Name>Bruntveit båtkai-Os båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-6" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-6-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52672"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9358"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-6-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-6-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49988"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918371">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52672-52368"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918373">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52368-49988"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-7">
+              <Name>Våge båtkai-Os båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-7" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-7-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9358"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-7-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49988"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918375">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52368-49988"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-8">
+              <Name>Os båtkai-Våge båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-8" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-8-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49988"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9357"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-8-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-8-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52672"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="4" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-8-4">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918376">
+                  <ServiceLinkRef ref="SKY:ServiceLink:49988-52368"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918378">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52368-52672"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="3" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918379">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52672-52368"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-12">
+              <Name>Os båtkai-Våge båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-12" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-12-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-49988"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9357"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-12-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918380">
+                  <ServiceLinkRef ref="SKY:ServiceLink:49988-52368"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+            <JourneyPattern version="240423123258" id="SKY:JourneyPattern:2085-13">
+              <Name>Våge båtkai-Våge båtkai</Name>
+              <RouteRef ref="SKY:Route:2085-13" version="240423123258"></RouteRef>
+              <pointsInSequence>
+                <StopPointInJourneyPattern order="1" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-13-1">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForAlighting>false</ForAlighting>
+                  <DestinationDisplayRef ref="SKY:DestinationDisplay:9357"></DestinationDisplayRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="2" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-13-2">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52672"></ScheduledStopPointRef>
+                </StopPointInJourneyPattern>
+                <StopPointInJourneyPattern order="3" version="240423123258" id="SKY:StopPointInJourneyPattern:2085-13-3">
+                  <ScheduledStopPointRef ref="SKY:ScheduledStopPoint:default-52368"></ScheduledStopPointRef>
+                  <ForBoarding>false</ForBoarding>
+                </StopPointInJourneyPattern>
+              </pointsInSequence>
+              <linksInSequence>
+                <ServiceLinkInJourneyPattern order="1" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918381">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52368-52672"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+                <ServiceLinkInJourneyPattern order="2" version="240423123258" id="SKY:ServiceLinkInJourneyPattern:3918382">
+                  <ServiceLinkRef ref="SKY:ServiceLink:52672-52368"></ServiceLinkRef>
+                </ServiceLinkInJourneyPattern>
+              </linksInSequence>
+            </JourneyPattern>
+          </journeyPatterns>
+        </ServiceFrame>
+        <TimetableFrame version="1" id="SKY:TimetableFrame:3918390">
+          <vehicleJourneys>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974949">
+              <Name>Os</Name>
+              <PrivateCode>3</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-5" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974949-52368-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-5-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:05:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974949-52672-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-5-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>14:15:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974949-49988-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-5-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>14:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974948">
+              <Name>Os</Name>
+              <PrivateCode>2</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-6" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974948-52672-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-6-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:12:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974948-52368-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-6-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:20:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974948-49988-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-6-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>06:40:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974947">
+              <Name>Os</Name>
+              <PrivateCode>1</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-7" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974947-52368-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-7-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:40:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974947-49988-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-7-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>08:00:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974951">
+              <Name>Våge</Name>
+              <PrivateCode>5</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-8" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974951-49988-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-8-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>15:50:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974951-52368-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-8-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974951-52672-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-8-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>16:19:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974951-52368-4">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-8-4" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>16:28:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974950">
+              <Name>Våge</Name>
+              <PrivateCode>4</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-12" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974950-49988-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-12-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>06:45:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974950-52368-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-12-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:05:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+            <ServiceJourney version="240423123258" id="SKY:ServiceJourney:2085-172323-15974952">
+              <Name>Våge</Name>
+              <PrivateCode>6</PrivateCode>
+              <dayTypes>
+                <DayTypeRef ref="SKY:DayType:172323-0111110"></DayTypeRef>
+              </dayTypes>
+              <JourneyPatternRef ref="SKY:JourneyPattern:2085-13" version="240423123258"></JourneyPatternRef>
+              <OperatorRef ref="SKY:Operator:RODNE"></OperatorRef>
+              <LineRef ref="SKY:Line:2085" version="240423123258"></LineRef>
+              <passingTimes>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974952-52368-1">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-13-1" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:10:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974952-52672-2">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-13-2" version="240423123258"></StopPointInJourneyPatternRef>
+                  <DepartureTime>07:25:00</DepartureTime>
+                </TimetabledPassingTime>
+                <TimetabledPassingTime version="240423123258" id="SKY:TimetabledPassingTime:2085-172323-15974952-52368-3">
+                  <StopPointInJourneyPatternRef ref="SKY:StopPointInJourneyPattern:2085-13-3" version="240423123258"></StopPointInJourneyPatternRef>
+                  <ArrivalTime>07:35:00</ArrivalTime>
+                </TimetabledPassingTime>
+              </passingTimes>
+            </ServiceJourney>
+          </vehicleJourneys>
+          <noticeAssignments>
+            <NoticeAssignment order="1" version="1" id="SKY:NoticeAssignment:3918386">
+              <NoticeRef ref="SKY:Notice:default-9"></NoticeRef>
+              <NoticedObjectRef ref="SKY:TimetabledPassingTime:2085-172323-15974948-52672-1" version="240423123258"></NoticedObjectRef>
+            </NoticeAssignment>
+          </noticeAssignments>
+        </TimetableFrame>
+      </frames>
+    </CompositeFrame>
+  </dataObjects>
+</PublicationDelivery>
