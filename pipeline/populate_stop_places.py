@@ -6,7 +6,7 @@ Run after db_setup.py and populate_stops.py:
     python pipeline/populate_stop_places.py
 
 The GTFS stops.txt file is expected at:
-    "gammel nedlastning/stops.txt"
+    gtfs-legacy/sky/stops.txt
 (relative to the project root, or override with --gtfs-file)
 
 GTFS columns used:
@@ -29,7 +29,7 @@ DB_PATH = os.environ.get(
     str(Path(__file__).parent.parent / "data" / "bussforsinkelser.db"),
 )
 GTFS_DEFAULT = str(
-    Path(__file__).parent.parent / "gammel nedlastning" / "stops.txt"
+    Path(__file__).parent.parent / "gtfs-legacy" / "sky" / "stops.txt"
 )
 
 

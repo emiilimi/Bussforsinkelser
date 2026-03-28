@@ -25,6 +25,36 @@ Ghost-linjer med gamle Rutebanken-stopp (f.eks. linje 1200, 3260) filtreres bort
 
 ---
 
+## Mappestruktur — data og NeTEx
+
+```
+netex/
+  sky/          ← NeTEx XML for Skyss (tidligere rb_sky-aggregated-netex/)
+  atb/          ← fremtidig (Trøndelag)
+  rut/          ← fremtidig (Oslo/Viken)
+
+gtfs-legacy/
+  sky/          ← gammel GTFS-nedlastning (brukes av populate_stop_places.py)
+```
+
+### `populate_line_names.py` — to strategier, auto-valgt per operatør
+
+| Operatør | Strategi | Betingelse |
+|---|---|---|
+| SKY | NeTEx XML-parsing | `netex/sky/` finnes |
+| SOF, FIR, ATB, ... | DB-avledet (vektet terminus) | Ingen NeTEx-mappe |
+
+```powershell
+python pipeline/populate_line_names.py                       # dry-run, alle ikke-SKY
+python pipeline/populate_line_names.py --operator SKY        # dry-run, SKY via NeTEx
+python pipeline/populate_line_names.py --operator SOF        # dry-run, SOF via DB
+python pipeline/populate_line_names.py --apply               # skriv til DB
+python pipeline/populate_line_names.py --dump names.json     # lagre for manuell redigering
+python pipeline/populate_line_names.py --from-file names.json --apply  # bruk redigert fil
+```
+
+---
+
 ## `populate_stops.py` — viktig!
 
 **Henter fra BigQuery**, ikke NSR API. Bruker BQ-kvote.
@@ -56,7 +86,7 @@ foreach ($d in @("2026-03-07","2026-03-08",...)) {
 
 | Tabell | Strategi | Begrunnelse |
 |---|---|---|
-| `line_daily`, `line_hourly_*`, `leaderboard_lines`, `journey_stop_weekly` | Filter via `line_ref LIKE 'SKY:%'` | Operator er embedded i line_ref |
+| `line_daily`, `line_hourly_*`, `leaderboard_lines`, `journey_stop_weekly` | Operator embedded i `line_ref` prefix (f.eks. `SKY:`, `SOF:`) | Ikke-SKY linjer (SOF, FIR) er inkludert — filtreres kun av `dataSource` i BQ |
 | `stop_daily`, `stop_hourly_raw/profile`, `worst_days`, `daily_summary` | Egen `operator` kolonne i PK | NSR-stoppref er operatøruavhengig |
 
 ---
