@@ -35,19 +35,21 @@ CREATE TABLE IF NOT EXISTS daily_summary (
 -- operator is NOT a separate column here: it is embedded in line_ref
 --   (e.g. 'SKY:Line:6', 'RUT:Line:31B') and can be filtered with LIKE 'SKY:%'.
 CREATE TABLE IF NOT EXISTS line_daily (
-    date               TEXT    NOT NULL,
-    line_ref           TEXT    NOT NULL,
-    direction_ref      TEXT    NOT NULL DEFAULT '0',
-    vehicle_mode       TEXT    NOT NULL DEFAULT 'bus',
-    line_name          TEXT,
-    avg_delay_min      REAL,
-    max_delay_min      REAL,
-    min_delay_min      REAL,
-    median_delay_min   REAL,
-    pct_on_time        REAL,
-    pct_delayed_2plus  REAL,
-    pct_delayed_10plus REAL,
-    num_departures     INTEGER,
+    date                   TEXT    NOT NULL,
+    line_ref               TEXT    NOT NULL,
+    direction_ref          TEXT    NOT NULL DEFAULT '0',
+    vehicle_mode           TEXT    NOT NULL DEFAULT 'bus',
+    line_name              TEXT,
+    avg_delay_min          REAL,
+    max_delay_min          REAL,
+    min_delay_min          REAL,
+    median_delay_min       REAL,
+    stddev_delay_min       REAL,   -- sample std dev of delay across all stop-visits this day
+    pct_on_time            REAL,
+    pct_delayed_2plus      REAL,
+    pct_delayed_10plus     REAL,
+    num_departures         INTEGER,
+    pct_realtime_coverage  REAL,   -- % of scheduled (non-cancelled) stop-visits with actual times
     PRIMARY KEY (date, line_ref, direction_ref, vehicle_mode)
 );
 
@@ -66,6 +68,7 @@ CREATE TABLE IF NOT EXISTS stop_daily (
     avg_delay_min     REAL,
     max_delay_min     REAL,
     min_delay_min     REAL,
+    stddev_delay_min  REAL,   -- sample std dev of delay across all stop-visits this day
     pct_delayed_2plus REAL,
     num_departures    INTEGER,
     PRIMARY KEY (date, stop_ref, direction_ref, vehicle_mode, operator)
@@ -135,6 +138,7 @@ CREATE TABLE IF NOT EXISTS leaderboard_lines (
     line_ref           TEXT PRIMARY KEY,
     line_name          TEXT,
     avg_delay_min      REAL,
+    stddev_delay_min   REAL,   -- weighted avg of daily stddevs (reliability proxy)
     pct_on_time        REAL,
     pct_delayed_10plus REAL,
     total_departures   INTEGER

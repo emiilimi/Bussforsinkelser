@@ -37,10 +37,12 @@ export const lineDaily = sqliteTable(
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
     medianDelayMin: real("median_delay_min"),
+    stddevDelayMin: real("stddev_delay_min"),
     pctOnTime: real("pct_on_time"),
     pctDelayed2plus: real("pct_delayed_2plus"),
     pctDelayed10plus: real("pct_delayed_10plus"),
     numDepartures: integer("num_departures"),
+    pctRealtimeCoverage: real("pct_realtime_coverage"),
     // NOTE: operator is NOT a separate column — it is embedded in line_ref
     // (e.g. 'SKY:Line:6', 'RUT:Line:31B'). Filter with line_ref LIKE 'SKY:%'.
   },
@@ -65,6 +67,7 @@ export const stopDaily = sqliteTable(
     avgDelayMin: real("avg_delay_min"),
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
+    stddevDelayMin: real("stddev_delay_min"),
     pctDelayed2plus: real("pct_delayed_2plus"),
     numDepartures: integer("num_departures"),
   },
@@ -146,6 +149,7 @@ export const leaderboardLines = sqliteTable("leaderboard_lines", {
   lineRef: text("line_ref").primaryKey(),
   lineName: text("line_name"),
   avgDelayMin: real("avg_delay_min"),
+  stddevDelayMin: real("stddev_delay_min"),
   pctOnTime: real("pct_on_time"),
   pctDelayed10plus: real("pct_delayed_10plus"),
   totalDepartures: integer("total_departures"),

@@ -85,13 +85,13 @@ export async function getLinesForDate(date: string, limit = 20) {
 }
 
 export async function getLineStats(lineRef: string, fromDate: string, direction?: string) {
-  // One aggregated row per date. When direction is '0' or '1', filter to that direction only.
-  // When 'all' or undefined, aggregate both directions (weighted average).
+  // One aggregated row per date. When direction is a specific value (not 'all' or undefined),
+  // filter to that direction only. When 'all' or undefined, aggregate all directions.
   const baseConditions = and(
     eq(schema.lineDaily.lineRef, lineRef),
     gte(schema.lineDaily.date, fromDate),
     eq(schema.lineDaily.vehicleMode, "bus"),
-    direction === "0" || direction === "1"
+    direction && direction !== "all"
       ? eq(schema.lineDaily.directionRef, direction)
       : undefined,
   );
@@ -106,6 +106,8 @@ export async function getLineStats(lineRef: string, fromDate: string, direction?
       pctOnTime: sql<number>`ROUND(SUM(${schema.lineDaily.pctOnTime} * ${schema.lineDaily.numDepartures}) * 1.0 / SUM(${schema.lineDaily.numDepartures}), 1)`,
       pctDelayed10plus: sql<number>`ROUND(SUM(${schema.lineDaily.pctDelayed10plus} * ${schema.lineDaily.numDepartures}) * 1.0 / SUM(${schema.lineDaily.numDepartures}), 1)`,
       numDepartures: sql<number>`SUM(${schema.lineDaily.numDepartures})`,
+      pctRealtimeCoverage: sql<number | null>`ROUND(SUM(CASE WHEN ${schema.lineDaily.pctRealtimeCoverage} IS NOT NULL THEN ${schema.lineDaily.pctRealtimeCoverage} * ${schema.lineDaily.numDepartures} ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN ${schema.lineDaily.pctRealtimeCoverage} IS NOT NULL THEN ${schema.lineDaily.numDepartures} ELSE 0 END), 0), 1)`,
+      stddevDelayMin: sql<number | null>`ROUND(SUM(CASE WHEN ${schema.lineDaily.stddevDelayMin} IS NOT NULL THEN ${schema.lineDaily.stddevDelayMin} * ${schema.lineDaily.numDepartures} ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN ${schema.lineDaily.stddevDelayMin} IS NOT NULL THEN ${schema.lineDaily.numDepartures} ELSE 0 END), 0), 2)`,
     })
     .from(schema.lineDaily)
     .where(baseConditions)
@@ -115,9 +117,9 @@ export async function getLineStats(lineRef: string, fromDate: string, direction?
 }
 
 export async function getLineHourlyProfile(lineRef: string, direction?: string) {
-  // When direction is '0' or '1': return that direction's profile row per hour.
-  // When 'all' or undefined: aggregate both directions (weighted avg + max/min over both).
-  if (direction === "0" || direction === "1") {
+  // When direction is a specific value (not 'all' or undefined): return that direction's profile.
+  // When 'all' or undefined: aggregate all directions (weighted avg + max/min over all).
+  if (direction && direction !== "all") {
     return db
       .select()
       .from(schema.lineHourlyProfile)
@@ -151,6 +153,11 @@ export async function getLineHourlyProfile(lineRef: string, direction?: string) 
 const EXCLUDED_LINE_REFS = ["SKY:Line:1", "SKY:Line:2"];
 
 export async function getAllLines(operator?: string) {
+  // NOTE: We intentionally do NOT filter by operator prefix here.
+  // All lines in line_daily were ingested from Skyss's SIRI ET feed (dataSource='SKY'),
+  // but some have non-SKY lineRef prefixes (e.g. SOF:Line:901, FIR:Line:123 for Sogn og
+  // Fjordane / Firda Billag routes operated under Skyss's contract). Filtering to SKY:%
+  // would hide these lines from the picker.
   return db
     .selectDistinct({
       lineRef: schema.lineDaily.lineRef,
@@ -159,9 +166,7 @@ export async function getAllLines(operator?: string) {
     .from(schema.lineDaily)
     .where(
       and(
-        operator
-          ? and(eq(schema.lineDaily.vehicleMode, "bus"), like(schema.lineDaily.lineRef, `${operator}:%`))
-          : eq(schema.lineDaily.vehicleMode, "bus"),
+        eq(schema.lineDaily.vehicleMode, "bus"),
         notInArray(schema.lineDaily.lineRef, EXCLUDED_LINE_REFS),
       ),
     )
@@ -172,6 +177,21 @@ export async function getAllLines(operator?: string) {
 // ---------------------------------------------------------------------------
 // Stops
 // ---------------------------------------------------------------------------
+
+export async function getStopDirections(stopRef: string, operator = "SKY"): Promise<string[]> {
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const stopFilter = isStopPlace
+    ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `stop_ref = ?`;
+
+  const rows = sqlite.prepare(`
+    SELECT DISTINCT direction_ref AS dir
+    FROM stop_daily
+    WHERE ${stopFilter} AND operator = ? AND direction_ref IS NOT NULL
+    ORDER BY direction_ref
+  `).all(stopRef, operator) as Array<{ dir: string }>;
+  return rows.map(r => r.dir);
+}
 
 export async function getStopStats(stopRef: string, fromDate: string, operator = "SKY", direction?: string) {
   // stopRef can be either NSR:Quay:XXXXX (single quay) or NSR:StopPlace:XXXXX
@@ -314,6 +334,82 @@ export async function getStopsForMap(date: string, operator = "SKY") {
       AND sd.date <= ?
       AND sd.vehicle_mode = 'bus'
       AND sd.operator = ?
+    GROUP BY sd.stop_ref
+    HAVING SUM(sd.num_departures) > 0
+  `).all(date, date, operator);
+}
+
+/**
+ * Map data with optional time-of-day and weekday/weekend filters.
+ * Uses stop_hourly_raw when hour filters are specified, otherwise stop_daily.
+ * dayType: "all" | "weekday" | "weekend"
+ * hourMin/hourMax: hour range (inclusive start, exclusive end), e.g. 7,9 for 07:00-08:59
+ */
+export async function getStopsForMapFiltered(
+  date: string,
+  operator = "SKY",
+  dayType: "all" | "weekday" | "weekend" = "all",
+  hourMin?: number,
+  hourMax?: number,
+  windowDays = 7,
+) {
+  const dayFilter =
+    dayType === "weekday"
+      ? `AND CAST(strftime('%w', t.date) AS INT) BETWEEN 1 AND 5`
+      : dayType === "weekend"
+      ? `AND CAST(strftime('%w', t.date) AS INT) IN (0, 6)`
+      : "";
+
+  if (hourMin != null && hourMax != null) {
+    // Use stop_hourly_raw for hour filtering
+    const hourFilter =
+      hourMin <= hourMax
+        ? `AND t.hour >= ${Math.floor(hourMin)} AND t.hour < ${Math.floor(hourMax)}`
+        : `AND (t.hour >= ${Math.floor(hourMin)} OR t.hour < ${Math.floor(hourMax)})`; // wraps midnight
+    return sqlite.prepare(`
+      SELECT
+        t.stop_ref                                                    AS stopRef,
+        COALESCE(MAX(sc.stop_name), MAX(t.stop_ref))                 AS stopName,
+        ROUND(
+          SUM(t.avg_delay_min * t.num_samples) * 1.0
+          / NULLIF(SUM(t.num_samples), 0), 2)                        AS avgDelayMin,
+        SUM(t.num_samples)                                            AS numDepartures,
+        MAX(sc.lat)                                                   AS lat,
+        MAX(sc.lng)                                                   AS lng
+      FROM stop_hourly_raw t
+      LEFT JOIN stop_coords sc ON sc.stop_ref = t.stop_ref
+      WHERE t.date > date(?, '-${windowDays} days')
+        AND t.date <= ?
+        AND t.operator = ?
+        ${dayFilter}
+        ${hourFilter}
+      GROUP BY t.stop_ref
+      HAVING SUM(t.num_samples) > 0
+    `).all(date, date, operator);
+  }
+
+  // No hour filter — use stop_daily (has pct_delayed_2plus)
+  const dayFilterDaily = dayFilter.replace(/t\./g, "sd.");
+  return sqlite.prepare(`
+    SELECT
+      sd.stop_ref                                                     AS stopRef,
+      COALESCE(MAX(sc.stop_name), MAX(sd.stop_name))                 AS stopName,
+      ROUND(
+        SUM(sd.avg_delay_min * sd.num_departures) * 1.0
+        / NULLIF(SUM(sd.num_departures), 0), 2)                      AS avgDelayMin,
+      ROUND(
+        SUM(sd.pct_delayed_2plus * sd.num_departures) * 1.0
+        / NULLIF(SUM(sd.num_departures), 0), 1)                      AS pctDelayed2plus,
+      SUM(sd.num_departures)                                          AS numDepartures,
+      MAX(sc.lat)                                                     AS lat,
+      MAX(sc.lng)                                                     AS lng
+    FROM stop_daily sd
+    LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
+    WHERE sd.date > date(?, '-${windowDays} days')
+      AND sd.date <= ?
+      AND sd.vehicle_mode = 'bus'
+      AND sd.operator = ?
+      ${dayFilterDaily}
     GROUP BY sd.stop_ref
     HAVING SUM(sd.num_departures) > 0
   `).all(date, date, operator);
@@ -468,7 +564,8 @@ export async function getLineStopProfile(
   return sqlite.prepare(`
     SELECT
       jsw.stop_ref           AS stopRef,
-      MIN(jsw.stop_sequence) AS stopSequence,
+      CAST(ROUND(SUM(jsw.stop_sequence * jsw.num_samples) * 1.0
+            / NULLIF(SUM(jsw.num_samples), 0)) AS INTEGER) AS stopSequence,
       ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
             / NULLIF(SUM(jsw.num_samples), 0), 2)   AS avgDelayMin,
       ROUND(MAX(jsw.max_delay_min), 2)               AS maxDelayMin,
@@ -480,8 +577,52 @@ export async function getLineStopProfile(
     WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
     GROUP BY jsw.stop_ref
     HAVING SUM(jsw.num_samples) >= 3
-    ORDER BY MIN(jsw.stop_sequence)
+    ORDER BY CAST(ROUND(SUM(jsw.stop_sequence * jsw.num_samples) * 1.0
+            / NULLIF(SUM(jsw.num_samples), 0)) AS INTEGER)
   `).all(lineRef, directionRef, fromWeek) as any;
+}
+
+/** Worst (and best) individual scheduled departures for a line.
+ *  Groups journey_stop_weekly by service_journey_id, computes weighted average
+ *  delay across all stops, and returns sorted by avg delay descending/ascending.
+ *  departure_time = aimed_time at the stop with the lowest stop_sequence (origin).
+ */
+export async function getWorstJourneysForLine(
+  lineRef: string,
+  directionRef: string,
+  fromWeek: string,
+  limit = 15,
+): Promise<Array<{
+  serviceJourneyId: string;
+  departureTime: string | null;
+  avgDelayMin: number;
+  totalSamples: number;
+  numStops: number;
+}>> {
+  return sqlite.prepare(`
+    SELECT
+      jsw.service_journey_id  AS serviceJourneyId,
+      (
+        SELECT j2.aimed_time
+        FROM journey_stop_weekly j2
+        WHERE j2.service_journey_id = jsw.service_journey_id
+          AND j2.aimed_time IS NOT NULL
+        ORDER BY j2.stop_sequence ASC
+        LIMIT 1
+      )                        AS departureTime,
+      ROUND(
+        SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
+        / NULLIF(SUM(jsw.num_samples), 0), 2
+      )                        AS avgDelayMin,
+      SUM(jsw.num_samples)     AS totalSamples,
+      COUNT(DISTINCT jsw.stop_ref) AS numStops
+    FROM journey_stop_weekly jsw
+    WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
+    GROUP BY jsw.service_journey_id
+    HAVING totalSamples >= 5
+    ORDER BY avgDelayMin DESC
+    LIMIT ?
+  `).all(lineRef, directionRef, fromWeek, limit) as any;
 }
 
 /** Lines serving a stop with their avg delay (from journey_stop_weekly).

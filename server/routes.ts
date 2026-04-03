@@ -26,6 +26,9 @@ import {
   getLinesAtStop,
   getLineHourlyAtStop,
   getDataQuality,
+  getStopsForMapFiltered,
+  getStopDirections,
+  getWorstJourneysForLine,
 } from "./storage";
 
 // ---------------------------------------------------------------------------
@@ -148,6 +151,19 @@ export async function registerRoutes(
   });
 
   /**
+   * GET /api/line/:lineref/worst-journeys?direction=1&weeks=13
+   * Worst (most delayed) individual scheduled departures for a line.
+   * Returns service journeys ranked by weighted avg delay across all stops.
+   */
+  app.get("/api/line/:lineref/worst-journeys", async (req, res) => {
+    const lineRef = req.params.lineref;
+    const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
+    const weeks = Math.min(Number(req.query.weeks) || 13, 13);
+    const rows = await getWorstJourneysForLine(lineRef, direction, daysAgoIso(weeks * 7));
+    return res.json(rows);
+  });
+
+  /**
    * GET /api/line/:lineref/stop-profile?direction=0|1&weeks=4
    * All stops on a line in route order with avg/max/min delay.
    * direction defaults to '0'. Route order is direction-specific.
@@ -212,6 +228,17 @@ export async function registerRoutes(
   });
 
   /**
+   * GET /api/stop/:stopref/directions?operator=SKY
+   * Available direction_ref values at a stop.
+   */
+  app.get("/api/stop/:stopref/directions", async (req, res) => {
+    const stopRef = req.params.stopref;
+    const operator = parseOperator(req.query.operator);
+    const dirs = await getStopDirections(stopRef, operator);
+    return res.json(dirs);
+  });
+
+  /**
    * GET /api/stop/:stopref/lines?weeks=4
    * Lines serving a stop with their avg delay (last N weeks).
    */
@@ -264,11 +291,30 @@ export async function registerRoutes(
   app.get("/api/stops/map", async (req, res) => {
     const requestedDate = parseDate(req.query.date, yesterday());
     const operator = parseOperator(req.query.operator);
-    let rows = await getStopsForMap(requestedDate, operator);
-    if (rows.length === 0) {
-      const latestDate = await getLatestStopDate();
-      if (latestDate && latestDate !== requestedDate) {
-        rows = await getStopsForMap(latestDate, operator);
+    const dayType = (req.query.dayType as string) || "all";
+    const hourMin = req.query.hourMin != null ? Number(req.query.hourMin) : undefined;
+    const hourMax = req.query.hourMax != null ? Number(req.query.hourMax) : undefined;
+    const windowDays = Math.min(Number(req.query.windowDays) || 7, 90);
+
+    const hasFilters = dayType !== "all" || hourMin != null || hourMax != null || windowDays !== 7;
+
+    let rows;
+    if (hasFilters) {
+      rows = await getStopsForMapFiltered(
+        requestedDate,
+        operator,
+        dayType as any,
+        hourMin,
+        hourMax,
+        windowDays,
+      );
+    } else {
+      rows = await getStopsForMap(requestedDate, operator);
+      if (rows.length === 0) {
+        const latestDate = await getLatestStopDate();
+        if (latestDate && latestDate !== requestedDate) {
+          rows = await getStopsForMap(latestDate, operator);
+        }
       }
     }
     return res.json(rows);

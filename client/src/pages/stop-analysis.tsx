@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useSearch } from "wouter";
 import { Loader2, AlertCircle } from "lucide-react";
 import { MapPin, Search, Route } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -13,6 +14,8 @@ import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid, 
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
+import { useYAxisDrag } from "@/components/scrollable-chart";
+import { formatDateShortNO, formatWeekdayDateNO } from "@/lib/date-utils";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -81,15 +84,59 @@ function delayColor(delay: number | null) {
 // Page
 // ---------------------------------------------------------------------------
 
+/** Wraps a responsive chart with Y-axis drag support + vertical slider */
+function DraggableYChart({ yMax, setYMax, dataMax, height, children }: {
+  yMax: number; setYMax: (v: number) => void; dataMax: number; height: number; children: React.ReactNode;
+}) {
+  const { onMouseDown, isDragging } = useYAxisDrag(yMax, setYMax, dataMax);
+  return (
+    <div className="flex items-stretch">
+      <div
+        className="flex-1 min-w-0"
+        style={{ height, cursor: isDragging ? "ns-resize" : undefined }}
+        onMouseDown={onMouseDown}
+      >
+        {children}
+      </div>
+      {dataMax > 2 && (
+        <div className="flex flex-col items-center gap-1 ml-1" style={{ height }}>
+          <button
+            onClick={() => setYMax(dataMax)}
+            className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1"
+            title="Tilbakestill Y-akse"
+          >
+            ↺
+          </button>
+          <input
+            type="range"
+            min={1}
+            max={dataMax}
+            step={0.5}
+            value={yMax}
+            onChange={(e) => setYMax(Number(e.target.value))}
+            className="h-full w-4 accent-primary"
+            style={{
+              writingMode: "vertical-lr",
+              direction: "rtl",
+            } as React.CSSProperties}
+            title={`Y-maks: ${yMax}m`}
+          />
+          <span className="text-[9px] text-muted-foreground font-mono">{yMax}m</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DailyTrendTooltip({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload as {
-    date: string; avgDelay: number | null;
+    date: string; label: string; avgDelay: number | null;
     maxDelay: number | null; minDelay: number | null; numDepartures: number | null;
   };
   return (
     <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[200px]">
-      <p className="font-medium">{d.date}</p>
+      <p className="font-medium">{formatDateShortNO(d.date)}</p>
       <div className="font-mono mt-1 space-y-0.5 text-xs">
         <p className="text-orange-500">Snitt: {d.avgDelay != null ? `${d.avgDelay.toFixed(2)}m` : "—"}</p>
         {d.maxDelay != null && <p className="text-destructive">Maks: {d.maxDelay.toFixed(2)}m</p>}
@@ -122,12 +169,26 @@ function HourlyTooltip({ active, payload }: any) {
 
 export default function StopAnalysis() {
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { operator } = useRegion();
   const [query, setQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string; quays: Quay[] } | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null); // null = all platforms
   const [showResults, setShowResults] = useState(false);
-  const [direction, setDirection] = useState<"all" | "0" | "1">("all");
+  const [direction, setDirection] = useState<string>("all");
+  const [periodDays, setPeriodDays] = useState<number>(30);
+
+  // Auto-select stop from URL params (e.g. navigated from topplister or map)
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const stopRef = params.get("stop");
+    const stopName = params.get("name");
+    if (stopRef && !selectedStop) {
+      setSelectedStop({ ref: stopRef, name: stopName ?? stopRef, quays: [] });
+      setQuery(stopName ?? stopRef);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const { data: searchResults = [] } = useQuery<SearchResult[]>({
     queryKey: [`/api/stops/search?q=${encodeURIComponent(query)}`],
@@ -136,8 +197,13 @@ export default function StopAnalysis() {
 
   // Use specific quay ref when a platform is selected, otherwise use the stop place ref
   const activeRef = selectedPlatform ?? selectedStop?.ref ?? null;
+
+  const { data: availableDirections = [] } = useQuery<string[]>({
+    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/directions?operator=${operator}`],
+    enabled: activeRef != null,
+  });
   const stopStatsUrl = activeRef
-    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}${direction !== "all" ? `&direction=${direction}` : ""}`
+    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}&days=${periodDays}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
@@ -145,6 +211,14 @@ export default function StopAnalysis() {
     enabled: stopStatsUrl != null,
     placeholderData: keepPreviousData, // keep old charts visible while switching platform
   });
+
+  const { data: allLines = [] } = useQuery<Array<{ lineRef: string; lineName: string | null }>>({
+    queryKey: [`/api/lines/all?operator=${operator}`],
+    enabled: activeRef != null,
+  });
+
+  const lineNameMap = Object.fromEntries(allLines.map(l => [l.lineRef, l.lineName]));
+  function lineNumber(ref: string) { return ref.split(":").pop() ?? ref; }
 
   const { data: linesAtStop = [] } = useQuery<LineAtStop[]>({
     queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/lines`],
@@ -157,7 +231,8 @@ export default function StopAnalysis() {
   });
 
   const trendData = (stats?.daily ?? []).map((r) => ({
-    date: r.date.slice(5),
+    date: r.date,
+    label: formatWeekdayDateNO(r.date),
     avgDelay: r.avgDelayMin,
     maxDelay: r.maxDelayMin,
     minDelay: r.minDelayMin,
@@ -181,6 +256,15 @@ export default function StopAnalysis() {
     };
   });
 
+  const trendDataMax = Math.ceil(Math.max(...trendData.map(d => Math.max(d.maxDelay ?? 0, d.avgDelay ?? 0)), 1));
+  const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0)), 1));
+  const [trendYMax, setTrendYMax] = useState(1);
+  const [hourlyYMax, setHourlyYMax] = useState(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setTrendYMax(trendDataMax); }, [trendDataMax]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setHourlyYMax(hourlyDataMax); }, [hourlyDataMax]);
+
   const avgPctDelayed =
     stats && stats.daily.length > 0
       ? stats.daily.reduce((s, r) => s + (r.pctDelayed2plus ?? 0), 0) / stats.daily.length
@@ -191,7 +275,12 @@ export default function StopAnalysis() {
 
   // Pivot lineHourlyRaw into [{hour, "SKY:Line:6": 1.2, "SKY:Line:3": 0.8, ...}] for recharts
   const LINE_COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4"];
-  const uniqueLines = Array.from(new Set(lineHourlyRaw.map((r) => r.lineRef))).slice(0, 7);
+  // Sort lines by total departures (descending) — show most frequent lines first
+  const lineDepartures = new Map<string, number>();
+  lineHourlyRaw.forEach(r => lineDepartures.set(r.lineRef, (lineDepartures.get(r.lineRef) ?? 0) + (r.numSamples ?? 0)));
+  const uniqueLines = Array.from(new Set(lineHourlyRaw.map((r) => r.lineRef)))
+    .sort((a, b) => (lineDepartures.get(b) ?? 0) - (lineDepartures.get(a) ?? 0))
+    .slice(0, 7);
   const lineHourlyPivot: Record<string, any>[] = [];
   if (uniqueLines.length > 0) {
     const hoursSet = new Set(lineHourlyRaw.map((r) => r.hour));
@@ -260,18 +349,18 @@ export default function StopAnalysis() {
         </div>
 
         {/* Direction toggle — outside stats block so it stays visible even when no data */}
-        {selectedStop && (
+        {selectedStop && availableDirections.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-muted-foreground">Retning:</span>
-            {(["all", "0", "1"] as const).map((d) => (
+            {["all", ...availableDirections].map((d) => (
               <Button
                 key={d}
                 size="sm"
                 variant={direction === d ? "default" : "outline"}
-                onClick={() => setDirection(d)}
+                onClick={() => setDirection(d as any)}
                 className="h-7 px-3 text-xs"
               >
-                {d === "all" ? "Begge" : d === "0" ? "Retning 0 (utover)" : "Retning 1 (innover)"}
+                {d === "all" ? "Begge" : `Retning ${d}`}
               </Button>
             ))}
           </div>
@@ -303,6 +392,21 @@ export default function StopAnalysis() {
           </div>
         )}
 
+        {/* Period selector */}
+        {selectedStop && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Periode:</span>
+            <Tabs value={String(periodDays)} onValueChange={(v) => setPeriodDays(Number(v))}>
+              <TabsList>
+                <TabsTrigger value="7">Uke</TabsTrigger>
+                <TabsTrigger value="30">Måned</TabsTrigger>
+                <TabsTrigger value="90">3 mnd</TabsTrigger>
+                <TabsTrigger value="365">År</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
         {/* Loading state */}
         {statsLoading && !stats && (
           <div className="flex items-center gap-3 text-muted-foreground py-8">
@@ -331,7 +435,7 @@ export default function StopAnalysis() {
                 : direction !== "all"
                 ? <>Det finnes ingen forsinkelsesdata for{" "}
                     <span className="font-medium">{selectedStop.name}</span> i{" "}
-                    {direction === "0" ? "retning 0 (utover)" : "retning 1 (innover)"}. Prøv en annen retning.</>
+                    retning {direction}. Prøv en annen retning.</>
                 : <>Det finnes ingen forsinkelsesdata for{" "}
                     <span className="font-medium">{selectedStop.name}</span> i den valgte perioden.
                     Stoppestedet kan være et ferjekai, trikk eller ha for lite trafikk til å vises.</>
@@ -427,22 +531,20 @@ export default function StopAnalysis() {
                 <CardDescription>Daglig gjennomsnittlig forsinkelse ved {formatStopName(stats.stopName, stats.stopRef)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <DraggableYChart yMax={trendYMax} setYMax={setTrendYMax} dataMax={trendDataMax} height={300}>
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", trendYMax]} allowDataOverflow />
                       <Tooltip content={<DailyTrendTooltip />} />
-                      {/* Min-max band */}
                       <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                       <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
-                      {/* Mean line */}
                       <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} isAnimationActive={false} />
                       <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                     </ComposedChart>
                   </ResponsiveContainer>
-                </div>
+                </DraggableYChart>
               </CardContent>
             </Card>
 
@@ -456,22 +558,20 @@ export default function StopAnalysis() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[250px]">
+                  <DraggableYChart yMax={hourlyYMax} setYMax={setHourlyYMax} dataMax={hourlyDataMax} height={250}>
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={hourlyData} margin={{ left: 0, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
                         <Tooltip content={<HourlyTooltip />} />
-                        {/* Min-max band */}
                         <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                         <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
-                        {/* Average line */}
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--destructive))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                       </ComposedChart>
                     </ResponsiveContainer>
-                  </div>
+                  </DraggableYChart>
                 </CardContent>
               </Card>
             )}
@@ -489,12 +589,17 @@ export default function StopAnalysis() {
                   <div className="space-y-3">
                     {linesAtStop.map((line) => (
                       <div key={line.lineRef} className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="w-20 justify-center font-mono text-xs flex-shrink-0"
-                        >
-                          {lineDisplayName(line.lineRef)}
-                        </Badge>
+                        <div className="flex items-center gap-1.5 w-44 flex-shrink-0 min-w-0">
+                          <Badge
+                            variant="outline"
+                            className="w-14 justify-center font-mono text-xs flex-shrink-0"
+                          >
+                            {lineNumber(line.lineRef)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {lineNameMap[line.lineRef] ?? ""}
+                          </span>
+                        </div>
                         {/* Relative delay bar */}
                         <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
                           <div
@@ -547,9 +652,18 @@ export default function StopAnalysis() {
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
                         <Tooltip
                           contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                          formatter={(v: number, name: string) => [`${v?.toFixed(2)}m`, lineDisplayName(name)]}
+                          formatter={(v: number, name: string) => {
+                            const lineName = lineNameMap[name];
+                            const num = lineNumber(name);
+                            const label = lineName ? `${num} — ${lineName}` : `Linje ${num}`;
+                            return [`${v?.toFixed(2)} min`, label];
+                          }}
                         />
-                        <Legend formatter={(v) => lineDisplayName(v)} />
+                        <Legend formatter={(v) => {
+                          const num = lineNumber(v);
+                          const name = lineNameMap[v];
+                          return name ? `${num} — ${name}` : `Linje ${num}`;
+                        }} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                         {uniqueLines.map((lRef, i) => (
                           <Line

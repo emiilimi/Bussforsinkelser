@@ -12,6 +12,7 @@ Usage:
 Railway cron: 0 2 * * *   (02:00 Oslo time)
 """
 
+import json
 import os
 import sqlite3
 import logging
@@ -182,14 +183,22 @@ def upsert_daily_summary(conn: sqlite3.Connection, date_str: str, df: pd.DataFra
 
 
 def upsert_line_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
-    act = active_rows(df)
-    if act.empty:
+    if df.empty:
         return
     rows = []
-    for (line_ref, direction_ref, vehicle_mode), grp in act.groupby(
+    for (line_ref, direction_ref, vehicle_mode), full_grp in df.groupby(
         ["lineRef", "directionRef", "vehicleMode"]
     ):
-        delays = grp["delay_min"]
+        # Scheduled (non-cancelled) rows — denominator for coverage
+        scheduled = full_grp[~full_grp["is_cancelled"]]
+        # Active rows: non-cancelled AND have a valid delay (i.e. had real-time data)
+        act = scheduled[scheduled["delay_min"].notna()]
+        if act.empty:
+            continue
+        delays = act["delay_min"]
+        n_scheduled = len(scheduled)
+        pct_coverage = round(len(act) / n_scheduled * 100, 1) if n_scheduled > 0 else None
+        stddev = round(float(delays.std()), 2) if len(delays) >= 2 else None
         rows.append((
             date_str,
             str(line_ref),
@@ -200,19 +209,21 @@ def upsert_line_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
             round(float(delays.max()), 2),
             round(float(delays.min()), 2),
             round(float(delays.median()), 2),
+            stddev,
             round((delays <= 2).mean() * 100, 1),
             round((delays > 2).mean() * 100, 1),
             round((delays > 10).mean() * 100, 1),
-            len(grp),
+            len(act),
+            pct_coverage,
         ))
     conn.executemany(
         """
         INSERT OR REPLACE INTO line_daily
             (date, line_ref, direction_ref, vehicle_mode, line_name, avg_delay_min,
-             max_delay_min, min_delay_min, median_delay_min,
+             max_delay_min, min_delay_min, median_delay_min, stddev_delay_min,
              pct_on_time, pct_delayed_2plus, pct_delayed_10plus,
-             num_departures)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             num_departures, pct_realtime_coverage)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -232,6 +243,7 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
         modes = names.mode()
         stop_name = modes.iloc[0] if not modes.empty else (names.iloc[0] if not names.empty else None)
         delays = grp["delay_min"]
+        stddev = round(float(delays.std()), 2) if len(delays) >= 2 else None
         rows.append((
             date_str,
             str(stop_ref),
@@ -242,6 +254,7 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
             round(float(delays.mean()), 2),
             round(float(delays.max()), 2),
             round(float(delays.min()), 2),
+            stddev,
             round((delays > 2).mean() * 100, 1),
             len(grp),
         ))
@@ -249,8 +262,8 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
         """
         INSERT OR REPLACE INTO stop_daily
             (date, stop_ref, direction_ref, vehicle_mode, operator, stop_name, avg_delay_min,
-             max_delay_min, min_delay_min, pct_delayed_2plus, num_departures)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             max_delay_min, min_delay_min, stddev_delay_min, pct_delayed_2plus, num_departures)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -300,7 +313,7 @@ def refresh_line_hourly_profile(conn: sqlite3.Connection) -> None:
         SELECT
             line_ref,
             direction_ref,
-            line_name,
+            MAX(line_name) AS line_name,
             hour,
             ROUND(
                 SUM(avg_delay_min * num_samples) * 1.0 / SUM(num_samples),
@@ -311,7 +324,7 @@ def refresh_line_hourly_profile(conn: sqlite3.Connection) -> None:
             SUM(num_samples) AS num_samples
         FROM line_hourly_raw
         WHERE date >= date('now', '-30 days')
-        GROUP BY line_ref, direction_ref, line_name, hour
+        GROUP BY line_ref, direction_ref, hour
         """
     )
 
@@ -467,26 +480,32 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         INSERT INTO leaderboard_lines
-            (line_ref, line_name, avg_delay_min, pct_on_time, pct_delayed_10plus, total_departures)
+            (line_ref, line_name, avg_delay_min, stddev_delay_min,
+             pct_on_time, pct_delayed_10plus, total_departures)
         SELECT
             line_ref,
-            line_name,
+            MAX(line_name) AS line_name,
             ROUND(
-                SUM(avg_delay_min * num_departures) * 1.0 / SUM(num_departures),
+                SUM(avg_delay_min * num_departures) * 1.0 / NULLIF(SUM(num_departures), 0),
                 2
             ),
             ROUND(
-                SUM(pct_on_time * num_departures) * 1.0 / SUM(num_departures),
+                SUM(CASE WHEN stddev_delay_min IS NOT NULL THEN stddev_delay_min * num_departures ELSE 0 END) * 1.0
+                / NULLIF(SUM(CASE WHEN stddev_delay_min IS NOT NULL THEN num_departures ELSE 0 END), 0),
+                2
+            ),
+            ROUND(
+                SUM(pct_on_time * num_departures) * 1.0 / NULLIF(SUM(num_departures), 0),
                 1
             ),
             ROUND(
-                SUM(pct_delayed_10plus * num_departures) * 1.0 / SUM(num_departures),
+                SUM(pct_delayed_10plus * num_departures) * 1.0 / NULLIF(SUM(num_departures), 0),
                 1
             ),
             SUM(num_departures)
         FROM line_daily
         WHERE vehicle_mode = 'bus'
-        GROUP BY line_ref, line_name
+        GROUP BY line_ref
         """
     )
 
@@ -603,6 +622,140 @@ def upsert_data_quality_log(conn: sqlite3.Connection, date_str: str, df: pd.Data
 
 
 # ---------------------------------------------------------------------------
+# Real-time coverage diagnostics
+# ---------------------------------------------------------------------------
+
+DIAGNOSTICS_DIR = Path(__file__).parent.parent / "data" / "diagnostics"
+
+def log_realtime_coverage(date_str: str, df: pd.DataFrame) -> None:
+    """Detect and log suspected 'no real-time' departures (bus only).
+
+    Two categories:
+    A) departureTime == aimedDepartureTime (exact match, both non-NULL)
+       → Suspected fake on-time: operator echoed scheduled time as actual,
+         likely meaning no GPS update was received. delay_min = 0.0 exactly.
+    B) departureTime IS NULL AND arrivalTime IS NULL (not cancelled)
+       → Definitively no real-time: already excluded from stats by active_rows().
+
+    Results written to: data/diagnostics/YYYY-MM-DD-realtime.json
+    Check with: cat data/diagnostics/YYYY-MM-DD-realtime.json
+    """
+    bus = df[df["vehicleMode"] == "bus"].copy()
+    if bus.empty:
+        return
+
+    aimed_dep  = pd.to_datetime(bus["aimedDepartureTime"], utc=True, errors="coerce")
+    actual_dep = pd.to_datetime(bus["departureTime"],      utc=True, errors="coerce")
+    actual_arr = pd.to_datetime(bus["arrivalTime"],        utc=True, errors="coerce")
+
+    # Category A: suspected fake on-time
+    mask_fake = actual_dep.notna() & aimed_dep.notna() & (actual_dep == aimed_dep)
+    # Category B: no real-time at all (both times NULL, not cancelled)
+    mask_no_rt = actual_dep.isna() & actual_arr.isna() & ~bus["is_cancelled"]
+
+    n_total  = len(bus)
+    n_fake   = int(mask_fake.sum())
+    n_no_rt  = int(mask_no_rt.sum())
+
+    pct_fake  = round(n_fake  / n_total * 100, 1) if n_total else 0.0
+    pct_no_rt = round(n_no_rt / n_total * 100, 1) if n_total else 0.0
+
+    log.info(
+        "  Real-time coverage: %.1f%% suspected fake on-time (delay=0 exact), "
+        "%.1f%% no real-time at all (%d total bus rows)",
+        pct_fake, pct_no_rt, n_total,
+    )
+
+    # --- Per-line breakdown ---
+    lines_fake = []
+    fake_df = bus[mask_fake].copy()
+    if not fake_df.empty:
+        for line_ref, grp in fake_df.groupby("lineRef"):
+            n_line_total = len(bus[bus["lineRef"] == line_ref])
+            n_line_fake  = len(grp)
+            pct = round(n_line_fake / n_line_total * 100, 1) if n_line_total else 0.0
+            if pct < 1.0:
+                continue  # skip noise — only report lines with ≥1% suspected fake
+            # Which journeys? (serviceJourneyId + aimed departure time at first stop)
+            journeys = []
+            if "serviceJourneyId" in grp.columns:
+                for jid, jgrp in grp.groupby("serviceJourneyId"):
+                    aimed_times = jgrp["aimedDepartureTime"].dropna()
+                    first_aimed = (
+                        pd.to_datetime(aimed_times, utc=True, errors="coerce")
+                        .dt.tz_convert("Europe/Oslo")
+                        .dt.strftime("%H:%M")
+                        .iloc[0]
+                        if not aimed_times.empty else None
+                    )
+                    journeys.append({
+                        "serviceJourneyId": str(jid),
+                        "firstAimedTime": first_aimed,
+                        "affectedStops": len(jgrp),
+                    })
+            lines_fake.append({
+                "lineRef": str(line_ref),
+                "totalBusRows": n_line_total,
+                "suspectedFakeOnTime": n_line_fake,
+                "pct": pct,
+                "journeys": sorted(journeys, key=lambda x: x["firstAimedTime"] or ""),
+            })
+
+        lines_fake.sort(key=lambda x: -x["pct"])
+        if lines_fake:
+            log.warning(
+                "  Fake on-time suspects (≥1%%): %s",
+                ", ".join(f"{l['lineRef']} ({l['pct']}%%)" for l in lines_fake[:10]),
+            )
+
+    # --- Lines with high no-realtime rate ---
+    lines_no_rt = []
+    no_rt_df = bus[mask_no_rt].copy()
+    if not no_rt_df.empty:
+        for line_ref, grp in no_rt_df.groupby("lineRef"):
+            n_line_total = len(bus[bus["lineRef"] == line_ref])
+            n_line_no_rt = len(grp)
+            pct = round(n_line_no_rt / n_line_total * 100, 1) if n_line_total else 0.0
+            if pct < 5.0:
+                continue  # only report lines with ≥5% missing real-time
+            lines_no_rt.append({
+                "lineRef": str(line_ref),
+                "totalBusRows": n_line_total,
+                "noRealtime": n_line_no_rt,
+                "pct": pct,
+            })
+        lines_no_rt.sort(key=lambda x: -x["pct"])
+
+    # --- Write JSON ---
+    DIAGNOSTICS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = DIAGNOSTICS_DIR / f"{date_str}-realtime.json"
+    report = {
+        "date": date_str,
+        "totalBusRows": n_total,
+        "suspectedFakeOnTime": {
+            "count": n_fake,
+            "pct": pct_fake,
+            "description": (
+                "departureTime == aimedDepartureTime exactly — "
+                "likely no GPS update received, scheduled time echoed as actual"
+            ),
+            "byLine": lines_fake,
+        },
+        "noRealtime": {
+            "count": n_no_rt,
+            "pct": pct_no_rt,
+            "description": (
+                "Both departureTime and arrivalTime NULL (not cancelled) — "
+                "excluded from delay stats automatically"
+            ),
+            "byLine": lines_no_rt,
+        },
+    }
+    out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False))
+    log.info("  Real-time diagnostics → %s", out_path)
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -618,6 +771,8 @@ def run(target_date: date) -> None:
 
     df = compute_delays(df)
     date_str = target_date.isoformat()
+
+    log_realtime_coverage(date_str, df)  # writes data/diagnostics/YYYY-MM-DD-realtime.json
 
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA journal_mode=WAL")

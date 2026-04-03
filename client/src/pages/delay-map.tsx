@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { Card } from "@/components/ui/card";
-import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl, useMap } from "react-leaflet";
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { Link } from "wouter";
 import "leaflet/dist/leaflet.css";
+import type { LatLngBounds } from "leaflet";
 import { formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { REGION_MAP_CENTER } from "@/lib/regionCoords";
@@ -18,9 +21,34 @@ type MapStop = {
   lng: number | null;
 };
 
-function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }) {
+/** Only recenters when the region actually changes */
+function RegionRecenter({ region }: { region: string }) {
   const map = useMap();
-  useEffect(() => { map.setView(center, zoom); }, [center, zoom, map]);
+  const prevRegion = useRef(region);
+  useEffect(() => {
+    if (region !== prevRegion.current) {
+      const cfg = REGION_MAP_CENTER[region as keyof typeof REGION_MAP_CENTER];
+      if (cfg) map.setView([cfg.lat, cfg.lng], cfg.zoom);
+      prevRegion.current = region;
+    }
+  }, [region, map]);
+  return null;
+}
+
+/** Tracks map bounds for viewport-based filtering */
+function BoundsTracker({ onBoundsChange }: { onBoundsChange: (b: LatLngBounds) => void }) {
+  const map = useMap();
+
+  // Set initial bounds
+  useEffect(() => {
+    onBoundsChange(map.getBounds());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useMapEvents({
+    moveend: () => onBoundsChange(map.getBounds()),
+    zoomend: () => onBoundsChange(map.getBounds()),
+  });
   return null;
 }
 
@@ -30,52 +58,183 @@ const getColor = (delay: number) => {
   return "#ef4444";
 };
 
-// Logarithmic radius: stops with few departures get small circles (~0.8),
-// busy stops get large circles (up to 10). Based on 7-day departure sum.
 const getRadius = (numDepartures: number | null): number => {
   if (!numDepartures || numDepartures <= 0) return 0.8;
   const MIN_R = 0.8;
   const MAX_R = 10;
-  // log10(1)=0 → 0.8,  log10(100)=2 → ~5.8,  log10(1000)=3 → ~8.3, capped at 10
   return Math.min(MAX_R, MIN_R + Math.log10(numDepartures) * 3.1);
 };
+
+type TimePreset = { label: string; hourMin?: number; hourMax?: number };
+const TIME_PRESETS: TimePreset[] = [
+  { label: "Hele dagen" },
+  { label: "Morgenrush (7–9)", hourMin: 7, hourMax: 9 },
+  { label: "Formiddag (9–15)", hourMin: 9, hourMax: 15 },
+  { label: "Ettermiddagsrush (15–17)", hourMin: 15, hourMax: 17 },
+  { label: "Ettermiddag (17–19)", hourMin: 17, hourMax: 19 },
+  { label: "Kveld (19–23)", hourMin: 19, hourMax: 23 },
+  { label: "Natt (23–4)", hourMin: 23, hourMax: 4 },
+  { label: "Tidlig morgen (4–7)", hourMin: 4, hourMax: 7 },
+];
+
+type DayFilter = "all" | "weekday" | "weekend";
+const DAY_LABELS: Record<DayFilter, string> = { all: "Alle dager", weekday: "Ukedager", weekend: "Helg" };
+
+type WindowOption = { label: string; days: number };
+const WINDOW_OPTIONS: WindowOption[] = [
+  { label: "Siste uke", days: 7 },
+  { label: "Siste 2 uker", days: 14 },
+  { label: "Siste måned", days: 30 },
+  { label: "Siste 3 mnd", days: 90 },
+];
 
 export default function DelayMap() {
   const { region, operator } = useRegion();
   const mapConfig = REGION_MAP_CENTER[region];
   const center: [number, number] = [mapConfig.lat, mapConfig.lng];
 
+  const [dayType, setDayType] = useState<DayFilter>("all");
+  const [timePreset, setTimePreset] = useState<TimePreset>(TIME_PRESETS[0]);
+  const [windowDays, setWindowDays] = useState<WindowOption>(WINDOW_OPTIONS[0]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [bounds, setBounds] = useState<LatLngBounds | null>(null);
+
+  const queryParams = new URLSearchParams({ operator });
+  if (dayType !== "all") queryParams.set("dayType", dayType);
+  if (timePreset.hourMin != null) queryParams.set("hourMin", String(timePreset.hourMin));
+  if (timePreset.hourMax != null) queryParams.set("hourMax", String(timePreset.hourMax));
+  if (windowDays.days !== 7) queryParams.set("windowDays", String(windowDays.days));
+
   const { data: stops = [], isLoading } = useQuery<MapStop[]>({
-    queryKey: [`/api/stops/map?operator=${operator}`],
+    queryKey: [`/api/stops/map?${queryParams.toString()}`],
   });
 
-  const mappableStops = stops.filter((s) => s.lat != null && s.lng != null);
+  const mappableStops = useMemo(
+    () => stops.filter((s) => s.lat != null && s.lng != null),
+    [stops],
+  );
+
+  // Filter to only stops in the current viewport (with a small padding)
+  const visibleStops = useMemo(() => {
+    if (!bounds) return mappableStops;
+    const padLat = (bounds.getNorth() - bounds.getSouth()) * 0.1;
+    const padLng = (bounds.getEast() - bounds.getWest()) * 0.1;
+    const south = bounds.getSouth() - padLat;
+    const north = bounds.getNorth() + padLat;
+    const west = bounds.getWest() - padLng;
+    const east = bounds.getEast() + padLng;
+    return mappableStops.filter(
+      (s) => s.lat! >= south && s.lat! <= north && s.lng! >= west && s.lng! <= east,
+    );
+  }, [mappableStops, bounds]);
+
+  const handleBoundsChange = useCallback((b: LatLngBounds) => setBounds(b), []);
+
+  const hasActiveFilters = dayType !== "all" || timePreset.hourMin != null || windowDays.days !== 7;
+  const windowLabel = windowDays.label.toLowerCase();
 
   return (
     <Layout>
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-4 animate-in fade-in duration-500">
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold tracking-tight">Forsinkelseskart</h2>
-          <p className="text-muted-foreground">
-            Ukesgjennomsnitt per stopp (siste 7 dager). Sirkelstørrelse viser antall avganger.
-            {!isLoading && mappableStops.length > 0 && ` ${mappableStops.length} stopp vist.`}
+          <p className="text-muted-foreground text-sm">
+            Gjennomsnitt per stopp ({windowLabel}).
+            {hasActiveFilters && (
+              <span className="text-primary font-medium">
+                {" "}Filtrert: {DAY_LABELS[dayType]}, {timePreset.label}.
+              </span>
+            )}
+            {!isLoading && mappableStops.length > 0 && (
+              <> {visibleStops.length.toLocaleString("nb-NO")} av {mappableStops.length.toLocaleString("nb-NO")} stopp synlige.</>
+            )}
           </p>
         </div>
 
-        <Card className="overflow-hidden border-2 h-[650px] relative">
+        {/* Filter toggle */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="h-8 text-xs"
+        >
+          {showFilters ? "Skjul filter" : "Vis filter"}
+          {hasActiveFilters && " ●"}
+        </Button>
+
+        {showFilters && (
+          <div className="grid gap-3 md:grid-cols-3 p-4 bg-muted/50 rounded-lg border">
+            {/* Day type */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Dag</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(["all", "weekday", "weekend"] as DayFilter[]).map((d) => (
+                  <Button
+                    key={d}
+                    size="sm"
+                    variant={dayType === d ? "default" : "outline"}
+                    onClick={() => setDayType(d)}
+                    className="h-7 px-3 text-xs"
+                  >
+                    {DAY_LABELS[d]}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time of day */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Tid på dagen</p>
+              <div className="flex flex-wrap gap-1.5">
+                {TIME_PRESETS.map((preset) => (
+                  <Button
+                    key={preset.label}
+                    size="sm"
+                    variant={timePreset.label === preset.label ? "default" : "outline"}
+                    onClick={() => setTimePreset(preset)}
+                    className="h-7 px-2.5 text-xs"
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time window */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Tidsperiode</p>
+              <div className="flex flex-wrap gap-1.5">
+                {WINDOW_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.days}
+                    size="sm"
+                    variant={windowDays.days === opt.days ? "default" : "outline"}
+                    onClick={() => setWindowDays(opt)}
+                    className="h-7 px-2.5 text-xs"
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Card className="overflow-hidden border-2 h-[600px] relative">
           <MapContainer
             center={center}
             zoom={mapConfig.zoom}
             className="w-full h-full z-0"
             zoomControl={false}
           >
-            <ChangeView center={center} zoom={mapConfig.zoom} />
+            <RegionRecenter region={region} />
+            <BoundsTracker onBoundsChange={handleBoundsChange} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <ZoomControl position="bottomright" />
-            {mappableStops.map((stop) => (
+            {visibleStops.map((stop) => (
               <CircleMarker
                 key={stop.stopRef}
                 center={[stop.lat!, stop.lng!]}
@@ -105,29 +264,42 @@ export default function DelayMap() {
                       )}
                       {stop.numDepartures != null && (
                         <p className="flex justify-between gap-4">
-                          <span>Avganger (7 dager):</span>
-                          <span>{stop.numDepartures}</span>
+                          <span>Avganger:</span>
+                          <span>{stop.numDepartures.toLocaleString("nb-NO")}</span>
                         </p>
                       )}
                     </div>
+                    <Link
+                      href={`/stops?stop=${encodeURIComponent(stop.stopRef)}&name=${encodeURIComponent(formatStopName(stop.stopName, stop.stopRef))}`}
+                      className="block text-center text-[10px] text-primary hover:underline mt-2 pt-1 border-t border-border"
+                    >
+                      Se stoppstedsanalyse →
+                    </Link>
                   </div>
                 </Popup>
               </CircleMarker>
             ))}
           </MapContainer>
 
-          <div className="absolute top-4 right-4 bg-card/90 backdrop-blur p-4 rounded-lg border border-border shadow-2xl z-[1000] pointer-events-none">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Forsinkelse</p>
-            <div className="space-y-2 mb-3">
-              <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-[#10b981]" /><span className="text-xs">&lt; 1 min</span></div>
-              <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-[#fbbf24]" /><span className="text-xs">1 – 3 min</span></div>
-              <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-[#ef4444]" /><span className="text-xs">&gt; 3 min</span></div>
+          {/* Loading overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-[500]">
+              <div className="text-sm text-muted-foreground animate-pulse">Laster stopp...</div>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Avganger / uke</p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-muted-foreground opacity-60" /><span className="text-xs">&lt; 10</span></div>
-              <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-muted-foreground opacity-60" /><span className="text-xs">~100</span></div>
-              <div className="flex items-center gap-3"><div className="w-5 h-5 rounded-full bg-muted-foreground opacity-60" /><span className="text-xs">&gt; 1 000</span></div>
+          )}
+
+          <div className="absolute top-4 right-4 bg-card/90 backdrop-blur p-3 rounded-lg border border-border shadow-2xl z-[1000] pointer-events-none">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Forsinkelse</p>
+            <div className="space-y-1.5 mb-2">
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" /><span className="text-[10px]">&lt; 1 min</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#fbbf24]" /><span className="text-[10px]">1 – 3 min</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" /><span className="text-[10px]">&gt; 3 min</span></div>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Størrelse</p>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-muted-foreground opacity-60" /><span className="text-[10px]">&lt; 10 avg</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-muted-foreground opacity-60" /><span className="text-[10px]">~100 avg</span></div>
+              <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-muted-foreground opacity-60" /><span className="text-[10px]">&gt; 1 000 avg</span></div>
             </div>
           </div>
         </Card>
