@@ -185,17 +185,22 @@ CREATE TABLE IF NOT EXISTS stop_coords (
 -- Upsert logic: weighted average merge so multiple days accumulate within a week.
 -- Old weeks are pruned automatically (>91 days / 13 weeks).
 CREATE TABLE IF NOT EXISTS journey_stop_weekly (
-    week_start         TEXT    NOT NULL,  -- Monday ISO date, e.g. '2026-03-16'
-    service_journey_id TEXT    NOT NULL,  -- NeTEx ServiceJourney ID
-    line_ref           TEXT    NOT NULL,  -- for filtering by line
-    direction_ref      TEXT    NOT NULL,
-    stop_ref           TEXT    NOT NULL,  -- NSR:Quay:xxxxx
-    stop_sequence      INTEGER NOT NULL,  -- order along route
-    aimed_time         TEXT,             -- 'HH:MM' local time at this stop
-    avg_delay_min      REAL,
-    max_delay_min      REAL,
-    min_delay_min      REAL,
-    num_samples        INTEGER,
+    week_start             TEXT    NOT NULL,  -- Monday ISO date, e.g. '2026-03-16'
+    service_journey_id     TEXT    NOT NULL,  -- NeTEx ServiceJourney ID
+    line_ref               TEXT    NOT NULL,  -- for filtering by line
+    direction_ref          TEXT    NOT NULL,
+    stop_ref               TEXT    NOT NULL,  -- NSR:Quay:xxxxx
+    stop_sequence          INTEGER NOT NULL,  -- order along route
+    aimed_time             TEXT,             -- 'HH:MM' local time (departure preferred, arrival fallback)
+    aimed_arrival_time     TEXT,             -- 'HH:MM' planned arrival (NULL at first stop)
+    aimed_departure_time   TEXT,             -- 'HH:MM' planned departure (NULL at last stop)
+    avg_delay_min          REAL,             -- combined delay (departure preferred, arrival fallback)
+    max_delay_min          REAL,
+    min_delay_min          REAL,
+    avg_delay_arrival_min  REAL,             -- delay at arrival (actual_arr - aimed_arr)
+    avg_delay_departure_min REAL,            -- delay at departure (actual_dep - aimed_dep)
+    avg_dwell_time_sec     REAL,             -- time stopped (actual_dep - actual_arr), seconds
+    num_samples            INTEGER,
     PRIMARY KEY (week_start, service_journey_id, stop_ref)
 );
 

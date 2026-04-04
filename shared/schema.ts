@@ -196,10 +196,15 @@ export const journeyStopWeekly = sqliteTable(
     directionRef: text("direction_ref").notNull(),
     stopRef: text("stop_ref").notNull(),
     stopSequence: integer("stop_sequence").notNull(), // order along route
-    aimedTime: text("aimed_time"),                   // 'HH:MM' local time at this stop
-    avgDelayMin: real("avg_delay_min"),
+    aimedTime: text("aimed_time"),                   // 'HH:MM' local (dep preferred, arr fallback)
+    aimedArrivalTime: text("aimed_arrival_time"),    // 'HH:MM' planned arrival (NULL at first stop)
+    aimedDepartureTime: text("aimed_departure_time"),// 'HH:MM' planned departure (NULL at last stop)
+    avgDelayMin: real("avg_delay_min"),               // combined delay
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
+    avgDelayArrivalMin: real("avg_delay_arrival_min"),    // delay at arrival
+    avgDelayDepartureMin: real("avg_delay_departure_min"),// delay at departure
+    avgDwellTimeSec: real("avg_dwell_time_sec"),          // time stopped (seconds)
     numSamples: integer("num_samples"),
   },
   (table) => ({

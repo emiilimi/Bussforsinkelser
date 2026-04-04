@@ -98,17 +98,27 @@ def fetch_day(client: bigquery.Client, target_date: date) -> pd.DataFrame:
 
 def compute_delays(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    # Departure time preferred; fall back to arrival time for the last stop
-    # (which has NULL aimedDepartureTime / departureTime in SIRI ET)
+    # Parse all four timestamps
     aimed_dep = pd.to_datetime(df["aimedDepartureTime"], utc=True, errors="coerce")
     aimed_arr = pd.to_datetime(df["aimedArrivalTime"], utc=True, errors="coerce")
-    df["aimed"] = aimed_dep.fillna(aimed_arr)
-
     actual_dep = pd.to_datetime(df["departureTime"], utc=True, errors="coerce")
     actual_arr = pd.to_datetime(df["arrivalTime"], utc=True, errors="coerce")
-    df["actual"] = actual_dep.fillna(actual_arr)
 
+    # Combined delay: departure preferred, fall back to arrival for last stop
+    df["aimed"] = aimed_dep.fillna(aimed_arr)
+    df["actual"] = actual_dep.fillna(actual_arr)
     df["delay_min"] = (df["actual"] - df["aimed"]).dt.total_seconds() / 60
+
+    # Separate arrival and departure delays
+    df["delay_arrival_min"] = (actual_arr - aimed_arr).dt.total_seconds() / 60
+    df["delay_departure_min"] = (actual_dep - aimed_dep).dt.total_seconds() / 60
+
+    # Dwell time: how long the bus stands at the stop (actual departure - actual arrival)
+    df["dwell_time_sec"] = (actual_dep - actual_arr).dt.total_seconds()
+
+    # Aimed times in local timezone for storage
+    df["aimed_arr_ts"] = aimed_arr
+    df["aimed_dep_ts"] = aimed_dep
     df["is_cancelled"] = df["journeyCancellation"].astype(bool)
     # Hour of aimed departure in Oslo local time
     df["hour"] = (
@@ -426,7 +436,7 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
         # Stop sequence: use first value (consistent within a journey+stop group)
         stop_seq = int(grp["sequenceNr"].iloc[0])
 
-        # Aimed time at this specific stop: HH:MM in Oslo local time
+        # Aimed time at this specific stop: HH:MM in Oslo local time (departure preferred)
         aimed_ts = grp["aimed"].dropna()
         aimed_time = (
             aimed_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
@@ -434,7 +444,36 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
             else None
         )
 
+        # Separate aimed arrival/departure times
+        aimed_arr_ts = grp["aimed_arr_ts"].dropna()
+        aimed_arrival_time = (
+            aimed_arr_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
+            if not aimed_arr_ts.empty
+            else None
+        )
+        aimed_dep_ts = grp["aimed_dep_ts"].dropna()
+        aimed_departure_time = (
+            aimed_dep_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
+            if not aimed_dep_ts.empty
+            else None
+        )
+
         delays = grp["delay_min"]
+
+        # Arrival delay (NULL at first stop where aimedArrivalTime is NULL)
+        arr_delays = grp["delay_arrival_min"].dropna()
+        avg_delay_arrival = round(float(arr_delays.mean()), 2) if not arr_delays.empty else None
+
+        # Departure delay (NULL at last stop where aimedDepartureTime is NULL)
+        dep_delays = grp["delay_departure_min"].dropna()
+        avg_delay_departure = round(float(dep_delays.mean()), 2) if not dep_delays.empty else None
+
+        # Dwell time (actual_dep - actual_arr); NULL at first/last stop
+        dwell = grp["dwell_time_sec"].dropna()
+        # Filter out negative dwell times (data errors) and extreme values (> 10 min)
+        dwell = dwell[(dwell >= 0) & (dwell <= 600)]
+        avg_dwell = round(float(dwell.mean()), 1) if not dwell.empty else None
+
         rows.append((
             week_start,
             str(journey_id),
@@ -443,9 +482,14 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
             str(stop_ref),
             stop_seq,
             aimed_time,
+            aimed_arrival_time,
+            aimed_departure_time,
             round(float(delays.mean()), 2),
             round(float(delays.max()), 2),
             round(float(delays.min()), 2),
+            avg_delay_arrival,
+            avg_delay_departure,
+            avg_dwell,
             len(delays),
         ))
 
@@ -453,18 +497,42 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
         """
         INSERT INTO journey_stop_weekly
             (week_start, service_journey_id, line_ref, direction_ref, stop_ref,
-             stop_sequence, aimed_time, avg_delay_min, max_delay_min, min_delay_min,
+             stop_sequence, aimed_time, aimed_arrival_time, aimed_departure_time,
+             avg_delay_min, max_delay_min, min_delay_min,
+             avg_delay_arrival_min, avg_delay_departure_min, avg_dwell_time_sec,
              num_samples)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (week_start, service_journey_id, stop_ref) DO UPDATE SET
-            -- Fill in aimed_time if the first insert had NULL (e.g. data arrived later in the week)
-            aimed_time    = COALESCE(aimed_time, excluded.aimed_time),
+            aimed_time             = COALESCE(aimed_time, excluded.aimed_time),
+            aimed_arrival_time     = COALESCE(aimed_arrival_time, excluded.aimed_arrival_time),
+            aimed_departure_time   = COALESCE(aimed_departure_time, excluded.aimed_departure_time),
             avg_delay_min = ROUND(
                 (avg_delay_min * num_samples + excluded.avg_delay_min * excluded.num_samples) * 1.0
                 / (num_samples + excluded.num_samples), 2),
             max_delay_min = MAX(max_delay_min, excluded.max_delay_min),
             min_delay_min = MIN(min_delay_min, excluded.min_delay_min),
-            num_samples   = num_samples + excluded.num_samples
+            avg_delay_arrival_min = CASE
+                WHEN avg_delay_arrival_min IS NOT NULL AND excluded.avg_delay_arrival_min IS NOT NULL
+                THEN ROUND(
+                    (avg_delay_arrival_min * num_samples + excluded.avg_delay_arrival_min * excluded.num_samples) * 1.0
+                    / (num_samples + excluded.num_samples), 2)
+                ELSE COALESCE(avg_delay_arrival_min, excluded.avg_delay_arrival_min)
+            END,
+            avg_delay_departure_min = CASE
+                WHEN avg_delay_departure_min IS NOT NULL AND excluded.avg_delay_departure_min IS NOT NULL
+                THEN ROUND(
+                    (avg_delay_departure_min * num_samples + excluded.avg_delay_departure_min * excluded.num_samples) * 1.0
+                    / (num_samples + excluded.num_samples), 2)
+                ELSE COALESCE(avg_delay_departure_min, excluded.avg_delay_departure_min)
+            END,
+            avg_dwell_time_sec = CASE
+                WHEN avg_dwell_time_sec IS NOT NULL AND excluded.avg_dwell_time_sec IS NOT NULL
+                THEN ROUND(
+                    (avg_dwell_time_sec * num_samples + excluded.avg_dwell_time_sec * excluded.num_samples) * 1.0
+                    / (num_samples + excluded.num_samples), 1)
+                ELSE COALESCE(avg_dwell_time_sec, excluded.avg_dwell_time_sec)
+            END,
+            num_samples = num_samples + excluded.num_samples
         """,
         rows,
     )

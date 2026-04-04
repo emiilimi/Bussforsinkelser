@@ -703,6 +703,18 @@ export async function getLineStopProfile(
             / NULLIF(SUM(jsw.num_samples), 0), 2)   AS avgDelayMin,
       ROUND(MAX(jsw.max_delay_min), 2)               AS maxDelayMin,
       ROUND(MIN(jsw.min_delay_min), 2)               AS minDelayMin,
+      ROUND(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
+            THEN jsw.avg_delay_arrival_min * jsw.num_samples ELSE 0 END) * 1.0
+            / NULLIF(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
+            THEN jsw.num_samples ELSE 0 END), 0), 2)  AS avgDelayArrivalMin,
+      ROUND(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
+            THEN jsw.avg_delay_departure_min * jsw.num_samples ELSE 0 END) * 1.0
+            / NULLIF(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
+            THEN jsw.num_samples ELSE 0 END), 0), 2)  AS avgDelayDepartureMin,
+      ROUND(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
+            THEN jsw.avg_dwell_time_sec * jsw.num_samples ELSE 0 END) * 1.0
+            / NULLIF(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
+            THEN jsw.num_samples ELSE 0 END), 0), 1)  AS avgDwellTimeSec,
       SUM(jsw.num_samples)                           AS numSamples,
       COALESCE(MAX(sc.stop_name), jsw.stop_ref)      AS stopName
     FROM journey_stop_weekly jsw

@@ -77,6 +77,9 @@ type LineStopProfile = {
   avgDelayMin: number | null;
   maxDelayMin: number | null;
   minDelayMin: number | null;
+  avgDelayArrivalMin: number | null;
+  avgDelayDepartureMin: number | null;
+  avgDwellTimeSec: number | null;
   numSamples: number | null;
   stopName: string | null;
 };
@@ -421,14 +424,39 @@ export default function JourneyDetails() {
   const profileWidth = Math.max(700, profileData.length * 44);
 
   // ---- Line stop profile chart data (all stops in route order) ----
-  const stopProfileData = lineStopProfile.map((s) => ({
-    ...s,
-    shortName: s.stopName
-      ? s.stopName.length > 14 ? s.stopName.slice(0, 13) + "…" : s.stopName
-      : s.stopRef,
-    bandBase: s.minDelayMin ?? s.avgDelayMin ?? 0,
-    bandRange: Math.max(0, (s.maxDelayMin ?? s.avgDelayMin ?? 0) - (s.minDelayMin ?? s.avgDelayMin ?? 0)),
-  }));
+  const [stopProfileMode, setStopProfileMode] = useState<"cumulative" | "derivative" | "dwell">("cumulative");
+
+  const stopProfileData = useMemo(() => {
+    const base = lineStopProfile.map((s, i) => {
+      const prev = i > 0 ? lineStopProfile[i - 1] : null;
+      // Derivative: delay gained between this stop and the previous
+      const delayGain = prev
+        ? (s.avgDelayMin ?? 0) - (prev.avgDelayMin ?? 0)
+        : 0;
+      // Dwell delay: departure_delay - arrival_delay (time lost at the stop itself)
+      const dwellDelay = (s.avgDelayDepartureMin != null && s.avgDelayArrivalMin != null)
+        ? s.avgDelayDepartureMin - s.avgDelayArrivalMin
+        : null;
+      // Transit delay: arrival_delay[N] - departure_delay[N-1] (time lost between stops)
+      const transitDelay = (prev?.avgDelayDepartureMin != null && s.avgDelayArrivalMin != null)
+        ? s.avgDelayArrivalMin - prev.avgDelayDepartureMin
+        : null;
+      return {
+        ...s,
+        shortName: s.stopName
+          ? s.stopName.length > 14 ? s.stopName.slice(0, 13) + "\u2026" : s.stopName
+          : s.stopRef,
+        bandBase: s.minDelayMin ?? s.avgDelayMin ?? 0,
+        bandRange: Math.max(0, (s.maxDelayMin ?? s.avgDelayMin ?? 0) - (s.minDelayMin ?? s.avgDelayMin ?? 0)),
+        delayGain,
+        dwellDelay,
+        transitDelay,
+        dwellTimeSec: s.avgDwellTimeSec,
+      };
+    });
+    return base;
+  }, [lineStopProfile]);
+
   const stopProfileWidth = Math.max(700, stopProfileData.length * 44);
 
   // Compute Y-axis maxes after data is available and sync to state
@@ -818,50 +846,223 @@ export default function JourneyDetails() {
                   )}
                   {stopProfileData.length > 0 && (
                     <div>
-                      <div className="text-xs text-muted-foreground mb-2">
-                        {stopProfileData.length} stopp · {stopProfileData.reduce((s, r) => s + (r.numSamples ?? 0), 0).toLocaleString("nb-NO")} målinger totalt
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs text-muted-foreground">
+                          {stopProfileData.length} stopp · {stopProfileData.reduce((s, r) => s + (r.numSamples ?? 0), 0).toLocaleString("nb-NO")} målinger totalt
+                        </div>
+                        <div className="flex gap-1">
+                          {(["cumulative", "derivative", "dwell"] as const).map((mode) => (
+                            <Button
+                              key={mode}
+                              size="sm"
+                              variant={stopProfileMode === mode ? "default" : "outline"}
+                              onClick={() => setStopProfileMode(mode)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              {mode === "cumulative" ? "Forsinkelse" : mode === "derivative" ? "Forsinkelsesendring" : "Stopptid"}
+                            </Button>
+                          ))}
+                        </div>
                       </div>
-                      <ScrollableChart
-                        chartWidth={stopProfileWidth}
-                        chartHeight={320}
-                        yMax={stopProfileYMax}
-                        setYMax={setStopProfileYMax}
-                        dataMax={stopProfileDataMax}
-                      >
-                        <ComposedChart
-                          width={stopProfileWidth}
-                          height={320}
-                          data={stopProfileData}
-                          margin={{ top: 10, right: 10, bottom: 80, left: 35 }}
+                      {stopProfileMode === "cumulative" && (
+                        <ScrollableChart
+                          chartWidth={stopProfileWidth}
+                          chartHeight={320}
+                          yMax={stopProfileYMax}
+                          setYMax={setStopProfileYMax}
+                          dataMax={stopProfileDataMax}
                         >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                          <XAxis
-                            dataKey="shortName"
-                            stroke="hsl(var(--muted-foreground))"
-                            fontSize={9}
-                            tickLine={false}
-                            axisLine={false}
-                            angle={-50}
-                            textAnchor="end"
-                            interval={0}
-                            tick={{ dy: 6 }}
-                          />
-                          <YAxis
-                            stroke="hsl(var(--muted-foreground))"
-                            fontSize={11}
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(v) => `${v.toFixed(0)}m`}
-                            domain={["auto", stopProfileYMax]}
-                            allowDataOverflow
-                          />
-                          <Tooltip content={<ProfileTooltip />} />
-                          <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                          <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
-                          <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
-                          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                        </ComposedChart>
-                      </ScrollableChart>
+                          <ComposedChart
+                            width={stopProfileWidth}
+                            height={320}
+                            data={stopProfileData}
+                            margin={{ top: 10, right: 10, bottom: 80, left: 35 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis
+                              dataKey="shortName"
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={9}
+                              tickLine={false}
+                              axisLine={false}
+                              angle={-50}
+                              textAnchor="end"
+                              interval={0}
+                              tick={{ dy: 6 }}
+                            />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={11}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(v) => `${v.toFixed(0)}m`}
+                              domain={["auto", stopProfileYMax]}
+                              allowDataOverflow
+                            />
+                            <Tooltip content={<ProfileTooltip />} />
+                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                            <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
+                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
+                          </ComposedChart>
+                        </ScrollableChart>
+                      )}
+                      {stopProfileMode === "derivative" && (
+                        <ScrollableChart
+                          chartWidth={stopProfileWidth}
+                          chartHeight={320}
+                          yMax={stopProfileYMax}
+                          setYMax={setStopProfileYMax}
+                          dataMax={stopProfileDataMax}
+                        >
+                          <ComposedChart
+                            width={stopProfileWidth}
+                            height={320}
+                            data={stopProfileData}
+                            margin={{ top: 10, right: 10, bottom: 80, left: 35 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis
+                              dataKey="shortName"
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={9}
+                              tickLine={false}
+                              axisLine={false}
+                              angle={-50}
+                              textAnchor="end"
+                              interval={0}
+                              tick={{ dy: 6 }}
+                            />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={11}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}m`}
+                              domain={["auto", "auto"]}
+                            />
+                            <Tooltip
+                              content={({ active, payload }: any) => {
+                                if (!active || !payload?.[0]) return null;
+                                const d = payload[0].payload;
+                                return (
+                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
+                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
+                                    <div className="font-mono mt-1 space-y-0.5 text-xs">
+                                      <p className={d.delayGain > 0.1 ? "text-destructive" : d.delayGain < -0.1 ? "text-emerald-500" : "text-muted-foreground"}>
+                                        Endring: {d.delayGain >= 0 ? "+" : ""}{d.delayGain.toFixed(2)} min
+                                      </p>
+                                      {d.dwellDelay != null && (
+                                        <p className="text-amber-500">Stoppforsinkling: {d.dwellDelay >= 0 ? "+" : ""}{d.dwellDelay.toFixed(2)} min</p>
+                                      )}
+                                      {d.transitDelay != null && (
+                                        <p className="text-blue-500">Kjoreforsinkling: {d.transitDelay >= 0 ? "+" : ""}{d.transitDelay.toFixed(2)} min</p>
+                                      )}
+                                    </div>
+                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
+                                      Positiv = forsinkelse oppstar her. Negativ = bussen tar igjen tid.
+                                    </p>
+                                  </div>
+                                );
+                              }}
+                            />
+                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
+                            {/* Bar chart: red for delay generators, green for recovery */}
+                            <Area
+                              type="monotone"
+                              dataKey="delayGain"
+                              stroke="none"
+                              fill="hsl(var(--primary))"
+                              fillOpacity={0.3}
+                              isAnimationActive={false}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="delayGain"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={2}
+                              dot={({ cx, cy, payload }: any) => {
+                                const color = (payload.delayGain ?? 0) > 0.1 ? "hsl(var(--destructive))" : (payload.delayGain ?? 0) < -0.1 ? "hsl(142, 76%, 36%)" : "hsl(var(--muted-foreground))";
+                                return <circle cx={cx} cy={cy} r={4} fill={color} stroke="none" />;
+                              }}
+                              activeDot={{ r: 6 }}
+                              isAnimationActive={false}
+                            />
+                          </ComposedChart>
+                        </ScrollableChart>
+                      )}
+                      {stopProfileMode === "dwell" && (
+                        <ScrollableChart
+                          chartWidth={stopProfileWidth}
+                          chartHeight={320}
+                          yMax={Math.ceil(Math.max(...stopProfileData.map(d => d.dwellTimeSec ?? 0), 30))}
+                          setYMax={setStopProfileYMax}
+                          dataMax={Math.ceil(Math.max(...stopProfileData.map(d => d.dwellTimeSec ?? 0), 30))}
+                        >
+                          <ComposedChart
+                            width={stopProfileWidth}
+                            height={320}
+                            data={stopProfileData}
+                            margin={{ top: 10, right: 10, bottom: 80, left: 35 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis
+                              dataKey="shortName"
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={9}
+                              tickLine={false}
+                              axisLine={false}
+                              angle={-50}
+                              textAnchor="end"
+                              interval={0}
+                              tick={{ dy: 6 }}
+                            />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={11}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(v) => `${v.toFixed(0)}s`}
+                              domain={[0, "auto"]}
+                            />
+                            <Tooltip
+                              content={({ active, payload }: any) => {
+                                if (!active || !payload?.[0]) return null;
+                                const d = payload[0].payload;
+                                return (
+                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
+                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
+                                    <div className="font-mono mt-1 text-xs">
+                                      <p>{d.dwellTimeSec != null ? `${d.dwellTimeSec.toFixed(0)} sek` : "Ingen data"}</p>
+                                    </div>
+                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
+                                      Gjennomsnittlig tid bussen star pa stoppet (ankomst til avgang)
+                                    </p>
+                                  </div>
+                                );
+                              }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="dwellTimeSec"
+                              stroke="hsl(var(--chart-4))"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
+                              activeDot={{ r: 5 }}
+                              isAnimationActive={false}
+                              connectNulls
+                            />
+                          </ComposedChart>
+                        </ScrollableChart>
+                      )}
+                      {stopProfileMode !== "cumulative" && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {stopProfileMode === "derivative"
+                            ? "Viser endring i forsinkelse mellom hvert stopp. Rodt = forsinkelsen oker, gront = bussen tar igjen tid."
+                            : "Viser gjennomsnittlig tid (sekunder) bussen star pa hvert stopp. Krever ankomst- og avgangsdata fra sanntidssystemet."}
+                          {" "}Krever re-ingest med oppdatert pipeline for a vise data.
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>
