@@ -254,10 +254,35 @@ export default function JourneyDetails() {
   });
 
   const [stopProfileDir, setStopProfileDir] = useState<string>("");
+  const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
+
+  // Route variants for the current line + direction
+  const { data: routeVariants = [] } = useQuery<Array<{
+    variantId: string;
+    firstStopName: string | null;
+    lastStopName: string | null;
+    numStops: number;
+    totalSamples: number;
+    exampleTime: string | null;
+  }>>({
+    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/route-variants?direction=${stopProfileDir}`],
+    enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
+  });
+
+  // Auto-select the dominant variant (most samples), reset when direction changes
+  useEffect(() => {
+    if (routeVariants.length > 0) {
+      setSelectedVariant(routeVariants[0].variantId);
+    } else {
+      setSelectedVariant(undefined);
+    }
+  }, [routeVariants]);
 
   const { data: worstJourneys = [] } = useQuery<Array<{
     serviceJourneyId: string;
     departureTime: string | null;
+    firstStopName: string | null;
+    lastStopName: string | null;
     avgDelayMin: number;
     totalSamples: number;
     numStops: number;
@@ -266,8 +291,12 @@ export default function JourneyDetails() {
     enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
   });
 
+  const stopProfileUrl = selectedVariant
+    ? `/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}&variant=${encodeURIComponent(selectedVariant)}`
+    : `/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}`;
+
   const { data: lineStopProfile = [] } = useQuery<LineStopProfile[]>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}`],
+    queryKey: [stopProfileUrl],
     enabled: fetchedLine.length > 0 && stopProfileDir !== "",
   });
 
@@ -759,6 +788,29 @@ export default function JourneyDetails() {
                       </Button>
                     ))}
                   </div>
+                  {/* Variant picker — shown when multiple route patterns exist */}
+                  {routeVariants.length > 1 && stopProfileDir !== "" && stopProfileDir !== "all" && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-muted-foreground">Rutevariant:</span>
+                        <select
+                          className="text-xs border rounded px-2 py-1 bg-background"
+                          value={selectedVariant ?? ""}
+                          onChange={(e) => setSelectedVariant(e.target.value || undefined)}
+                        >
+                          {routeVariants.map((v, i) => (
+                            <option key={v.variantId} value={v.variantId}>
+                              {v.firstStopName ?? "?"} → {v.lastStopName ?? "?"} ({v.numStops} stopp, {v.totalSamples.toLocaleString("nb-NO")} målinger)
+                              {i === 0 ? " ★" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Denne linjen har {routeVariants.length} ulike rutevarianter. Velg variant for å se korrekt stopprekkefølge.
+                      </p>
+                    </div>
+                  )}
                   {stopProfileData.length === 0 && stopProfileDir !== "" && (
                     <p className="text-sm text-muted-foreground py-4">
                       Ingen stopp-data for retning {stopProfileDir}.
@@ -831,6 +883,7 @@ export default function JourneyDetails() {
                       <thead>
                         <tr className="border-b text-muted-foreground text-xs">
                           <th className="text-left pb-2 font-medium">Avgang</th>
+                          <th className="text-left pb-2 font-medium hidden md:table-cell">Rute</th>
                           <th className="text-right pb-2 font-medium">Snitt forsinkelse</th>
                           <th className="text-right pb-2 font-medium hidden sm:table-cell">Målinger</th>
                           <th className="text-right pb-2 font-medium hidden sm:table-cell">Stopp</th>
@@ -858,6 +911,11 @@ export default function JourneyDetails() {
                               <span className={`inline-block w-5 text-xs text-muted-foreground mr-2`}>{i + 1}.</span>
                               {j.departureTime ?? "—"}
                               <ArrowRight className="inline-block ml-1.5 h-3 w-3 text-muted-foreground opacity-50" />
+                            </td>
+                            <td className="py-2 text-muted-foreground text-xs hidden md:table-cell max-w-[200px] truncate">
+                              {j.firstStopName && j.lastStopName
+                                ? `${j.firstStopName} → ${j.lastStopName}`
+                                : j.firstStopName ?? j.lastStopName ?? "—"}
                             </td>
                             <td className="py-2 text-right">
                               <span className={`font-mono font-semibold ${j.avgDelayMin > 5 ? "text-destructive" : j.avgDelayMin > 2 ? "text-amber-500" : "text-emerald-600"}`}>

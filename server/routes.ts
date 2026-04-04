@@ -29,6 +29,7 @@ import {
   getStopsForMapFiltered,
   getStopDirections,
   getWorstJourneysForLine,
+  getRouteVariants,
 } from "./storage";
 
 // ---------------------------------------------------------------------------
@@ -164,15 +165,30 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/line/:lineref/stop-profile?direction=0|1&weeks=4
+   * GET /api/line/:lineref/route-variants?direction=1&weeks=4
+   * Distinct route patterns for a line (different start/end/stop counts).
+   * Used to populate a variant picker when a line has multiple routes.
+   */
+  app.get("/api/line/:lineref/route-variants", async (req, res) => {
+    const lineRef = req.params.lineref;
+    const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
+    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
+    const rows = await getRouteVariants(lineRef, direction, daysAgoIso(weeks * 7));
+    return res.json(rows);
+  });
+
+  /**
+   * GET /api/line/:lineref/stop-profile?direction=0|1&weeks=4&variant=...
    * All stops on a line in route order with avg/max/min delay.
    * direction defaults to '0'. Route order is direction-specific.
+   * Optional variant param filters to a specific route pattern.
    */
   app.get("/api/line/:lineref/stop-profile", async (req, res) => {
     const lineRef = req.params.lineref;
     const direction = typeof req.query.direction === "string" ? req.query.direction : "0";
     const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getLineStopProfile(lineRef, direction, daysAgoIso(weeks * 7));
+    const variant = typeof req.query.variant === "string" ? req.query.variant : undefined;
+    const rows = await getLineStopProfile(lineRef, direction, daysAgoIso(weeks * 7), variant);
     return res.json(rows);
   });
 

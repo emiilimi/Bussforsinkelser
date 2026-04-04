@@ -487,12 +487,30 @@ export async function getJourneyProfile(
   directionRef: string,
   firstStopTime: string,
 ): Promise<Array<{ stopRef: string; stopSequence: number; aimedTime: string | null; avgDelayMin: number; maxDelayMin: number; minDelayMin: number; numSamples: number; stopName: string }>> {
+  // Find matching service_journey_ids, then pick the one with the most data
+  // to avoid mixing stop_sequences from different route variants.
+  const bestJourney = sqlite
+    .prepare(
+      `SELECT service_journey_id
+       FROM journey_stop_weekly
+       WHERE line_ref = ? AND direction_ref = ?
+       GROUP BY service_journey_id
+       HAVING MIN(aimed_time) = ?
+       ORDER BY SUM(num_samples) DESC
+       LIMIT 1`,
+    )
+    .get(lineRef, directionRef, firstStopTime) as { service_journey_id: string } | undefined;
+
+  if (!bestJourney) return [];
+
+  // For a single serviceJourney, sort by aimed_time (the true chronological order)
+  // rather than stop_sequence which can be inconsistent across weeks.
   return sqlite
     .prepare(
       `SELECT
          jsw.stop_ref        AS stopRef,
-         MIN(jsw.stop_sequence) AS stopSequence,
-         MAX(jsw.aimed_time) AS aimedTime,
+         jsw.stop_sequence   AS stopSequence,
+         jsw.aimed_time      AS aimedTime,
          ROUND(
            SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0 / SUM(jsw.num_samples),
            2
@@ -503,17 +521,11 @@ export async function getJourneyProfile(
          COALESCE(MAX(sc.stop_name), jsw.stop_ref) AS stopName
        FROM journey_stop_weekly jsw
        LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
-       WHERE jsw.service_journey_id IN (
-         SELECT service_journey_id
-         FROM journey_stop_weekly
-         WHERE line_ref = ? AND direction_ref = ?
-         GROUP BY service_journey_id
-         HAVING MIN(aimed_time) = ?
-       )
+       WHERE jsw.service_journey_id = ?
        GROUP BY jsw.stop_ref
-       ORDER BY MIN(jsw.stop_sequence)`,
+       ORDER BY MAX(jsw.aimed_time) ASC, MIN(jsw.stop_sequence) ASC`,
     )
-    .all(lineRef, directionRef, firstStopTime) as any;
+    .all(bestJourney.service_journey_id) as any;
 }
 
 /** Worst stops on a line — aggregated across all service journeys on the line.
@@ -543,15 +555,80 @@ export async function getWorstStopsForLine(lineRef: string, fromWeek: string, li
     .all();
 }
 
+/** Route variants for a line — groups service journeys by their stop set.
+ *  Returns distinct route patterns with their first/last stop names and sample counts.
+ *  Used to let users pick which variant to view on the route profile.
+ */
+export async function getRouteVariants(
+  lineRef: string,
+  directionRef: string,
+  fromWeek: string,
+): Promise<Array<{
+  variantId: string;
+  firstStopName: string | null;
+  lastStopName: string | null;
+  numStops: number;
+  totalSamples: number;
+  exampleTime: string | null;
+}>> {
+  // Group journeys by their stop count + first/last stop (proxy for route pattern)
+  return sqlite.prepare(`
+    SELECT
+      first_stop_ref || '->' || last_stop_ref || ':' || num_stops AS variantId,
+      MAX(first_stop_name) AS firstStopName,
+      MAX(last_stop_name)  AS lastStopName,
+      num_stops            AS numStops,
+      SUM(total_samples)   AS totalSamples,
+      MIN(first_time)      AS exampleTime
+    FROM (
+      SELECT
+        jsw.service_journey_id,
+        COUNT(DISTINCT jsw.stop_ref) AS num_stops,
+        MIN(jsw.aimed_time) AS first_time,
+        SUM(jsw.num_samples) AS total_samples,
+        (SELECT j2.stop_ref FROM journey_stop_weekly j2
+         WHERE j2.service_journey_id = jsw.service_journey_id
+         ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop_ref,
+        (SELECT j2.stop_ref FROM journey_stop_weekly j2
+         WHERE j2.service_journey_id = jsw.service_journey_id
+         ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop_ref,
+        (SELECT COALESCE(sc.stop_name, j2.stop_ref)
+         FROM journey_stop_weekly j2
+         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+         WHERE j2.service_journey_id = jsw.service_journey_id
+         ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop_name,
+        (SELECT COALESCE(sc.stop_name, j2.stop_ref)
+         FROM journey_stop_weekly j2
+         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+         WHERE j2.service_journey_id = jsw.service_journey_id
+         ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop_name
+      FROM journey_stop_weekly jsw
+      WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
+      GROUP BY jsw.service_journey_id
+    )
+    GROUP BY first_stop_ref, last_stop_ref, num_stops
+    HAVING SUM(total_samples) >= 20
+    ORDER BY totalSamples DESC
+    LIMIT 20
+  `).all(lineRef, directionRef, fromWeek) as any;
+}
+
 /** All stops on a line in route order with their average delay.
  *  Unlike getWorstStopsForLine (sorted by delay desc), this preserves the
  *  canonical stop sequence so you can visualise where delay builds up along
  *  the route. direction_ref is required because route order is direction-specific.
+ *
+ *  Ordering strategy: find the "dominant" serviceJourney (most samples) for the
+ *  given variant and use its stop_sequence as canonical order. Only includes stops
+ *  from journeys matching that variant's stop set.
+ *
+ *  If variantId is provided, filters to only journeys matching that route pattern.
  */
 export async function getLineStopProfile(
   lineRef: string,
   directionRef: string,
   fromWeek: string,
+  variantId?: string,
 ): Promise<Array<{
   stopRef: string;
   stopSequence: number;
@@ -561,11 +638,67 @@ export async function getLineStopProfile(
   numSamples: number;
   stopName: string | null;
 }>> {
+  // Step 1: Find the dominant service journey for canonical ordering.
+  // If variantId given, filter to journeys matching that pattern (first_stop->last_stop:num_stops).
+  let dominantSql: string;
+  let dominantParams: any[];
+
+  if (variantId) {
+    // variantId format: "NSR:Quay:xxx->NSR:Quay:yyy:NN"
+    const match = variantId.match(/^(.+)->(.+):(\d+)$/);
+    if (match) {
+      const [, firstStop, lastStop, numStops] = match;
+      dominantSql = `
+        SELECT jsw.service_journey_id
+        FROM journey_stop_weekly jsw
+        WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
+        GROUP BY jsw.service_journey_id
+        HAVING COUNT(DISTINCT jsw.stop_ref) = ?
+          AND (SELECT j2.stop_ref FROM journey_stop_weekly j2
+               WHERE j2.service_journey_id = jsw.service_journey_id
+               ORDER BY j2.stop_sequence ASC LIMIT 1) = ?
+          AND (SELECT j2.stop_ref FROM journey_stop_weekly j2
+               WHERE j2.service_journey_id = jsw.service_journey_id
+               ORDER BY j2.stop_sequence DESC LIMIT 1) = ?
+        ORDER BY SUM(jsw.num_samples) DESC
+        LIMIT 1`;
+      dominantParams = [lineRef, directionRef, fromWeek, parseInt(numStops), firstStop, lastStop];
+    } else {
+      dominantSql = `
+        SELECT service_journey_id FROM journey_stop_weekly
+        WHERE line_ref = ? AND direction_ref = ? AND week_start >= ?
+        GROUP BY service_journey_id ORDER BY SUM(num_samples) DESC LIMIT 1`;
+      dominantParams = [lineRef, directionRef, fromWeek];
+    }
+  } else {
+    dominantSql = `
+      SELECT service_journey_id FROM journey_stop_weekly
+      WHERE line_ref = ? AND direction_ref = ? AND week_start >= ?
+      GROUP BY service_journey_id ORDER BY SUM(num_samples) DESC LIMIT 1`;
+    dominantParams = [lineRef, directionRef, fromWeek];
+  }
+
+  const dominant = sqlite.prepare(dominantSql).get(...dominantParams) as { service_journey_id: string } | undefined;
+  if (!dominant) return [];
+
+  // Step 2: Get the canonical stop set from the dominant journey
+  const canonicalStops = sqlite.prepare(`
+    SELECT stop_ref FROM journey_stop_weekly
+    WHERE service_journey_id = ?
+    GROUP BY stop_ref
+  `).all(dominant.service_journey_id) as Array<{ stop_ref: string }>;
+  const stopSet = new Set(canonicalStops.map(s => s.stop_ref));
+
+  // Step 3: Query only stops that appear on the dominant journey's route,
+  // but aggregate data from ALL matching journeys for those stops.
+  const placeholders = canonicalStops.map(() => '?').join(',');
+
   return sqlite.prepare(`
     SELECT
       jsw.stop_ref           AS stopRef,
-      CAST(ROUND(SUM(jsw.stop_sequence * jsw.num_samples) * 1.0
-            / NULLIF(SUM(jsw.num_samples), 0)) AS INTEGER) AS stopSequence,
+      (SELECT co.stop_sequence FROM journey_stop_weekly co
+       WHERE co.service_journey_id = ? AND co.stop_ref = jsw.stop_ref
+       LIMIT 1)              AS stopSequence,
       ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
             / NULLIF(SUM(jsw.num_samples), 0), 2)   AS avgDelayMin,
       ROUND(MAX(jsw.max_delay_min), 2)               AS maxDelayMin,
@@ -575,11 +708,18 @@ export async function getLineStopProfile(
     FROM journey_stop_weekly jsw
     LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
     WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
+      AND jsw.stop_ref IN (${placeholders})
     GROUP BY jsw.stop_ref
     HAVING SUM(jsw.num_samples) >= 3
-    ORDER BY CAST(ROUND(SUM(jsw.stop_sequence * jsw.num_samples) * 1.0
-            / NULLIF(SUM(jsw.num_samples), 0)) AS INTEGER)
-  `).all(lineRef, directionRef, fromWeek) as any;
+    ORDER BY (SELECT co.stop_sequence FROM journey_stop_weekly co
+              WHERE co.service_journey_id = ? AND co.stop_ref = jsw.stop_ref
+              LIMIT 1)
+  `).all(
+    dominant.service_journey_id,
+    lineRef, directionRef, fromWeek,
+    ...canonicalStops.map(s => s.stop_ref),
+    dominant.service_journey_id,
+  ) as any;
 }
 
 /** Worst (and best) individual scheduled departures for a line.
@@ -595,6 +735,8 @@ export async function getWorstJourneysForLine(
 ): Promise<Array<{
   serviceJourneyId: string;
   departureTime: string | null;
+  firstStopName: string | null;
+  lastStopName: string | null;
   avgDelayMin: number;
   totalSamples: number;
   numStops: number;
@@ -610,6 +752,22 @@ export async function getWorstJourneysForLine(
         ORDER BY j2.stop_sequence ASC
         LIMIT 1
       )                        AS departureTime,
+      (
+        SELECT COALESCE(sc.stop_name, j2.stop_ref)
+        FROM journey_stop_weekly j2
+        LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+        WHERE j2.service_journey_id = jsw.service_journey_id
+        ORDER BY j2.stop_sequence ASC
+        LIMIT 1
+      )                        AS firstStopName,
+      (
+        SELECT COALESCE(sc.stop_name, j2.stop_ref)
+        FROM journey_stop_weekly j2
+        LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+        WHERE j2.service_journey_id = jsw.service_journey_id
+        ORDER BY j2.stop_sequence DESC
+        LIMIT 1
+      )                        AS lastStopName,
       ROUND(
         SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
         / NULLIF(SUM(jsw.num_samples), 0), 2
