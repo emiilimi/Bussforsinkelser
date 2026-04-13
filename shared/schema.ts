@@ -212,6 +212,31 @@ export const journeyStopWeekly = sqliteTable(
   }),
 );
 
+// Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
+//
+// Unlike journeyStopWeekly (weekly aggregates), each row is one calendar day —
+// the un-aggregated truth. Enables percentiles, scatter-plots, transfer probability,
+// and historical single-trip lookup. Exported weekly to Parquet on R2.
+export const journeyStopDaily = sqliteTable(
+  "journey_stop_daily",
+  {
+    date: text("date").notNull(),
+    serviceJourneyId: text("service_journey_id").notNull(),
+    lineRef: text("line_ref").notNull(),
+    directionRef: text("direction_ref").notNull(),
+    stopRef: text("stop_ref").notNull(),
+    stopSequence: integer("stop_sequence").notNull(),
+    aimedArrival: text("aimed_arrival"),        // 'HH:MM' local, NULL at first stop
+    aimedDeparture: text("aimed_departure"),    // 'HH:MM' local, NULL at last stop
+    delayArrivalMin: real("delay_arrival_min"), // NULL at first stop
+    delayDepartureMin: real("delay_departure_min"), // NULL at last stop
+    dwellTimeSec: real("dwell_time_sec"),       // NULL at first/last, filtered
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.date, table.serviceJourneyId, table.stopRef] }),
+  }),
+);
+
 // ---------------------------------------------------------------------------
 // TypeScript types inferred from the schema
 // ---------------------------------------------------------------------------
@@ -225,6 +250,7 @@ export type LeaderboardLine = typeof leaderboardLines.$inferSelect;
 export type WorstDay = typeof worstDays.$inferSelect;
 export type StopCoord = typeof stopCoords.$inferSelect;
 export type JourneyStopWeekly = typeof journeyStopWeekly.$inferSelect;
+export type JourneyStopDaily = typeof journeyStopDaily.$inferSelect;
 
 // Data quality warnings logged during ingest.
 // type: 'outlier_delay' (abs(delay_min) > 120) | 'missing_time' (no timing data)

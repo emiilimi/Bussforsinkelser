@@ -3,9 +3,9 @@ import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, MapPin, MapPinOff, Trophy } from "lucide-react";
+import { CalendarDays, MapPin, MapPinOff, Trophy, Activity, Zap } from "lucide-react";
 import { formatStopName } from "@/lib/utils";
-import { formatDateNO, formatWeekdayShortNO } from "@/lib/date-utils";
+import { formatDateNO, formatWeekdayShortNO, lineNumber } from "@/lib/date-utils";
 import { useState } from "react";
 import { useLocation } from "wouter";
 
@@ -25,6 +25,16 @@ type LeaderboardStop = {
   totalDepartures: number | null;
 };
 
+type LeaderboardLine = {
+  lineRef: string;
+  lineName: string | null;
+  avgDelayMin: number | null;
+  stddevDelayMin: number | null;
+  pctOnTime: number | null;
+  pctDelayed10plus: number | null;
+  totalDepartures: number | null;
+};
+
 export default function WorstLists() {
   const [, navigate] = useLocation();
   const [daySort, setDaySort] = useState<"delay" | "cancellations">("delay");
@@ -34,6 +44,8 @@ export default function WorstLists() {
   const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: ["/api/best-days?limit=10"] });
   const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: ["/api/leaderboard/stops?type=worst"] });
   const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: ["/api/leaderboard/stops?type=best"] });
+  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: ["/api/leaderboard/lines?type=reliable"] });
+  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: ["/api/leaderboard/lines?type=unreliable"] });
 
   // Sort days
   const sortedWorstDays = [...worstDays].sort((a, b) =>
@@ -264,6 +276,114 @@ export default function WorstLists() {
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {stop.pctDelayed2plus?.toFixed(1) ?? "—"}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ---- Reliability (stddev-based) ---- */}
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+            <Activity className="h-6 w-6 text-primary" /> Pålitelighet
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Standardavvik (σ) for forsinkelse — lavt = forutsigbar, høyt = uforutsigbar. Min. 500 avganger totalt.
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Most reliable */}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-emerald-600" />
+                Mest pålitelige linjer
+              </CardTitle>
+              <CardDescription>Lavest standardavvik — mest forutsigbar forsinkelse.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Linje</TableHead>
+                    <TableHead className="text-right">σ</TableHead>
+                    <TableHead className="text-right">Snitt</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Avganger</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reliableLines.map((line, i) => (
+                    <TableRow key={line.lineRef} className={i === 0 ? "bg-emerald-500/5 font-medium" : ""}>
+                      <TableCell className="text-sm">
+                        <button
+                          onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
+                          className="hover:underline text-left"
+                          title="Se linjeanalyse"
+                        >
+                          <span className="font-semibold">{lineNumber(line.lineRef)}</span>
+                          {line.lineName && <span className="text-muted-foreground"> · {line.lineName}</span>}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-right text-emerald-600 font-mono">
+                        ±{line.stddevDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {line.avgDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
+                        {line.totalDepartures?.toLocaleString("nb-NO") ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Least reliable */}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-destructive" />
+                Mest uforutsigbare linjer
+              </CardTitle>
+              <CardDescription>Høyest standardavvik — størst sprik mellom avgangene.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Linje</TableHead>
+                    <TableHead className="text-right">σ</TableHead>
+                    <TableHead className="text-right">Snitt</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Avganger</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {unreliableLines.map((line, i) => (
+                    <TableRow key={line.lineRef} className={i === 0 ? "bg-destructive/5 font-medium" : ""}>
+                      <TableCell className="text-sm">
+                        <button
+                          onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
+                          className="hover:underline text-left"
+                          title="Se linjeanalyse"
+                        >
+                          <span className="font-semibold">{lineNumber(line.lineRef)}</span>
+                          {line.lineName && <span className="text-muted-foreground"> · {line.lineName}</span>}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-right text-destructive font-mono">
+                        ±{line.stddevDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {line.avgDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
+                        {line.totalDepartures?.toLocaleString("nb-NO") ?? "—"}
                       </TableCell>
                     </TableRow>
                   ))}

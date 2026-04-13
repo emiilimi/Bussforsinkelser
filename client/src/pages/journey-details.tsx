@@ -31,6 +31,8 @@ type LineDaily = {
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
   numDepartures: number | null;
+  pctRealtimeCoverage: number | null;
+  stddevDelayMin: number | null;
 };
 
 type HourlyProfile = {
@@ -281,16 +283,23 @@ export default function JourneyDetails() {
     }
   }, [routeVariants]);
 
-  const { data: worstJourneys = [] } = useQuery<Array<{
+  type JourneyRanking = {
     serviceJourneyId: string;
     departureTime: string | null;
     firstStopName: string | null;
     lastStopName: string | null;
     avgDelayMin: number;
-    totalSamples: number;
+    observedDepartures: number;
     numStops: number;
-  }>>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/worst-journeys?direction=${stopProfileDir}`],
+  };
+
+  const { data: worstJourneys = [] } = useQuery<JourneyRanking[]>({
+    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/worst-journeys?direction=${stopProfileDir}&limit=5`],
+    enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
+  });
+
+  const { data: bestJourneys = [] } = useQuery<JourneyRanking[]>({
+    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/best-journeys?direction=${stopProfileDir}&limit=5`],
     enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
   });
 
@@ -339,6 +348,18 @@ export default function JourneyDetails() {
     ? daily.reduce((best, r) => (r.avgDelayMin ?? Infinity) < (best.avgDelayMin ?? Infinity) ? r : best, daily[0])
     : null;
   const totalDepartures = daily.reduce((s, r) => s + (r.numDepartures ?? 0), 0);
+
+  // Weighted average stddev across days (a measure of how unpredictable the line is).
+  const avgStddev = (() => {
+    let num = 0, den = 0;
+    for (const r of daily) {
+      if (r.stddevDelayMin != null && r.numDepartures != null) {
+        num += r.stddevDelayMin * r.numDepartures;
+        den += r.numDepartures;
+      }
+    }
+    return den > 0 ? num / den : null;
+  })();
 
   // Real-time data coverage: % of scheduled stop-visits that had actual GPS times
   // Comes directly from pct_realtime_coverage computed in ingest.py
@@ -598,7 +619,7 @@ export default function JourneyDetails() {
               </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Snitt forsinkelse</CardTitle>
@@ -633,6 +654,18 @@ export default function JourneyDetails() {
                     {avgPctDelayed10 != null ? `${avgPctDelayed10.toFixed(1)}%` : "—"}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Avganger &gt; 10 min forsinkelse</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Pålitelighet (σ)</CardTitle>
+                  <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold font-mono ${(avgStddev ?? 0) > 5 ? "text-destructive" : (avgStddev ?? 0) > 3 ? "text-amber-500" : "text-emerald-600"}`}>
+                    {avgStddev != null ? `±${avgStddev.toFixed(1)}m` : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Standardavvik · lavt = forutsigbar</p>
                 </CardContent>
               </Card>
               <Card className={coveragePct != null && coveragePct < 70 ? "border-l-4 border-l-amber-500" : ""}>
@@ -1069,73 +1102,79 @@ export default function JourneyDetails() {
               </Card>
             )}
 
-            {/* ---- Worst individual departures ---- */}
-            {worstJourneys.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Verste enkeltavganger</CardTitle>
-                  <CardDescription>
-                    De mest forsinkede tidsatte avgangene for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} — snitt forsinkelse langs hele ruten (siste 13 uker).
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-muted-foreground text-xs">
-                          <th className="text-left pb-2 font-medium">Avgang</th>
-                          <th className="text-left pb-2 font-medium hidden md:table-cell">Rute</th>
-                          <th className="text-right pb-2 font-medium">Snitt forsinkelse</th>
-                          <th className="text-right pb-2 font-medium hidden sm:table-cell">Målinger</th>
-                          <th className="text-right pb-2 font-medium hidden sm:table-cell">Stopp</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {worstJourneys.map((j, i) => (
-                          <tr
-                            key={j.serviceJourneyId}
-                            className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                            onClick={() => {
-                              if (!j.departureTime) return;
-                              setSelectedJourney({
-                                directionRef: stopProfileDir,
-                                firstStopTime: j.departureTime,
-                                numVariants: 1,
-                                firstStopName: null,
-                                lastStopName: null,
-                              });
-                              setTimeout(() => journeyProfileRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                            }}
-                            title="Klikk for å se reiseprofil"
-                          >
-                            <td className="py-2 font-mono">
-                              <span className={`inline-block w-5 text-xs text-muted-foreground mr-2`}>{i + 1}.</span>
-                              {j.departureTime ?? "—"}
-                              <ArrowRight className="inline-block ml-1.5 h-3 w-3 text-muted-foreground opacity-50" />
-                            </td>
-                            <td className="py-2 text-muted-foreground text-xs hidden md:table-cell max-w-[200px] truncate">
-                              {j.firstStopName && j.lastStopName
-                                ? `${j.firstStopName} → ${j.lastStopName}`
-                                : j.firstStopName ?? j.lastStopName ?? "—"}
-                            </td>
-                            <td className="py-2 text-right">
-                              <span className={`font-mono font-semibold ${j.avgDelayMin > 5 ? "text-destructive" : j.avgDelayMin > 2 ? "text-amber-500" : "text-emerald-600"}`}>
-                                {j.avgDelayMin > 0 ? "+" : ""}{j.avgDelayMin.toFixed(1)} min
-                              </span>
-                            </td>
-                            <td className="py-2 text-right text-muted-foreground hidden sm:table-cell">
-                              {j.totalSamples.toLocaleString("nb-NO")}
-                            </td>
-                            <td className="py-2 text-right text-muted-foreground hidden sm:table-cell">
-                              {j.numStops}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* ---- Worst & best individual departures ---- */}
+            {(worstJourneys.length > 0 || bestJourneys.length > 0) && stopProfileDir !== "" && stopProfileDir !== "all" && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                {[
+                  { title: "Verste enkeltavganger", desc: "Mest forsinkede", data: worstJourneys, isWorst: true },
+                  { title: "Beste enkeltavganger", desc: "Mest punktlige", data: bestJourneys, isWorst: false },
+                ].map((section) => (
+                  <Card key={section.title}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        {section.isWorst ? <TrendingUp className="h-5 w-5 text-destructive" /> : <CheckCircle className="h-5 w-5 text-emerald-600" />}
+                        {section.title}
+                      </CardTitle>
+                      <CardDescription>
+                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} (siste 13 uker).
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b text-muted-foreground text-xs">
+                              <th className="text-left pb-2 font-medium">Avgang</th>
+                              <th className="text-left pb-2 font-medium hidden md:table-cell">Rute</th>
+                              <th className="text-right pb-2 font-medium">Snitt</th>
+                              <th className="text-right pb-2 font-medium hidden sm:table-cell" title="Antall ganger denne avgangen er observert (siste 13 uker)">Avg. obs.</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {section.data.map((j, i) => (
+                              <tr
+                                key={j.serviceJourneyId}
+                                className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  if (!j.departureTime) return;
+                                  setSelectedJourney({
+                                    directionRef: stopProfileDir,
+                                    firstStopTime: j.departureTime,
+                                    numVariants: 1,
+                                    firstStopName: j.firstStopName,
+                                    lastStopName: j.lastStopName,
+                                  });
+                                  setTimeout(() => journeyProfileRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                                }}
+                                title="Klikk for å se reiseprofil"
+                              >
+                                <td className="py-2 font-mono">
+                                  <span className="inline-block w-5 text-xs text-muted-foreground mr-2">{i + 1}.</span>
+                                  {j.departureTime ?? "—"}
+                                  <ArrowRight className="inline-block ml-1.5 h-3 w-3 text-muted-foreground opacity-50" />
+                                </td>
+                                <td className="py-2 text-muted-foreground text-xs hidden md:table-cell max-w-[180px] truncate">
+                                  {j.firstStopName && j.lastStopName
+                                    ? `${j.firstStopName} → ${j.lastStopName}`
+                                    : j.firstStopName ?? j.lastStopName ?? "—"}
+                                </td>
+                                <td className="py-2 text-right">
+                                  <span className={`font-mono font-semibold ${j.avgDelayMin > 5 ? "text-destructive" : j.avgDelayMin > 2 ? "text-amber-500" : "text-emerald-600"}`}>
+                                    {j.avgDelayMin > 0 ? "+" : ""}{j.avgDelayMin.toFixed(1)}m
+                                  </span>
+                                </td>
+                                <td className="py-2 text-right text-muted-foreground hidden sm:table-cell">
+                                  {j.observedDepartures.toLocaleString("nb-NO")}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
             {/* ---- A: Journey profile ---- */}

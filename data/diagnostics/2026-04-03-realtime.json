@@ -1,0 +1,901 @@
+{
+  "date": "2026-04-03",
+  "totalBusRows": 78122,
+  "suspectedFakeOnTime": {
+    "count": 342,
+    "pct": 0.4,
+    "description": "departureTime == aimedDepartureTime exactly — likely no GPS update received, scheduled time echoed as actual",
+    "byLine": [
+      {
+        "lineRef": "SKY:Line:65",
+        "totalBusRows": 45,
+        "suspectedFakeOnTime": 2,
+        "pct": 4.4,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:65-199944-19303808",
+            "firstAimedTime": "14:16",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:65-199944-19303806",
+            "firstAimedTime": "18:16",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:313",
+        "totalBusRows": 48,
+        "suspectedFakeOnTime": 1,
+        "pct": 2.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:313-199673-19186939",
+            "firstAimedTime": "19:49",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:42",
+        "totalBusRows": 636,
+        "suspectedFakeOnTime": 11,
+        "pct": 1.7,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143726",
+            "firstAimedTime": "13:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143739",
+            "firstAimedTime": "14:24",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143727",
+            "firstAimedTime": "14:57",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143741",
+            "firstAimedTime": "16:27",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143729",
+            "firstAimedTime": "16:40",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143742",
+            "firstAimedTime": "17:27",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143730",
+            "firstAimedTime": "17:53",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143731",
+            "firstAimedTime": "18:46",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:42-198134-19143732",
+            "firstAimedTime": "19:44",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:790",
+        "totalBusRows": 61,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.6,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:790-200424-20274818",
+            "firstAimedTime": "18:39",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:70",
+        "totalBusRows": 390,
+        "suspectedFakeOnTime": 6,
+        "pct": 1.5,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303841",
+            "firstAimedTime": "07:02",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303843",
+            "firstAimedTime": "09:43",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303849",
+            "firstAimedTime": "10:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303844",
+            "firstAimedTime": "18:35",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303853",
+            "firstAimedTime": "19:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:70-199944-19303840",
+            "firstAimedTime": "23:31",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:16E",
+        "totalBusRows": 2963,
+        "suspectedFakeOnTime": 41,
+        "pct": 1.4,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357790",
+            "firstAimedTime": "00:16",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357825",
+            "firstAimedTime": "00:20",
+            "affectedStops": 3
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357821",
+            "firstAimedTime": "00:41",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357797",
+            "firstAimedTime": "08:24",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357759",
+            "firstAimedTime": "08:35",
+            "affectedStops": 3
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357762",
+            "firstAimedTime": "09:38",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357799",
+            "firstAimedTime": "09:58",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357800",
+            "firstAimedTime": "10:24",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357801",
+            "firstAimedTime": "10:30",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357765",
+            "firstAimedTime": "10:44",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357767",
+            "firstAimedTime": "11:08",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357768",
+            "firstAimedTime": "11:19",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357802",
+            "firstAimedTime": "11:21",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357773",
+            "firstAimedTime": "13:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357812",
+            "firstAimedTime": "14:24",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357777",
+            "firstAimedTime": "15:43",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357808",
+            "firstAimedTime": "15:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357774",
+            "firstAimedTime": "16:07",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357776",
+            "firstAimedTime": "16:28",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357813",
+            "firstAimedTime": "16:48",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357775",
+            "firstAimedTime": "17:37",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357771",
+            "firstAimedTime": "18:04",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357815",
+            "firstAimedTime": "18:20",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357780",
+            "firstAimedTime": "19:35",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357781",
+            "firstAimedTime": "20:07",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357819",
+            "firstAimedTime": "20:09",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357788",
+            "firstAimedTime": "20:35",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357827",
+            "firstAimedTime": "21:15",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357784",
+            "firstAimedTime": "21:18",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357829",
+            "firstAimedTime": "21:49",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357824",
+            "firstAimedTime": "22:09",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357783",
+            "firstAimedTime": "22:35",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357789",
+            "firstAimedTime": "23:16",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:16E-198134-19357822",
+            "firstAimedTime": "23:28",
+            "affectedStops": 2
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:411",
+        "totalBusRows": 220,
+        "suspectedFakeOnTime": 3,
+        "pct": 1.4,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:411-201711-20779860",
+            "firstAimedTime": "18:49",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:411-201711-20779856",
+            "firstAimedTime": "20:42",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:67",
+        "totalBusRows": 390,
+        "suspectedFakeOnTime": 5,
+        "pct": 1.3,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:67-199944-19304102",
+            "firstAimedTime": "00:50",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:67-199944-19304105",
+            "firstAimedTime": "05:53",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:67-199944-19304067",
+            "firstAimedTime": "06:40",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:67-199944-19304086",
+            "firstAimedTime": "08:05",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:67-199944-19304097",
+            "firstAimedTime": "19:07",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:991",
+        "totalBusRows": 155,
+        "suspectedFakeOnTime": 2,
+        "pct": 1.3,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:991-200424-19889318",
+            "firstAimedTime": "17:00",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:991-200424-19889320",
+            "firstAimedTime": "22:45",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:442",
+        "totalBusRows": 80,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:442-201711-20779842",
+            "firstAimedTime": "18:27",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:30",
+        "totalBusRows": 663,
+        "suspectedFakeOnTime": 7,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404828",
+            "firstAimedTime": "09:16",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404834",
+            "firstAimedTime": "13:18",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404835",
+            "firstAimedTime": "14:15",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404839",
+            "firstAimedTime": "18:15",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404856",
+            "firstAimedTime": "19:01",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:30-198797-20404861",
+            "firstAimedTime": "23:58",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:330",
+        "totalBusRows": 551,
+        "suspectedFakeOnTime": 6,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:330-199673-20175774",
+            "firstAimedTime": "00:35",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:330-199673-20175771",
+            "firstAimedTime": "11:58",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:330-199673-20175769",
+            "firstAimedTime": "18:23",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:330-199673-20175773",
+            "firstAimedTime": "21:08",
+            "affectedStops": 2
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:53",
+        "totalBusRows": 741,
+        "suspectedFakeOnTime": 8,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303887",
+            "firstAimedTime": "06:33",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303855",
+            "firstAimedTime": "08:52",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303880",
+            "firstAimedTime": "12:19",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303866",
+            "firstAimedTime": "13:16",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303883",
+            "firstAimedTime": "18:25",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303878",
+            "firstAimedTime": "20:49",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:53-199944-19303863",
+            "firstAimedTime": "23:41",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:41",
+        "totalBusRows": 192,
+        "suspectedFakeOnTime": 2,
+        "pct": 1.0,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-198134-19143977",
+            "firstAimedTime": "18:04",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-198134-19143979",
+            "firstAimedTime": "20:04",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SOF:Line:8966_69",
+        "totalBusRows": 96,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.0,
+        "journeys": [
+          {
+            "serviceJourneyId": "SOF:ServiceJourney:150_32_7000_69",
+            "firstAimedTime": "12:52",
+            "affectedStops": 1
+          }
+        ]
+      }
+    ]
+  },
+  "noRealtime": {
+    "count": 11109,
+    "pct": 14.2,
+    "description": "Both departureTime and arrivalTime NULL (not cancelled) — excluded from delay stats automatically",
+    "byLine": [
+      {
+        "lineRef": "SKY:Line:1",
+        "totalBusRows": 5697,
+        "noRealtime": 5697,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1019",
+        "totalBusRows": 68,
+        "noRealtime": 68,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1020",
+        "totalBusRows": 2,
+        "noRealtime": 2,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1021",
+        "totalBusRows": 22,
+        "noRealtime": 22,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1022",
+        "totalBusRows": 66,
+        "noRealtime": 66,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1024",
+        "totalBusRows": 60,
+        "noRealtime": 60,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1025",
+        "totalBusRows": 20,
+        "noRealtime": 20,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1026",
+        "totalBusRows": 44,
+        "noRealtime": 44,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1027",
+        "totalBusRows": 29,
+        "noRealtime": 29,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1028",
+        "totalBusRows": 30,
+        "noRealtime": 30,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1029",
+        "totalBusRows": 20,
+        "noRealtime": 20,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1030",
+        "totalBusRows": 26,
+        "noRealtime": 26,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1031",
+        "totalBusRows": 48,
+        "noRealtime": 48,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1032",
+        "totalBusRows": 34,
+        "noRealtime": 34,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1033",
+        "totalBusRows": 26,
+        "noRealtime": 26,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1034",
+        "totalBusRows": 28,
+        "noRealtime": 28,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1035",
+        "totalBusRows": 12,
+        "noRealtime": 12,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1036",
+        "totalBusRows": 76,
+        "noRealtime": 76,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2",
+        "totalBusRows": 1605,
+        "noRealtime": 1605,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2071",
+        "totalBusRows": 24,
+        "noRealtime": 24,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2075",
+        "totalBusRows": 14,
+        "noRealtime": 14,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2079",
+        "totalBusRows": 16,
+        "noRealtime": 16,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2080",
+        "totalBusRows": 22,
+        "noRealtime": 22,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:343",
+        "totalBusRows": 14,
+        "noRealtime": 14,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:350",
+        "totalBusRows": 62,
+        "noRealtime": 62,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:490",
+        "totalBusRows": 116,
+        "noRealtime": 116,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:554",
+        "totalBusRows": 37,
+        "noRealtime": 37,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:555",
+        "totalBusRows": 21,
+        "noRealtime": 21,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:922",
+        "totalBusRows": 35,
+        "noRealtime": 35,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:923",
+        "totalBusRows": 127,
+        "noRealtime": 127,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:924",
+        "totalBusRows": 98,
+        "noRealtime": 98,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:970",
+        "totalBusRows": 100,
+        "noRealtime": 100,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:945",
+        "totalBusRows": 250,
+        "noRealtime": 159,
+        "pct": 63.6
+      },
+      {
+        "lineRef": "SKY:Line:342",
+        "totalBusRows": 115,
+        "noRealtime": 71,
+        "pct": 61.7
+      },
+      {
+        "lineRef": "SKY:Line:654",
+        "totalBusRows": 289,
+        "noRealtime": 155,
+        "pct": 53.6
+      },
+      {
+        "lineRef": "SKY:Line:651",
+        "totalBusRows": 115,
+        "noRealtime": 29,
+        "pct": 25.2
+      },
+      {
+        "lineRef": "SKY:Line:930",
+        "totalBusRows": 519,
+        "noRealtime": 108,
+        "pct": 20.8
+      },
+      {
+        "lineRef": "SKY:Line:980",
+        "totalBusRows": 539,
+        "noRealtime": 104,
+        "pct": 19.3
+      },
+      {
+        "lineRef": "SKY:Line:345",
+        "totalBusRows": 104,
+        "noRealtime": 20,
+        "pct": 19.2
+      },
+      {
+        "lineRef": "SKY:Line:990",
+        "totalBusRows": 595,
+        "noRealtime": 89,
+        "pct": 15.0
+      },
+      {
+        "lineRef": "SKY:Line:326",
+        "totalBusRows": 186,
+        "noRealtime": 26,
+        "pct": 14.0
+      },
+      {
+        "lineRef": "SKY:Line:10",
+        "totalBusRows": 2559,
+        "noRealtime": 303,
+        "pct": 11.8
+      },
+      {
+        "lineRef": "SKY:Line:411",
+        "totalBusRows": 220,
+        "noRealtime": 23,
+        "pct": 10.5
+      },
+      {
+        "lineRef": "SKY:Line:12",
+        "totalBusRows": 2885,
+        "noRealtime": 285,
+        "pct": 9.9
+      },
+      {
+        "lineRef": "SKY:Line:18",
+        "totalBusRows": 683,
+        "noRealtime": 66,
+        "pct": 9.7
+      },
+      {
+        "lineRef": "SKY:Line:302",
+        "totalBusRows": 152,
+        "noRealtime": 13,
+        "pct": 8.6
+      },
+      {
+        "lineRef": "SKY:Line:344",
+        "totalBusRows": 51,
+        "noRealtime": 4,
+        "pct": 7.8
+      },
+      {
+        "lineRef": "SKY:Line:41",
+        "totalBusRows": 192,
+        "noRealtime": 15,
+        "pct": 7.8
+      },
+      {
+        "lineRef": "SKY:Line:310",
+        "totalBusRows": 296,
+        "noRealtime": 22,
+        "pct": 7.4
+      },
+      {
+        "lineRef": "SKY:Line:20",
+        "totalBusRows": 1200,
+        "noRealtime": 82,
+        "pct": 6.8
+      },
+      {
+        "lineRef": "SKY:Line:24",
+        "totalBusRows": 1025,
+        "noRealtime": 70,
+        "pct": 6.8
+      },
+      {
+        "lineRef": "SKY:Line:313",
+        "totalBusRows": 48,
+        "noRealtime": 3,
+        "pct": 6.2
+      },
+      {
+        "lineRef": "SKY:Line:450",
+        "totalBusRows": 480,
+        "noRealtime": 30,
+        "pct": 6.2
+      },
+      {
+        "lineRef": "SKY:Line:610",
+        "totalBusRows": 1207,
+        "noRealtime": 74,
+        "pct": 6.1
+      },
+      {
+        "lineRef": "SKY:Line:671",
+        "totalBusRows": 159,
+        "noRealtime": 9,
+        "pct": 5.7
+      },
+      {
+        "lineRef": "SKY:Line:92",
+        "totalBusRows": 87,
+        "noRealtime": 5,
+        "pct": 5.7
+      },
+      {
+        "lineRef": "SKY:Line:552",
+        "totalBusRows": 145,
+        "noRealtime": 8,
+        "pct": 5.5
+      },
+      {
+        "lineRef": "SKY:Line:67",
+        "totalBusRows": 390,
+        "noRealtime": 20,
+        "pct": 5.1
+      }
+    ]
+  }
+}

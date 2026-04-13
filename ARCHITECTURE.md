@@ -166,9 +166,9 @@ Bruker
 
 ---
 
-## Foreslått fremtidig skjema
+## Implementerte tilleggstabeller (2026-04)
 
-### `journey_stop_weekly` *(ikke implementert)*
+### `journey_stop_weekly` ✅
 **Formål:** Kjernedatastruktur for reiseprofil-analyse (forsinkelse per stopp langs ruten) og linjer-per-stoppsted-analyse. Sliding window med ukentlige aggregat-buckets.
 
 | Kolonne | Type | Beskrivelse |
@@ -202,6 +202,29 @@ DELETE FROM journey_stop_weekly WHERE week_start < date('now', '-91 days');
 ```
 
 **Datamengde Skyss:** ~75 000 rader/uke × 13 uker = ~975 000 rader ≈ 80 MB
+
+---
+
+### `journey_stop_daily` ✅
+**Formål:** Rå per-avgang per-stopp per-dag data. Ikke aggregert. 90-dagers rullende vindu.
+Grunnlag for Parquet-eksport og DuckDB-WASM klient-side analyse (persentiler, scatter plots).
+
+| Kolonne | Type | Beskrivelse |
+|---|---|---|
+| `date` | TEXT | ISO-dato |
+| `service_journey_id` | TEXT | NeTEx ServiceJourney ID |
+| `line_ref` | TEXT | `SKY:Line:6` etc. |
+| `direction_ref` | TEXT | `'0'`/`'1'` |
+| `stop_ref` | TEXT | `NSR:Quay:xxxxx` |
+| `stop_sequence` | INTEGER | Stopperekkefølge langs ruten |
+| `aimed_arrival` | TEXT | Planlagt ankomsttid |
+| `aimed_departure` | TEXT | Planlagt avgangstid |
+| `delay_arrival_min` | REAL | Forsinkelse ankomst (minutter) |
+| `delay_departure_min` | REAL | Forsinkelse avgang (minutter) |
+| `dwell_time_sec` | REAL | Stopptid (sekunder) |
+
+**PK:** `(date, service_journey_id, stop_ref)`
+**Eksport:** `pipeline/export_parquet.py` → `data/parquet/2026-W15.parquet` (ZSTD)
 
 ---
 
@@ -305,10 +328,34 @@ Velg en linje og se historisk ytelse.
 
 ---
 
+### Reisesjekk (`/reise`)
+**Status:** Alpha (2026-04-12) ✓
+
+Statistisk reiseplanlegger: Søk fra→til, få Entur-reiseforslag med historisk forsinkelsesdata overlay.
+
+- **Stoppsøk:** Debounced typeahead via `corridor-search` (gruppert per StopPlace)
+- **Entur-proxy:** `POST /api/trip` → Entur JP v3 GraphQL, 5-min server-cache
+- **Delay overlay:** `POST /api/trip/stats` → `journey_stop_weekly` aggregat per (stopRef, lineRef)
+- **Overgangsanalyse:** Buffer-tid vs snitt ankomstforsinkelse → "Trygg"/"Sannsynlig"/"Usikker"/"Risikabel"
+- **Gangavstander:** `mode: "foot"` legs vises i UI
+- **NLOD-attribusjon:** Sidebar med Entur-logo og NLOD 2.0-referanse
+
+**API-kall:**
+- `GET /api/stops/corridor-search?q=...` — stoppsøk (returnerer `stopPlaceRef`)
+- `POST /api/trip` — Entur proxy (cachet)
+- `POST /api/trip/stats` — delay stats
+
+**Planlagt utvidelse:**
+- P50/P80/P95 persentiler (krever DuckDB-WASM + Parquet)
+- Empirisk transfer-sannsynlighet fra rådata
+- Historisk enkeltreise-oppslag (spesifikk dato + avgang)
+
+---
+
 ## Planlagte / mulige fremtidige funksjoner
 
 ### Reiseprofil-analyse (`/journey` — utvidelse)
-**Prioritet:** Høy
+**Prioritet:** ✅ Implementert
 **Krever:** `journey_stop_weekly`-tabellen
 
 Utvid linjeanalysen med:
@@ -422,6 +469,7 @@ bussforsinkelser.no/
 │   ├── db_setup.py          Oppretter SQLite-skjema
 │   ├── populate_stops.py    Henter NSR-koordinater (quays JOIN stop_places)
 │   ├── ingest.py            Nightly BigQuery → SQLite (én dag av gangen)
+│   ├── export_parquet.py    Ukentlig SQLite → Parquet (ZSTD)
 │   ├── backfill.py          Masseimport av historiske data
 │   ├── check_data.py        Manuelle DB-inspeksjoner og BigQuery-tester
 │   └── requirements.txt
@@ -437,7 +485,8 @@ bussforsinkelser.no/
 │   │   ├── delay-map.tsx
 │   │   ├── stop-analysis.tsx
 │   │   ├── worst-lists.tsx
-│   │   └── journey-details.tsx
+│   │   ├── journey-details.tsx
+│   │   └── trip-planner.tsx
 │   ├── lib/
 │   │   ├── utils.ts         formatStopName og cn
 │   │   ├── queryClient.ts

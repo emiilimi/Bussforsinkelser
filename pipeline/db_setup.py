@@ -220,6 +220,40 @@ CREATE INDEX IF NOT EXISTS idx_jsw_stop                ON journey_stop_weekly (s
 CREATE INDEX IF NOT EXISTS idx_jsw_week                ON journey_stop_weekly (week_start);
 CREATE INDEX IF NOT EXISTS idx_jsw_journey             ON journey_stop_weekly (service_journey_id);
 
+-- Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
+--
+-- Unlike journey_stop_weekly (which stores weekly aggregates), this table stores
+-- one row per actual calendar day per journey per stop — the un-aggregated truth.
+--
+-- Enables:
+--   • Percentile calculations (P50/P80/P95) for reiseplanlegger
+--   • Scatter-plot: time-of-day vs delay per stop, colour = line
+--   • Empirical transfer probability: match actual arrival A vs actual departure B
+--   • Historical single-trip lookup ("what happened to the 08:15 on 7 April?")
+--
+-- Exported weekly to Parquet on Cloudflare R2 for DuckDB-WASM client-side queries.
+-- Zero extra BQ cost: compute_delays() already calculates all values.
+CREATE TABLE IF NOT EXISTS journey_stop_daily (
+    date                TEXT    NOT NULL,
+    service_journey_id  TEXT    NOT NULL,
+    line_ref            TEXT    NOT NULL,
+    direction_ref       TEXT    NOT NULL,
+    stop_ref            TEXT    NOT NULL,   -- NSR:Quay:xxxxx
+    stop_sequence       INTEGER NOT NULL,   -- order along route
+    aimed_arrival       TEXT,              -- 'HH:MM' local (NULL at first stop)
+    aimed_departure     TEXT,              -- 'HH:MM' local (NULL at last stop)
+    delay_arrival_min   REAL,              -- NULL at first stop
+    delay_departure_min REAL,              -- NULL at last stop
+    dwell_time_sec      REAL,              -- NULL at first/last, filtered neg + >10min
+    PRIMARY KEY (date, service_journey_id, stop_ref)
+);
+
+CREATE INDEX IF NOT EXISTS idx_jsd_date        ON journey_stop_daily (date);
+CREATE INDEX IF NOT EXISTS idx_jsd_line        ON journey_stop_daily (line_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_stop        ON journey_stop_daily (stop_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_journey     ON journey_stop_daily (service_journey_id);
+CREATE INDEX IF NOT EXISTS idx_jsd_line_stop   ON journey_stop_daily (line_ref, stop_ref);
+
 -- Data quality log: outlier delays and missing timing data flagged during ingest.
 -- One row per outlier journey-stop, one row per day for missing_time summary.
 -- Used by the frontend to show transparency notices.

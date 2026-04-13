@@ -172,6 +172,7 @@ export default function StopAnalysis() {
   const search = useSearch();
   const { operator } = useRegion();
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string; quays: Quay[] } | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null); // null = all platforms
   const [showResults, setShowResults] = useState(false);
@@ -190,9 +191,14 @@ export default function StopAnalysis() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
   const { data: searchResults = [] } = useQuery<SearchResult[]>({
-    queryKey: [`/api/stops/search?q=${encodeURIComponent(query)}`],
-    enabled: query.length >= 2,
+    queryKey: [`/api/stops/search?q=${encodeURIComponent(debouncedQuery)}`],
+    enabled: debouncedQuery.length >= 2,
   });
 
   // Use specific quay ref when a platform is selected, otherwise use the stop place ref

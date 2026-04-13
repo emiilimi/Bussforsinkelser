@@ -542,6 +542,91 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
     log.info("  Upserted %d journey_stop_weekly rows (week %s)", len(rows), week_start)
 
 
+def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
+    """Insert raw per-journey per-stop delay rows for one calendar day (bus only).
+
+    One row per (date, service_journey_id, stop_ref) — un-aggregated truth.
+    On re-ingest of the same date, values are overwritten (idempotent).
+
+    Rolling 90-day window: rows older than 90 days are pruned automatically.
+    Zero extra BQ cost: all values already computed by compute_delays().
+    """
+    act = active_rows(df[df["vehicleMode"] == "bus"])
+    if act.empty:
+        return
+
+    if "serviceJourneyId" not in act.columns or "sequenceNr" not in act.columns:
+        log.warning("  journey_stop_daily skipped: serviceJourneyId/sequenceNr not in DataFrame")
+        return
+
+    act = act[act["serviceJourneyId"].notna() & act["sequenceNr"].notna()].copy()
+    if act.empty:
+        return
+
+    rows = []
+    for (journey_id, line_ref, direction_ref, stop_ref), grp in act.groupby(
+        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef"]
+    ):
+        stop_seq = int(grp["sequenceNr"].iloc[0])
+
+        aimed_arr_ts = grp["aimed_arr_ts"].dropna()
+        aimed_arrival = (
+            aimed_arr_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
+            if not aimed_arr_ts.empty else None
+        )
+
+        aimed_dep_ts = grp["aimed_dep_ts"].dropna()
+        aimed_departure = (
+            aimed_dep_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
+            if not aimed_dep_ts.empty else None
+        )
+
+        # Mean across multiple observations for the same journey+stop in one day
+        arr_delays = grp["delay_arrival_min"].dropna()
+        delay_arrival = round(float(arr_delays.mean()), 2) if not arr_delays.empty else None
+
+        dep_delays = grp["delay_departure_min"].dropna()
+        delay_departure = round(float(dep_delays.mean()), 2) if not dep_delays.empty else None
+
+        dwell = grp["dwell_time_sec"].dropna()
+        dwell = dwell[(dwell >= 0) & (dwell <= 600)]
+        dwell_sec = round(float(dwell.mean()), 1) if not dwell.empty else None
+
+        rows.append((
+            date_str,
+            str(journey_id),
+            str(line_ref),
+            str(direction_ref),
+            str(stop_ref),
+            stop_seq,
+            aimed_arrival,
+            aimed_departure,
+            delay_arrival,
+            delay_departure,
+            dwell_sec,
+        ))
+
+    conn.executemany(
+        """
+        INSERT INTO journey_stop_daily
+            (date, service_journey_id, line_ref, direction_ref, stop_ref,
+             stop_sequence, aimed_arrival, aimed_departure,
+             delay_arrival_min, delay_departure_min, dwell_time_sec)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (date, service_journey_id, stop_ref) DO UPDATE SET
+            aimed_arrival       = COALESCE(aimed_arrival, excluded.aimed_arrival),
+            aimed_departure     = COALESCE(aimed_departure, excluded.aimed_departure),
+            delay_arrival_min   = excluded.delay_arrival_min,
+            delay_departure_min = excluded.delay_departure_min,
+            dwell_time_sec      = excluded.dwell_time_sec
+        """,
+        rows,
+    )
+
+    conn.execute("DELETE FROM journey_stop_daily WHERE date < date('now', '-90 days')")
+    log.info("  Upserted %d journey_stop_daily rows", len(rows))
+
+
 def refresh_leaderboards(conn: sqlite3.Connection) -> None:
     """Rebuild all-time leaderboard tables."""
     conn.execute("DELETE FROM leaderboard_lines")
@@ -854,6 +939,7 @@ def run(target_date: date) -> None:
             upsert_line_hourly_raw(conn, date_str, df)
             upsert_stop_hourly_raw(conn, date_str, df)
             upsert_journey_stop_weekly(conn, date_str, df)
+            upsert_journey_stop_daily(conn, date_str, df)
             refresh_line_hourly_profile(conn)
             refresh_stop_hourly_profile(conn)
             refresh_leaderboards(conn)

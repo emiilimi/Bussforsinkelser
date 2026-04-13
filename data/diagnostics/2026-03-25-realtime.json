@@ -1,0 +1,1048 @@
+{
+  "date": "2026-03-25",
+  "totalBusRows": 235396,
+  "suspectedFakeOnTime": {
+    "count": 797,
+    "pct": 0.3,
+    "description": "departureTime == aimedDepartureTime exactly — likely no GPS update received, scheduled time echoed as actual",
+    "byLine": [
+      {
+        "lineRef": "SKY:Line:762",
+        "totalBusRows": 83,
+        "suspectedFakeOnTime": 2,
+        "pct": 2.4,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:762-201283-18016769",
+            "firstAimedTime": "07:25",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:762-201283-18016771",
+            "firstAimedTime": "08:43",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:983",
+        "totalBusRows": 82,
+        "suspectedFakeOnTime": 2,
+        "pct": 2.4,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:983-201283-20272599",
+            "firstAimedTime": "08:09",
+            "affectedStops": 2
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:405",
+        "totalBusRows": 219,
+        "suspectedFakeOnTime": 4,
+        "pct": 1.8,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:405-202212-20722206",
+            "firstAimedTime": "06:07",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:405-202212-20722208",
+            "firstAimedTime": "13:00",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:405-202212-20722223",
+            "firstAimedTime": "13:37",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:405-202212-20722222",
+            "firstAimedTime": "14:05",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:940",
+        "totalBusRows": 194,
+        "suspectedFakeOnTime": 3,
+        "pct": 1.5,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:940-201283-18016531",
+            "firstAimedTime": "06:41",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:940-201283-18016523",
+            "firstAimedTime": "07:46",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:940-201283-18016530",
+            "firstAimedTime": "12:55",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:41",
+        "totalBusRows": 486,
+        "suspectedFakeOnTime": 6,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136516",
+            "firstAimedTime": "06:14",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136567",
+            "firstAimedTime": "12:46",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136575",
+            "firstAimedTime": "13:37",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136588",
+            "firstAimedTime": "16:33",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136563",
+            "firstAimedTime": "17:43",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:41-200567-19136530",
+            "firstAimedTime": "18:14",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:466",
+        "totalBusRows": 346,
+        "suspectedFakeOnTime": 4,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:466-202212-20721894",
+            "firstAimedTime": "07:26",
+            "affectedStops": 2
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:466-202212-20721895",
+            "firstAimedTime": "10:57",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:466-202212-20721903",
+            "firstAimedTime": "16:31",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:910",
+        "totalBusRows": 162,
+        "suspectedFakeOnTime": 2,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:910-199826-20335089",
+            "firstAimedTime": "06:59",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:910-199826-20335092",
+            "firstAimedTime": "17:50",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:960",
+        "totalBusRows": 80,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:960-201283-18016695",
+            "firstAimedTime": "13:54",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:982",
+        "totalBusRows": 80,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.2,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:982-201283-18016761",
+            "firstAimedTime": "08:10",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:32",
+        "totalBusRows": 819,
+        "suspectedFakeOnTime": 9,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:32-199826-20333995",
+            "firstAimedTime": "00:39",
+            "affectedStops": 6
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:32-199826-20334045",
+            "firstAimedTime": "06:12",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:32-199826-20334010",
+            "firstAimedTime": "14:46",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:32-199826-20334078",
+            "firstAimedTime": "23:15",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:413",
+        "totalBusRows": 281,
+        "suspectedFakeOnTime": 3,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:413-202212-20722567",
+            "firstAimedTime": "05:36",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:413-202212-20722312",
+            "firstAimedTime": "14:13",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:413-202212-20722571",
+            "firstAimedTime": "16:27",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:962",
+        "totalBusRows": 92,
+        "suspectedFakeOnTime": 1,
+        "pct": 1.1,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:962-201283-20043248",
+            "firstAimedTime": "15:36",
+            "affectedStops": 1
+          }
+        ]
+      },
+      {
+        "lineRef": "SKY:Line:984",
+        "totalBusRows": 296,
+        "suspectedFakeOnTime": 3,
+        "pct": 1.0,
+        "journeys": [
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:984-201283-20745635",
+            "firstAimedTime": "07:19",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:984-201283-20745645",
+            "firstAimedTime": "10:53",
+            "affectedStops": 1
+          },
+          {
+            "serviceJourneyId": "SKY:ServiceJourney:984-201283-20745643",
+            "firstAimedTime": "13:15",
+            "affectedStops": 1
+          }
+        ]
+      }
+    ]
+  },
+  "noRealtime": {
+    "count": 22935,
+    "pct": 9.7,
+    "description": "Both departureTime and arrivalTime NULL (not cancelled) — excluded from delay stats automatically",
+    "byLine": [
+      {
+        "lineRef": "SKY:Line:1",
+        "totalBusRows": 9175,
+        "noRealtime": 9175,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1019",
+        "totalBusRows": 96,
+        "noRealtime": 96,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1020",
+        "totalBusRows": 4,
+        "noRealtime": 4,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1021",
+        "totalBusRows": 26,
+        "noRealtime": 26,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1022",
+        "totalBusRows": 46,
+        "noRealtime": 46,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1023",
+        "totalBusRows": 2,
+        "noRealtime": 2,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1024",
+        "totalBusRows": 68,
+        "noRealtime": 68,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1025",
+        "totalBusRows": 40,
+        "noRealtime": 40,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1026",
+        "totalBusRows": 32,
+        "noRealtime": 32,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1027",
+        "totalBusRows": 55,
+        "noRealtime": 55,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1028",
+        "totalBusRows": 30,
+        "noRealtime": 30,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1029",
+        "totalBusRows": 28,
+        "noRealtime": 28,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1030",
+        "totalBusRows": 50,
+        "noRealtime": 50,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1031",
+        "totalBusRows": 62,
+        "noRealtime": 62,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1032",
+        "totalBusRows": 28,
+        "noRealtime": 28,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1033",
+        "totalBusRows": 24,
+        "noRealtime": 24,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1034",
+        "totalBusRows": 15,
+        "noRealtime": 15,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1035",
+        "totalBusRows": 40,
+        "noRealtime": 40,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:1036",
+        "totalBusRows": 128,
+        "noRealtime": 128,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2071",
+        "totalBusRows": 20,
+        "noRealtime": 20,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2075",
+        "totalBusRows": 29,
+        "noRealtime": 29,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2078",
+        "totalBusRows": 37,
+        "noRealtime": 37,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2079",
+        "totalBusRows": 40,
+        "noRealtime": 40,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2080",
+        "totalBusRows": 67,
+        "noRealtime": 67,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2085",
+        "totalBusRows": 17,
+        "noRealtime": 17,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:322",
+        "totalBusRows": 24,
+        "noRealtime": 24,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:390",
+        "totalBusRows": 31,
+        "noRealtime": 31,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:490",
+        "totalBusRows": 116,
+        "noRealtime": 116,
+        "pct": 100.0
+      },
+      {
+        "lineRef": "SKY:Line:2",
+        "totalBusRows": 2571,
+        "noRealtime": 2567,
+        "pct": 99.8
+      },
+      {
+        "lineRef": "SKY:Line:643",
+        "totalBusRows": 47,
+        "noRealtime": 28,
+        "pct": 59.6
+      },
+      {
+        "lineRef": "SKY:Line:766",
+        "totalBusRows": 104,
+        "noRealtime": 61,
+        "pct": 58.7
+      },
+      {
+        "lineRef": "SKY:Line:680",
+        "totalBusRows": 351,
+        "noRealtime": 170,
+        "pct": 48.4
+      },
+      {
+        "lineRef": "SKY:Line:633",
+        "totalBusRows": 205,
+        "noRealtime": 93,
+        "pct": 45.4
+      },
+      {
+        "lineRef": "SKY:Line:679",
+        "totalBusRows": 81,
+        "noRealtime": 36,
+        "pct": 44.4
+      },
+      {
+        "lineRef": "SKY:Line:744",
+        "totalBusRows": 133,
+        "noRealtime": 50,
+        "pct": 37.6
+      },
+      {
+        "lineRef": "SKY:Line:65",
+        "totalBusRows": 358,
+        "noRealtime": 106,
+        "pct": 29.6
+      },
+      {
+        "lineRef": "SKY:Line:923",
+        "totalBusRows": 342,
+        "noRealtime": 101,
+        "pct": 29.5
+      },
+      {
+        "lineRef": "SKY:Line:901",
+        "totalBusRows": 582,
+        "noRealtime": 159,
+        "pct": 27.3
+      },
+      {
+        "lineRef": "SKY:Line:640",
+        "totalBusRows": 495,
+        "noRealtime": 129,
+        "pct": 26.1
+      },
+      {
+        "lineRef": "SOF:Line:7293_69",
+        "totalBusRows": 24,
+        "noRealtime": 6,
+        "pct": 25.0
+      },
+      {
+        "lineRef": "SKY:Line:304",
+        "totalBusRows": 157,
+        "noRealtime": 39,
+        "pct": 24.8
+      },
+      {
+        "lineRef": "SKY:Line:631",
+        "totalBusRows": 397,
+        "noRealtime": 92,
+        "pct": 23.2
+      },
+      {
+        "lineRef": "SKY:Line:95",
+        "totalBusRows": 178,
+        "noRealtime": 37,
+        "pct": 20.8
+      },
+      {
+        "lineRef": "SKY:Line:350",
+        "totalBusRows": 381,
+        "noRealtime": 66,
+        "pct": 17.3
+      },
+      {
+        "lineRef": "SKY:Line:351",
+        "totalBusRows": 128,
+        "noRealtime": 22,
+        "pct": 17.2
+      },
+      {
+        "lineRef": "SKY:Line:745",
+        "totalBusRows": 427,
+        "noRealtime": 71,
+        "pct": 16.6
+      },
+      {
+        "lineRef": "SKY:Line:632",
+        "totalBusRows": 590,
+        "noRealtime": 95,
+        "pct": 16.1
+      },
+      {
+        "lineRef": "SKY:Line:84",
+        "totalBusRows": 78,
+        "noRealtime": 12,
+        "pct": 15.4
+      },
+      {
+        "lineRef": "SKY:Line:460E",
+        "totalBusRows": 185,
+        "noRealtime": 28,
+        "pct": 15.1
+      },
+      {
+        "lineRef": "SOF:Line:7299_69",
+        "totalBusRows": 299,
+        "noRealtime": 45,
+        "pct": 15.1
+      },
+      {
+        "lineRef": "SKY:Line:922",
+        "totalBusRows": 548,
+        "noRealtime": 82,
+        "pct": 15.0
+      },
+      {
+        "lineRef": "SOF:Line:8968_69",
+        "totalBusRows": 123,
+        "noRealtime": 18,
+        "pct": 14.6
+      },
+      {
+        "lineRef": "SKY:Line:762",
+        "totalBusRows": 83,
+        "noRealtime": 12,
+        "pct": 14.5
+      },
+      {
+        "lineRef": "SKY:Line:920",
+        "totalBusRows": 173,
+        "noRealtime": 24,
+        "pct": 13.9
+      },
+      {
+        "lineRef": "SKY:Line:474",
+        "totalBusRows": 212,
+        "noRealtime": 27,
+        "pct": 12.7
+      },
+      {
+        "lineRef": "SKY:Line:327",
+        "totalBusRows": 222,
+        "noRealtime": 28,
+        "pct": 12.6
+      },
+      {
+        "lineRef": "SKY:Line:345",
+        "totalBusRows": 436,
+        "noRealtime": 55,
+        "pct": 12.6
+      },
+      {
+        "lineRef": "SKY:Line:452",
+        "totalBusRows": 232,
+        "noRealtime": 29,
+        "pct": 12.5
+      },
+      {
+        "lineRef": "SKY:Line:924",
+        "totalBusRows": 186,
+        "noRealtime": 22,
+        "pct": 11.8
+      },
+      {
+        "lineRef": "SKY:Line:441",
+        "totalBusRows": 815,
+        "noRealtime": 91,
+        "pct": 11.2
+      },
+      {
+        "lineRef": "SKY:Line:32",
+        "totalBusRows": 819,
+        "noRealtime": 89,
+        "pct": 10.9
+      },
+      {
+        "lineRef": "SKY:Line:480",
+        "totalBusRows": 120,
+        "noRealtime": 13,
+        "pct": 10.8
+      },
+      {
+        "lineRef": "SOF:Line:7317_69",
+        "totalBusRows": 328,
+        "noRealtime": 33,
+        "pct": 10.1
+      },
+      {
+        "lineRef": "SKY:Line:301",
+        "totalBusRows": 30,
+        "noRealtime": 3,
+        "pct": 10.0
+      },
+      {
+        "lineRef": "SKY:Line:51",
+        "totalBusRows": 2143,
+        "noRealtime": 215,
+        "pct": 10.0
+      },
+      {
+        "lineRef": "SKY:Line:552",
+        "totalBusRows": 757,
+        "noRealtime": 76,
+        "pct": 10.0
+      },
+      {
+        "lineRef": "SKY:Line:43",
+        "totalBusRows": 1023,
+        "noRealtime": 101,
+        "pct": 9.9
+      },
+      {
+        "lineRef": "SKY:Line:470",
+        "totalBusRows": 143,
+        "noRealtime": 14,
+        "pct": 9.8
+      },
+      {
+        "lineRef": "SKY:Line:324",
+        "totalBusRows": 114,
+        "noRealtime": 11,
+        "pct": 9.6
+      },
+      {
+        "lineRef": "SKY:Line:403",
+        "totalBusRows": 1068,
+        "noRealtime": 102,
+        "pct": 9.6
+      },
+      {
+        "lineRef": "SKY:Line:900",
+        "totalBusRows": 846,
+        "noRealtime": 81,
+        "pct": 9.6
+      },
+      {
+        "lineRef": "SKY:Line:22",
+        "totalBusRows": 2575,
+        "noRealtime": 244,
+        "pct": 9.5
+      },
+      {
+        "lineRef": "SKY:Line:74",
+        "totalBusRows": 432,
+        "noRealtime": 41,
+        "pct": 9.5
+      },
+      {
+        "lineRef": "SKY:Line:342",
+        "totalBusRows": 760,
+        "noRealtime": 71,
+        "pct": 9.3
+      },
+      {
+        "lineRef": "SKY:Line:408",
+        "totalBusRows": 1140,
+        "noRealtime": 104,
+        "pct": 9.1
+      },
+      {
+        "lineRef": "SKY:Line:37",
+        "totalBusRows": 1285,
+        "noRealtime": 116,
+        "pct": 9.0
+      },
+      {
+        "lineRef": "SKY:Line:341",
+        "totalBusRows": 148,
+        "noRealtime": 13,
+        "pct": 8.8
+      },
+      {
+        "lineRef": "SKY:Line:445",
+        "totalBusRows": 1415,
+        "noRealtime": 124,
+        "pct": 8.8
+      },
+      {
+        "lineRef": "SKY:Line:642",
+        "totalBusRows": 70,
+        "noRealtime": 6,
+        "pct": 8.6
+      },
+      {
+        "lineRef": "SKY:Line:799",
+        "totalBusRows": 365,
+        "noRealtime": 31,
+        "pct": 8.5
+      },
+      {
+        "lineRef": "SKY:Line:76",
+        "totalBusRows": 703,
+        "noRealtime": 59,
+        "pct": 8.4
+      },
+      {
+        "lineRef": "SKY:Line:654",
+        "totalBusRows": 1230,
+        "noRealtime": 102,
+        "pct": 8.3
+      },
+      {
+        "lineRef": "SKY:Line:925",
+        "totalBusRows": 2324,
+        "noRealtime": 193,
+        "pct": 8.3
+      },
+      {
+        "lineRef": "SOF:Line:8992_69",
+        "totalBusRows": 36,
+        "noRealtime": 3,
+        "pct": 8.3
+      },
+      {
+        "lineRef": "SKY:Line:414",
+        "totalBusRows": 732,
+        "noRealtime": 59,
+        "pct": 8.1
+      },
+      {
+        "lineRef": "SKY:Line:743",
+        "totalBusRows": 343,
+        "noRealtime": 27,
+        "pct": 7.9
+      },
+      {
+        "lineRef": "SKY:Line:325",
+        "totalBusRows": 681,
+        "noRealtime": 53,
+        "pct": 7.8
+      },
+      {
+        "lineRef": "SKY:Line:450",
+        "totalBusRows": 2143,
+        "noRealtime": 163,
+        "pct": 7.6
+      },
+      {
+        "lineRef": "SKY:Line:960",
+        "totalBusRows": 80,
+        "noRealtime": 6,
+        "pct": 7.5
+      },
+      {
+        "lineRef": "SKY:Line:14",
+        "totalBusRows": 2484,
+        "noRealtime": 183,
+        "pct": 7.4
+      },
+      {
+        "lineRef": "SKY:Line:921",
+        "totalBusRows": 108,
+        "noRealtime": 8,
+        "pct": 7.4
+      },
+      {
+        "lineRef": "SKY:Line:934",
+        "totalBusRows": 929,
+        "noRealtime": 69,
+        "pct": 7.4
+      },
+      {
+        "lineRef": "SKY:Line:13",
+        "totalBusRows": 450,
+        "noRealtime": 33,
+        "pct": 7.3
+      },
+      {
+        "lineRef": "SKY:Line:331",
+        "totalBusRows": 247,
+        "noRealtime": 18,
+        "pct": 7.3
+      },
+      {
+        "lineRef": "SKY:Line:57",
+        "totalBusRows": 565,
+        "noRealtime": 41,
+        "pct": 7.3
+      },
+      {
+        "lineRef": "SKY:Line:28",
+        "totalBusRows": 2583,
+        "noRealtime": 185,
+        "pct": 7.2
+      },
+      {
+        "lineRef": "SKY:Line:29",
+        "totalBusRows": 2080,
+        "noRealtime": 150,
+        "pct": 7.2
+      },
+      {
+        "lineRef": "SKY:Line:52",
+        "totalBusRows": 1210,
+        "noRealtime": 87,
+        "pct": 7.2
+      },
+      {
+        "lineRef": "SKY:Line:420",
+        "totalBusRows": 225,
+        "noRealtime": 16,
+        "pct": 7.1
+      },
+      {
+        "lineRef": "SKY:Line:12",
+        "totalBusRows": 5691,
+        "noRealtime": 397,
+        "pct": 7.0
+      },
+      {
+        "lineRef": "SKY:Line:678",
+        "totalBusRows": 58,
+        "noRealtime": 4,
+        "pct": 6.9
+      },
+      {
+        "lineRef": "SKY:Line:556",
+        "totalBusRows": 105,
+        "noRealtime": 7,
+        "pct": 6.7
+      },
+      {
+        "lineRef": "SKY:Line:558",
+        "totalBusRows": 224,
+        "noRealtime": 15,
+        "pct": 6.7
+      },
+      {
+        "lineRef": "SKY:Line:958",
+        "totalBusRows": 105,
+        "noRealtime": 7,
+        "pct": 6.7
+      },
+      {
+        "lineRef": "SKY:Line:460",
+        "totalBusRows": 2976,
+        "noRealtime": 196,
+        "pct": 6.6
+      },
+      {
+        "lineRef": "SKY:Line:61",
+        "totalBusRows": 860,
+        "noRealtime": 57,
+        "pct": 6.6
+      },
+      {
+        "lineRef": "SKY:Line:302",
+        "totalBusRows": 864,
+        "noRealtime": 56,
+        "pct": 6.5
+      },
+      {
+        "lineRef": "SKY:Line:344",
+        "totalBusRows": 309,
+        "noRealtime": 20,
+        "pct": 6.5
+      },
+      {
+        "lineRef": "SKY:Line:607",
+        "totalBusRows": 469,
+        "noRealtime": 30,
+        "pct": 6.4
+      },
+      {
+        "lineRef": "SKY:Line:760",
+        "totalBusRows": 2614,
+        "noRealtime": 168,
+        "pct": 6.4
+      },
+      {
+        "lineRef": "SKY:Line:83",
+        "totalBusRows": 888,
+        "noRealtime": 56,
+        "pct": 6.3
+      },
+      {
+        "lineRef": "SKY:Line:85",
+        "totalBusRows": 129,
+        "noRealtime": 8,
+        "pct": 6.2
+      },
+      {
+        "lineRef": "SKY:Line:902",
+        "totalBusRows": 827,
+        "noRealtime": 51,
+        "pct": 6.2
+      },
+      {
+        "lineRef": "SKY:Line:603",
+        "totalBusRows": 675,
+        "noRealtime": 41,
+        "pct": 6.1
+      },
+      {
+        "lineRef": "SKY:Line:313",
+        "totalBusRows": 477,
+        "noRealtime": 27,
+        "pct": 5.7
+      },
+      {
+        "lineRef": "SKY:Line:984",
+        "totalBusRows": 296,
+        "noRealtime": 17,
+        "pct": 5.7
+      },
+      {
+        "lineRef": "SOF:Line:8966_69",
+        "totalBusRows": 1033,
+        "noRealtime": 59,
+        "pct": 5.7
+      },
+      {
+        "lineRef": "SKY:Line:953",
+        "totalBusRows": 270,
+        "noRealtime": 15,
+        "pct": 5.6
+      },
+      {
+        "lineRef": "SOF:Line:7285_69",
+        "totalBusRows": 36,
+        "noRealtime": 2,
+        "pct": 5.6
+      },
+      {
+        "lineRef": "SKY:Line:466",
+        "totalBusRows": 346,
+        "noRealtime": 19,
+        "pct": 5.5
+      },
+      {
+        "lineRef": "SKY:Line:610",
+        "totalBusRows": 3519,
+        "noRealtime": 191,
+        "pct": 5.4
+      },
+      {
+        "lineRef": "SKY:Line:10",
+        "totalBusRows": 4015,
+        "noRealtime": 214,
+        "pct": 5.3
+      },
+      {
+        "lineRef": "SKY:Line:465",
+        "totalBusRows": 1040,
+        "noRealtime": 55,
+        "pct": 5.3
+      },
+      {
+        "lineRef": "SKY:Line:4E",
+        "totalBusRows": 266,
+        "noRealtime": 14,
+        "pct": 5.3
+      },
+      {
+        "lineRef": "SKY:Line:555",
+        "totalBusRows": 603,
+        "noRealtime": 32,
+        "pct": 5.3
+      },
+      {
+        "lineRef": "SKY:Line:20",
+        "totalBusRows": 4388,
+        "noRealtime": 218,
+        "pct": 5.0
+      }
+    ]
+  }
+}
