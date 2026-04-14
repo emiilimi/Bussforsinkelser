@@ -13,16 +13,33 @@ async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-    const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+    try {
+      const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+      const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
 
-    const worker = new Worker(bundle.mainWorker!);
-    const logger = new duckdb.ConsoleLogger();
-    const db = new duckdb.AsyncDuckDB(logger, worker);
-    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      // Web Workers require same-origin scripts. Fetch the worker JS from
+      // jsDelivr and wrap it in a Blob URL so the browser treats it as local.
+      const workerResponse = await fetch(bundle.mainWorker!);
+      const workerBlob = new Blob([await workerResponse.text()], {
+        type: "application/javascript",
+      });
+      const workerUrl = URL.createObjectURL(workerBlob);
 
-    dbInstance = db;
-    return db;
+      const worker = new Worker(workerUrl);
+      const logger = new duckdb.ConsoleLogger();
+      const db = new duckdb.AsyncDuckDB(logger, worker);
+      await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+      // Clean up the blob URL (worker is already running)
+      URL.revokeObjectURL(workerUrl);
+
+      dbInstance = db;
+      return db;
+    } catch (err) {
+      // Reset so next attempt can retry instead of re-using failed promise
+      initPromise = null;
+      throw err;
+    }
   })();
 
   return initPromise;
@@ -61,6 +78,7 @@ export function useDuckDB(): {
         if (!cancelled) {
           const message =
             err instanceof Error ? err.message : "DuckDB init failed";
+          console.warn("[DuckDB]", message);
           setError(message);
           setLoading(false);
         }

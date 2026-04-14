@@ -25,7 +25,7 @@ client/src/
     stop-analysis.tsx      /stops       Stoppanalyse: søk, trend, timesprofil, linjer ved stopp
     worst-lists.tsx        /worst       Topplister: dager, stopp, pålitelighet
     delay-map.tsx          /map         Leaflet-kart med fargede stoppmarkører
-    trip-planner.tsx       /reise       Reisesjekk: Entur JP v3 + delay overlay
+    trip-planner.tsx       /reise       Reisesjekk: Entur JP v3, DuckDB-WASM persentiler, overgangsanalyse, metodeboks
     not-found.tsx          *            404-side
   components/
     layout.tsx             Sidebar, nav, regionvelger, NLOD-attribusjon
@@ -332,12 +332,20 @@ ingest.py → journey_stop_daily (SQLite 90d)
 - `hooks/use-duckdb.ts` — Singleton DuckDB-WASM initialisering (EH bundle fra jsDelivr)
 - `hooks/use-parquet-query.ts` — Henter manifest, registrerer Parquet-filer, eksponerer `query(sql)`
 - `components/delay-percentiles.tsx` — `<DelayPercentiles lineRef="SKY:Line:6" stopRef?="..." />`
+- `pages/trip-planner.tsx` — `useTripDelayDistribution()` hook henter P50/P80/P95 per (line, stop) par
 
 **Server-endepunkter**:
 - `GET /api/parquet/manifest` — JSON-array av tilgjengelige ukefiler
 - `GET /api/parquet/:file` — Statisk serving med Accept-Ranges (for DuckDB HTTP range requests)
 
-**Bruk**: `<DelayPercentiles lineRef="SKY:Line:6" />` — viser P50/P80/P95 kort.
+**Bruk i komponenter**:
+- `<DelayPercentiles lineRef="SKY:Line:6" />` — viser P50/P80/P95 kort
+- Trip planner: `useTripDelayDistribution()` henter persentiler for alle (line_ref, stop_ref) par i trip. Brukes til:
+  - Empirisk overgangs-sannsynlighet (`transferProbabilityFromDist()` — interpolerer mellom P50/P80/P95)
+  - Estimert avgangs-/ankomsttid (median-basert, vist i oransje)
+  - P80-punktlighets-badge per leg
+  - Observasjonstall for transparens
+
 **SQL-mønster**: Queries kjøres mot `delays`-view som er union av alle registrerte Parquet-filer.
 
 **npm-pakke**: `@duckdb/duckdb-wasm@1.33.1-dev42.0`

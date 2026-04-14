@@ -3,7 +3,7 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-04-12
+**Sist oppdatert**: 2026-04-13
 
 ---
 
@@ -16,10 +16,10 @@
 | Stoppanalyse | `/stops` | ✅ Live | Stop-stats, timesprofil, linjer ved stopp |
 | Topplister | `/worst` | ✅ Live | Verste/beste dager + stopp + pålitelighet (linjer) |
 | Forsinkelseskart | `/map` | ✅ Live | Geo-kart med filter |
-| Reisesjekk | `/reise` | 🟡 Alpha | Entur JP v3 + Geocoder, adressesøk, multi-modal, filtre, delay overlay, overgangsanalyse |
+| Reisesjekk | `/reise` | 🟡 Beta | Entur JP v3 + Geocoder + DuckDB-WASM. Adressesøk, multi-modal, filtre, empirisk delay overlay, overgangsanalyse, P80-badge, estimert tid, metodeboks |
 | `journey_stop_daily` pipeline | — | ✅ Live | 1.2M rader. Tabell + ingest + 90d vindu. |
-| Parquet-eksport | — | ✅ Kode klar | `export_parquet.py` — krever `--all` for første gang. |
-| DuckDB-WASM | klient | ✅ Implementert | P50/P80/P95 persentiler via `<DelayPercentiles>`. Krever Parquet-filer. |
+| Parquet-eksport | — | ✅ Live | `export_parquet.py` — 2 uker generert (1.2M rader). Krever `--all` for første gang. |
+| DuckDB-WASM | klient | ✅ Live | P50/P80/P95 persentiler. Brukes i `<DelayPercentiles>` og trip planner (overgangsanalyse, estimert tid). |
 | Entur Geocoder | server | ✅ Live | `/api/geocoder/autocomplete` — stoppesteder + adresser |
 
 **Status-koder**: ✅ Live  ·  🟡 Delvis  ·  🐛 Bug  ·  📋 Planlagt  ·  ⚠️ Tekn.gjeld
@@ -125,9 +125,9 @@ Detaljert kolonnebeskrivelse: se `shared/schema.ts`.
 ```
 client/src/
   pages/         dashboard, journey-details, stop-analysis, worst-lists, delay-map, trip-planner
-  components/    layout (med NLOD-attribusjon), ui/, charts, data-quality-banner
+  components/    layout (med NLOD-attribusjon), ui/, charts, data-quality-banner, delay-percentiles
   lib/           utils, date-utils
-  hooks/         useRegion
+  hooks/         useRegion, useDuckDB, useParquetQuery
 
 server/
   index.ts       Express bootstrap
@@ -176,19 +176,20 @@ data/
 | `populate_stops.py --refresh` | Henter fra BQ uten cache-bruk hvis cache eksisterer | Lav — fungerer men ikke ideelt |
 | `vehicleMode = NULL → "bus"` | Hardkodet fallback for Skyss; bryter om annen operatør har samme NULL-mønster | Dokumentert i CLAUDE.md |
 | SQLite kan ikke ALTER PK | Hver PK-endring krever full DB-recreate | Strukturell, ikke fiksbar i SQLite |
+| Statistikk-tidsvindu i trip planner | UI for tidsvindu-filter finnes, men DuckDB-query filtrerer ennå ikke på valgt vindu | Medium — SQL WHERE-clause trenger dato/ukedag-filter |
 
 ### Planlagte endringer
 
 #### Reiseplanlegger (stegvis)
-1. **`journey_stop_daily`** — rå pipeline-tabell (SQLite 90d) — *under arbeid*
-2. **Parquet-eksport** — ukentlig eksport til Cloudflare R2 (~2-5MB/dag SKY)
-3. **DuckDB-WASM** — klient-side SQL over Parquet (`npm install @duckdb/duckdb-wasm`, ~6MB WASM)
-4. **/reise frontend** — Fra→Til søk via Entur JP API v3, reiseforslag med delay-overlay
-5. **Persentiler** — P50/P80/P95 per stopp, brukervalgt tidsvindu/ukedag
-6. **Transfer-sannsynlighet** — empirisk fra rådata (match faktisk ankomst A vs avgang B)
-7. **Historisk enkeltreise** — oppslag på spesifikk dato + avgang
-8. **Scatter-plot** i stoppanalyse — tid på dag vs forsinkelse, farge = linje
-9. **PWA** — offline-støtte via cached Parquet
+1. ✅ **`journey_stop_daily`** — rå pipeline-tabell (SQLite 90d) — live, 1.2M rader
+2. ✅ **Parquet-eksport** — ukentlig ZSTD Parquet (~300KB/uke SKY). Lokal serving (R2 ikke satt opp)
+3. ✅ **DuckDB-WASM** — klient-side SQL over Parquet (~6MB WASM, jsDelivr CDN)
+4. ✅ **/reise frontend** — Entur JP v3, Geocoder, filtre, multi-modal, delay overlay
+5. ✅ **Persentiler** — P50/P80/P95 per (line, stop) via DuckDB. Tidsvindu-UI finnes, men SQL-filter ikke koblet ennå
+6. ✅ **Transfer-sannsynlighet** — empirisk fra DuckDB P50/P80/P95 med interpolering + heuristisk fallback
+7. 📋 **Historisk enkeltreise** — oppslag på spesifikk dato + avgang
+8. 📋 **Scatter-plot** i stoppanalyse — tid på dag vs forsinkelse, farge = linje
+9. 📋 **PWA** — offline-støtte via cached Parquet
 
 #### Andre forbedringer
 - **Delay distribution graph** på Topplister
@@ -282,6 +283,13 @@ data/
 | 2026-04-12 | Multi-modal: bus, tram, rail, metro, water, coach. "ingen forsinkelsesdata"-badge for ikke-buss | `trip-planner.tsx` | Støtte for alle transportmidler |
 | 2026-04-12 | Entur Geocoder-søk: stoppesteder + adresser, koordinat-baserte reiser | `trip-planner.tsx` | Adressesøk som entur.no |
 | 2026-04-12 | Feilmeldinger fra Entur vises nå i UI (var stille `[]` før) | `trip-planner.tsx` | Feilsøking |
+| 2026-04-13 | DuckDB-WASM koblet til: `useTripDelayDistribution()` henter P50/P80/P95 per (line, stop) | `trip-planner.tsx` | Empirisk data erstatter heuristikk |
+| 2026-04-13 | Estimert avgangs-/ankomsttid (median-basert, oransje) per leg | `trip-planner.tsx` | Vise forventet reell tid |
+| 2026-04-13 | Overgangs-sannsynlighet: empirisk fra DuckDB persentiler med interpolering | `trip-planner.tsx` | Pålitelig transfer-analyse |
+| 2026-04-13 | P80-punktlighets-badge per buss-leg | `trip-planner.tsx` | Rask visuell pålitelighetsindikator |
+| 2026-04-13 | Metodeboks: full transparens om beregningsmetoder (vises under reiseforslag + før søk) | `trip-planner.tsx` | Brukerønske om gjennomsiktighet |
+| 2026-04-13 | Retningsbytte-knapp (swap fra/til) | `trip-planner.tsx` | UX-forbedring |
+| 2026-04-13 | Filtre: flybuss-toggle, ganghastighet-slider (0-20 km/t), overgangstid-slack, statistikk-tidsvindu | `trip-planner.tsx` | Avanserte filtre |
 
 #### `stop-analysis.tsx`
 | Dato | Endring | Filer | Begrunnelse |

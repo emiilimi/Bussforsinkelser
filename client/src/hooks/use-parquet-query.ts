@@ -19,7 +19,9 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   for (const file of files) {
     if (registeredFiles.has(file)) continue;
 
-    const url = `/api/parquet/${file}`;
+    // Use absolute URL — DuckDB worker runs from a blob: origin and
+    // cannot resolve relative paths.
+    const url = `${window.location.origin}/api/parquet/${file}`;
     await db.registerFileURL(file, url, 4 /* DuckDBDataProtocol.HTTP */, false);
     registeredFiles.add(file);
   }
@@ -127,7 +129,9 @@ export function useParquetQuery(): ParquetQueryState {
           const row: Record<string, unknown> = {};
           for (const field of schema) {
             const col = result.getChild(field.name);
-            row[field.name] = col?.get(i) ?? null;
+            const val = col?.get(i) ?? null;
+            // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
+            row[field.name] = typeof val === "bigint" ? Number(val) : val;
           }
           rows.push(row as T);
         }

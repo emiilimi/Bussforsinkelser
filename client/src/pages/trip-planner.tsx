@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useParquetQuery } from "@/hooks/use-parquet-query";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
-  Accessibility, ArrowDownUp,
+  Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
+  Info, Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +64,13 @@ type TripStopStat = {
   numSamples: number | null;
 };
 
+type StatsTimeWindow = {
+  type: "all" | "days" | "weekday" | "weekend" | "custom";
+  value?: number;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -70,8 +80,8 @@ const MODE_LABELS: Record<string, string> = {
   tram: "Trikk",
   rail: "Tog",
   metro: "T-bane",
-  water: "Båt",
-  coach: "Ekspressbuss",
+  water: "Bat",
+  coach: "Flybuss",
   foot: "Gange",
   bicycle: "Sykkel",
   scooter_rental: "Elsparkesykkel",
@@ -83,27 +93,95 @@ const MODE_ICONS: Record<string, typeof Bus> = {
   rail: Train,
   metro: Train,
   water: Ship,
-  coach: Bus,
+  coach: Plane,
   foot: Footprints,
 };
 
 // We only have delay data for bus (Skyss). Other modes show "ingen data".
 const MODES_WITH_DELAY_DATA = new Set(["bus"]);
 
+// ---------------------------------------------------------------------------
+// DuckDB helpers
+// ---------------------------------------------------------------------------
+
+function esc(s: string) { return s.replace(/'/g, "''"); }
+
+type DuckDelayRow = {
+  stop_ref: string;
+  line_ref: string;
+  p50_dep: number | null;
+  p80_dep: number | null;
+  p95_dep: number | null;
+  p50_arr: number | null;
+  p80_arr: number | null;
+  p95_arr: number | null;
+  n: number;
+};
+
+/** Empirical transfer probability from DuckDB percentiles */
+function transferProbabilityFromDist(
+  p50: number | null, p80: number | null, p95: number | null,
+  bufferMinutes: number,
+): number {
+  if (p50 == null || p80 == null || p95 == null) return -1;
+  if (bufferMinutes > p95) return 0.97;
+  if (bufferMinutes > p80) return 0.80 + 0.17 * (bufferMinutes - p80) / (p95 - p80);
+  if (bufferMinutes > p50) return 0.50 + 0.30 * (bufferMinutes - p50) / (p80 - p50);
+  if (p50 > 0) return Math.max(0.05, 0.50 * bufferMinutes / p50);
+  return 0.10;
+}
+
+/** Hook: fetch delay distributions from DuckDB for trip (stop, line) pairs */
+function useTripDelayDistribution(
+  pairs: Array<{ stopRef: string; lineRef: string }>,
+  duckReady: boolean,
+  duckQuery: (sql: string) => Promise<any[]>,
+) {
+  return useQuery<Map<string, DuckDelayRow>>({
+    queryKey: ["duck-trip-delays", ...pairs.map(p => `${p.stopRef}|${p.lineRef}`)],
+    queryFn: async () => {
+      if (pairs.length === 0) return new Map();
+
+      const conditions = pairs
+        .map(p => `(stop_ref = '${esc(p.stopRef)}' AND line_ref = '${esc(p.lineRef)}')`)
+        .join(" OR ");
+
+      const sql = `
+        SELECT
+          stop_ref,
+          line_ref,
+          PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_departure_min) AS p50_dep,
+          PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_departure_min) AS p80_dep,
+          PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_departure_min) AS p95_dep,
+          PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min) AS p50_arr,
+          PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min) AS p80_arr,
+          PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_arrival_min) AS p95_arr,
+          COUNT(*) AS n
+        FROM delays
+        WHERE (${conditions})
+          AND delay_departure_min IS NOT NULL
+        GROUP BY stop_ref, line_ref
+      `;
+
+      const rows = await duckQuery(sql) as DuckDelayRow[];
+      const map = new Map<string, DuckDelayRow>();
+      for (const row of rows) {
+        map.set(`${row.stop_ref}|${row.line_ref}`, row);
+      }
+      return map;
+    },
+    enabled: duckReady && pairs.length > 0,
+    staleTime: Infinity,
+  });
+}
+
 const TRANSPORT_MODE_OPTIONS = [
   { value: "bus", label: "Buss" },
   { value: "tram", label: "Trikk" },
   { value: "rail", label: "Tog" },
   { value: "metro", label: "T-bane" },
-  { value: "water", label: "Båt/ferje" },
-  { value: "coach", label: "Ekspressbuss" },
-];
-
-const WALK_SPEED_OPTIONS = [
-  { value: "0.8", label: "Rolig (3 km/t)" },
-  { value: "1.33", label: "Normal (4.8 km/t)" },
-  { value: "1.8", label: "Rask (6.5 km/t)" },
-  { value: "2.5", label: "Jogger (9 km/t)" },
+  { value: "water", label: "Bat/ferje" },
+  { value: "coach", label: "Flybuss" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -139,6 +217,16 @@ function delayBadge(delay: number | null, hasData: boolean) {
   return <Badge variant="destructive" className="text-[10px]">+{delay.toFixed(1)}m</Badge>;
 }
 
+function transferProbability(arrivalDelay: number | null, bufferMinutes: number): number {
+  if (arrivalDelay == null) return -1; // unknown
+  const margin = bufferMinutes - arrivalDelay;
+  if (margin > 5) return 0.99;
+  if (margin > 3) return 0.90;
+  if (margin > 1) return 0.70;
+  if (margin > 0) return 0.40;
+  return 0.10;
+}
+
 function transferChance(arrivalDelay: number | null, bufferMinutes: number): string | null {
   if (arrivalDelay == null) return null;
   const margin = bufferMinutes - arrivalDelay;
@@ -154,6 +242,35 @@ function transferColor(arrivalDelay: number | null, bufferMinutes: number): stri
   if (margin > 3) return "text-green-600";
   if (margin > 1) return "text-amber-600";
   return "text-destructive";
+}
+
+function probabilityBadge(prob: number) {
+  const pct = Math.round(prob * 100);
+  if (prob > 0.90) {
+    return <Badge variant="outline" className="text-green-600 border-green-300 text-[10px]">{pct}%</Badge>;
+  }
+  if (prob > 0.60) {
+    return <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{pct}%</Badge>;
+  }
+  return <Badge variant="destructive" className="text-[10px]">{pct}%</Badge>;
+}
+
+function addMinutesToIso(iso: string, minutes: number): string {
+  const d = new Date(iso);
+  d.setMinutes(d.getMinutes() + Math.round(minutes));
+  return d.toISOString();
+}
+
+function estimateP80(avgDelay: number | null, realP80?: number | null): string | null {
+  // Use real DuckDB P80 if available
+  if (realP80 != null) {
+    if (Math.abs(realP80) < 1) return "i rute";
+    return `+${realP80.toFixed(1)}m`;
+  }
+  if (avgDelay == null) return null;
+  if (avgDelay < 1) return "i rute";
+  const p80est = avgDelay * 1.5;
+  return `~+${p80est.toFixed(1)}m`;
 }
 
 /** Round to nearest 5 minutes for time input */
@@ -188,15 +305,24 @@ function StopSearch({
   label,
   value,
   onSelect,
+  externalQuery,
 }: {
   label: string;
   value: StopSearchResult | null;
   onSelect: (stop: StopSearchResult) => void;
+  externalQuery?: string;
 }) {
   const [query, setQuery] = useState(value?.stopName ?? "");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync query when value changes externally (e.g. swap direction)
+  useEffect(() => {
+    if (externalQuery !== undefined) {
+      setQuery(externalQuery);
+    }
+  }, [externalQuery]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
@@ -282,12 +408,152 @@ function TripCard({
   pattern,
   index,
   stats,
+  duckStats,
 }: {
   pattern: TripPattern;
   index: number;
   stats: Map<string, TripStopStat>;
+  duckStats?: Map<string, DuckDelayRow>;
 }) {
   const [expanded, setExpanded] = useState(index === 0);
+
+  // ---------- Compute transfer probabilities + overall probability ----------
+  const transferAnalysis = useMemo(() => {
+    const transfers: Array<{
+      buffer: number;
+      chance: string | null;
+      color: string;
+      probability: number;
+      fromLine: string | null;
+      toLine: string | null;
+    }> = [];
+
+    for (let legIdx = 0; legIdx < pattern.legs.length; legIdx++) {
+      const leg = pattern.legs[legIdx];
+      const nextLeg = pattern.legs[legIdx + 1];
+      if (!nextLeg || nextLeg.mode === "foot") continue;
+
+      const lineRef = leg.line?.id ?? "";
+      const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
+
+      const arrivalTime = new Date(leg.expectedEndTime).getTime();
+      const departureTime = new Date(nextLeg.expectedStartTime).getTime();
+      const bufferMin = (departureTime - arrivalTime) / 60000;
+      if (bufferMin <= 0) continue;
+
+      const arrQuay = leg.toPlace.quay?.id ?? "";
+      const statKey = `${arrQuay}|${lineRef}`;
+      const arrStat = stats.get(statKey);
+      const duckStat = duckStats?.get(statKey);
+      const arrDelay = hasDelayData ? (arrStat?.avgDelayArrivalMin ?? null) : null;
+
+      // Use empirical DuckDB percentiles when available, fall back to heuristic
+      const prob = hasDelayData && duckStat
+        ? transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, bufferMin)
+        : transferProbability(arrDelay, bufferMin);
+      const chance = hasDelayData ? transferChance(arrDelay, bufferMin) : null;
+      const color = hasDelayData ? transferColor(arrDelay, bufferMin) : "text-muted-foreground";
+
+      transfers.push({
+        buffer: bufferMin,
+        chance,
+        color,
+        probability: prob,
+        fromLine: leg.line?.publicCode ?? null,
+        toLine: nextLeg.line?.publicCode ?? null,
+      });
+    }
+
+    // Overall probability = product of known probabilities
+    const knownProbs = transfers.filter((t) => t.probability >= 0).map((t) => t.probability);
+    const overallProb = knownProbs.length > 0
+      ? knownProbs.reduce((a, b) => a * b, 1)
+      : -1;
+
+    const hasTransfers = transfers.length > 0;
+
+    return { transfers, overallProb, hasTransfers };
+  }, [pattern, stats, duckStats]);
+
+  // ---------- Compute estimated departure/arrival from delays ----------
+  const estimatedTimes = useMemo(() => {
+    // Find first bus leg's first stop delay
+    let estDeparture: string | null = null;
+    let estArrival: string | null = null;
+    let firstBusDelayDep: number | null = null;
+    let lastBusDelayArr: number | null = null;
+
+    for (const leg of pattern.legs) {
+      if (leg.mode === "foot" || !leg.line?.id) continue;
+      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      const fromQuay = leg.fromPlace.quay?.id;
+      if (!fromQuay) continue;
+      const statKey = `${fromQuay}|${leg.line.id}`;
+      const duckStat = duckStats?.get(statKey);
+      const stat = stats.get(statKey);
+      // Prefer DuckDB P50, fall back to server avg
+      if (duckStat?.p50_dep != null) {
+        firstBusDelayDep = duckStat.p50_dep;
+      } else if (stat?.avgDelayDepartureMin != null) {
+        firstBusDelayDep = stat.avgDelayDepartureMin;
+      } else if (stat?.avgDelayMin != null) {
+        firstBusDelayDep = stat.avgDelayMin;
+      }
+      break;
+    }
+
+    for (let i = pattern.legs.length - 1; i >= 0; i--) {
+      const leg = pattern.legs[i];
+      if (leg.mode === "foot" || !leg.line?.id) continue;
+      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      const toQuay = leg.toPlace.quay?.id;
+      if (!toQuay) continue;
+      const statKey = `${toQuay}|${leg.line.id}`;
+      const duckStat = duckStats?.get(statKey);
+      const stat = stats.get(statKey);
+      // Prefer DuckDB P50, fall back to server avg
+      if (duckStat?.p50_arr != null) {
+        lastBusDelayArr = duckStat.p50_arr;
+      } else if (stat?.avgDelayArrivalMin != null) {
+        lastBusDelayArr = stat.avgDelayArrivalMin;
+      } else if (stat?.avgDelayMin != null) {
+        lastBusDelayArr = stat.avgDelayMin;
+      }
+      break;
+    }
+
+    if (firstBusDelayDep != null) {
+      estDeparture = formatTime(addMinutesToIso(pattern.expectedStartTime, firstBusDelayDep));
+    }
+    if (lastBusDelayArr != null) {
+      estArrival = formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr));
+    }
+
+    // P80 estimate from the worst delay across all legs (prefer real DuckDB P80)
+    let worstAvgDelay: number | null = null;
+    let worstRealP80: number | null = null;
+    for (const leg of pattern.legs) {
+      if (leg.mode === "foot" || !leg.line?.id) continue;
+      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      const toQuay = leg.toPlace.quay?.id;
+      if (!toQuay) continue;
+      const statKey = `${toQuay}|${leg.line.id}`;
+      const duckStat = duckStats?.get(statKey);
+      const stat = stats.get(statKey);
+      if (duckStat?.p80_arr != null) {
+        if (worstRealP80 == null || duckStat.p80_arr > worstRealP80) {
+          worstRealP80 = duckStat.p80_arr;
+        }
+      }
+      const d = stat?.avgDelayMin ?? null;
+      if (d != null && (worstAvgDelay == null || d > worstAvgDelay)) {
+        worstAvgDelay = d;
+      }
+    }
+    const p80 = estimateP80(worstAvgDelay, worstRealP80);
+
+    return { estDeparture, estArrival, p80, firstBusDelayDep, lastBusDelayArr };
+  }, [pattern, stats, duckStats]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
@@ -295,21 +561,52 @@ function TripCard({
         className="cursor-pointer p-4 pb-3"
         onClick={() => setExpanded(!expanded)}
       >
+        {/* --- Collapsed summary row --- */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-bold font-mono">
-              {formatTime(pattern.expectedStartTime)}
-            </span>
+            <div className="flex flex-col items-start">
+              <span className="text-lg font-bold font-mono">
+                {formatTime(pattern.expectedStartTime)}
+              </span>
+              {estimatedTimes.estDeparture && (
+                <span className="text-xs font-mono text-amber-500">
+                  ~{estimatedTimes.estDeparture}
+                </span>
+              )}
+            </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            <span className="text-lg font-bold font-mono">
-              {formatTime(pattern.expectedEndTime)}
-            </span>
+            <div className="flex flex-col items-start">
+              <span className="text-lg font-bold font-mono">
+                {formatTime(pattern.expectedEndTime)}
+              </span>
+              {estimatedTimes.estArrival && (
+                <span className="text-xs font-mono text-amber-500">
+                  ~{estimatedTimes.estArrival}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Badge variant="secondary" className="text-xs">
               <Clock className="h-3 w-3 mr-1" />
               {formatDuration(pattern.duration)}
             </Badge>
+            {/* Transfer success probability or "Direkte" */}
+            {transferAnalysis.hasTransfers ? (
+              transferAnalysis.overallProb >= 0 ? (
+                probabilityBadge(transferAnalysis.overallProb)
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground/50 border-dashed text-[9px]">overgang</Badge>
+              )
+            ) : (
+              <Badge variant="outline" className="text-green-600 border-green-300 text-[10px]">Direkte</Badge>
+            )}
+            {/* P80 estimate */}
+            {estimatedTimes.p80 && (
+              <Badge variant="outline" className="text-[9px] text-muted-foreground border-dashed">
+                P80 est. {estimatedTimes.p80}
+              </Badge>
+            )}
             {expanded
               ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
               : <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -345,24 +642,17 @@ function TripCard({
 
             // Transfer analysis between this leg and next
             const nextLeg = pattern.legs[legIdx + 1];
-            let transferInfo: { buffer: number; chance: string | null; color: string } | null = null;
+            // Find corresponding transfer from pre-computed analysis
+            let transferIdx = 0;
+            let transferInfo: typeof transferAnalysis.transfers[number] | null = null;
             if (nextLeg && nextLeg.mode !== "foot") {
-              // Only show transfer analysis for transit→transit (not transit→walking)
-              const arrivalTime = new Date(leg.expectedEndTime).getTime();
-              const departureTime = new Date(nextLeg.expectedStartTime).getTime();
-              const bufferMin = (departureTime - arrivalTime) / 60000;
-              if (bufferMin > 0) {
-                const arrQuay = leg.toPlace.quay?.id ?? "";
-                const statKey = `${arrQuay}|${lineRef}`;
-                const arrStat = stats.get(statKey);
-                const chance = hasDelayData
-                  ? transferChance(arrStat?.avgDelayArrivalMin ?? null, bufferMin)
-                  : null;
-                const color = hasDelayData
-                  ? transferColor(arrStat?.avgDelayArrivalMin ?? null, bufferMin)
-                  : "text-muted-foreground";
-                transferInfo = { buffer: bufferMin, chance, color };
+              // count transit-to-transit transfers before this leg to find the right index
+              let count = 0;
+              for (let i = 0; i < legIdx; i++) {
+                const nl = pattern.legs[i + 1];
+                if (nl && nl.mode !== "foot" && pattern.legs[i].mode !== "foot") count++;
               }
+              transferInfo = transferAnalysis.transfers[count] ?? null;
             }
 
             // Walking leg — compact display
@@ -372,7 +662,7 @@ function TripCard({
                 <div key={legIdx} className="flex items-center gap-2 py-1.5 px-3 text-xs text-muted-foreground">
                   <Footprints className="h-3 w-3" />
                   <span>
-                    Gå {distM > 0 ? `${distM}m` : ""} til {leg.toPlace.name}
+                    Ga {distM > 0 ? `${distM}m` : ""} til {leg.toPlace.name}
                     {leg.duration > 0 && ` (${Math.round(leg.duration / 60)} min)`}
                   </span>
                 </div>
@@ -399,7 +689,7 @@ function TripCard({
                       )}
                     </div>
                     <span className="text-xs font-mono text-muted-foreground">
-                      {formatTime(leg.expectedStartTime)} – {formatTime(leg.expectedEndTime)}
+                      {formatTime(leg.expectedStartTime)} - {formatTime(leg.expectedEndTime)}
                     </span>
                   </div>
 
@@ -432,17 +722,27 @@ function TripCard({
 
                 {/* Transfer indicator */}
                 {transferInfo && (
-                  <div className="flex items-center gap-2 py-2 px-3">
+                  <div className="flex items-center gap-2 py-2 px-3 flex-wrap">
                     <ArrowDown className="h-3 w-3 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
                       Overgang: {transferInfo.buffer.toFixed(0)} min buffer
                     </span>
+                    {transferInfo.fromLine && transferInfo.toLine && (
+                      <span className="text-xs text-muted-foreground">
+                        Linje {transferInfo.fromLine} &rarr; Linje {transferInfo.toLine}
+                      </span>
+                    )}
                     {transferInfo.chance && (
                       <span className={cn("text-xs font-medium", transferInfo.color)}>
                         {transferInfo.chance}
                       </span>
                     )}
-                    {!transferInfo.chance && (
+                    {transferInfo.probability >= 0 && (
+                      <span className={cn("text-xs font-medium", transferInfo.color)}>
+                        ({Math.round(transferInfo.probability * 100)}% sjanse)
+                      </span>
+                    )}
+                    {!transferInfo.chance && transferInfo.probability < 0 && (
                       <span className="text-[9px] text-muted-foreground/60 italic">
                         mangler data for vurdering
                       </span>
@@ -465,6 +765,8 @@ function TripCard({
 export default function TripPlanner() {
   const [fromStop, setFromStop] = useState<StopSearchResult | null>(null);
   const [toStop, setToStop] = useState<StopSearchResult | null>(null);
+  const [fromQuery, setFromQuery] = useState("");
+  const [toQuery, setToQuery] = useState("");
   const [tripPatterns, setTripPatterns] = useState<TripPattern[]>([]);
   const [delayStats, setDelayStats] = useState<Map<string, TripStopStat>>(new Map());
   const [showFilters, setShowFilters] = useState(false);
@@ -473,16 +775,69 @@ export default function TripPlanner() {
   const [departDate, setDepartDate] = useState(todayISO());
   const [departTime, setDepartTime] = useState(roundedNow());
   const [arriveBy, setArriveBy] = useState(false);
-  const [walkSpeed, setWalkSpeed] = useState("1.33");
+  const [walkSpeedKmh, setWalkSpeedKmh] = useState(4.8);
   const [maxTransfers, setMaxTransfers] = useState("any");
   const [transferSlack, setTransferSlack] = useState("default");
-  const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water"]);
+  const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach"]);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
+
+  // Statistics time window filter
+  const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
+
+  // DuckDB-WASM for empirical percentiles
+  const { ready: duckReady, query: duckQuery, loading: duckLoading } = useParquetQuery();
+
+  // Derive (stopRef, lineRef) pairs for DuckDB query from current trip results
+  const duckPairs = useMemo(() => {
+    const pairs: Array<{ stopRef: string; lineRef: string }> = [];
+    const seen = new Set<string>();
+    for (const p of tripPatterns) {
+      for (const leg of p.legs) {
+        const lineRef = leg.line?.id ?? "";
+        if (!lineRef || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+        const quays = [
+          leg.fromPlace.quay?.id,
+          ...leg.intermediateQuays.map((q) => q.id),
+          leg.toPlace.quay?.id,
+        ].filter(Boolean) as string[];
+        for (const q of quays) {
+          const key = `${q}|${lineRef}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            pairs.push({ stopRef: q, lineRef });
+          }
+        }
+      }
+    }
+    return pairs;
+  }, [tripPatterns]);
+
+  const { data: duckData } = useTripDelayDistribution(duckPairs, duckReady, duckQuery);
+
+  // Count total DuckDB observations for transparency display
+  const duckObservationCount = useMemo(() => {
+    if (!duckData) return 0;
+    let total = 0;
+    for (const row of Array.from(duckData.values())) {
+      total += row.n ?? 0;
+    }
+    return total;
+  }, [duckData]);
 
   function toggleMode(mode: string) {
     setSelectedModes((prev) =>
       prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode],
     );
+  }
+
+  // Swap direction handler
+  function swapDirection() {
+    const oldFrom = fromStop;
+    const oldTo = toStop;
+    setFromStop(oldTo);
+    setToStop(oldFrom);
+    setFromQuery(oldTo?.stopName ?? "");
+    setToQuery(oldFrom?.stopName ?? "");
   }
 
   const tripMutation = useMutation({
@@ -500,6 +855,9 @@ export default function TripPlanner() {
         return { place: stop.stopRef };
       }
 
+      // Convert walk speed from km/h to m/s
+      const walkSpeedMs = walkSpeedKmh / 3.6;
+
       // 2. Fetch trip from Entur
       const tripRes = await apiRequest("POST", "/api/trip", {
         from: locationRef(fromStop),
@@ -507,17 +865,17 @@ export default function TripPlanner() {
         when: dateTime,
         arriveBy: arriveBy || undefined,
         transportModes: selectedModes.length > 0 ? selectedModes : undefined,
-        walkSpeed: parseFloat(walkSpeed),
+        walkSpeed: walkSpeedMs,
         maximumTransfers: maxTransfers !== "any" ? parseInt(maxTransfers) : undefined,
         transferSlack: transferSlack !== "default" ? parseInt(transferSlack) : undefined,
         wheelchairAccessible: wheelchairAccessible || undefined,
-        numTripPatterns: 12, // høyt tall → Entur beregner dynamisk searchWindow riktig
+        numTripPatterns: 12, // hoytt tall -> Entur beregner dynamisk searchWindow riktig
       });
       const tripData = await tripRes.json();
 
       // Surface errors from Entur (e.g. invalid parameters, no routes)
       if (tripData?.errors?.length) {
-        const msg = tripData.errors.map((e: any) => e.message).join("; ");
+        const msg = tripData.errors.map((e: { message: string }) => e.message).join("; ");
         console.warn("[trip] Entur GraphQL errors:", tripData.errors);
         throw new Error(`Entur: ${msg}`);
       }
@@ -586,10 +944,19 @@ export default function TripPlanner() {
         {/* Search form */}
         <Card>
           <CardContent className="pt-6 space-y-4">
-            {/* From / To / Button */}
-            <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-              <StopSearch label="Fra" value={fromStop} onSelect={setFromStop} />
-              <StopSearch label="Til" value={toStop} onSelect={setToStop} />
+            {/* From / Swap / To / Button */}
+            <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr_auto] items-end">
+              <StopSearch label="Fra" value={fromStop} onSelect={(s) => { setFromStop(s); setFromQuery(s.stopName); }} externalQuery={fromQuery} />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 self-end"
+                onClick={swapDirection}
+                title="Bytt retning"
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
+              <StopSearch label="Til" value={toStop} onSelect={(s) => { setToStop(s); setToQuery(s.stopName); }} externalQuery={toQuery} />
               <div className="flex items-end">
                 <Button
                   onClick={() => tripMutation.mutate()}
@@ -672,19 +1039,25 @@ export default function TripPlanner() {
                 </div>
 
                 <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-                  {/* Walking speed */}
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Ganghastighet</Label>
-                    <Select value={walkSpeed} onValueChange={setWalkSpeed}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WALK_SPEED_OPTIONS.map((o) => (
-                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Walking speed slider */}
+                  <div className="col-span-2 md:col-span-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Ganghastighet: {walkSpeedKmh.toFixed(1)} km/t
+                    </Label>
+                    <div className="pt-2 px-1">
+                      <Slider
+                        value={[walkSpeedKmh]}
+                        onValueChange={(v) => setWalkSpeedKmh(v[0])}
+                        min={0}
+                        max={20}
+                        step={0.1}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1">
+                      <span>0</span>
+                      <span>10</span>
+                      <span>20 km/t</span>
+                    </div>
                   </div>
 
                   {/* Max transfers */}
@@ -713,8 +1086,8 @@ export default function TripPlanner() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="default">Standard (2 min)</SelectItem>
-                        <SelectItem value="-60">−1 min (sprinter)</SelectItem>
-                        <SelectItem value="0">0 sek (håper på det beste)</SelectItem>
+                        <SelectItem value="-60">-1 min (sprinter)</SelectItem>
+                        <SelectItem value="0">0 sek</SelectItem>
                         <SelectItem value="30">30 sek</SelectItem>
                         <SelectItem value="60">1 min</SelectItem>
                         <SelectItem value="180">3 min</SelectItem>
@@ -740,6 +1113,70 @@ export default function TripPlanner() {
                     </button>
                   </div>
                 </div>
+
+                {/* Statistics time window filter */}
+                <div className="border-t pt-4">
+                  <Label className="text-xs text-muted-foreground mb-2 block flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Statistikkperiode (pavirker kun forsinkelsesdata, ikke reiseforslag)
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { type: "all" as const, label: "Alle data" },
+                      { type: "days" as const, value: 7, label: "Siste 7 dager" },
+                      { type: "days" as const, value: 30, label: "Siste 30 dager" },
+                      { type: "days" as const, value: 90, label: "Siste 90 dager" },
+                      { type: "weekday" as const, label: "Ukedager" },
+                      { type: "weekend" as const, label: "Helg" },
+                      { type: "custom" as const, label: "Egne datoer" },
+                    ] as const).map((opt) => {
+                      const isActive = statsTimeWindow.type === opt.type &&
+                        (opt.type !== "days" || statsTimeWindow.value === opt.value);
+                      return (
+                        <button
+                          key={`${opt.type}-${opt.type === "days" ? opt.value : ""}`}
+                          onClick={() => {
+                            if (opt.type === "days") {
+                              setStatsTimeWindow({ type: "days", value: opt.value });
+                            } else {
+                              setStatsTimeWindow({ type: opt.type });
+                            }
+                          }}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {statsTimeWindow.type === "custom" && (
+                    <div className="flex gap-3 mt-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Fra dato</Label>
+                        <Input
+                          type="date"
+                          value={statsTimeWindow.dateFrom ?? ""}
+                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Til dato</Label>
+                        <Input
+                          type="date"
+                          value={statsTimeWindow.dateTo ?? ""}
+                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateTo: e.target.value }))}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -764,7 +1201,7 @@ export default function TripPlanner() {
               )}
             </h3>
             {tripPatterns.map((pattern, i) => (
-              <TripCard key={i} pattern={pattern} index={i} stats={delayStats} />
+              <TripCard key={i} pattern={pattern} index={i} stats={delayStats} duckStats={duckData} />
             ))}
           </div>
         )}
@@ -772,20 +1209,85 @@ export default function TripPlanner() {
         {tripPatterns.length === 0 && !tripMutation.isPending && tripMutation.isSuccess && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              <p>Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtre.</p>
+              <p>Ingen reiseforslag funnet. Prov andre stoppesteder eller juster filtre.</p>
             </CardContent>
           </Card>
         )}
 
-        {/* Info */}
-        <Card className="bg-muted/30">
-          <CardContent className="pt-4 text-xs text-muted-foreground space-y-1">
-            <p><strong>Hvordan fungerer dette?</strong></p>
-            <p>Reiseforslagene kommer fra Entur sin reiseplanlegger (Journey Planner API v3). Vi legger til forsinkelsesdata fra vår egen database, basert på 13 ukers historikk.</p>
-            <p className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-green-500" /> <strong>i rute</strong> = under 1 min forsinket i snitt</p>
-            <p className="flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-amber-500" /> <strong>+Xm</strong> = snitt forsinkelse ved dette stoppet for denne linjen</p>
-            <p>Forsinkelsesdata er foreløpig kun tilgjengelig for buss (Skyss). Trikk, T-bane, tog og båt vises uten forsinkelsesstatistikk.</p>
-            <p>Overgangsvurdering basert på gjennomsnittlig ankomstforsinkelse vs. tid til neste avgang. Fremtidig versjon: persentiler og empirisk beregning.</p>
+        {/* Methodology info box */}
+        <Card className="bg-muted/20 border-muted">
+          <CardContent className="pt-5 pb-4 text-xs text-muted-foreground space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Info className="h-4 w-4 text-primary" />
+                Slik beregner vi tallene
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border",
+                  duckReady
+                    ? "text-green-600 border-green-300 bg-green-50 dark:bg-green-950/20"
+                    : duckLoading
+                    ? "text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/20"
+                    : "text-muted-foreground border-border"
+                )}>
+                  <Database className="h-3 w-3" />
+                  {duckReady ? "DuckDB klar" : duckLoading ? "Laster DuckDB..." : "DuckDB utilgjengelig"}
+                </span>
+                {duckObservationCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground/70">
+                    {duckObservationCount.toLocaleString("nb-NO")} obs.
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {/* Reiseforslag */}
+              <div className="space-y-1">
+                <p className="font-medium text-foreground/80">Reiseforslag</p>
+                <p>Hentet fra Entur Journey Planner API v3 (NLOD 2.0). Tidene er planlagte rutetider fra Entur.</p>
+              </div>
+
+              {/* Estimert tid */}
+              <div className="space-y-1">
+                <p className="font-medium text-foreground/80 flex items-center gap-1">
+                  <span className="text-amber-500 font-mono">~HH:MM</span> Estimert tid
+                </p>
+                <p>Rutetid + median forsinkelse (P50) for den aktuelle linjen ved det aktuelle stoppet. Basert pa ekte sanntidsdata fra de siste ukene. Beregnet med DuckDB-WASM direkte i nettleseren fra ukentlige Parquet-filer.</p>
+              </div>
+
+              {/* Sannsynlighet for overgang */}
+              <div className="space-y-1">
+                <p className="font-medium text-foreground/80 flex items-center gap-1">
+                  <span className="text-green-600 font-mono">X%</span> Sannsynlighet for a rekke bytte
+                </p>
+                <p>Beregnet empirisk fra historiske forsinkelsesdata. Vi ser pa alle registrerte ankomster av linje A ved byttestoppet, og regner ut hvor stor andel som ville rukket avgangen til linje B gitt buffertiden og din valgte ganghastighet/margin. Nar DuckDB-data er tilgjengelig brukes persentiler (P50/P80/P95) for interpolering; ellers brukes gjennomsnittsforsinkelse som fallback.</p>
+              </div>
+
+              {/* P80 punktlighet */}
+              <div className="space-y-1">
+                <p className="font-medium text-foreground/80 flex items-center gap-1">
+                  <span className="text-muted-foreground font-mono">P80</span> Punktlighet
+                </p>
+                <p>80. persentil av forsinkelsen. Betyr at 80% av avgangene er innenfor denne forsinkelsen. Beregnet via DuckDB-WASM fra ra observasjoner.</p>
+              </div>
+            </div>
+
+            <div className="border-t pt-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid - planlagt tid. Kun buss (Skyss/Vestland) har forsinkelsesdata per na. Andre transportmidler vises uten statistikk.</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                <p><strong>Tidsvindu-filter:</strong> Pavirker kun forsinkelsesstatistikken, ikke reiseforslagene fra Entur.</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Database className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                <p><strong>Teknisk:</strong> Forsinkelsesdata lagres i SQLite, eksporteres til Parquet (ZSTD), og analyseres med DuckDB-WASM (~6 MB) direkte i nettleseren. Ingen data sendes tilbake til serveren.</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
