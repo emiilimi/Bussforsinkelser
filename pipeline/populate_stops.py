@@ -49,7 +49,9 @@ def fetch_from_bigquery() -> list[tuple]:
         q.id                  AS stop_ref,
         sp.name               AS stop_name,
         q.location_latitude   AS lat,
-        q.location_longitude  AS lng
+        q.location_longitude  AS lng,
+        q.stopPlaceRef        AS stop_place_ref,
+        sp.name               AS stop_place_name
     FROM `{NSR_QUAYS_TABLE}` q
     LEFT JOIN `{NSR_STOPS_TABLE}` sp ON sp.id = q.stopPlaceRef
     WHERE q.location_latitude  IS NOT NULL
@@ -58,7 +60,9 @@ def fetch_from_bigquery() -> list[tuple]:
     df = client.query(query).to_dataframe()
     log.info("  Received %d quays", len(df))
     return [
-        (str(r.stop_ref), str(r.stop_name) if r.stop_name else None, r.lat, r.lng)
+        (str(r.stop_ref), str(r.stop_name) if r.stop_name else None, r.lat, r.lng,
+         str(r.stop_place_ref) if r.stop_place_ref else None,
+         str(r.stop_place_name) if r.stop_place_name else None)
         for r in df.itertuples(index=False)
     ]
 
@@ -105,7 +109,9 @@ def populate(db_path: str = DB_PATH, force_refresh: bool = False) -> None:
         with conn:
             conn.execute("DELETE FROM stop_coords")
             conn.executemany(
-                "INSERT OR REPLACE INTO stop_coords (stop_ref, stop_name, lat, lng) VALUES (?, ?, ?, ?)",
+                """INSERT OR REPLACE INTO stop_coords
+                   (stop_ref, stop_name, lat, lng, stop_place_ref, stop_place_name)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
                 rows,
             )
         log.info("  Inserted %d rows into stop_coords", len(rows))

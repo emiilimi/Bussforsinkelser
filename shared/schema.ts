@@ -37,10 +37,12 @@ export const lineDaily = sqliteTable(
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
     medianDelayMin: real("median_delay_min"),
+    stddevDelayMin: real("stddev_delay_min"),
     pctOnTime: real("pct_on_time"),
     pctDelayed2plus: real("pct_delayed_2plus"),
     pctDelayed10plus: real("pct_delayed_10plus"),
     numDepartures: integer("num_departures"),
+    pctRealtimeCoverage: real("pct_realtime_coverage"),
     // NOTE: operator is NOT a separate column — it is embedded in line_ref
     // (e.g. 'SKY:Line:6', 'RUT:Line:31B'). Filter with line_ref LIKE 'SKY:%'.
   },
@@ -65,6 +67,7 @@ export const stopDaily = sqliteTable(
     avgDelayMin: real("avg_delay_min"),
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
+    stddevDelayMin: real("stddev_delay_min"),
     pctDelayed2plus: real("pct_delayed_2plus"),
     numDepartures: integer("num_departures"),
   },
@@ -146,6 +149,7 @@ export const leaderboardLines = sqliteTable("leaderboard_lines", {
   lineRef: text("line_ref").primaryKey(),
   lineName: text("line_name"),
   avgDelayMin: real("avg_delay_min"),
+  stddevDelayMin: real("stddev_delay_min"),
   pctOnTime: real("pct_on_time"),
   pctDelayed10plus: real("pct_delayed_10plus"),
   totalDepartures: integer("total_departures"),
@@ -192,14 +196,44 @@ export const journeyStopWeekly = sqliteTable(
     directionRef: text("direction_ref").notNull(),
     stopRef: text("stop_ref").notNull(),
     stopSequence: integer("stop_sequence").notNull(), // order along route
-    aimedTime: text("aimed_time"),                   // 'HH:MM' local time at this stop
-    avgDelayMin: real("avg_delay_min"),
+    aimedTime: text("aimed_time"),                   // 'HH:MM' local (dep preferred, arr fallback)
+    aimedArrivalTime: text("aimed_arrival_time"),    // 'HH:MM' planned arrival (NULL at first stop)
+    aimedDepartureTime: text("aimed_departure_time"),// 'HH:MM' planned departure (NULL at last stop)
+    avgDelayMin: real("avg_delay_min"),               // combined delay
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
+    avgDelayArrivalMin: real("avg_delay_arrival_min"),    // delay at arrival
+    avgDelayDepartureMin: real("avg_delay_departure_min"),// delay at departure
+    avgDwellTimeSec: real("avg_dwell_time_sec"),          // time stopped (seconds)
     numSamples: integer("num_samples"),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.weekStart, table.serviceJourneyId, table.stopRef] }),
+  }),
+);
+
+// Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
+//
+// Unlike journeyStopWeekly (weekly aggregates), each row is one calendar day —
+// the un-aggregated truth. Enables percentiles, scatter-plots, transfer probability,
+// and historical single-trip lookup. Exported weekly to Parquet on R2.
+export const journeyStopDaily = sqliteTable(
+  "journey_stop_daily",
+  {
+    date: text("date").notNull(),
+    serviceJourneyId: text("service_journey_id").notNull(),
+    lineRef: text("line_ref").notNull(),
+    directionRef: text("direction_ref").notNull(),
+    stopRef: text("stop_ref").notNull(),
+    stopSequence: integer("stop_sequence").notNull(),
+    aimedArrival: text("aimed_arrival"),        // 'HH:MM' local, NULL at first stop
+    aimedDeparture: text("aimed_departure"),    // 'HH:MM' local, NULL at last stop
+    delayArrivalMin: real("delay_arrival_min"), // NULL at first stop
+    delayDepartureMin: real("delay_departure_min"), // NULL at last stop
+    dwellTimeSec: real("dwell_time_sec"),       // NULL at first/last, filtered
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.date, table.serviceJourneyId, table.stopRef] }),
   }),
 );
 
@@ -216,6 +250,7 @@ export type LeaderboardLine = typeof leaderboardLines.$inferSelect;
 export type WorstDay = typeof worstDays.$inferSelect;
 export type StopCoord = typeof stopCoords.$inferSelect;
 export type JourneyStopWeekly = typeof journeyStopWeekly.$inferSelect;
+export type JourneyStopDaily = typeof journeyStopDaily.$inferSelect;
 
 // Data quality warnings logged during ingest.
 // type: 'outlier_delay' (abs(delay_min) > 120) | 'missing_time' (no timing data)

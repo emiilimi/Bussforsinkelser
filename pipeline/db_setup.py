@@ -35,19 +35,21 @@ CREATE TABLE IF NOT EXISTS daily_summary (
 -- operator is NOT a separate column here: it is embedded in line_ref
 --   (e.g. 'SKY:Line:6', 'RUT:Line:31B') and can be filtered with LIKE 'SKY:%'.
 CREATE TABLE IF NOT EXISTS line_daily (
-    date               TEXT    NOT NULL,
-    line_ref           TEXT    NOT NULL,
-    direction_ref      TEXT    NOT NULL DEFAULT '0',
-    vehicle_mode       TEXT    NOT NULL DEFAULT 'bus',
-    line_name          TEXT,
-    avg_delay_min      REAL,
-    max_delay_min      REAL,
-    min_delay_min      REAL,
-    median_delay_min   REAL,
-    pct_on_time        REAL,
-    pct_delayed_2plus  REAL,
-    pct_delayed_10plus REAL,
-    num_departures     INTEGER,
+    date                   TEXT    NOT NULL,
+    line_ref               TEXT    NOT NULL,
+    direction_ref          TEXT    NOT NULL DEFAULT '0',
+    vehicle_mode           TEXT    NOT NULL DEFAULT 'bus',
+    line_name              TEXT,
+    avg_delay_min          REAL,
+    max_delay_min          REAL,
+    min_delay_min          REAL,
+    median_delay_min       REAL,
+    stddev_delay_min       REAL,   -- sample std dev of delay across all stop-visits this day
+    pct_on_time            REAL,
+    pct_delayed_2plus      REAL,
+    pct_delayed_10plus     REAL,
+    num_departures         INTEGER,
+    pct_realtime_coverage  REAL,   -- % of scheduled (non-cancelled) stop-visits with actual times
     PRIMARY KEY (date, line_ref, direction_ref, vehicle_mode)
 );
 
@@ -66,6 +68,7 @@ CREATE TABLE IF NOT EXISTS stop_daily (
     avg_delay_min     REAL,
     max_delay_min     REAL,
     min_delay_min     REAL,
+    stddev_delay_min  REAL,   -- sample std dev of delay across all stop-visits this day
     pct_delayed_2plus REAL,
     num_departures    INTEGER,
     PRIMARY KEY (date, stop_ref, direction_ref, vehicle_mode, operator)
@@ -135,6 +138,7 @@ CREATE TABLE IF NOT EXISTS leaderboard_lines (
     line_ref           TEXT PRIMARY KEY,
     line_name          TEXT,
     avg_delay_min      REAL,
+    stddev_delay_min   REAL,   -- weighted avg of daily stddevs (reliability proxy)
     pct_on_time        REAL,
     pct_delayed_10plus REAL,
     total_departures   INTEGER
@@ -181,17 +185,22 @@ CREATE TABLE IF NOT EXISTS stop_coords (
 -- Upsert logic: weighted average merge so multiple days accumulate within a week.
 -- Old weeks are pruned automatically (>91 days / 13 weeks).
 CREATE TABLE IF NOT EXISTS journey_stop_weekly (
-    week_start         TEXT    NOT NULL,  -- Monday ISO date, e.g. '2026-03-16'
-    service_journey_id TEXT    NOT NULL,  -- NeTEx ServiceJourney ID
-    line_ref           TEXT    NOT NULL,  -- for filtering by line
-    direction_ref      TEXT    NOT NULL,
-    stop_ref           TEXT    NOT NULL,  -- NSR:Quay:xxxxx
-    stop_sequence      INTEGER NOT NULL,  -- order along route
-    aimed_time         TEXT,             -- 'HH:MM' local time at this stop
-    avg_delay_min      REAL,
-    max_delay_min      REAL,
-    min_delay_min      REAL,
-    num_samples        INTEGER,
+    week_start             TEXT    NOT NULL,  -- Monday ISO date, e.g. '2026-03-16'
+    service_journey_id     TEXT    NOT NULL,  -- NeTEx ServiceJourney ID
+    line_ref               TEXT    NOT NULL,  -- for filtering by line
+    direction_ref          TEXT    NOT NULL,
+    stop_ref               TEXT    NOT NULL,  -- NSR:Quay:xxxxx
+    stop_sequence          INTEGER NOT NULL,  -- order along route
+    aimed_time             TEXT,             -- 'HH:MM' local time (departure preferred, arrival fallback)
+    aimed_arrival_time     TEXT,             -- 'HH:MM' planned arrival (NULL at first stop)
+    aimed_departure_time   TEXT,             -- 'HH:MM' planned departure (NULL at last stop)
+    avg_delay_min          REAL,             -- combined delay (departure preferred, arrival fallback)
+    max_delay_min          REAL,
+    min_delay_min          REAL,
+    avg_delay_arrival_min  REAL,             -- delay at arrival (actual_arr - aimed_arr)
+    avg_delay_departure_min REAL,            -- delay at departure (actual_dep - aimed_dep)
+    avg_dwell_time_sec     REAL,             -- time stopped (actual_dep - actual_arr), seconds
+    num_samples            INTEGER,
     PRIMARY KEY (week_start, service_journey_id, stop_ref)
 );
 
@@ -210,6 +219,40 @@ CREATE INDEX IF NOT EXISTS idx_jsw_line_dir            ON journey_stop_weekly (l
 CREATE INDEX IF NOT EXISTS idx_jsw_stop                ON journey_stop_weekly (stop_ref);
 CREATE INDEX IF NOT EXISTS idx_jsw_week                ON journey_stop_weekly (week_start);
 CREATE INDEX IF NOT EXISTS idx_jsw_journey             ON journey_stop_weekly (service_journey_id);
+
+-- Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
+--
+-- Unlike journey_stop_weekly (which stores weekly aggregates), this table stores
+-- one row per actual calendar day per journey per stop — the un-aggregated truth.
+--
+-- Enables:
+--   • Percentile calculations (P50/P80/P95) for reiseplanlegger
+--   • Scatter-plot: time-of-day vs delay per stop, colour = line
+--   • Empirical transfer probability: match actual arrival A vs actual departure B
+--   • Historical single-trip lookup ("what happened to the 08:15 on 7 April?")
+--
+-- Exported weekly to Parquet on Cloudflare R2 for DuckDB-WASM client-side queries.
+-- Zero extra BQ cost: compute_delays() already calculates all values.
+CREATE TABLE IF NOT EXISTS journey_stop_daily (
+    date                TEXT    NOT NULL,
+    service_journey_id  TEXT    NOT NULL,
+    line_ref            TEXT    NOT NULL,
+    direction_ref       TEXT    NOT NULL,
+    stop_ref            TEXT    NOT NULL,   -- NSR:Quay:xxxxx
+    stop_sequence       INTEGER NOT NULL,   -- order along route
+    aimed_arrival       TEXT,              -- 'HH:MM' local (NULL at first stop)
+    aimed_departure     TEXT,              -- 'HH:MM' local (NULL at last stop)
+    delay_arrival_min   REAL,              -- NULL at first stop
+    delay_departure_min REAL,              -- NULL at last stop
+    dwell_time_sec      REAL,              -- NULL at first/last, filtered neg + >10min
+    PRIMARY KEY (date, service_journey_id, stop_ref)
+);
+
+CREATE INDEX IF NOT EXISTS idx_jsd_date        ON journey_stop_daily (date);
+CREATE INDEX IF NOT EXISTS idx_jsd_line        ON journey_stop_daily (line_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_stop        ON journey_stop_daily (stop_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_journey     ON journey_stop_daily (service_journey_id);
+CREATE INDEX IF NOT EXISTS idx_jsd_line_stop   ON journey_stop_daily (line_ref, stop_ref);
 
 -- Data quality log: outlier delays and missing timing data flagged during ingest.
 -- One row per outlier journey-stop, one row per day for missing_time summary.

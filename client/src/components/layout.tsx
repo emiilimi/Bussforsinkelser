@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, AlertTriangle, Map, Clock, Map as MapIcon } from "lucide-react";
+import { Bus, BarChart3, AlertTriangle, Map, Clock, Map as MapIcon, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRegion, REGION_LABEL, type Region } from "@/lib/RegionContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
     { href: "/worst", label: "Topplister", icon: BarChart3 },
     { href: "/journey", label: "Linjeanalyse", icon: Clock },
+    { href: "/reise", label: "Reisesjekk", icon: Navigation },
   ];
 
   return (
@@ -47,22 +48,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {navItems.map((item) => {
             const isActive = location === item.href;
             return (
-              <Link key={item.href} href={item.href}>
-                <a className={cn(
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}>
-                  <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
-                  {item.label}
-                </a>
+                )}
+              >
+                <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto hidden md:block px-2">
+        <div className="mt-auto hidden md:block px-2 space-y-3">
           <div className="p-4 rounded-lg bg-muted/50 border border-border text-[10px] text-muted-foreground space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -70,6 +73,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <p>Historiske SIRI ET-data. Oppdateres nightly.</p>
             <p className="opacity-70">Kilde: ent-data-sharing-ext-prd</p>
+          </div>
+
+          <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-[9px] text-muted-foreground space-y-2">
+            <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <svg viewBox="0 0 300 80" className="h-4 w-auto flex-shrink-0" aria-label="Entur logo">
+                <text x="0" y="58" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="62" fill="currentColor">entur</text>
+              </svg>
+            </a>
+            <p>
+              Inneholder data under{" "}
+              <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                Norsk lisens for offentlige data (NLOD 2.0)
+              </a>{" "}
+              distribuert av Entur AS.
+            </p>
+            <p className="opacity-70">Dataene er bearbeidet og aggregert til forsinkelsesstatistikk.</p>
           </div>
         </div>
       </aside>
