@@ -24,6 +24,16 @@
 
 **Brukeransvar**: `pip install -r pipeline/requirements.txt` + DB-recreate (slett `data/bussforsinkelser.db`, kjør `db_setup.py` + `populate_stops.py` + `populate_stop_places.py` + ingest siste 10 dager + `populate_line_names.py` + `export_parquet.py --all`).
 
+## Endringslogg — 2026-04-30: Reisesjekk — tre overgangssannsynligheter
+
+`client/src/pages/trip-planner.tsx`:
+- Hver transit→[gange]→transit-overgang vises nå med tre separate sannsynligheter:
+  - **Med 2 min margin** (gangtid + 2 min) — headline i kortlista
+  - **Med brukervalgt margin** (ny slider «Overgangsmargin», 0–15 min, default 5)
+  - **Spurt** — gangtid skalert med walkSpeed/sprintSpeed + 30 sek margin (ny slider «Spurt-tempo»; default = vanlig ganghastighet)
+- Bug-fiks: tidligere logikk regnet ikke gangtid med i bufferet (foot-leg mellom transit ble hoppet over). Ny formel: `effektiv buffer = totalGap − walkTime − margin`, fed inn i `transferProbabilityFromDist`.
+- Headline-prosenten i forslagslista bruker 2-min-scenariet. Ekspandert kort viser alle tre per overgang.
+
 
 ---
 
