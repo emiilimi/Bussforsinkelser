@@ -97,8 +97,9 @@ const MODE_ICONS: Record<string, typeof Bus> = {
   foot: Footprints,
 };
 
-// We only have delay data for bus (Skyss). Other modes show "ingen data".
-const MODES_WITH_DELAY_DATA = new Set(["bus"]);
+// Modes for which the pipeline currently produces delay statistics.
+// 'coach' (flybuss) shares the Skyss SIRI ET feed with regular buses.
+const MODES_WITH_DELAY_DATA = new Set(["bus", "coach"]);
 
 // ---------------------------------------------------------------------------
 // DuckDB helpers

@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { desc, eq, gte, lte, and, like, sql, notInArray } from "drizzle-orm";
+import { desc, eq, gte, lte, and, like, sql, notInArray, inArray } from "drizzle-orm";
 import { resolve } from "path";
 import * as schema from "@shared/schema";
 
@@ -18,6 +18,42 @@ const sqlite = new Database(DB_PATH);
 sqlite.pragma("journal_mode = WAL");
 
 export const db = drizzle(sqlite, { schema });
+
+// All vehicle modes included in aggregations. 'coach' (flybuss) is kept
+// distinct from 'bus' so the trip planner can filter the two separately.
+export const INCLUDED_MODES = ["bus", "coach", "tram", "metro", "rail", "water"] as const;
+export type VehicleMode = (typeof INCLUDED_MODES)[number];
+
+// Day-type filter values used by the backend. 'all' (or undefined) = no filter.
+export const DAY_TYPES = ["weekday", "saturday", "sunday", "holiday", "may17"] as const;
+export type DayType = (typeof DAY_TYPES)[number];
+
+/** Parse a comma-separated `?modes=` query into a validated whitelist subset. */
+export function parseModes(input: string | string[] | undefined): VehicleMode[] {
+  if (!input) return [...INCLUDED_MODES];
+  const raw = Array.isArray(input) ? input.join(",") : input;
+  if (raw === "all") return [...INCLUDED_MODES];
+  const requested = raw.split(",").map((s) => s.trim().toLowerCase());
+  const filtered = requested.filter((m): m is VehicleMode =>
+    (INCLUDED_MODES as readonly string[]).includes(m),
+  );
+  return filtered.length ? filtered : [...INCLUDED_MODES];
+}
+
+/** SQL fragment listing all included vehicle modes, e.g. `'bus','coach',...`. Use as `vehicle_mode IN (${INCLUDED_MODES_SQL})`. */
+export const INCLUDED_MODES_SQL = INCLUDED_MODES.map((m) => `'${m}'`).join(",");
+
+/** Parse a comma-separated `?dayType=` query. Returns null when no filter applies. */
+export function parseDayTypes(input: string | string[] | undefined): DayType[] | null {
+  if (!input) return null;
+  const raw = Array.isArray(input) ? input.join(",") : input;
+  if (raw === "all") return null;
+  const requested = raw.split(",").map((s) => s.trim().toLowerCase());
+  const filtered = requested.filter((d): d is DayType =>
+    (DAY_TYPES as readonly string[]).includes(d),
+  );
+  return filtered.length ? filtered : null;
+}
 
 // ---------------------------------------------------------------------------
 // Summary
@@ -77,7 +113,7 @@ export async function getLinesForDate(date: string, limit = 20) {
       numDepartures: sql<number>`SUM(${schema.lineDaily.numDepartures})`,
     })
     .from(schema.lineDaily)
-    .where(and(eq(schema.lineDaily.date, date), eq(schema.lineDaily.vehicleMode, "bus")))
+    .where(and(eq(schema.lineDaily.date, date), inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[])))
     .groupBy(schema.lineDaily.lineRef, schema.lineDaily.lineName)
     .orderBy(desc(avgExpr))
     .limit(limit)
@@ -90,7 +126,7 @@ export async function getLineStats(lineRef: string, fromDate: string, direction?
   const baseConditions = and(
     eq(schema.lineDaily.lineRef, lineRef),
     gte(schema.lineDaily.date, fromDate),
-    eq(schema.lineDaily.vehicleMode, "bus"),
+    inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
     direction && direction !== "all"
       ? eq(schema.lineDaily.directionRef, direction)
       : undefined,
@@ -116,21 +152,30 @@ export async function getLineStats(lineRef: string, fromDate: string, direction?
     .all();
 }
 
-export async function getLineHourlyProfile(lineRef: string, direction?: string) {
+export async function getLineHourlyProfile(lineRef: string, direction?: string, dayTypes?: DayType[] | null) {
   // When direction is a specific value (not 'all' or undefined): return that direction's profile.
   // When 'all' or undefined: aggregate all directions (weighted avg + max/min over all).
+  // dayTypes filters across the day_type column (added April 2026). null/undefined = all day types.
+  const dtFilter = dayTypes && dayTypes.length
+    ? `AND day_type IN (${dayTypes.map((d) => `'${d}'`).join(",")})`
+    : "";
   if (direction && direction !== "all") {
-    return db
-      .select()
-      .from(schema.lineHourlyProfile)
-      .where(
-        and(
-          eq(schema.lineHourlyProfile.lineRef, lineRef),
-          eq(schema.lineHourlyProfile.directionRef, direction),
-        ),
-      )
-      .orderBy(schema.lineHourlyProfile.hour)
-      .all();
+    return sqlite.prepare(`
+      SELECT
+        line_ref       AS lineRef,
+        line_name      AS lineName,
+        direction_ref  AS directionRef,
+        hour,
+        ROUND(SUM(avg_delay_min * num_samples) * 1.0 / NULLIF(SUM(num_samples), 0), 2) AS avgDelayMin,
+        ROUND(MAX(max_avg_delay_min), 2) AS maxAvgDelayMin,
+        ROUND(MIN(min_avg_delay_min), 2) AS minAvgDelayMin,
+        SUM(num_samples) AS numSamples
+      FROM line_hourly_profile
+      WHERE line_ref = ? AND direction_ref = ?
+      ${dtFilter}
+      GROUP BY hour
+      ORDER BY hour
+    `).all(lineRef, direction);
   }
   // Aggregate across both directions
   return sqlite.prepare(`
@@ -144,6 +189,7 @@ export async function getLineHourlyProfile(lineRef: string, direction?: string) 
       SUM(num_samples) AS numSamples
     FROM line_hourly_profile
     WHERE line_ref = ?
+    ${dtFilter}
     GROUP BY hour
     ORDER BY hour
   `).all(lineRef);
@@ -166,7 +212,7 @@ export async function getAllLines(operator?: string) {
     .from(schema.lineDaily)
     .where(
       and(
-        eq(schema.lineDaily.vehicleMode, "bus"),
+        inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
         notInArray(schema.lineDaily.lineRef, EXCLUDED_LINE_REFS),
       ),
     )
@@ -215,7 +261,7 @@ export async function getStopStats(stopRef: string, fromDate: string, operator =
         SUM(sd.num_departures) AS numDepartures
       FROM stop_daily sd
       LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
-      WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode = 'bus' AND sd.operator = ?
+      WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) AND sd.operator = ?
       GROUP BY sd.date
       ORDER BY sd.date
     `).all(stopRef, stopRef, fromDate, operator) as any[];
@@ -234,17 +280,20 @@ export async function getStopStats(stopRef: string, fromDate: string, operator =
       SUM(sd.num_departures) AS numDepartures
     FROM stop_daily sd
     LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
-    WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode = 'bus' AND sd.operator = ? AND sd.direction_ref = ?
+    WHERE ${stopFilter} AND sd.date >= ? AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) AND sd.operator = ? AND sd.direction_ref = ?
     GROUP BY sd.date
     ORDER BY sd.date
   `).all(stopRef, stopRef, fromDate, operator, direction) as any[];
 }
 
-export async function getStopHourlyProfile(stopRef: string, operator = "SKY", direction?: string) {
+export async function getStopHourlyProfile(stopRef: string, operator = "SKY", direction?: string, dayTypes?: DayType[] | null) {
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const stopFilter = isStopPlace
     ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
     : `stop_ref = ?`;
+  const dtFilter = dayTypes && dayTypes.length
+    ? `AND day_type IN (${dayTypes.map((d) => `'${d}'`).join(",")})`
+    : "";
 
   if (!direction || direction === "all") {
     return sqlite.prepare(`
@@ -256,6 +305,7 @@ export async function getStopHourlyProfile(stopRef: string, operator = "SKY", di
         SUM(num_samples) AS numSamples
       FROM stop_hourly_profile
       WHERE ${stopFilter} AND operator = ?
+      ${dtFilter}
       GROUP BY hour
       ORDER BY hour
     `).all(stopRef, operator);
@@ -270,6 +320,7 @@ export async function getStopHourlyProfile(stopRef: string, operator = "SKY", di
       SUM(num_samples) AS numSamples
     FROM stop_hourly_profile
     WHERE ${stopFilter} AND operator = ? AND direction_ref = ?
+    ${dtFilter}
     GROUP BY hour
     ORDER BY hour
   `).all(stopRef, operator, direction);
@@ -332,7 +383,7 @@ export async function getStopsForMap(date: string, operator = "SKY") {
     LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
     WHERE sd.date > date(?, '-7 days')
       AND sd.date <= ?
-      AND sd.vehicle_mode = 'bus'
+      AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL})
       AND sd.operator = ?
     GROUP BY sd.stop_ref
     HAVING SUM(sd.num_departures) > 0
@@ -407,7 +458,7 @@ export async function getStopsForMapFiltered(
     LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
     WHERE sd.date > date(?, '-${windowDays} days')
       AND sd.date <= ?
-      AND sd.vehicle_mode = 'bus'
+      AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL})
       AND sd.operator = ?
       ${dayFilterDaily}
     GROUP BY sd.stop_ref
@@ -486,6 +537,7 @@ export async function getJourneyProfile(
   lineRef: string,
   directionRef: string,
   firstStopTime: string,
+  dayTypes?: DayType[] | null,
 ): Promise<Array<{ stopRef: string; stopSequence: number; aimedTime: string | null; avgDelayMin: number; maxDelayMin: number; minDelayMin: number; numSamples: number; stopName: string }>> {
   // Find matching service_journey_ids, then pick the one with the most data
   // to avoid mixing stop_sequences from different route variants.
@@ -502,6 +554,32 @@ export async function getJourneyProfile(
     .get(lineRef, directionRef, firstStopTime) as { service_journey_id: string } | undefined;
 
   if (!bestJourney) return [];
+
+  // When a day_type filter is supplied, fall back to journey_stop_daily (which carries
+  // a day_type column). journey_stop_weekly mixes all day types and cannot answer this
+  // question. Daily window is 90 days vs. weekly's 13 weeks, so coverage is comparable.
+  if (dayTypes && dayTypes.length) {
+    const dtList = dayTypes.map((d) => `'${d}'`).join(",");
+    return sqlite
+      .prepare(
+        `SELECT
+           jsd.stop_ref        AS stopRef,
+           jsd.stop_sequence   AS stopSequence,
+           COALESCE(jsd.aimed_arrival, jsd.aimed_departure) AS aimedTime,
+           ROUND(AVG(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS avgDelayMin,
+           ROUND(MAX(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS maxDelayMin,
+           ROUND(MIN(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS minDelayMin,
+           COUNT(*)             AS numSamples,
+           COALESCE(MAX(sc.stop_name), jsd.stop_ref) AS stopName
+         FROM journey_stop_daily jsd
+         LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
+         WHERE jsd.service_journey_id = ?
+           AND jsd.day_type IN (${dtList})
+         GROUP BY jsd.stop_ref
+         ORDER BY MIN(jsd.stop_sequence) ASC`,
+      )
+      .all(bestJourney.service_journey_id) as any;
+  }
 
   // For a single serviceJourney, sort by aimed_time (the true chronological order)
   // rather than stop_sequence which can be inconsistent across weeks.
@@ -960,8 +1038,8 @@ export async function getLeaderboardLinesPeriod(
     .from(schema.lineDaily)
     .where(
       operator
-        ? and(gte(schema.lineDaily.date, fromDate), eq(schema.lineDaily.vehicleMode, "bus"), like(schema.lineDaily.lineRef, `${operator}:%`))
-        : and(gte(schema.lineDaily.date, fromDate), eq(schema.lineDaily.vehicleMode, "bus")),
+        ? and(gte(schema.lineDaily.date, fromDate), inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]), like(schema.lineDaily.lineRef, `${operator}:%`))
+        : and(gte(schema.lineDaily.date, fromDate), inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[])),
     )
     .groupBy(schema.lineDaily.lineRef, schema.lineDaily.lineName)
     .orderBy(order)
@@ -992,7 +1070,7 @@ export async function getLeaderboardStops(
     .where(
       and(
         gte(schema.stopDaily.date, fromDate),
-        eq(schema.stopDaily.vehicleMode, "bus"),
+        inArray(schema.stopDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
         eq(schema.stopDaily.operator, operator),
         like(schema.stopDaily.stopRef, "NSR:%"),
       ),
@@ -1004,11 +1082,18 @@ export async function getLeaderboardStops(
     .all();
 }
 
-export async function getWorstDays(limit = 10, operator = "SKY") {
+export async function getWorstDays(limit = 10, operator = "SKY", dayTypes?: DayType[] | null) {
   return db
     .select()
     .from(schema.worstDays)
-    .where(eq(schema.worstDays.operator, operator))
+    .where(
+      and(
+        eq(schema.worstDays.operator, operator),
+        dayTypes && dayTypes.length
+          ? inArray(schema.worstDays.dayType, dayTypes as readonly string[] as string[])
+          : undefined,
+      ),
+    )
     .orderBy(desc(schema.worstDays.avgDelayMin))
     .limit(limit)
     .all();
