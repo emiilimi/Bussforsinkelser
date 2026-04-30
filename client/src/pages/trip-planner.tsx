@@ -410,71 +410,113 @@ function TripCard({
   index,
   stats,
   duckStats,
+  transferMarginMin,
+  walkSpeedKmh,
+  sprintSpeedKmh,
 }: {
   pattern: TripPattern;
   index: number;
   stats: Map<string, TripStopStat>;
   duckStats?: Map<string, DuckDelayRow>;
+  transferMarginMin: number;
+  walkSpeedKmh: number;
+  sprintSpeedKmh: number;
 }) {
   const [expanded, setExpanded] = useState(index === 0);
 
   // ---------- Compute transfer probabilities + overall probability ----------
+  // For each transit→transit transfer (with optional foot leg(s) in between) we
+  // compute three probabilities of catching the connection:
+  //   - default (gangtid + 2 min margin)   → headline shown in the collapsed card
+  //   - userMargin (gangtid + N min)       → uses the "Overgangsmargin"-filter
+  //   - sprint (raskere gangtid + 30 sek)  → uses the "Spurt-tempo"-filter
+  // The "effective buffer" for each scenario = totalGap − walkTime − margin, fed
+  // into transferProbabilityFromDist() against the arrival-delay distribution
+  // of the inbound transit leg at the transfer stop.
   const transferAnalysis = useMemo(() => {
+    type Probs = { default: number; user: number; sprint: number };
     const transfers: Array<{
-      buffer: number;
-      chance: string | null;
-      color: string;
-      probability: number;
+      buffer: number;       // minutes — total gap between TransitA end and TransitB start
+      walkTime: number;     // minutes — sum of foot-leg durations between them
+      sprintWalkTime: number; // minutes — walkTime scaled by walkSpeed/sprintSpeed
+      probs: Probs;         // 3 probabilities; -1 = unknown
       fromLine: string | null;
       toLine: string | null;
     }> = [];
 
-    for (let legIdx = 0; legIdx < pattern.legs.length; legIdx++) {
-      const leg = pattern.legs[legIdx];
-      const nextLeg = pattern.legs[legIdx + 1];
-      if (!nextLeg || nextLeg.mode === "foot") continue;
+    // Indexes of transit (non-foot) legs and a lookup from "leg index" → transfer index
+    // (i.e. for an inbound transit leg legA, what position is its outgoing transfer in
+    // the transfers[] array). Lets the renderer attach badges without re-counting.
+    const transitIdxs: number[] = [];
+    const transferIdxByLeg: Map<number, number> = new Map();
+    for (let i = 0; i < pattern.legs.length; i++) {
+      if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
+    }
+    for (let t = 0; t < transitIdxs.length - 1; t++) {
+      transferIdxByLeg.set(transitIdxs[t], t);
+    }
 
-      const lineRef = leg.line?.id ?? "";
-      const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
+    for (let t = 0; t < transitIdxs.length - 1; t++) {
+      const aIdx = transitIdxs[t];
+      const bIdx = transitIdxs[t + 1];
+      const legA = pattern.legs[aIdx];
+      const legB = pattern.legs[bIdx];
 
-      const arrivalTime = new Date(leg.expectedEndTime).getTime();
-      const departureTime = new Date(nextLeg.expectedStartTime).getTime();
-      const bufferMin = (departureTime - arrivalTime) / 60000;
-      if (bufferMin <= 0) continue;
+      // Sum walking time between A and B (any foot legs in between).
+      let walkSec = 0;
+      for (let k = aIdx + 1; k < bIdx; k++) {
+        if (pattern.legs[k].mode === "foot") walkSec += pattern.legs[k].duration ?? 0;
+      }
+      const walkTime = walkSec / 60;
+      const sprintRatio = sprintSpeedKmh > 0 ? walkSpeedKmh / sprintSpeedKmh : 1;
+      const sprintWalkTime = walkTime * sprintRatio;
 
-      const arrQuay = leg.toPlace.quay?.id ?? "";
+      const totalGap = (new Date(legB.expectedStartTime).getTime() - new Date(legA.expectedEndTime).getTime()) / 60000;
+      if (totalGap <= 0) continue;
+
+      const lineRef = legA.line?.id ?? "";
+      const hasDelayData = MODES_WITH_DELAY_DATA.has(legA.mode) && !!lineRef;
+
+      const arrQuay = legA.toPlace.quay?.id ?? "";
       const statKey = `${arrQuay}|${lineRef}`;
       const arrStat = stats.get(statKey);
       const duckStat = duckStats?.get(statKey);
       const arrDelay = hasDelayData ? (arrStat?.avgDelayArrivalMin ?? null) : null;
 
-      // Use empirical DuckDB percentiles when available, fall back to heuristic
-      const prob = hasDelayData && duckStat
-        ? transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, bufferMin)
-        : transferProbability(arrDelay, bufferMin);
-      const chance = hasDelayData ? transferChance(arrDelay, bufferMin) : null;
-      const color = hasDelayData ? transferColor(arrDelay, bufferMin) : "text-muted-foreground";
+      const probFor = (effective: number): number => {
+        if (!hasDelayData) return -1;
+        if (duckStat && duckStat.p50_arr != null) {
+          return transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, effective);
+        }
+        return transferProbability(arrDelay, effective);
+      };
+
+      const probs: Probs = {
+        default: probFor(totalGap - walkTime - 2),
+        user: probFor(totalGap - walkTime - transferMarginMin),
+        sprint: probFor(totalGap - sprintWalkTime - 0.5),
+      };
 
       transfers.push({
-        buffer: bufferMin,
-        chance,
-        color,
-        probability: prob,
-        fromLine: leg.line?.publicCode ?? null,
-        toLine: nextLeg.line?.publicCode ?? null,
+        buffer: totalGap,
+        walkTime,
+        sprintWalkTime,
+        probs,
+        fromLine: legA.line?.publicCode ?? null,
+        toLine: legB.line?.publicCode ?? null,
       });
     }
 
-    // Overall probability = product of known probabilities
-    const knownProbs = transfers.filter((t) => t.probability >= 0).map((t) => t.probability);
+    // Headline overall probability uses the default (gangtid + 2 min) scenario.
+    const knownProbs = transfers.filter((t) => t.probs.default >= 0).map((t) => t.probs.default);
     const overallProb = knownProbs.length > 0
       ? knownProbs.reduce((a, b) => a * b, 1)
       : -1;
 
     const hasTransfers = transfers.length > 0;
 
-    return { transfers, overallProb, hasTransfers };
-  }, [pattern, stats, duckStats]);
+    return { transfers, overallProb, hasTransfers, transferIdxByLeg };
+  }, [pattern, stats, duckStats, transferMarginMin, walkSpeedKmh, sprintSpeedKmh]);
 
   // ---------- Compute estimated departure/arrival from delays ----------
   const estimatedTimes = useMemo(() => {
@@ -641,20 +683,11 @@ function TripCard({
               leg.toPlace.quay,
             ].filter(Boolean) as Array<{ id: string; name: string }>;
 
-            // Transfer analysis between this leg and next
-            const nextLeg = pattern.legs[legIdx + 1];
-            // Find corresponding transfer from pre-computed analysis
-            let transferIdx = 0;
-            let transferInfo: typeof transferAnalysis.transfers[number] | null = null;
-            if (nextLeg && nextLeg.mode !== "foot") {
-              // count transit-to-transit transfers before this leg to find the right index
-              let count = 0;
-              for (let i = 0; i < legIdx; i++) {
-                const nl = pattern.legs[i + 1];
-                if (nl && nl.mode !== "foot" && pattern.legs[i].mode !== "foot") count++;
-              }
-              transferInfo = transferAnalysis.transfers[count] ?? null;
-            }
+            // Attach transferInfo on the inbound transit leg (= legA of a transit→transit pair).
+            const transferIdx = transferAnalysis.transferIdxByLeg.get(legIdx);
+            const transferInfo = transferIdx != null
+              ? transferAnalysis.transfers[transferIdx] ?? null
+              : null;
 
             // Walking leg — compact display
             if (leg.mode === "foot") {
@@ -721,32 +754,54 @@ function TripCard({
                   </div>
                 </div>
 
-                {/* Transfer indicator */}
+                {/* Transfer indicator with three probabilities */}
                 {transferInfo && (
-                  <div className="flex items-center gap-2 py-2 px-3 flex-wrap">
-                    <ArrowDown className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      Overgang: {transferInfo.buffer.toFixed(0)} min buffer
-                    </span>
-                    {transferInfo.fromLine && transferInfo.toLine && (
+                  <div className="py-2 px-3 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <ArrowDown className="h-3 w-3 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">
-                        Linje {transferInfo.fromLine} &rarr; Linje {transferInfo.toLine}
+                        Overgang: {transferInfo.buffer.toFixed(0)} min total
                       </span>
-                    )}
-                    {transferInfo.chance && (
-                      <span className={cn("text-xs font-medium", transferInfo.color)}>
-                        {transferInfo.chance}
-                      </span>
-                    )}
-                    {transferInfo.probability >= 0 && (
-                      <span className={cn("text-xs font-medium", transferInfo.color)}>
-                        ({Math.round(transferInfo.probability * 100)}% sjanse)
-                      </span>
-                    )}
-                    {!transferInfo.chance && transferInfo.probability < 0 && (
-                      <span className="text-[9px] text-muted-foreground/60 italic">
-                        mangler data for vurdering
-                      </span>
+                      {transferInfo.walkTime > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          ({transferInfo.walkTime.toFixed(1)} min gange)
+                        </span>
+                      )}
+                      {transferInfo.fromLine && transferInfo.toLine && (
+                        <span className="text-xs text-muted-foreground">
+                          Linje {transferInfo.fromLine} &rarr; Linje {transferInfo.toLine}
+                        </span>
+                      )}
+                    </div>
+                    {transferInfo.probs.default >= 0 ? (
+                      <div className="flex flex-col gap-0.5 ml-5 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground w-44">
+                            Med 2 min margin:
+                          </span>
+                          {probabilityBadge(transferInfo.probs.default)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground w-44">
+                            Med {transferMarginMin} min margin:
+                          </span>
+                          {transferInfo.probs.user >= 0
+                            ? probabilityBadge(transferInfo.probs.user)
+                            : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground w-44">
+                            Spurt ({sprintSpeedKmh.toFixed(1)} km/t + 30 sek):
+                          </span>
+                          {transferInfo.probs.sprint >= 0
+                            ? probabilityBadge(transferInfo.probs.sprint)
+                            : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ml-5 text-[10px] text-muted-foreground/60 italic">
+                        mangler forsinkelsesdata for vurdering
+                      </div>
                     )}
                   </div>
                 )}
@@ -777,6 +832,12 @@ export default function TripPlanner() {
   const [departTime, setDepartTime] = useState(roundedNow());
   const [arriveBy, setArriveBy] = useState(false);
   const [walkSpeedKmh, setWalkSpeedKmh] = useState(4.8);
+  // Probability-only filters (don't affect Entur routing):
+  // - transferMarginMin: extra buffer the user wants on top of pure walk time (e.g. 5 min)
+  // - sprintSpeedKmh: pace used when running the "spurt" scenario; defaults to walk speed
+  //   so that a sprint = walking at the chosen pace + 30 sec margin, until user overrides.
+  const [transferMarginMin, setTransferMarginMin] = useState(5);
+  const [sprintSpeedKmh, setSprintSpeedKmh] = useState<number | null>(null);
   const [maxTransfers, setMaxTransfers] = useState("any");
   const [transferSlack, setTransferSlack] = useState("default");
   const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach"]);
@@ -1061,6 +1122,48 @@ export default function TripPlanner() {
                     </div>
                   </div>
 
+                  {/* Sprint speed slider — affects only "spurt"-overgangssannsynlighet */}
+                  <div className="col-span-2 md:col-span-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Spurt-tempo: {(sprintSpeedKmh ?? walkSpeedKmh).toFixed(1)} km/t
+                    </Label>
+                    <div className="pt-2 px-1">
+                      <Slider
+                        value={[sprintSpeedKmh ?? walkSpeedKmh]}
+                        onValueChange={(v) => setSprintSpeedKmh(v[0])}
+                        min={walkSpeedKmh}
+                        max={20}
+                        step={0.1}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1">
+                      <span>{walkSpeedKmh.toFixed(0)}</span>
+                      <span>{((walkSpeedKmh + 20) / 2).toFixed(0)}</span>
+                      <span>20 km/t</span>
+                    </div>
+                  </div>
+
+                  {/* User transfer margin — only affects probability shown, not Entur routing */}
+                  <div className="col-span-2 md:col-span-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Overgangsmargin: {transferMarginMin} min
+                    </Label>
+                    <div className="pt-2 px-1">
+                      <Slider
+                        value={[transferMarginMin]}
+                        onValueChange={(v) => setTransferMarginMin(v[0])}
+                        min={0}
+                        max={15}
+                        step={1}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1">
+                      <span>0</span>
+                      <span>5</span>
+                      <span>15 min</span>
+                    </div>
+                  </div>
+
                   {/* Max transfers */}
                   <div>
                     <Label className="text-xs text-muted-foreground">Maks overganger</Label>
@@ -1202,7 +1305,16 @@ export default function TripPlanner() {
               )}
             </h3>
             {tripPatterns.map((pattern, i) => (
-              <TripCard key={i} pattern={pattern} index={i} stats={delayStats} duckStats={duckData} />
+              <TripCard
+                key={i}
+                pattern={pattern}
+                index={i}
+                stats={delayStats}
+                duckStats={duckData}
+                transferMarginMin={transferMarginMin}
+                walkSpeedKmh={walkSpeedKmh}
+                sprintSpeedKmh={sprintSpeedKmh ?? walkSpeedKmh}
+              />
             ))}
           </div>
         )}
