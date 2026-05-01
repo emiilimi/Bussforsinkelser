@@ -98,8 +98,9 @@ const MODE_ICONS: Record<string, typeof Bus> = {
 };
 
 // Modes for which the pipeline currently produces delay statistics.
-// 'coach' (flybuss) shares the Skyss SIRI ET feed with regular buses.
-const MODES_WITH_DELAY_DATA = new Set(["bus", "coach"]);
+// 'coach' (flybuss) and 'ferry' share the Skyss SIRI ET feed with regular buses.
+// ('ferry' is the vehicleMode value Skyss uses — NOT 'water'.)
+const MODES_WITH_DELAY_DATA = new Set(["bus", "coach", "ferry"]);
 
 // ---------------------------------------------------------------------------
 // DuckDB helpers

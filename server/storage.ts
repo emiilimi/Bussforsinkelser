@@ -21,7 +21,9 @@ export const db = drizzle(sqlite, { schema });
 
 // All vehicle modes included in aggregations. 'coach' (flybuss) is kept
 // distinct from 'bus' so the trip planner can filter the two separately.
-export const INCLUDED_MODES = ["bus", "coach", "tram", "metro", "rail", "water"] as const;
+// 'ferry' is the actual vehicleMode value Skyss SIRI ET uses for boat routes
+// (not 'water', which is the NeTEx/Entur transport mode name).
+export const INCLUDED_MODES = ["bus", "coach", "tram", "metro", "rail", "water", "ferry"] as const;
 export type VehicleMode = (typeof INCLUDED_MODES)[number];
 
 // Day-type filter values used by the backend. 'all' (or undefined) = no filter.

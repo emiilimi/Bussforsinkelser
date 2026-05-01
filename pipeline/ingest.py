@@ -37,7 +37,7 @@ except ImportError:
 # Vehicle modes included in all aggregations. Anything outside this set is
 # dropped at the end of compute_delays(). 'coach' = flybuss / langdistansebuss,
 # kept separate from 'bus' for the reiseplanlegger filter.
-INCLUDED_MODES = {"bus", "coach", "tram", "metro", "rail", "water"}
+INCLUDED_MODES = {"bus", "coach", "tram", "metro", "rail", "water", "ferry"}
 
 # IMPORTANT: verify exact table path in the Entur data catalog at
 # https://data.entur.no/domain/public-transport-data/product/realtime_siri_et

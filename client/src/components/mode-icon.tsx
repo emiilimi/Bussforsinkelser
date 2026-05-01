@@ -1,7 +1,8 @@
 import { Bus, TramFront, Train, Ship, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type VehicleMode = "bus" | "coach" | "tram" | "metro" | "rail" | "water";
+// 'ferry' = Skyss SIRI ET vehicleMode for boat routes (not NeTEx 'water').
+export type VehicleMode = "bus" | "coach" | "tram" | "metro" | "rail" | "water" | "ferry";
 
 const ICONS: Record<VehicleMode, typeof Bus> = {
   bus: Bus,
@@ -10,6 +11,7 @@ const ICONS: Record<VehicleMode, typeof Bus> = {
   metro: TramFront,
   rail: Train,
   water: Ship,
+  ferry: Ship,
 };
 
 const LABELS: Record<VehicleMode, string> = {
@@ -19,14 +21,15 @@ const LABELS: Record<VehicleMode, string> = {
   metro: "T-bane",
   rail: "Tog",
   water: "Båt",
+  ferry: "Ferje",
 };
 
 /**
- * Whether we have historic delay statistics for this mode in our DB.
- * Currently only buss/flybuss are ingested from Skyss SIRI ET. Tram/rail/water
- * placeholder support is wired up but the DB has no rows yet.
+ * Modes for which we have historic delay statistics in the DB.
+ * Bus + coach (flybuss) come from Skyss SIRI ET.
+ * Ferry routes are now also ingested (Skyss uses vehicleMode='ferry').
  */
-export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>(["bus", "coach"]);
+export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>(["bus", "coach", "ferry"]);
 
 export function modeLabel(mode: string | null | undefined): string {
   if (!mode) return LABELS.bus;
