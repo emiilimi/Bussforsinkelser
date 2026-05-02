@@ -25,7 +25,7 @@ client/src/
     stop-analysis.tsx      /stops       Stoppanalyse: søk, trend, timesprofil, linjer ved stopp
     worst-lists.tsx        /worst       Topplister: dager, stopp, pålitelighet
     delay-map.tsx          /map         Leaflet-kart med fargede stoppmarkører
-    trip-planner.tsx       /reise       Reisesjekk: Entur JP v3, DuckDB-WASM persentiler, overgangsanalyse, metodeboks
+    trip-planner.tsx       /reise       Reiseplanlegger: Entur JP v3, DuckDB-WASM persentiler, overgangsanalyse, metodeboks
     not-found.tsx          *            404-side
   components/
     layout.tsx             Sidebar, nav, regionvelger, NLOD-attribusjon

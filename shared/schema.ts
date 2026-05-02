@@ -43,6 +43,8 @@ export const lineDaily = sqliteTable(
     pctDelayed10plus: real("pct_delayed_10plus"),
     numDepartures: integer("num_departures"),
     pctRealtimeCoverage: real("pct_realtime_coverage"),
+    // Cancellations counted from journeyCancellation flag in BQ (per line/direction/mode/day).
+    numCancellations: integer("num_cancellations").default(0),
     // NOTE: operator is NOT a separate column — it is embedded in line_ref
     // (e.g. 'SKY:Line:6', 'RUT:Line:31B'). Filter with line_ref LIKE 'SKY:%'.
   },
@@ -153,6 +155,7 @@ export const leaderboardLines = sqliteTable("leaderboard_lines", {
   pctOnTime: real("pct_on_time"),
   pctDelayed10plus: real("pct_delayed_10plus"),
   totalDepartures: integer("total_departures"),
+  totalCancellations: integer("total_cancellations").default(0),
 });
 
 export const worstDays = sqliteTable(

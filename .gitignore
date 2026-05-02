@@ -27,6 +27,15 @@ service-account*.json
 # Claude memory / project context (local only)
 .claude/
 
+# Large GTFS files (shapes/stop_times/trips are 100MB+, not needed in repo)
+gtfs-legacy/sky/shapes.txt
+gtfs-legacy/sky/stop_times.txt
+gtfs-legacy/sky/trips.txt
+
+# Generated data files (not source code)
+data/parquet/
+data/diagnostics/
+
 # Stray directories that don't belong in the repo
 Skrivebord/
 emiliesBussprosjekt/

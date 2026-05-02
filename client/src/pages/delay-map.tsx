@@ -10,6 +10,7 @@ import type { LatLngBounds } from "leaflet";
 import { formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { REGION_MAP_CENTER } from "@/lib/regionCoords";
+import { TimeWindowPicker, type TimeWindow, windowToQuery } from "@/components/time-window-picker";
 
 type MapStop = {
   stopRef: string;
@@ -80,13 +81,6 @@ const TIME_PRESETS: TimePreset[] = [
 type DayFilter = "all" | "weekday" | "weekend";
 const DAY_LABELS: Record<DayFilter, string> = { all: "Alle dager", weekday: "Ukedager", weekend: "Helg" };
 
-type WindowOption = { label: string; days: number };
-const WINDOW_OPTIONS: WindowOption[] = [
-  { label: "Siste uke", days: 7 },
-  { label: "Siste 2 uker", days: 14 },
-  { label: "Siste måned", days: 30 },
-  { label: "Siste 3 mnd", days: 90 },
-];
 
 export default function DelayMap() {
   const { region, operator } = useRegion();
@@ -95,15 +89,24 @@ export default function DelayMap() {
 
   const [dayType, setDayType] = useState<DayFilter>("all");
   const [timePreset, setTimePreset] = useState<TimePreset>(TIME_PRESETS[0]);
-  const [windowDays, setWindowDays] = useState<WindowOption>(WINDOW_OPTIONS[0]);
+  const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 7, label: "Siste uke" });
   const [showFilters, setShowFilters] = useState(false);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
 
+  const wq = windowToQuery(window);
   const queryParams = new URLSearchParams({ operator });
   if (dayType !== "all") queryParams.set("dayType", dayType);
   if (timePreset.hourMin != null) queryParams.set("hourMin", String(timePreset.hourMin));
   if (timePreset.hourMax != null) queryParams.set("hourMax", String(timePreset.hourMax));
-  if (windowDays.days !== 7) queryParams.set("windowDays", String(windowDays.days));
+  // Pass time-window to /api/stops/map. That endpoint uses "windowDays" not "days".
+  wq.split("&").filter(Boolean).forEach((kv) => {
+    const [k, v] = kv.split("=");
+    if (!k || !v) return;
+    // Map endpoint uses windowDays; from/to not yet supported server-side, fallback to days
+    if (k === "days") queryParams.set("windowDays", v);
+    else if (k === "from" || k === "to") { /* custom range not supported by map backend yet */ }
+    else queryParams.set(k, v);
+  });
 
   const { data: stops = [], isLoading } = useQuery<MapStop[]>({
     queryKey: [`/api/stops/map?${queryParams.toString()}`],
@@ -130,8 +133,8 @@ export default function DelayMap() {
 
   const handleBoundsChange = useCallback((b: LatLngBounds) => setBounds(b), []);
 
-  const hasActiveFilters = dayType !== "all" || timePreset.hourMin != null || windowDays.days !== 7;
-  const windowLabel = windowDays.label.toLowerCase();
+  const hasActiveFilters = dayType !== "all" || timePreset.hourMin != null || window.kind !== "preset" || (window.kind === "preset" && window.days !== 7);
+  const windowLabel = window.kind === "preset" ? window.label.toLowerCase() : `${window.from} – ${window.to}`;
 
   return (
     <Layout>
@@ -203,19 +206,7 @@ export default function DelayMap() {
             {/* Time window */}
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2">Tidsperiode</p>
-              <div className="flex flex-wrap gap-1.5">
-                {WINDOW_OPTIONS.map((opt) => (
-                  <Button
-                    key={opt.days}
-                    size="sm"
-                    variant={windowDays.days === opt.days ? "default" : "outline"}
-                    onClick={() => setWindowDays(opt)}
-                    className="h-7 px-2.5 text-xs"
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
+              <TimeWindowPicker value={window} onChange={setWindow} />
             </div>
           </div>
         )}
