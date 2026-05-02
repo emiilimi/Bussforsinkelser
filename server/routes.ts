@@ -38,6 +38,7 @@ import {
   getCorridorComparison,
   searchStopsForCorridor,
   getTripStopStats,
+  parseDayTypes,
 } from "./storage";
 
 // ---------------------------------------------------------------------------
@@ -176,9 +177,10 @@ export async function registerRoutes(
     const lineRef = req.params.lineref;
     const { fromIso, toIso } = parseTimeWindow(req.query, 30);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
     const [daily, hourly] = await Promise.all([
       getLineStats(lineRef, fromIso, direction, toIso),
-      getLineHourlyProfile(lineRef, direction),
+      getLineHourlyProfile(lineRef, direction, dayTypes),
     ]);
     if (daily.length === 0 && hourly.length === 0) {
       return res.status(404).json({ message: "Linje ikke funnet" });
@@ -283,7 +285,8 @@ export async function registerRoutes(
       typeof req.query.days === "string" ||
       typeof req.query.weeks === "string";
     const fromWeek = hasWindow ? parseWeeksWindow(req.query, 13) : undefined;
-    const rows = await getJourneyProfile(lineRef, directionRef, firstStopTime, fromWeek);
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
+    const rows = await getJourneyProfile(lineRef, directionRef, firstStopTime, fromWeek, dayTypes);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Reise ikke funnet" });
     }
@@ -300,9 +303,10 @@ export async function registerRoutes(
     const { fromIso, toIso } = parseTimeWindow(req.query, 30);
     const operator = parseOperator(req.query.operator);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
     const [rows, hourly] = await Promise.all([
       getStopStats(stopRef, fromIso, operator, direction, toIso),
-      getStopHourlyProfile(stopRef, operator, direction).catch(() => []),
+      getStopHourlyProfile(stopRef, operator, direction, dayTypes).catch(() => []),
     ]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Stoppested ikke funnet" });
@@ -465,7 +469,8 @@ export async function registerRoutes(
       typeof req.query.to === "string" ||
       typeof req.query.days === "string";
     const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
-    const rows = await getWorstDays(limit, operator, window?.fromIso, window?.toIso);
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
+    const rows = await getWorstDays(limit, operator, window?.fromIso, window?.toIso, dayTypes);
     return res.json(rows);
   });
 

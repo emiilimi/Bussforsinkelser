@@ -3,7 +3,36 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-04-27
+**Sist oppdatert**: 2026-04-30
+
+## Endringslogg — 2026-04-30: Multimodal + day_type-filter (backend)
+
+**Pipeline + DB**:
+- `pipeline/db_setup.py`: `vehicle_mode` lagt til på 7 tabeller (PK på `daily_summary`, `line_hourly_raw`, `line_hourly_profile`, `stop_hourly_raw`, `stop_hourly_profile`, `worst_days`; kolonne på `journey_stop_weekly`/`journey_stop_daily`/`leaderboard_lines`).
+- `day_type` lagt til (i PK på `line_hourly_profile` + `stop_hourly_profile`; som kolonne på `journey_stop_daily`, `worst_days`, samt raw-tabellene som hjelpekolonne for profile-rebuild).
+- Indekser `idx_jsd_day_type` + `idx_jsd_line_day_type` på `journey_stop_daily`.
+- Ny modul `pipeline/day_type.py` — `compute_day_type(date) → 'weekday'|'saturday'|'sunday'|'holiday'|'may17'`. Bruker `holidays>=0.50` (lagt til i `requirements.txt`). Prioritetsrekkefølge: may17 > holiday > sunday > saturday > weekday.
+- `pipeline/ingest.py` + `pipeline/backfill.py`: `INCLUDED_MODES = {bus, coach, tram, metro, rail, water}` brukt på tvers av alle upserts; bus-only-filtre fjernet; `compute_day_type` kalt én gang per ingest-dag og pushet ned til upsert-funksjonene.
+
+**Backend**:
+- `server/storage.ts`: `INCLUDED_MODES` + `INCLUDED_MODES_SQL` + `parseModes()` + `parseDayTypes()` hjelpere. 9 query-locations bruker nå `inArray(vehicleMode, INCLUDED_MODES)` / `vehicle_mode IN (...)`. Day_type-filter (`?dayType=weekday[,saturday]` eller `all`) på `getLineHourlyProfile`, `getStopHourlyProfile`, `getJourneyProfile` (faller tilbake til `journey_stop_daily` når filter er aktivt), `getWorstDays`.
+- `server/routes.ts`: `?dayType=` parses på `/api/line/:lineref`, `/api/journey`, `/api/stop/:stopref`, `/api/worst-days`.
+
+**Frontend**:
+- `client/src/components/mode-icon.tsx` (ny) — `<ModeIcon mode>` + `MODES_WITH_DELAY_DATA = {bus, coach}`. Ennå ikke wired inn på sidene (krever at API-responser eksponerer `vehicleMode` — defererert).
+- `trip-planner.tsx`: `MODES_WITH_DELAY_DATA` utvidet fra `["bus"]` til `["bus", "coach"]`.
+
+**Brukeransvar**: `pip install -r pipeline/requirements.txt` + DB-recreate (slett `data/bussforsinkelser.db`, kjør `db_setup.py` + `populate_stops.py` + `populate_stop_places.py` + ingest siste 10 dager + `populate_line_names.py` + `export_parquet.py --all`).
+
+## Endringslogg — 2026-04-30: Reisesjekk — tre overgangssannsynligheter
+
+`client/src/pages/trip-planner.tsx`:
+- Hver transit→[gange]→transit-overgang vises nå med tre separate sannsynligheter:
+  - **Med 2 min margin** (gangtid + 2 min) — headline i kortlista
+  - **Med brukervalgt margin** (ny slider «Overgangsmargin», 0–15 min, default 5)
+  - **Spurt** — gangtid skalert med walkSpeed/sprintSpeed + 30 sek margin (ny slider «Spurt-tempo»; default = vanlig ganghastighet)
+- Bug-fiks: tidligere logikk regnet ikke gangtid med i bufferet (foot-leg mellom transit ble hoppet over). Ny formel: `effektiv buffer = totalGap − walkTime − margin`, fed inn i `transferProbabilityFromDist`.
+- Headline-prosenten i forslagslista bruker 2-min-scenariet. Ekspandert kort viser alle tre per overgang.
 
 ---
 

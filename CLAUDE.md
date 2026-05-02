@@ -161,6 +161,25 @@ Måned-for-måned historisk import. Importerer alle funksjoner fra `ingest.py`.
 
 ---
 
+## Day type (april 2026)
+
+Hver ingest-dag får en `day_type` av `pipeline/day_type.py`:
+- `may17` (17. mai — egen pga. parade og kraftig avvikende rutemønster)
+- `holiday` (norsk helligdag, fra `holidays`-pakken)
+- `sunday` / `saturday` / `weekday`
+
+Prioritetsrekkefølge: may17 > holiday > sunday > saturday > weekday.
+
+Lagres som kolonne på `journey_stop_daily`, `worst_days`, og som del av PK på `line_hourly_profile` + `stop_hourly_profile` (5x rader, men mer presise snitt). Profile-tabellene må re-bygges per day_type.
+
+Backend filtrerer via `?dayType=weekday`, `?dayType=weekday,saturday`, eller `?dayType=all` (default = ingen filter) på `/api/line/:ref`, `/api/journey`, `/api/stop/:ref`, `/api/worst-days`. `getJourneyProfile()` faller tilbake til `journey_stop_daily` når filter er satt (siden `journey_stop_weekly` ikke har day_type). Frontend bruker det ikke ennå.
+
+## Multimodal (april 2026)
+
+`INCLUDED_MODES = {bus, coach, tram, metro, rail, water}` (definert både i `pipeline/ingest.py` og `server/storage.ts`). Bus-only-filtre er fjernet fra alle aggregeringer. `client/src/components/mode-icon.tsx` har `<ModeIcon>`-komponent og `MODES_WITH_DELAY_DATA = {bus, coach}` — Skyss SIRI ET feed dekker buss + flybuss; tram/metro/rail/water er forberedt men har ingen rader ennå.
+
+---
+
 ## Datakilde og operatør-quirks
 
 ### BigQuery-tabell

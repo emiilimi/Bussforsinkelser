@@ -12,6 +12,8 @@ export const dailySummary = sqliteTable(
     date: text("date").notNull(),
     // Operator code (e.g. 'SKY', 'RUT') — part of PK for multi-region support.
     operator: text("operator").notNull().default("SKY"),
+    // 'bus' | 'coach' | 'tram' | 'metro' | 'rail' | 'water' — one row per mode.
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
     avgDelayMin: real("avg_delay_min"),
     pctOnTime: real("pct_on_time"),
     pctDelayed10plus: real("pct_delayed_10plus"),
@@ -19,7 +21,7 @@ export const dailySummary = sqliteTable(
     totalCancellations: integer("total_cancellations"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.operator] }),
+    pk: primaryKey({ columns: [table.date, table.operator, table.vehicleMode] }),
   }),
 );
 
@@ -84,13 +86,15 @@ export const lineHourlyRaw = sqliteTable(
     date: text("date").notNull(),
     lineRef: text("line_ref").notNull(),
     directionRef: text("direction_ref").notNull().default("0"),
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    dayType: text("day_type").notNull().default("weekday"),
     lineName: text("line_name"),
     hour: integer("hour").notNull(),
     avgDelayMin: real("avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.lineRef, table.directionRef, table.hour] }),
+    pk: primaryKey({ columns: [table.date, table.lineRef, table.directionRef, table.vehicleMode, table.hour] }),
   }),
 );
 
@@ -99,6 +103,9 @@ export const lineHourlyProfile = sqliteTable(
   {
     lineRef: text("line_ref").notNull(),
     directionRef: text("direction_ref").notNull().default("0"),
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    // 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17'
+    dayType: text("day_type").notNull().default("weekday"),
     lineName: text("line_name"),
     hour: integer("hour").notNull(),
     avgDelayMin: real("avg_delay_min"),
@@ -108,7 +115,7 @@ export const lineHourlyProfile = sqliteTable(
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.lineRef, table.directionRef, table.hour] }),
+    pk: primaryKey({ columns: [table.lineRef, table.directionRef, table.vehicleMode, table.dayType, table.hour] }),
   }),
 );
 
@@ -121,11 +128,13 @@ export const stopHourlyRaw = sqliteTable(
     directionRef: text("direction_ref").notNull().default("0"),
     // operator is separate: same NSR stop can be served by multiple operators.
     operator: text("operator").notNull().default("SKY"),
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    dayType: text("day_type").notNull().default("weekday"),
     avgDelayMin: real("avg_delay_min"),
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.stopRef, table.hour, table.directionRef, table.operator] }),
+    pk: primaryKey({ columns: [table.date, table.stopRef, table.hour, table.directionRef, table.operator, table.vehicleMode] }),
   }),
 );
 
@@ -136,6 +145,8 @@ export const stopHourlyProfile = sqliteTable(
     hour: integer("hour").notNull(),
     directionRef: text("direction_ref").notNull().default("0"),
     operator: text("operator").notNull().default("SKY"),
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    dayType: text("day_type").notNull().default("weekday"),
     avgDelayMin: real("avg_delay_min"),
     // worst/best single-day average for this hour over the 30-day window
     maxAvgDelayMin: real("max_avg_delay_min"),
@@ -143,13 +154,15 @@ export const stopHourlyProfile = sqliteTable(
     numSamples: integer("num_samples"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.stopRef, table.hour, table.directionRef, table.operator] }),
+    pk: primaryKey({ columns: [table.stopRef, table.hour, table.directionRef, table.operator, table.vehicleMode, table.dayType] }),
   }),
 );
 
 export const leaderboardLines = sqliteTable("leaderboard_lines", {
   lineRef: text("line_ref").primaryKey(),
   lineName: text("line_name"),
+  // Functionally determined by line_ref but exposed for cheap filtering.
+  vehicleMode: text("vehicle_mode").default("bus"),
   avgDelayMin: real("avg_delay_min"),
   stddevDelayMin: real("stddev_delay_min"),
   pctOnTime: real("pct_on_time"),
@@ -163,13 +176,16 @@ export const worstDays = sqliteTable(
   {
     date: text("date").notNull(),
     operator: text("operator").notNull().default("SKY"),
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    // 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17' (column, not PK).
+    dayType: text("day_type"),
     avgDelayMin: real("avg_delay_min"),
     totalJourneys: integer("total_journeys"),
     totalCancellations: integer("total_cancellations"),
     pctOnTime: real("pct_on_time"),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.date, table.operator] }),
+    pk: primaryKey({ columns: [table.date, table.operator, table.vehicleMode] }),
   }),
 );
 
@@ -202,6 +218,8 @@ export const journeyStopWeekly = sqliteTable(
     aimedTime: text("aimed_time"),                   // 'HH:MM' local (dep preferred, arr fallback)
     aimedArrivalTime: text("aimed_arrival_time"),    // 'HH:MM' planned arrival (NULL at first stop)
     aimedDepartureTime: text("aimed_departure_time"),// 'HH:MM' planned departure (NULL at last stop)
+    // Functionally 1:1 with service_journey_id; column for cheap filter.
+    vehicleMode: text("vehicle_mode").default("bus"),
     avgDelayMin: real("avg_delay_min"),               // combined delay
     maxDelayMin: real("max_delay_min"),
     minDelayMin: real("min_delay_min"),
@@ -231,6 +249,10 @@ export const journeyStopDaily = sqliteTable(
     stopSequence: integer("stop_sequence").notNull(),
     aimedArrival: text("aimed_arrival"),        // 'HH:MM' local, NULL at first stop
     aimedDeparture: text("aimed_departure"),    // 'HH:MM' local, NULL at last stop
+    // Stored explicitly so DuckDB-WASM can filter Parquet without joins.
+    vehicleMode: text("vehicle_mode").notNull().default("bus"),
+    // 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17' — computed at ingest.
+    dayType: text("day_type").notNull().default("weekday"),
     delayArrivalMin: real("delay_arrival_min"), // NULL at first stop
     delayDepartureMin: real("delay_departure_min"), // NULL at last stop
     dwellTimeSec: real("dwell_time_sec"),       // NULL at first/last, filtered

@@ -39,10 +39,12 @@ from ingest import (
     upsert_line_hourly_raw,
     upsert_stop_hourly_raw,
     upsert_journey_stop_weekly,
+    upsert_journey_stop_daily,
     refresh_line_hourly_profile,
     refresh_stop_hourly_profile,
     refresh_leaderboards,
 )
+from day_type import compute_day_type
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -161,13 +163,15 @@ def run(start: date = BACKFILL_START, end: date | None = None) -> None:
                     cur += timedelta(days=1)
                     continue
 
+                day_type = compute_day_type(cur)
                 with conn:
                     upsert_daily_summary(conn, date_str, day_df)
                     upsert_line_daily(conn, date_str, day_df)
                     upsert_stop_daily(conn, date_str, day_df)
-                    upsert_line_hourly_raw(conn, date_str, day_df)
-                    upsert_stop_hourly_raw(conn, date_str, day_df)
+                    upsert_line_hourly_raw(conn, date_str, day_df, day_type)
+                    upsert_stop_hourly_raw(conn, date_str, day_df, day_type)
                     upsert_journey_stop_weekly(conn, date_str, day_df)
+                    upsert_journey_stop_daily(conn, date_str, day_df, day_type)
 
                 cur += timedelta(days=1)
 

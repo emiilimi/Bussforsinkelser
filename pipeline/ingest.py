@@ -24,9 +24,20 @@ import pandas as pd
 import pytz
 from google.cloud import bigquery
 
+try:
+    from .day_type import compute_day_type
+except ImportError:
+    # Allow running as `python pipeline/ingest.py` (no package context).
+    from day_type import compute_day_type  # type: ignore
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
+
+# Vehicle modes included in all aggregations. Anything outside this set is
+# dropped at the end of compute_delays(). 'coach' = flybuss / langdistansebuss,
+# kept separate from 'bus' for the reiseplanlegger filter.
+INCLUDED_MODES = {"bus", "coach", "tram", "metro", "rail", "water", "ferry"}
 
 # IMPORTANT: verify exact table path in the Entur data catalog at
 # https://data.entur.no/domain/public-transport-data/product/realtime_siri_et
@@ -132,6 +143,12 @@ def compute_delays(df: pd.DataFrame) -> pd.DataFrame:
     # are explicitly tagged. Ghost lines with legacy numeric stop refs are
     # filtered below by the NSR: check, so fillna("bus") is safe here.
     df["vehicleMode"] = df["vehicleMode"].fillna("bus").str.lower().str.strip()
+    # Drop modes outside the whitelist (taxi, air, etc.)
+    before_mode = len(df)
+    df = df[df["vehicleMode"].isin(INCLUDED_MODES)]
+    dropped_mode = before_mode - len(df)
+    if dropped_mode:
+        log.info("  Dropped %d rows with vehicleMode outside %s", dropped_mode, sorted(INCLUDED_MODES))
     # Normalise direction
     df["directionRef"] = df["directionRef"].fillna("0").astype(str)
     # Drop rows with non-NSR stop refs — these belong to legacy/unregistered
@@ -167,28 +184,35 @@ def active_rows(df: pd.DataFrame) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 def upsert_daily_summary(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
-    # daily_summary is bus-only (used for the dashboard overview)
-    bus_df = df[df["vehicleMode"] == "bus"]
-    act = active_rows(bus_df)
-    if act.empty:
-        log.warning("No active bus rows for %s – skipping daily_summary", date_str)
+    """One row per (date, operator, vehicle_mode) — dashboard can switch / aggregate modes."""
+    if df.empty:
+        log.warning("No rows for %s – skipping daily_summary", date_str)
         return
-    conn.execute(
-        """
-        INSERT OR REPLACE INTO daily_summary
-            (date, operator, avg_delay_min, pct_on_time, pct_delayed_10plus,
-             total_journeys, total_cancellations)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
+    rows = []
+    for vehicle_mode, mode_df in df.groupby("vehicleMode"):
+        act = active_rows(mode_df)
+        if act.empty:
+            continue
+        rows.append((
             date_str,
             OPERATOR,
+            str(vehicle_mode),
             round(act["delay_min"].mean(), 2),
             round((act["delay_min"] <= 2).mean() * 100, 1),
             round((act["delay_min"] > 10).mean() * 100, 1),
-            len(act),                              # active bus stop-visits (non-cancelled)
-            int(bus_df["is_cancelled"].sum()),      # bus cancellations only
-        ),
+            len(act),
+            int(mode_df["is_cancelled"].sum()),
+        ))
+    if not rows:
+        return
+    conn.executemany(
+        """
+        INSERT OR REPLACE INTO daily_summary
+            (date, operator, vehicle_mode, avg_delay_min, pct_on_time, pct_delayed_10plus,
+             total_journeys, total_cancellations)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        rows,
     )
 
 
@@ -289,18 +313,22 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
     log.info("  Upserted %d stop_daily rows", len(rows))
 
 
-def upsert_line_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
+def upsert_line_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame, day_type: str) -> None:
     """Store per-hour averages for this day (used to rebuild the 30-day profile)."""
     act = active_rows(df)
     act = act[act["hour"].notna()]
     if act.empty:
         return
     rows = []
-    for (line_ref, direction_ref, hour), grp in act.groupby(["lineRef", "directionRef", "hour"]):
+    for (line_ref, direction_ref, vehicle_mode, hour), grp in act.groupby(
+        ["lineRef", "directionRef", "vehicleMode", "hour"]
+    ):
         rows.append((
             date_str,
             str(line_ref),
             str(direction_ref),
+            str(vehicle_mode),
+            day_type,
             line_display_name(str(line_ref)),
             int(hour),
             round(grp["delay_min"].mean(), 2),
@@ -309,8 +337,8 @@ def upsert_line_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     conn.executemany(
         """
         INSERT OR REPLACE INTO line_hourly_raw
-            (date, line_ref, direction_ref, line_name, hour, avg_delay_min, num_samples)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (date, line_ref, direction_ref, vehicle_mode, day_type, line_name, hour, avg_delay_min, num_samples)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -327,11 +355,13 @@ def refresh_line_hourly_profile(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         INSERT INTO line_hourly_profile
-            (line_ref, direction_ref, line_name, hour,
+            (line_ref, direction_ref, vehicle_mode, day_type, line_name, hour,
              avg_delay_min, max_avg_delay_min, min_avg_delay_min, num_samples)
         SELECT
             line_ref,
             direction_ref,
+            vehicle_mode,
+            day_type,
             MAX(line_name) AS line_name,
             hour,
             ROUND(
@@ -343,33 +373,37 @@ def refresh_line_hourly_profile(conn: sqlite3.Connection) -> None:
             SUM(num_samples) AS num_samples
         FROM line_hourly_raw
         WHERE date >= date('now', '-30 days')
-        GROUP BY line_ref, direction_ref, hour
+        GROUP BY line_ref, direction_ref, vehicle_mode, day_type, hour
         """
     )
 
 
-def upsert_stop_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
-    """Store per-hour averages per stop for this day (bus only, used to rebuild 30-day profile)."""
-    act = active_rows(df[df["vehicleMode"] == "bus"])
+def upsert_stop_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame, day_type: str) -> None:
+    """Store per-hour averages per stop for this day (used to rebuild 30-day profile)."""
+    act = active_rows(df)
     act = act[act["hour"].notna()]
     if act.empty:
         return
     rows = []
-    for (stop_ref, hour, direction_ref), grp in act.groupby(["stopPointRef", "hour", "directionRef"]):
+    for (stop_ref, hour, direction_ref, vehicle_mode), grp in act.groupby(
+        ["stopPointRef", "hour", "directionRef", "vehicleMode"]
+    ):
         rows.append((
             date_str,
             str(stop_ref),
             int(hour),
             str(direction_ref),
             OPERATOR,
+            str(vehicle_mode),
+            day_type,
             round(grp["delay_min"].mean(), 2),
             len(grp),
         ))
     conn.executemany(
         """
         INSERT OR REPLACE INTO stop_hourly_raw
-            (date, stop_ref, hour, direction_ref, operator, avg_delay_min, num_samples)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (date, stop_ref, hour, direction_ref, operator, vehicle_mode, day_type, avg_delay_min, num_samples)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -386,13 +420,15 @@ def refresh_stop_hourly_profile(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         INSERT INTO stop_hourly_profile
-            (stop_ref, hour, direction_ref, operator,
+            (stop_ref, hour, direction_ref, operator, vehicle_mode, day_type,
              avg_delay_min, max_avg_delay_min, min_avg_delay_min, num_samples)
         SELECT
             stop_ref,
             hour,
             direction_ref,
             operator,
+            vehicle_mode,
+            day_type,
             ROUND(
                 SUM(avg_delay_min * num_samples) * 1.0 / SUM(num_samples),
                 2
@@ -402,7 +438,7 @@ def refresh_stop_hourly_profile(conn: sqlite3.Connection) -> None:
             SUM(num_samples) AS num_samples
         FROM stop_hourly_raw
         WHERE date >= date('now', '-30 days')
-        GROUP BY stop_ref, hour, direction_ref, operator
+        GROUP BY stop_ref, hour, direction_ref, operator, vehicle_mode, day_type
         """
     )
 
@@ -421,7 +457,7 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
     - Lines per stop: GROUP BY line_ref WHERE stop_ref = 'NSR:Quay:xxxxx'
     - Stop leaderboard filtered by line
     """
-    act = active_rows(df[df["vehicleMode"] == "bus"])
+    act = active_rows(df)
     if act.empty:
         return
 
@@ -439,8 +475,8 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
     week_start = (d - timedelta(days=d.weekday())).isoformat()
 
     rows = []
-    for (journey_id, line_ref, direction_ref, stop_ref), grp in act.groupby(
-        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef"]
+    for (journey_id, line_ref, direction_ref, stop_ref, vehicle_mode), grp in act.groupby(
+        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef", "vehicleMode"]
     ):
         # Stop sequence: use first value (consistent within a journey+stop group)
         stop_seq = int(grp["sequenceNr"].iloc[0])
@@ -493,6 +529,7 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
             aimed_time,
             aimed_arrival_time,
             aimed_departure_time,
+            str(vehicle_mode),
             round(float(delays.mean()), 2),
             round(float(delays.max()), 2),
             round(float(delays.min()), 2),
@@ -507,14 +544,16 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
         INSERT INTO journey_stop_weekly
             (week_start, service_journey_id, line_ref, direction_ref, stop_ref,
              stop_sequence, aimed_time, aimed_arrival_time, aimed_departure_time,
+             vehicle_mode,
              avg_delay_min, max_delay_min, min_delay_min,
              avg_delay_arrival_min, avg_delay_departure_min, avg_dwell_time_sec,
              num_samples)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (week_start, service_journey_id, stop_ref) DO UPDATE SET
             aimed_time             = COALESCE(aimed_time, excluded.aimed_time),
             aimed_arrival_time     = COALESCE(aimed_arrival_time, excluded.aimed_arrival_time),
             aimed_departure_time   = COALESCE(aimed_departure_time, excluded.aimed_departure_time),
+            vehicle_mode           = COALESCE(vehicle_mode, excluded.vehicle_mode),
             avg_delay_min = ROUND(
                 (avg_delay_min * num_samples + excluded.avg_delay_min * excluded.num_samples) * 1.0
                 / (num_samples + excluded.num_samples), 2),
@@ -551,8 +590,8 @@ def upsert_journey_stop_weekly(conn: sqlite3.Connection, date_str: str, df: pd.D
     log.info("  Upserted %d journey_stop_weekly rows (week %s)", len(rows), week_start)
 
 
-def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame) -> None:
-    """Insert raw per-journey per-stop delay rows for one calendar day (bus only).
+def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame, day_type: str) -> None:
+    """Insert raw per-journey per-stop delay rows for one calendar day (all included modes).
 
     One row per (date, service_journey_id, stop_ref) — un-aggregated truth.
     On re-ingest of the same date, values are overwritten (idempotent).
@@ -560,7 +599,7 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
     Rolling 90-day window: rows older than 90 days are pruned automatically.
     Zero extra BQ cost: all values already computed by compute_delays().
     """
-    act = active_rows(df[df["vehicleMode"] == "bus"])
+    act = active_rows(df)
     if act.empty:
         return
 
@@ -573,8 +612,8 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
         return
 
     rows = []
-    for (journey_id, line_ref, direction_ref, stop_ref), grp in act.groupby(
-        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef"]
+    for (journey_id, line_ref, direction_ref, stop_ref, vehicle_mode), grp in act.groupby(
+        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef", "vehicleMode"]
     ):
         stop_seq = int(grp["sequenceNr"].iloc[0])
 
@@ -610,6 +649,8 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
             stop_seq,
             aimed_arrival,
             aimed_departure,
+            str(vehicle_mode),
+            day_type,
             delay_arrival,
             delay_departure,
             dwell_sec,
@@ -620,11 +661,14 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
         INSERT INTO journey_stop_daily
             (date, service_journey_id, line_ref, direction_ref, stop_ref,
              stop_sequence, aimed_arrival, aimed_departure,
+             vehicle_mode, day_type,
              delay_arrival_min, delay_departure_min, dwell_time_sec)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (date, service_journey_id, stop_ref) DO UPDATE SET
             aimed_arrival       = COALESCE(aimed_arrival, excluded.aimed_arrival),
             aimed_departure     = COALESCE(aimed_departure, excluded.aimed_departure),
+            vehicle_mode        = excluded.vehicle_mode,
+            day_type            = excluded.day_type,
             delay_arrival_min   = excluded.delay_arrival_min,
             delay_departure_min = excluded.delay_departure_min,
             dwell_time_sec      = excluded.dwell_time_sec
@@ -642,11 +686,13 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         INSERT INTO leaderboard_lines
-            (line_ref, line_name, avg_delay_min, stddev_delay_min,
+            (line_ref, line_name, vehicle_mode, avg_delay_min, stddev_delay_min,
              pct_on_time, pct_delayed_10plus, total_departures, total_cancellations)
         SELECT
             line_ref,
             MAX(line_name) AS line_name,
+            -- vehicle_mode is functionally determined by line_ref (1:1).
+            MAX(vehicle_mode) AS vehicle_mode,
             ROUND(
                 SUM(avg_delay_min * num_departures) * 1.0 / NULLIF(SUM(num_departures), 0),
                 2
@@ -667,7 +713,6 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
             SUM(num_departures),
             COALESCE(SUM(num_cancellations), 0)
         FROM line_daily
-        WHERE vehicle_mode = 'bus'
         GROUP BY line_ref
         """
     )
@@ -676,15 +721,33 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
     # in getLeaderboardStops() (server/storage.ts) with a 7-day rolling window.
 
     conn.execute("DELETE FROM worst_days")
-    conn.execute(
+    # day_type is computed in Python (Norwegian holidays don't fit pure SQL).
+    # Pull the source rows then enrich, then bulk insert top 100 per (operator, mode).
+    cur = conn.execute(
         """
-        INSERT INTO worst_days
-            (date, operator, avg_delay_min, total_journeys, total_cancellations, pct_on_time)
-        SELECT date, operator, avg_delay_min, total_journeys, total_cancellations, pct_on_time
+        SELECT date, operator, vehicle_mode, avg_delay_min,
+               total_journeys, total_cancellations, pct_on_time
         FROM daily_summary
         ORDER BY avg_delay_min DESC
         LIMIT 100
         """
+    )
+    worst_rows = []
+    for row in cur.fetchall():
+        d_str, operator, vehicle_mode, avg, total, cancels, pct = row
+        try:
+            dt = compute_day_type(date.fromisoformat(d_str))
+        except Exception:
+            dt = None
+        worst_rows.append((d_str, operator, vehicle_mode, dt, avg, total, cancels, pct))
+    conn.executemany(
+        """
+        INSERT INTO worst_days
+            (date, operator, vehicle_mode, day_type, avg_delay_min,
+             total_journeys, total_cancellations, pct_on_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        worst_rows,
     )
     log.info("  Leaderboards refreshed")
 
@@ -803,7 +866,9 @@ def log_realtime_coverage(date_str: str, df: pd.DataFrame) -> None:
     Results written to: data/diagnostics/YYYY-MM-DD-realtime.json
     Check with: cat data/diagnostics/YYYY-MM-DD-realtime.json
     """
-    bus = df[df["vehicleMode"] == "bus"].copy()
+    # Diagnostics covers all included modes — variable kept named `bus` for
+    # historical reasons (output JSON keys reference "bus" still).
+    bus = df.copy()
     if bus.empty:
         return
 
@@ -934,6 +999,8 @@ def run(target_date: date) -> None:
 
     df = compute_delays(df)
     date_str = target_date.isoformat()
+    day_type = compute_day_type(target_date)
+    log.info("  day_type=%s for %s", day_type, date_str)
 
     log_realtime_coverage(date_str, df)  # writes data/diagnostics/YYYY-MM-DD-realtime.json
 
@@ -946,10 +1013,10 @@ def run(target_date: date) -> None:
             upsert_daily_summary(conn, date_str, df)
             upsert_line_daily(conn, date_str, df)
             upsert_stop_daily(conn, date_str, df)
-            upsert_line_hourly_raw(conn, date_str, df)
-            upsert_stop_hourly_raw(conn, date_str, df)
+            upsert_line_hourly_raw(conn, date_str, df, day_type)
+            upsert_stop_hourly_raw(conn, date_str, df, day_type)
             upsert_journey_stop_weekly(conn, date_str, df)
-            upsert_journey_stop_daily(conn, date_str, df)
+            upsert_journey_stop_daily(conn, date_str, df, day_type)
             refresh_line_hourly_profile(conn)
             refresh_stop_hourly_profile(conn)
             refresh_leaderboards(conn)

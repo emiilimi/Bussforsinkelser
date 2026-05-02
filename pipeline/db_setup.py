@@ -18,7 +18,8 @@ SCHEMA = """
 -- One row per operator per vehicle mode per calendar date (multimodal: bus, coach,
 -- tram, metro, rail, water — all SIRI ET modes with realtime data).
 -- operator: e.g. 'SKY', 'RUT', 'ATB' — allows multi-region support.
--- vehicle_mode: 'bus', 'coach', 'tram', 'metro', 'rail', 'water'.
+-- vehicle_mode: 'bus', 'coach', 'tram', 'metro', 'rail', 'water' — enables
+--   per-modus dashboard cards and aggregation across all modes.
 CREATE TABLE IF NOT EXISTS daily_summary (
     date                TEXT    NOT NULL,
     operator            TEXT    NOT NULL DEFAULT 'SKY',
@@ -88,6 +89,9 @@ CREATE TABLE IF NOT EXISTS line_hourly_raw (
     line_ref      TEXT    NOT NULL,
     direction_ref TEXT    NOT NULL DEFAULT '0',
     vehicle_mode  TEXT    NOT NULL DEFAULT 'bus',
+    -- day_type derived from date — column (not PK) so refresh_line_hourly_profile
+    -- can GROUP BY it without re-computing Norwegian holidays in SQL.
+    day_type      TEXT    NOT NULL DEFAULT 'weekday',
     line_name     TEXT,
     hour          INTEGER NOT NULL,
     avg_delay_min REAL,
@@ -103,13 +107,17 @@ CREATE TABLE IF NOT EXISTS line_hourly_profile (
     line_ref          TEXT    NOT NULL,
     direction_ref     TEXT    NOT NULL DEFAULT '0',
     vehicle_mode      TEXT    NOT NULL DEFAULT 'bus',
+    -- 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17'
+    -- One row per (line, dir, mode, hour, day_type) so users can filter
+    -- the hourly profile to a specific day-of-week category.
+    day_type          TEXT    NOT NULL DEFAULT 'weekday',
     line_name         TEXT,
     hour              INTEGER NOT NULL,
     avg_delay_min     REAL,
     max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
     min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
     num_samples       INTEGER,
-    PRIMARY KEY (line_ref, direction_ref, vehicle_mode, hour)
+    PRIMARY KEY (line_ref, direction_ref, vehicle_mode, day_type, hour)
 );
 
 -- Raw hourly buckets per stop per direction per vehicle mode per day.
@@ -123,6 +131,7 @@ CREATE TABLE IF NOT EXISTS stop_hourly_raw (
     direction_ref TEXT    NOT NULL DEFAULT '0',
     operator      TEXT    NOT NULL DEFAULT 'SKY',
     vehicle_mode  TEXT    NOT NULL DEFAULT 'bus',
+    day_type      TEXT    NOT NULL DEFAULT 'weekday',
     avg_delay_min REAL,
     num_samples   INTEGER,
     PRIMARY KEY (date, stop_ref, hour, direction_ref, operator, vehicle_mode)
@@ -137,11 +146,13 @@ CREATE TABLE IF NOT EXISTS stop_hourly_profile (
     direction_ref     TEXT    NOT NULL DEFAULT '0',
     operator          TEXT    NOT NULL DEFAULT 'SKY',
     vehicle_mode      TEXT    NOT NULL DEFAULT 'bus',
+    -- See line_hourly_profile for day_type semantics.
+    day_type          TEXT    NOT NULL DEFAULT 'weekday',
     avg_delay_min     REAL,
     max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
     min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
     num_samples       INTEGER,
-    PRIMARY KEY (stop_ref, hour, direction_ref, operator, vehicle_mode)
+    PRIMARY KEY (stop_ref, hour, direction_ref, operator, vehicle_mode, day_type)
 );
 
 -- All-time line leaderboard (rebuilt nightly, multimodal, aggregated across directions).
@@ -149,6 +160,8 @@ CREATE TABLE IF NOT EXISTS stop_hourly_profile (
 CREATE TABLE IF NOT EXISTS leaderboard_lines (
     line_ref           TEXT PRIMARY KEY,
     line_name          TEXT,
+    -- vehicle_mode is functionally determined by line_ref (1:1) but stored
+    -- explicitly for cheap filtering / icon rendering on the frontend.
     vehicle_mode       TEXT    DEFAULT 'bus',
     avg_delay_min      REAL,
     stddev_delay_min   REAL,   -- weighted avg of daily stddevs (reliability proxy)
@@ -163,6 +176,8 @@ CREATE TABLE IF NOT EXISTS worst_days (
     date                TEXT    NOT NULL,
     operator            TEXT    NOT NULL DEFAULT 'SKY',
     vehicle_mode        TEXT    NOT NULL DEFAULT 'bus',
+    -- 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17' (column, not PK).
+    day_type            TEXT,
     avg_delay_min       REAL,
     total_journeys      INTEGER,
     total_cancellations INTEGER,
@@ -207,10 +222,12 @@ CREATE TABLE IF NOT EXISTS journey_stop_weekly (
     direction_ref          TEXT    NOT NULL,
     stop_ref               TEXT    NOT NULL,  -- NSR:Quay:xxxxx
     stop_sequence          INTEGER NOT NULL,  -- order along route
-    vehicle_mode           TEXT    DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
     aimed_time             TEXT,             -- 'HH:MM' local time (departure preferred, arrival fallback)
     aimed_arrival_time     TEXT,             -- 'HH:MM' planned arrival (NULL at first stop)
     aimed_departure_time   TEXT,             -- 'HH:MM' planned departure (NULL at last stop)
+    -- vehicle_mode is functionally determined by service_journey_id (1:1) but
+    -- stored as a column for cheap filtering without joining line_daily.
+    vehicle_mode           TEXT             DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
     avg_delay_min          REAL,             -- combined delay (departure preferred, arrival fallback)
     max_delay_min          REAL,
     min_delay_min          REAL,
@@ -257,20 +274,30 @@ CREATE TABLE IF NOT EXISTS journey_stop_daily (
     direction_ref       TEXT    NOT NULL,
     stop_ref            TEXT    NOT NULL,   -- NSR:Quay:xxxxx
     stop_sequence       INTEGER NOT NULL,   -- order along route
-    vehicle_mode        TEXT    DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
     aimed_arrival       TEXT,              -- 'HH:MM' local (NULL at first stop)
     aimed_departure     TEXT,              -- 'HH:MM' local (NULL at last stop)
+    -- vehicle_mode (1:1 with service_journey_id) — stored for Parquet/DuckDB
+    -- filter without join. Required because DuckDB-WASM client-side has no
+    -- access to line_daily.
+    vehicle_mode        TEXT    NOT NULL DEFAULT 'bus',
+    -- day_type: 'weekday' | 'saturday' | 'sunday' | 'holiday' | 'may17'.
+    -- Computed from `date` at ingest time (Norwegian holidays + 17. mai
+    -- get their own categories). Stored explicitly so DuckDB-WASM can
+    -- filter without a calendar table.
+    day_type            TEXT    NOT NULL DEFAULT 'weekday',
     delay_arrival_min   REAL,              -- NULL at first stop
     delay_departure_min REAL,              -- NULL at last stop
     dwell_time_sec      REAL,              -- NULL at first/last, filtered neg + >10min
     PRIMARY KEY (date, service_journey_id, stop_ref)
 );
 
-CREATE INDEX IF NOT EXISTS idx_jsd_date        ON journey_stop_daily (date);
-CREATE INDEX IF NOT EXISTS idx_jsd_line        ON journey_stop_daily (line_ref);
-CREATE INDEX IF NOT EXISTS idx_jsd_stop        ON journey_stop_daily (stop_ref);
-CREATE INDEX IF NOT EXISTS idx_jsd_journey     ON journey_stop_daily (service_journey_id);
-CREATE INDEX IF NOT EXISTS idx_jsd_line_stop   ON journey_stop_daily (line_ref, stop_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_date          ON journey_stop_daily (date);
+CREATE INDEX IF NOT EXISTS idx_jsd_line          ON journey_stop_daily (line_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_stop          ON journey_stop_daily (stop_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_journey       ON journey_stop_daily (service_journey_id);
+CREATE INDEX IF NOT EXISTS idx_jsd_line_stop     ON journey_stop_daily (line_ref, stop_ref);
+CREATE INDEX IF NOT EXISTS idx_jsd_day_type      ON journey_stop_daily (day_type);
+CREATE INDEX IF NOT EXISTS idx_jsd_line_day_type ON journey_stop_daily (line_ref, day_type);
 
 -- Data quality log: outlier delays and missing timing data flagged during ingest.
 -- One row per outlier journey-stop, one row per day for missing_time summary.
