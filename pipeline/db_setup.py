@@ -15,17 +15,20 @@ DB_PATH = os.environ.get(
 )
 
 SCHEMA = """
--- One row per operator per calendar date (bus journeys only, for the dashboard).
+-- One row per operator per vehicle mode per calendar date (multimodal: bus, coach,
+-- tram, metro, rail, water — all SIRI ET modes with realtime data).
 -- operator: e.g. 'SKY', 'RUT', 'ATB' — allows multi-region support.
+-- vehicle_mode: 'bus', 'coach', 'tram', 'metro', 'rail', 'water'.
 CREATE TABLE IF NOT EXISTS daily_summary (
     date                TEXT    NOT NULL,
     operator            TEXT    NOT NULL DEFAULT 'SKY',
+    vehicle_mode        TEXT    NOT NULL DEFAULT 'bus',
     avg_delay_min       REAL,
     pct_on_time         REAL,   -- % departures within 2 min of schedule
     pct_delayed_10plus  REAL,
     total_journeys      INTEGER,
     total_cancellations INTEGER,
-    PRIMARY KEY (date, operator)
+    PRIMARY KEY (date, operator, vehicle_mode)
 );
 
 -- One row per line per direction per vehicle mode per calendar date.
@@ -50,6 +53,7 @@ CREATE TABLE IF NOT EXISTS line_daily (
     pct_delayed_10plus     REAL,
     num_departures         INTEGER,
     pct_realtime_coverage  REAL,   -- % of scheduled (non-cancelled) stop-visits with actual times
+    num_cancellations      INTEGER DEFAULT 0,  -- count of cancelled service journeys this (date, line, dir, mode)
     PRIMARY KEY (date, line_ref, direction_ref, vehicle_mode)
 );
 
@@ -74,50 +78,57 @@ CREATE TABLE IF NOT EXISTS stop_daily (
     PRIMARY KEY (date, stop_ref, direction_ref, vehicle_mode, operator)
 );
 
--- Raw hourly buckets per line per direction per day.
+-- Raw hourly buckets per line per direction per vehicle mode per day.
 -- operator embedded in line_ref — no separate column needed.
+-- vehicle_mode is functionally dependent on line_ref but kept explicit
+--   for query simplicity and consistency with multimodal aggregations.
 -- Used to rebuild the 30-day rolling hourly profile each night.
 CREATE TABLE IF NOT EXISTS line_hourly_raw (
     date          TEXT    NOT NULL,
     line_ref      TEXT    NOT NULL,
     direction_ref TEXT    NOT NULL DEFAULT '0',
+    vehicle_mode  TEXT    NOT NULL DEFAULT 'bus',
     line_name     TEXT,
     hour          INTEGER NOT NULL,
     avg_delay_min REAL,
     num_samples   INTEGER,
-    PRIMARY KEY (date, line_ref, direction_ref, hour)
+    PRIMARY KEY (date, line_ref, direction_ref, vehicle_mode, hour)
 );
 
--- 30-day rolling average delay per line per direction per hour-of-day (rebuilt nightly).
+-- 30-day rolling average delay per line per direction per vehicle mode per hour-of-day (rebuilt nightly).
 -- max_avg_delay_min / min_avg_delay_min: worst/best single-day average for that hour
 --   over the 30-day window — shows the range of typical variation.
 -- operator embedded in line_ref.
 CREATE TABLE IF NOT EXISTS line_hourly_profile (
     line_ref          TEXT    NOT NULL,
     direction_ref     TEXT    NOT NULL DEFAULT '0',
+    vehicle_mode      TEXT    NOT NULL DEFAULT 'bus',
     line_name         TEXT,
     hour              INTEGER NOT NULL,
     avg_delay_min     REAL,
     max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
     min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
     num_samples       INTEGER,
-    PRIMARY KEY (line_ref, direction_ref, hour)
+    PRIMARY KEY (line_ref, direction_ref, vehicle_mode, hour)
 );
 
--- Raw hourly buckets per stop per direction per day (bus only).
+-- Raw hourly buckets per stop per direction per vehicle mode per day.
 -- operator IS a separate column (NSR stop refs are operator-agnostic).
+-- vehicle_mode is part of PK because a stop can be served by multiple modes
+--   (e.g. bus + tram on the same NSR:Quay).
 CREATE TABLE IF NOT EXISTS stop_hourly_raw (
     date          TEXT    NOT NULL,
     stop_ref      TEXT    NOT NULL,
     hour          INTEGER NOT NULL,
     direction_ref TEXT    NOT NULL DEFAULT '0',
     operator      TEXT    NOT NULL DEFAULT 'SKY',
+    vehicle_mode  TEXT    NOT NULL DEFAULT 'bus',
     avg_delay_min REAL,
     num_samples   INTEGER,
-    PRIMARY KEY (date, stop_ref, hour, direction_ref, operator)
+    PRIMARY KEY (date, stop_ref, hour, direction_ref, operator, vehicle_mode)
 );
 
--- 30-day rolling average delay per stop per direction per hour-of-day (rebuilt nightly, bus only).
+-- 30-day rolling average delay per stop per direction per vehicle mode per hour-of-day (rebuilt nightly).
 -- max_avg_delay_min / min_avg_delay_min: worst/best single-day average for that hour
 --   over the 30-day window — shows the range of typical variation.
 CREATE TABLE IF NOT EXISTS stop_hourly_profile (
@@ -125,34 +136,38 @@ CREATE TABLE IF NOT EXISTS stop_hourly_profile (
     hour              INTEGER NOT NULL,
     direction_ref     TEXT    NOT NULL DEFAULT '0',
     operator          TEXT    NOT NULL DEFAULT 'SKY',
+    vehicle_mode      TEXT    NOT NULL DEFAULT 'bus',
     avg_delay_min     REAL,
     max_avg_delay_min REAL,   -- worst single-day avg for this hour (last 30 days)
     min_avg_delay_min REAL,   -- best single-day avg for this hour (last 30 days)
     num_samples       INTEGER,
-    PRIMARY KEY (stop_ref, hour, direction_ref, operator)
+    PRIMARY KEY (stop_ref, hour, direction_ref, operator, vehicle_mode)
 );
 
--- All-time line leaderboard (rebuilt nightly, bus only, aggregated across directions).
--- operator embedded in line_ref.
+-- All-time line leaderboard (rebuilt nightly, multimodal, aggregated across directions).
+-- operator embedded in line_ref. vehicle_mode stored for filtering / icon display.
 CREATE TABLE IF NOT EXISTS leaderboard_lines (
     line_ref           TEXT PRIMARY KEY,
     line_name          TEXT,
+    vehicle_mode       TEXT    DEFAULT 'bus',
     avg_delay_min      REAL,
     stddev_delay_min   REAL,   -- weighted avg of daily stddevs (reliability proxy)
     pct_on_time        REAL,
     pct_delayed_10plus REAL,
-    total_departures   INTEGER
+    total_departures   INTEGER,
+    total_cancellations INTEGER DEFAULT 0
 );
 
--- Historical worst days per operator (top 100 by avg delay, rebuilt nightly, bus only).
+-- Historical worst days per operator per mode (top 100 by avg delay, rebuilt nightly).
 CREATE TABLE IF NOT EXISTS worst_days (
     date                TEXT    NOT NULL,
     operator            TEXT    NOT NULL DEFAULT 'SKY',
+    vehicle_mode        TEXT    NOT NULL DEFAULT 'bus',
     avg_delay_min       REAL,
     total_journeys      INTEGER,
     total_cancellations INTEGER,
     pct_on_time         REAL,
-    PRIMARY KEY (date, operator)
+    PRIMARY KEY (date, operator, vehicle_mode)
 );
 
 -- Stop coordinates from NSR (populated once, refreshed rarely).
@@ -168,7 +183,7 @@ CREATE TABLE IF NOT EXISTS stop_coords (
     stop_place_name TEXT    -- display name of the parent stop place
 );
 
--- Per-journey per-stop weekly aggregates (bus only, 13-week rolling window).
+-- Per-journey per-stop weekly aggregates (multimodal, 13-week rolling window).
 --
 -- Core table for:
 --   • Journey profile ("Thomas-analysen"): delay at each stop along a route
@@ -181,6 +196,7 @@ CREATE TABLE IF NOT EXISTS stop_coords (
 --   e.g. 'SKY:ServiceJourney:10-123456' (the "06:15 Linje 6 to Nesttun").
 -- stop_sequence: stop order along the route (from BQ sequenceNr).
 -- aimed_time: scheduled departure at this specific stop in HH:MM local time.
+-- vehicle_mode: stored for filtering (functionally derivable from line_ref).
 --
 -- Upsert logic: weighted average merge so multiple days accumulate within a week.
 -- Old weeks are pruned automatically (>91 days / 13 weeks).
@@ -191,6 +207,7 @@ CREATE TABLE IF NOT EXISTS journey_stop_weekly (
     direction_ref          TEXT    NOT NULL,
     stop_ref               TEXT    NOT NULL,  -- NSR:Quay:xxxxx
     stop_sequence          INTEGER NOT NULL,  -- order along route
+    vehicle_mode           TEXT    DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
     aimed_time             TEXT,             -- 'HH:MM' local time (departure preferred, arrival fallback)
     aimed_arrival_time     TEXT,             -- 'HH:MM' planned arrival (NULL at first stop)
     aimed_departure_time   TEXT,             -- 'HH:MM' planned departure (NULL at last stop)
@@ -220,7 +237,7 @@ CREATE INDEX IF NOT EXISTS idx_jsw_stop                ON journey_stop_weekly (s
 CREATE INDEX IF NOT EXISTS idx_jsw_week                ON journey_stop_weekly (week_start);
 CREATE INDEX IF NOT EXISTS idx_jsw_journey             ON journey_stop_weekly (service_journey_id);
 
--- Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
+-- Raw per-journey per-stop daily observations (multimodal, 90-day rolling window).
 --
 -- Unlike journey_stop_weekly (which stores weekly aggregates), this table stores
 -- one row per actual calendar day per journey per stop — the un-aggregated truth.
@@ -240,6 +257,7 @@ CREATE TABLE IF NOT EXISTS journey_stop_daily (
     direction_ref       TEXT    NOT NULL,
     stop_ref            TEXT    NOT NULL,   -- NSR:Quay:xxxxx
     stop_sequence       INTEGER NOT NULL,   -- order along route
+    vehicle_mode        TEXT    DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
     aimed_arrival       TEXT,              -- 'HH:MM' local (NULL at first stop)
     aimed_departure     TEXT,              -- 'HH:MM' local (NULL at last stop)
     delay_arrival_min   REAL,              -- NULL at first stop

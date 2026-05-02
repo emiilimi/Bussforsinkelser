@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,11 @@ import { useRegion } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatWeekdayDateNO } from "@/lib/date-utils";
+import {
+  TimeWindowPicker,
+  type TimeWindow,
+  windowToQuery,
+} from "@/components/time-window-picker";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,6 +44,7 @@ type StopStatsResponse = {
     maxDelayMin: number | null;
     minDelayMin: number | null;
     pctDelayed2plus: number | null;
+    stddevDelayMin: number | null;
     numDepartures: number | null;
   }>;
   hourly: Array<{
@@ -161,7 +166,7 @@ function HourlyTooltip({ active, payload }: any) {
         {d.maxAvgDelay != null && <p className="text-destructive">Verste dag: {d.maxAvgDelay.toFixed(2)}m</p>}
         {d.minAvgDelay != null && <p className="text-emerald-500">Beste dag: {d.minAvgDelay.toFixed(2)}m</p>}
       </div>
-      {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{d.numSamples} avganger totalt</p>}
+      {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{d.numSamples.toLocaleString("nb-NO")} stoppbesøk</p>}
       <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">Verste/beste dag = høyeste/laveste dagsnitt for denne timen siste 30 dager</p>
     </div>
   );
@@ -177,7 +182,7 @@ export default function StopAnalysis() {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null); // null = all platforms
   const [showResults, setShowResults] = useState(false);
   const [direction, setDirection] = useState<string>("all");
-  const [periodDays, setPeriodDays] = useState<number>(30);
+  const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 30, label: "Siste måned" });
 
   // Auto-select stop from URL params (e.g. navigated from topplister or map)
   useEffect(() => {
@@ -209,7 +214,7 @@ export default function StopAnalysis() {
     enabled: activeRef != null,
   });
   const stopStatsUrl = activeRef
-    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}&days=${periodDays}${direction !== "all" ? `&direction=${direction}` : ""}`
+    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}&${windowToQuery(window)}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
@@ -275,6 +280,20 @@ export default function StopAnalysis() {
     stats && stats.daily.length > 0
       ? stats.daily.reduce((s, r) => s + (r.pctDelayed2plus ?? 0), 0) / stats.daily.length
       : null;
+
+  // Departure-weighted mean of per-day stddev. Approximates overall σ
+  // (true pooled σ requires raw observations — this is a reasonable summary).
+  const avgStddev = (() => {
+    if (!stats || stats.daily.length === 0) return null;
+    let num = 0, den = 0;
+    for (const r of stats.daily) {
+      if (r.stddevDelayMin != null && r.numDepartures != null) {
+        num += r.stddevDelayMin * r.numDepartures;
+        den += r.numDepartures;
+      }
+    }
+    return den > 0 ? num / den : null;
+  })();
 
   // Max delay for relative bar width in lines list
   const maxLineDelay = linesAtStop.reduce((m, l) => Math.max(m, l.avgDelayMin ?? 0), 0.01);
@@ -354,63 +373,64 @@ export default function StopAnalysis() {
           </div>
         </div>
 
-        {/* Direction toggle — outside stats block so it stays visible even when no data */}
-        {selectedStop && availableDirections.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-muted-foreground">Retning:</span>
-            {["all", ...availableDirections].map((d) => (
-              <Button
-                key={d}
-                size="sm"
-                variant={direction === d ? "default" : "outline"}
-                onClick={() => setDirection(d as any)}
-                className="h-7 px-3 text-xs"
-              >
-                {d === "all" ? "Begge" : `Retning ${d}`}
-              </Button>
-            ))}
-          </div>
-        )}
-
-        {/* Platform picker — outside stats block so it stays visible while loading */}
-        {selectedStop && selectedStop.quays.length > 1 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-muted-foreground">Plattform:</span>
-            <Button
-              size="sm"
-              variant={selectedPlatform === null ? "default" : "outline"}
-              onClick={() => setSelectedPlatform(null)}
-              className="h-7 px-3 text-xs"
-            >
-              Alle
-            </Button>
-            {selectedStop.quays.map((q) => (
-              <Button
-                key={q.stopRef}
-                size="sm"
-                variant={selectedPlatform === q.stopRef ? "default" : "outline"}
-                onClick={() => setSelectedPlatform(q.stopRef)}
-                className="h-7 px-3 text-xs"
-              >
-                {q.platformCode}
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Platform / direction pickers
+            Plan 2c: When ALL quays have a platform code, show ONLY the platform picker
+            (direction is meaningless on a terminal). When SOME (but not all) have it,
+            show both. When 1 or 0 quays, show only direction. */}
+        {(() => {
+          const multiQuay = selectedStop && selectedStop.quays.length > 1;
+          const allHavePlatform = multiQuay && selectedStop!.quays.every(q => !!q.platformCode);
+          const showPlatform = multiQuay;
+          const showDirection = !!selectedStop && availableDirections.length > 0 && !allHavePlatform;
+          return (
+            <>
+              {showDirection && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-muted-foreground">Retning:</span>
+                  {["all", ...availableDirections].map((d) => (
+                    <Button
+                      key={d}
+                      size="sm"
+                      variant={direction === d ? "default" : "outline"}
+                      onClick={() => setDirection(d as any)}
+                      className="h-7 px-3 text-xs"
+                    >
+                      {d === "all" ? "Begge" : `Retning ${d}`}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              {showPlatform && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-muted-foreground">Plattform:</span>
+                  <Button
+                    size="sm"
+                    variant={selectedPlatform === null ? "default" : "outline"}
+                    onClick={() => { setSelectedPlatform(null); if (allHavePlatform) setDirection("all"); }}
+                    className="h-7 px-3 text-xs"
+                  >
+                    Alle
+                  </Button>
+                  {selectedStop!.quays.map((q) => (
+                    <Button
+                      key={q.stopRef}
+                      size="sm"
+                      variant={selectedPlatform === q.stopRef ? "default" : "outline"}
+                      onClick={() => { setSelectedPlatform(q.stopRef); setDirection("all"); }}
+                      className="h-7 px-3 text-xs"
+                    >
+                      {q.platformCode || "—"}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Period selector */}
         {selectedStop && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Periode:</span>
-            <Tabs value={String(periodDays)} onValueChange={(v) => setPeriodDays(Number(v))}>
-              <TabsList>
-                <TabsTrigger value="7">Uke</TabsTrigger>
-                <TabsTrigger value="30">Måned</TabsTrigger>
-                <TabsTrigger value="90">3 mnd</TabsTrigger>
-                <TabsTrigger value="365">År</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <TimeWindowPicker value={window} onChange={setWindow} />
         )}
 
         {/* Loading state */}
@@ -501,13 +521,26 @@ export default function StopAnalysis() {
             )}
 
             {/* ---- Stat cards ---- */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Snitt forsinkelse</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold font-mono text-destructive">{stats.avgDelayMin.toFixed(1)}m</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Standardavvik (σ)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold font-mono">
+                    {avgStddev != null ? `±${avgStddev.toFixed(1)}m` : "—"}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                    Spredning i forsinkelse — lavt = forutsigbart.
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -628,10 +661,10 @@ export default function StopAnalysis() {
                         <button
                           onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                          title="Åpne reisesjekk for denne linjen"
+                          title="Åpne avgangsanalyse for denne linjen"
                         >
                           <Route className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Reisesjekk</span>
+                          <span className="hidden sm:inline">Avgangsanalyse</span>
                         </button>
                       </div>
                     ))}

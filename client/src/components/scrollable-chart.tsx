@@ -100,10 +100,42 @@ type ScrollableChartProps = {
   yMax: number;
   setYMax: (v: number) => void;
   dataMax: number;
+  /** Minimum value shown on the Y axis. Defaults to 0. Pass a negative number to show early-arrival data. */
+  yMin?: number;
   children: React.ReactNode;
   marginTop?: number;
   marginBottom?: number;
 };
+
+/**
+ * Generate "nice" evenly-spaced tick values for a Y-axis range.
+ * Steps are always multiples of 1, 2, 5, or 10 (etc.), so labels look uniform.
+ * Zero is always included when the range spans negative → positive values.
+ */
+function niceAxisTicks(yMin: number, yMax: number, targetCount = 5): number[] {
+  if (yMin >= yMax) return [yMin];
+  const range = yMax - yMin;
+  const rawStep = range / targetCount;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  const niceStep = norm <= 1.5 ? 1 : norm <= 3 ? 2 : norm <= 7 ? 5 : 10;
+  const step = niceStep * mag;
+
+  // Start at the first multiple of step that is >= yMin
+  const start = Math.ceil((yMin - step * 0.001) / step) * step;
+  const ticks: number[] = [];
+  for (let v = start; v <= yMax + step * 0.001; v = Math.round((v + step) * 1e9) / 1e9) {
+    ticks.push(v);
+  }
+
+  // Always include 0 when range straddles it (ensures the baseline is labelled)
+  if (yMin < 0 && yMax > 0 && !ticks.some((t) => Math.abs(t) < step * 0.01)) {
+    ticks.push(0);
+    ticks.sort((a, b) => a - b);
+  }
+
+  return ticks;
+}
 
 export function ScrollableChart({
   chartWidth,
@@ -111,21 +143,23 @@ export function ScrollableChart({
   yMax,
   setYMax,
   dataMax,
+  yMin = 0,
   children,
   marginTop = 10,
   marginBottom = 80,
 }: ScrollableChartProps) {
   const { onMouseDown, isDragging } = useYAxisDrag(yMax, setYMax, dataMax);
 
-  // Generate Y-axis ticks for the overlay
+  // Generate nice Y-axis ticks (uniform step, 0 always present when range crosses it).
   const plotHeight = chartHeight - marginTop - marginBottom;
-  const tickCount = 5;
-  const ticks: { value: number; y: number }[] = [];
-  for (let i = 0; i <= tickCount; i++) {
-    const value = (yMax / tickCount) * i;
-    const y = marginTop + plotHeight - (value / yMax) * plotHeight;
-    ticks.push({ value, y });
-  }
+  const range = yMax - yMin;
+  const niceTicks = niceAxisTicks(yMin, yMax);
+  const ticks = niceTicks.map((value) => ({
+    value,
+    y: marginTop + plotHeight - ((value - yMin) / range) * plotHeight,
+  }));
+  // Derive step for label formatting (use the first gap between ticks, fallback to range)
+  const tickStep = ticks.length >= 2 ? Math.abs(ticks[1].value - ticks[0].value) : range;
 
   return (
     <div className="flex items-stretch">
@@ -157,7 +191,7 @@ export function ScrollableChart({
                   fontSize={11}
                   fill="hsl(var(--muted-foreground))"
                 >
-                  {t.value.toFixed(0)}m
+                  {tickStep < 1 ? `${t.value.toFixed(1)}m` : `${t.value.toFixed(0)}m`}
                 </text>
                 <line
                   x1={50}

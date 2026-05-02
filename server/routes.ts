@@ -61,6 +61,56 @@ function parseOperator(raw: unknown, fallback = "SKY"): string {
   return typeof raw === "string" && raw.length > 0 ? raw : fallback;
 }
 
+/**
+ * Parses ?days=N or ?from=YYYY-MM-DD&to=YYYY-MM-DD into a normalized window.
+ * Returns { fromIso, toIso, days } where `days` is the number of calendar days
+ * in the window (used for `journey_stop_weekly` queries which need `weeks`).
+ *
+ * Defaults: `days=defaultDays` (caller-supplied), capped at maxDays.
+ */
+function parseTimeWindow(
+  query: any,
+  defaultDays = 30,
+  maxDays = 365,
+): { fromIso: string; toIso: string; days: number } {
+  const isDate = (s: unknown): s is string =>
+    typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  if (isDate(query.from) && isDate(query.to)) {
+    const a = query.from <= query.to ? query.from : query.to;
+    const b = query.from <= query.to ? query.to : query.from;
+    const days = Math.min(
+      maxDays,
+      Math.max(
+        1,
+        Math.ceil((Date.parse(b) - Date.parse(a)) / 86400000) + 1,
+      ),
+    );
+    return { fromIso: a, toIso: b, days };
+  }
+  const days = Math.min(maxDays, Math.max(1, Number(query.days) || defaultDays));
+  return { fromIso: daysAgoIso(days), toIso: yesterday(), days };
+}
+
+/**
+ * journey_stop_weekly only retains 13 weeks. This helper accepts either
+ * `?weeks=N` (legacy) or the same `?days/from/to` shape as parseTimeWindow,
+ * and returns the `fromIso` cutoff to use in the WHERE clause.
+ */
+function parseWeeksWindow(query: any, defaultWeeks = 13): string {
+  const isDate = (s: unknown): s is string =>
+    typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  const maxWeeks = 13;
+  if (isDate(query.from)) {
+    return query.from;
+  }
+  if (typeof query.days === "string" || typeof query.days === "number") {
+    const days = Math.min(maxWeeks * 7, Math.max(1, Number(query.days) || defaultWeeks * 7));
+    return daysAgoIso(days);
+  }
+  const weeks = Math.min(maxWeeks, Math.max(1, Number(query.weeks) || defaultWeeks));
+  return daysAgoIso(weeks * 7);
+}
+
 // ---------------------------------------------------------------------------
 // Route registration
 // ---------------------------------------------------------------------------
@@ -90,9 +140,9 @@ export async function registerRoutes(
    * Returns daily summaries for the last N days (for the trend chart).
    */
   app.get("/api/summary/trend", async (req, res) => {
-    const days = Math.min(Number(req.query.days) || 7, 365);
+    const { fromIso, toIso } = parseTimeWindow(req.query, 7);
     const operator = parseOperator(req.query.operator);
-    const rows = await getDailySummaryRange(daysAgoIso(days), yesterday(), operator);
+    const rows = await getDailySummaryRange(fromIso, toIso, operator);
     return res.json(rows);
   });
 
@@ -124,10 +174,10 @@ export async function registerRoutes(
    */
   app.get("/api/line/:lineref", async (req, res) => {
     const lineRef = req.params.lineref;
-    const days = Math.min(Number(req.query.days) || 30, 365);
+    const { fromIso, toIso } = parseTimeWindow(req.query, 30);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const [daily, hourly] = await Promise.all([
-      getLineStats(lineRef, daysAgoIso(days), direction),
+      getLineStats(lineRef, fromIso, direction, toIso),
       getLineHourlyProfile(lineRef, direction),
     ]);
     if (daily.length === 0 && hourly.length === 0) {
@@ -143,8 +193,8 @@ export async function registerRoutes(
    */
   app.get("/api/line/:lineref/journeys", async (req, res) => {
     const lineRef = req.params.lineref;
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getJourneysForLine(lineRef, daysAgoIso(weeks * 7));
+    const fromIso = parseWeeksWindow(req.query, 13);
+    const rows = await getJourneysForLine(lineRef, fromIso);
     return res.json(rows);
   });
 
@@ -154,8 +204,8 @@ export async function registerRoutes(
    */
   app.get("/api/line/:lineref/stops", async (req, res) => {
     const lineRef = req.params.lineref;
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getWorstStopsForLine(lineRef, daysAgoIso(weeks * 7));
+    const fromIso = parseWeeksWindow(req.query, 13);
+    const rows = await getWorstStopsForLine(lineRef, fromIso);
     return res.json(rows);
   });
 
@@ -167,9 +217,9 @@ export async function registerRoutes(
   app.get("/api/line/:lineref/worst-journeys", async (req, res) => {
     const lineRef = req.params.lineref;
     const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const weeks = Math.min(Number(req.query.weeks) || 13, 13);
+    const fromIso = parseWeeksWindow(req.query, 13);
     const limit = Math.min(Number(req.query.limit) || 15, 50);
-    const rows = await getWorstJourneysForLine(lineRef, direction, daysAgoIso(weeks * 7), limit);
+    const rows = await getWorstJourneysForLine(lineRef, direction, fromIso, limit);
     return res.json(rows);
   });
 
@@ -180,9 +230,9 @@ export async function registerRoutes(
   app.get("/api/line/:lineref/best-journeys", async (req, res) => {
     const lineRef = req.params.lineref;
     const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const weeks = Math.min(Number(req.query.weeks) || 13, 13);
+    const fromIso = parseWeeksWindow(req.query, 13);
     const limit = Math.min(Number(req.query.limit) || 15, 50);
-    const rows = await getBestJourneysForLine(lineRef, direction, daysAgoIso(weeks * 7), limit);
+    const rows = await getBestJourneysForLine(lineRef, direction, fromIso, limit);
     return res.json(rows);
   });
 
@@ -194,8 +244,8 @@ export async function registerRoutes(
   app.get("/api/line/:lineref/route-variants", async (req, res) => {
     const lineRef = req.params.lineref;
     const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getRouteVariants(lineRef, direction, daysAgoIso(weeks * 7));
+    const fromIso = parseWeeksWindow(req.query, 13);
+    const rows = await getRouteVariants(lineRef, direction, fromIso);
     return res.json(rows);
   });
 
@@ -208,9 +258,9 @@ export async function registerRoutes(
   app.get("/api/line/:lineref/stop-profile", async (req, res) => {
     const lineRef = req.params.lineref;
     const direction = typeof req.query.direction === "string" ? req.query.direction : "0";
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
+    const fromIso = parseWeeksWindow(req.query, 13);
     const variant = typeof req.query.variant === "string" ? req.query.variant : undefined;
-    const rows = await getLineStopProfile(lineRef, direction, daysAgoIso(weeks * 7), variant);
+    const rows = await getLineStopProfile(lineRef, direction, fromIso, variant);
     return res.json(rows);
   });
 
@@ -226,7 +276,14 @@ export async function registerRoutes(
     if (!lineRef || !firstStopTime) {
       return res.status(400).json({ message: "line og time er påkrevd" });
     }
-    const rows = await getJourneyProfile(lineRef, directionRef, firstStopTime);
+    // Optional time window — if any window param is provided, restrict to that window
+    // (capped at 13 weeks since journey_stop_weekly retains 13 weeks).
+    const hasWindow =
+      typeof req.query.from === "string" ||
+      typeof req.query.days === "string" ||
+      typeof req.query.weeks === "string";
+    const fromWeek = hasWindow ? parseWeeksWindow(req.query, 13) : undefined;
+    const rows = await getJourneyProfile(lineRef, directionRef, firstStopTime, fromWeek);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Reise ikke funnet" });
     }
@@ -240,11 +297,11 @@ export async function registerRoutes(
    */
   app.get("/api/stop/:stopref", async (req, res) => {
     const stopRef = req.params.stopref;
-    const days = Math.min(Number(req.query.days) || 30, 365);
+    const { fromIso, toIso } = parseTimeWindow(req.query, 30);
     const operator = parseOperator(req.query.operator);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const [rows, hourly] = await Promise.all([
-      getStopStats(stopRef, daysAgoIso(days), operator, direction),
+      getStopStats(stopRef, fromIso, operator, direction, toIso),
       getStopHourlyProfile(stopRef, operator, direction).catch(() => []),
     ]);
     if (rows.length === 0) {
@@ -282,8 +339,8 @@ export async function registerRoutes(
    */
   app.get("/api/stop/:stopref/lines", async (req, res) => {
     const stopRef = req.params.stopref;
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getLinesAtStop(stopRef, daysAgoIso(weeks * 7));
+    const fromIso = parseWeeksWindow(req.query, 4);
+    const rows = await getLinesAtStop(stopRef, fromIso);
     return res.json(rows);
   });
 
@@ -294,8 +351,8 @@ export async function registerRoutes(
    */
   app.get("/api/stop/:stopref/lines/hourly", async (req, res) => {
     const stopRef = req.params.stopref;
-    const weeks = Math.min(Number(req.query.weeks) || 4, 13);
-    const rows = await getLineHourlyAtStop(stopRef, daysAgoIso(weeks * 7));
+    const fromIso = parseWeeksWindow(req.query, 4);
+    const rows = await getLineHourlyAtStop(stopRef, fromIso);
     return res.json(rows);
   });
 
@@ -390,9 +447,9 @@ export async function registerRoutes(
    */
   app.get("/api/leaderboard/stops", async (req, res) => {
     const type = req.query.type === "best" ? "best" : "worst";
-    const days = Math.min(Number(req.query.days) || 7, 365);
+    const { fromIso, toIso } = parseTimeWindow(req.query, 7);
     const operator = parseOperator(req.query.operator);
-    const rows = await getLeaderboardStops(type, daysAgoIso(days), operator);
+    const rows = await getLeaderboardStops(type, fromIso, operator, 10, toIso);
     return res.json(rows);
   });
 
@@ -402,7 +459,13 @@ export async function registerRoutes(
   app.get("/api/worst-days", async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 10, 100);
     const operator = parseOperator(req.query.operator);
-    const rows = await getWorstDays(limit, operator);
+    // Only pass from/to when explicitly provided to keep materialized-table fast path.
+    const hasWindow =
+      typeof req.query.from === "string" ||
+      typeof req.query.to === "string" ||
+      typeof req.query.days === "string";
+    const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
+    const rows = await getWorstDays(limit, operator, window?.fromIso, window?.toIso);
     return res.json(rows);
   });
 
@@ -412,7 +475,12 @@ export async function registerRoutes(
   app.get("/api/best-days", async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 10, 100);
     const operator = parseOperator(req.query.operator);
-    const rows = await getBestDays(limit, operator);
+    const hasWindow =
+      typeof req.query.from === "string" ||
+      typeof req.query.to === "string" ||
+      typeof req.query.days === "string";
+    const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
+    const rows = await getBestDays(limit, operator, window?.fromIso, window?.toIso);
     return res.json(rows);
   });
 
@@ -661,6 +729,11 @@ export async function registerRoutes(
               }
               serviceJourney {
                 id
+                passingTimes {
+                  quay { id }
+                  departure { time dayOffset }
+                  arrival { time dayOffset }
+                }
               }
             }
           }

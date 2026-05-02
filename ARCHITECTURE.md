@@ -328,7 +328,7 @@ Velg en linje og se historisk ytelse.
 
 ---
 
-### Reisesjekk (`/reise`)
+### Reiseplanlegger (`/reise`)
 **Status:** Alpha (2026-04-12) ✓
 
 Statistisk reiseplanlegger: Søk fra→til, få Entur-reiseforslag med historisk forsinkelsesdata overlay.

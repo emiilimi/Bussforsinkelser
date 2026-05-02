@@ -209,6 +209,14 @@ def upsert_line_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
         n_scheduled = len(scheduled)
         pct_coverage = round(len(act) / n_scheduled * 100, 1) if n_scheduled > 0 else None
         stddev = round(float(delays.std()), 2) if len(delays) >= 2 else None
+        # Cancellations: distinct serviceJourneyIds with journeyCancellation=true.
+        # A cancelled journey has all its stop-visits flagged, so counting unique SJIDs
+        # is the right granularity (one cancelled trip = one cancellation).
+        cancelled_grp = full_grp[full_grp["is_cancelled"]]
+        if "serviceJourneyId" in cancelled_grp.columns and not cancelled_grp.empty:
+            num_cancellations = int(cancelled_grp["serviceJourneyId"].nunique())
+        else:
+            num_cancellations = 0
         rows.append((
             date_str,
             str(line_ref),
@@ -225,6 +233,7 @@ def upsert_line_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
             round((delays > 10).mean() * 100, 1),
             len(act),
             pct_coverage,
+            num_cancellations,
         ))
     conn.executemany(
         """
@@ -232,8 +241,8 @@ def upsert_line_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
             (date, line_ref, direction_ref, vehicle_mode, line_name, avg_delay_min,
              max_delay_min, min_delay_min, median_delay_min, stddev_delay_min,
              pct_on_time, pct_delayed_2plus, pct_delayed_10plus,
-             num_departures, pct_realtime_coverage)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             num_departures, pct_realtime_coverage, num_cancellations)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         rows,
     )
@@ -634,7 +643,7 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
         """
         INSERT INTO leaderboard_lines
             (line_ref, line_name, avg_delay_min, stddev_delay_min,
-             pct_on_time, pct_delayed_10plus, total_departures)
+             pct_on_time, pct_delayed_10plus, total_departures, total_cancellations)
         SELECT
             line_ref,
             MAX(line_name) AS line_name,
@@ -655,7 +664,8 @@ def refresh_leaderboards(conn: sqlite3.Connection) -> None:
                 SUM(pct_delayed_10plus * num_departures) * 1.0 / NULLIF(SUM(num_departures), 0),
                 1
             ),
-            SUM(num_departures)
+            SUM(num_departures),
+            COALESCE(SUM(num_cancellations), 0)
         FROM line_daily
         WHERE vehicle_mode = 'bus'
         GROUP BY line_ref

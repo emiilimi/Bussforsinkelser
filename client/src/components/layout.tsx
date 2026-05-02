@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
     { href: "/worst", label: "Topplister", icon: BarChart3 },
     { href: "/journey", label: "Linjeanalyse", icon: Clock },
-    { href: "/reise", label: "Reisesjekk", icon: Navigation },
+    { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
   ];
 
   return (

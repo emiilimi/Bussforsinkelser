@@ -44,7 +44,14 @@ type TripLeg = {
   duration: number;
   distance: number;
   intermediateQuays: Array<{ id: string; name: string }>;
-  serviceJourney: { id: string } | null;
+  serviceJourney: {
+    id: string;
+    passingTimes: Array<{
+      quay: { id: string } | null;
+      departure: { time: string; dayOffset: number | null } | null;
+      arrival: { time: string; dayOffset: number | null } | null;
+    }>;
+  } | null;
 };
 
 type TripPattern = {
@@ -159,7 +166,7 @@ function useTripDelayDistribution(
           COUNT(*) AS n
         FROM delays
         WHERE (${conditions})
-          AND delay_departure_min IS NOT NULL
+          AND (delay_departure_min IS NOT NULL OR delay_arrival_min IS NOT NULL)
         GROUP BY stop_ref, line_ref
       `;
 
@@ -421,46 +428,72 @@ function TripCard({
   const transferAnalysis = useMemo(() => {
     const transfers: Array<{
       buffer: number;
+      walkMinutes: number | null;
       chance: string | null;
       color: string;
       probability: number;
       fromLine: string | null;
       toLine: string | null;
+      assumingOnTime: boolean;
     }> = [];
 
     for (let legIdx = 0; legIdx < pattern.legs.length; legIdx++) {
       const leg = pattern.legs[legIdx];
-      const nextLeg = pattern.legs[legIdx + 1];
-      if (!nextLeg || nextLeg.mode === "foot") continue;
+      if (leg.mode === "foot") continue;
+
+      // Find next non-foot leg, summing up any walk duration in between
+      let walkMinutes = 0;
+      let nextTransitIdx = legIdx + 1;
+      while (nextTransitIdx < pattern.legs.length && pattern.legs[nextTransitIdx].mode === "foot") {
+        walkMinutes += pattern.legs[nextTransitIdx].duration / 60;
+        nextTransitIdx++;
+      }
+      const nextLeg = pattern.legs[nextTransitIdx];
+      if (!nextLeg) continue;
 
       const lineRef = leg.line?.id ?? "";
-      const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
+      const hasFromDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
 
       const arrivalTime = new Date(leg.expectedEndTime).getTime();
       const departureTime = new Date(nextLeg.expectedStartTime).getTime();
-      const bufferMin = (departureTime - arrivalTime) / 60000;
-      if (bufferMin <= 0) continue;
+      // Buffer = total available time - walk time
+      const totalAvailMin = (departureTime - arrivalTime) / 60000;
+      const bufferMin = totalAvailMin - walkMinutes;
+      if (totalAvailMin <= 0) continue;
 
       const arrQuay = leg.toPlace.quay?.id ?? "";
       const statKey = `${arrQuay}|${lineRef}`;
       const arrStat = stats.get(statKey);
       const duckStat = duckStats?.get(statKey);
-      const arrDelay = hasDelayData ? (arrStat?.avgDelayArrivalMin ?? null) : null;
 
-      // Use empirical DuckDB percentiles when available, fall back to heuristic
-      const prob = hasDelayData && duckStat
-        ? transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, bufferMin)
-        : transferProbability(arrDelay, bufferMin);
-      const chance = hasDelayData ? transferChance(arrDelay, bufferMin) : null;
-      const color = hasDelayData ? transferColor(arrDelay, bufferMin) : "text-muted-foreground";
+      let prob: number;
+      let arrDelay: number | null;
+      let assumingOnTime = false;
+
+      if (hasFromDelayData) {
+        arrDelay = arrStat?.avgDelayArrivalMin ?? null;
+        prob = duckStat
+          ? transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, bufferMin)
+          : transferProbability(arrDelay, bufferMin);
+      } else {
+        // No delay data for the from-leg — assume it arrives on time
+        arrDelay = 0;
+        assumingOnTime = true;
+        prob = transferProbability(0, bufferMin);
+      }
+
+      const chance = transferChance(arrDelay, bufferMin);
+      const color = transferColor(arrDelay, bufferMin);
 
       transfers.push({
         buffer: bufferMin,
+        walkMinutes: walkMinutes > 0 ? walkMinutes : null,
         chance,
         color,
         probability: prob,
         fromLine: leg.line?.publicCode ?? null,
         toLine: nextLeg.line?.publicCode ?? null,
+        assumingOnTime,
       });
     }
 
@@ -633,24 +666,43 @@ function TripCard({
             const lineRef = leg.line?.id ?? "";
             const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
 
-            // All quay stops in this leg
-            const allStops = [
-              leg.fromPlace.quay,
-              ...leg.intermediateQuays.map((q) => ({ id: q.id, name: q.name })),
-              leg.toPlace.quay,
-            ].filter(Boolean) as Array<{ id: string; name: string }>;
+            // All quay stops in this leg, with timing from serviceJourney.passingTimes
+            type StopEntry = { id: string; name: string; aimedTime: string | null };
 
-            // Transfer analysis between this leg and next
-            const nextLeg = pattern.legs[legIdx + 1];
-            // Find corresponding transfer from pre-computed analysis
-            let transferIdx = 0;
+            // Build a quayId → ISO datetime map from passingTimes
+            const passingTimeMap = new Map<string, string>();
+            if (leg.serviceJourney?.passingTimes?.length) {
+              const baseDate = leg.expectedStartTime.slice(0, 10); // YYYY-MM-DD
+              for (const pt of leg.serviceJourney.passingTimes) {
+                if (!pt.quay?.id) continue;
+                const td = pt.departure ?? pt.arrival;
+                if (!td?.time) continue;
+                // time is "HH:MM:SS", dayOffset 0 or 1 for past-midnight
+                const [hStr, mStr, sStr] = td.time.split(":");
+                const dateObj = new Date(`${baseDate}T00:00:00`);
+                dateObj.setDate(dateObj.getDate() + (td.dayOffset ?? 0));
+                dateObj.setHours(parseInt(hStr, 10), parseInt(mStr, 10), parseInt(sStr ?? "0", 10));
+                passingTimeMap.set(pt.quay.id, dateObj.toISOString());
+              }
+            }
+
+            const allStops: StopEntry[] = [
+              leg.fromPlace.quay
+                ? { ...leg.fromPlace.quay, aimedTime: passingTimeMap.get(leg.fromPlace.quay.id) ?? leg.expectedStartTime }
+                : null,
+              ...leg.intermediateQuays.map((q) => ({ ...q, aimedTime: passingTimeMap.get(q.id) ?? null })),
+              leg.toPlace.quay
+                ? { ...leg.toPlace.quay, aimedTime: passingTimeMap.get(leg.toPlace.quay.id) ?? leg.expectedEndTime }
+                : null,
+            ].filter(Boolean) as StopEntry[];
+
+            // Transfer analysis: find the transfer that starts from this leg
             let transferInfo: typeof transferAnalysis.transfers[number] | null = null;
-            if (nextLeg && nextLeg.mode !== "foot") {
-              // count transit-to-transit transfers before this leg to find the right index
+            if (leg.mode !== "foot") {
+              // Count how many non-foot legs came before this one
               let count = 0;
               for (let i = 0; i < legIdx; i++) {
-                const nl = pattern.legs[i + 1];
-                if (nl && nl.mode !== "foot" && pattern.legs[i].mode !== "foot") count++;
+                if (pattern.legs[i].mode !== "foot") count++;
               }
               transferInfo = transferAnalysis.transfers[count] ?? null;
             }
@@ -685,7 +737,9 @@ function TripCard({
                         <span className="text-xs text-muted-foreground truncate max-w-48">{leg.line.name}</span>
                       )}
                       {!hasDelayData && (
-                        <span className="text-[9px] text-muted-foreground/60 italic">ingen forsinkelsesdata</span>
+                        <span className="text-[9px] text-muted-foreground/60 italic">
+                          mangler data{leg.line?.publicCode ? ` for linje ${leg.line.publicCode}` : ""}
+                        </span>
                       )}
                     </div>
                     <span className="text-xs font-mono text-muted-foreground">
@@ -697,12 +751,27 @@ function TripCard({
                   <div className="space-y-1 ml-2">
                     {allStops.map((stop, stopIdx) => {
                       const statKey = `${stop.id}|${lineRef}`;
-                      const stat = stats.get(statKey);
+                      const duckStop = duckStats?.get(statKey);
                       const isFirst = stopIdx === 0;
                       const isLast = stopIdx === allStops.length - 1;
 
+                      // Per-stop timing (only if we have aimed time).
+                      // Last stop has no departure — use arrival delay there.
+                      const p50Raw = isLast
+                        ? (duckStop?.p50_arr ?? null)
+                        : (duckStop?.p50_dep ?? null);
+                      const p80Raw = isLast
+                        ? (duckStop?.p80_arr ?? null)
+                        : (duckStop?.p80_dep ?? null);
+                      const p50Time = stop.aimedTime && p50Raw != null
+                        ? formatTime(addMinutesToIso(stop.aimedTime, p50Raw))
+                        : null;
+                      const p80Time = stop.aimedTime && p80Raw != null
+                        ? formatTime(addMinutesToIso(stop.aimedTime, p80Raw))
+                        : null;
+
                       return (
-                        <div key={stop.id + stopIdx} className="flex items-center gap-2 text-xs">
+                        <div key={stop.id + stopIdx} className="flex items-center gap-1.5 text-xs">
                           <div className={cn(
                             "w-2 h-2 rounded-full flex-shrink-0",
                             isFirst || isLast ? "bg-primary" : "bg-muted-foreground/40"
@@ -713,7 +782,24 @@ function TripCard({
                           )}>
                             {stop.name}
                           </span>
-                          {(isFirst || isLast) && hasDelayData && delayBadge(stat?.avgDelayMin ?? null, true)}
+                          {/* Timetable time */}
+                          {stop.aimedTime && (
+                            <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                              {formatTime(stop.aimedTime)}
+                            </span>
+                          )}
+                          {/* P50 estimated (orange) */}
+                          {p50Time && (
+                            <span className="font-mono text-[10px] text-amber-500 tabular-nums">
+                              ~{p50Time}
+                            </span>
+                          )}
+                          {/* P80 (red) */}
+                          {p80Time && (
+                            <span className="font-mono text-[10px] text-red-500/70 tabular-nums">
+                              {p80Time}
+                            </span>
+                          )}
                         </div>
                       );
                     })}
@@ -726,6 +812,9 @@ function TripCard({
                     <ArrowDown className="h-3 w-3 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
                       Overgang: {transferInfo.buffer.toFixed(0)} min buffer
+                      {transferInfo.walkMinutes != null && transferInfo.walkMinutes > 0 && (
+                        <span> ({transferInfo.walkMinutes.toFixed(0)} min gange)</span>
+                      )}
                     </span>
                     {transferInfo.fromLine && transferInfo.toLine && (
                       <span className="text-xs text-muted-foreground">
@@ -739,12 +828,8 @@ function TripCard({
                     )}
                     {transferInfo.probability >= 0 && (
                       <span className={cn("text-xs font-medium", transferInfo.color)}>
-                        ({Math.round(transferInfo.probability * 100)}% sjanse)
-                      </span>
-                    )}
-                    {!transferInfo.chance && transferInfo.probability < 0 && (
-                      <span className="text-[9px] text-muted-foreground/60 italic">
-                        mangler data for vurdering
+                        ({Math.round(transferInfo.probability * 100)}% sjanse
+                        {transferInfo.assumingOnTime && " – antar foregående i rute"})
                       </span>
                     )}
                   </div>
@@ -934,7 +1019,7 @@ export default function TripPlanner() {
       <div className="space-y-6 animate-in fade-in duration-500">
         <div>
           <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Navigation className="h-8 w-8 text-primary" /> Reisesjekk
+            <Navigation className="h-8 w-8 text-primary" /> Reiseplanlegger
           </h2>
           <p className="text-muted-foreground mt-1">
             Planlegg reisen din og se historiske forsinkelsesdata for hvert stopp.
