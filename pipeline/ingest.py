@@ -2,12 +2,15 @@
 """
 Nightly BigQuery -> SQLite pipeline for bussforsinkelser.no
 
-Fetches one day of Skyss SIRI ET data, computes delay statistics,
-and writes them to the local SQLite database.
+Fetches one day of SIRI ET data for one or more operators, computes delay
+statistics, and writes them to the local SQLite database.
 
 Usage:
-    python pipeline/ingest.py                  # yesterday
-    python pipeline/ingest.py 2025-03-07       # specific date
+    python pipeline/ingest.py                          # yesterday, operator SKY
+    python pipeline/ingest.py 2025-03-07               # specific date, operator SKY
+    python pipeline/ingest.py --operator RUT           # yesterday, Ruter
+    python pipeline/ingest.py --operator SKY,RUT       # yesterday, both operators
+    python pipeline/ingest.py 2025-03-07 --operator RUT
 
 Railway cron: 0 2 * * *   (02:00 Oslo time)
 """
@@ -51,7 +54,11 @@ DB_PATH = os.environ.get(
     str(Path(__file__).parent.parent / "data" / "bussforsinkelser.db"),
 )
 
-OPERATOR = os.environ.get("BQ_OPERATOR", "SKY")
+# Comma-separated operator codes; can be overridden via --operator CLI flag.
+# Examples: "SKY", "RUT", "SKY,RUT"
+OPERATORS: list[str] = [
+    op.strip() for op in os.environ.get("BQ_OPERATOR", "SKY").split(",") if op.strip()
+]
 OSLO_TZ = pytz.timezone("Europe/Oslo")
 
 logging.basicConfig(
@@ -65,17 +72,25 @@ log = logging.getLogger(__name__)
 # BigQuery fetch
 # ---------------------------------------------------------------------------
 
-def fetch_day(client: bigquery.Client, target_date: date) -> pd.DataFrame:
+def fetch_day(
+    client: bigquery.Client,
+    target_date: date,
+    operators: list[str] | None = None,
+) -> pd.DataFrame:
     """Return all SIRI ET rows for one operating date.
 
-    Fetches all vehicle modes (bus, tram, water, etc.) for the given operator.
-    vehicle_mode is stored as a column in the DB so stats can be filtered
-    per mode at query time — no need to re-run the backfill to add new modes.
+    Fetches all vehicle modes (bus, tram, water, ferry, etc.) for the given
+    operator(s). vehicle_mode is stored as a column in the DB so stats can be
+    filtered per mode at query time.
 
     serviceJourneyId and sequenceNr are fetched for journey_stop_weekly:
     they identify the specific scheduled run ("the 06:15 Linje 6") and the
     stop's position along the route respectively.
     """
+    if operators is None:
+        operators = OPERATORS
+    # Build SQL IN clause: ('SKY',) or ('SKY', 'RUT')
+    ops_sql = ", ".join(f"'{op}'" for op in operators)
     query = f"""
     SELECT
         operatingDate,
@@ -91,13 +106,14 @@ def fetch_day(client: bigquery.Client, target_date: date) -> pd.DataFrame:
         arrivalTime,
         dayOfTheWeek,
         serviceJourneyId,
-        sequenceNr
+        sequenceNr,
+        dataSource
     FROM `{BQ_TABLE}`
     WHERE
         operatingDate = '{target_date.isoformat()}'
-        AND dataSource = '{OPERATOR}'
+        AND dataSource IN ({ops_sql})
     """
-    log.info("Querying BigQuery for %s (all modes) …", target_date)
+    log.info("Querying BigQuery for %s (operators: %s, all modes) …", target_date, operators)
     df = client.query(query).to_dataframe(create_bqstorage_client=False)
     log.info("  Received %s rows", f"{len(df):,}")
     return df
@@ -189,13 +205,19 @@ def upsert_daily_summary(conn: sqlite3.Connection, date_str: str, df: pd.DataFra
         log.warning("No rows for %s – skipping daily_summary", date_str)
         return
     rows = []
-    for vehicle_mode, mode_df in df.groupby("vehicleMode"):
+    group_cols = ["dataSource", "vehicleMode"] if "dataSource" in df.columns else ["vehicleMode"]
+    for keys, mode_df in df.groupby(group_cols):
+        if isinstance(keys, tuple):
+            operator_val, vehicle_mode = keys
+        else:
+            # Fallback: single column groupby (no dataSource)
+            operator_val, vehicle_mode = OPERATORS[0], keys
         act = active_rows(mode_df)
         if act.empty:
             continue
         rows.append((
             date_str,
-            OPERATOR,
+            str(operator_val),
             str(vehicle_mode),
             round(act["delay_min"].mean(), 2),
             round((act["delay_min"] <= 2).mean() * 100, 1),
@@ -278,7 +300,15 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
     if act.empty:
         return
     rows = []
-    for (stop_ref, vehicle_mode, direction_ref), grp in act.groupby(["stopPointRef", "vehicleMode", "directionRef"]):
+    group_cols = ["stopPointRef", "vehicleMode", "directionRef", "dataSource"] \
+        if "dataSource" in act.columns \
+        else ["stopPointRef", "vehicleMode", "directionRef"]
+    for keys, grp in act.groupby(group_cols):
+        if len(group_cols) == 4:
+            stop_ref, vehicle_mode, direction_ref, operator_val = keys
+        else:
+            stop_ref, vehicle_mode, direction_ref = keys
+            operator_val = OPERATORS[0]
         # Use the most common non-null stop name in the group.
         # Store NULL (not the ref) when SIRI ET has no name — lets the DB-side
         # COALESCE with stop_coords provide the proper NSR name instead.
@@ -292,7 +322,7 @@ def upsert_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.DataFrame)
             str(stop_ref),
             str(direction_ref),
             str(vehicle_mode),
-            OPERATOR,
+            str(operator_val),
             stop_name,  # None stays as SQL NULL (str(None) would give the string "None")
             round(float(delays.mean()), 2),
             round(float(delays.max()), 2),
@@ -385,15 +415,21 @@ def upsert_stop_hourly_raw(conn: sqlite3.Connection, date_str: str, df: pd.DataF
     if act.empty:
         return
     rows = []
-    for (stop_ref, hour, direction_ref, vehicle_mode), grp in act.groupby(
-        ["stopPointRef", "hour", "directionRef", "vehicleMode"]
-    ):
+    group_cols_shr = ["stopPointRef", "hour", "directionRef", "vehicleMode"]
+    if "dataSource" in act.columns:
+        group_cols_shr = group_cols_shr + ["dataSource"]
+    for keys, grp in act.groupby(group_cols_shr):
+        if len(group_cols_shr) == 5:
+            stop_ref, hour, direction_ref, vehicle_mode, operator_val = keys
+        else:
+            stop_ref, hour, direction_ref, vehicle_mode = keys
+            operator_val = OPERATORS[0]
         rows.append((
             date_str,
             str(stop_ref),
             int(hour),
             str(direction_ref),
-            OPERATOR,
+            str(operator_val),
             str(vehicle_mode),
             day_type,
             round(grp["delay_min"].mean(), 2),
@@ -770,6 +806,13 @@ def upsert_data_quality_log(conn: sqlite3.Connection, date_str: str, df: pd.Data
     """
     rows = []
 
+    # Determine the set of operators present in this batch
+    ops_in_df = (
+        df["dataSource"].dropna().unique().tolist()
+        if "dataSource" in df.columns
+        else OPERATORS[:1]
+    )
+
     # --- 1. Outlier delays ---
     if "delay_min" in df.columns and "aimed" in df.columns:
         outliers = df[df["delay_min"].notna() & (df["delay_min"].abs() > OUTLIER_THRESHOLD_MIN)].copy()
@@ -787,6 +830,8 @@ def upsert_data_quality_log(conn: sqlite3.Connection, date_str: str, df: pd.Data
             line_name = line_ref.split(":")[-1] if line_ref else "ukjent linje"
             journey_id = str(row.get("serviceJourneyId", "") or "") or None
             stop_ref = str(row.get("stopPointRef", "") or "") or None
+            # Use per-row dataSource if available, fall back to first OPERATORS entry
+            row_operator = str(row.get("dataSource") or OPERATORS[0])
 
             aimed_time = None
             try:
@@ -804,34 +849,37 @@ def upsert_data_quality_log(conn: sqlite3.Connection, date_str: str, df: pd.Data
             ).strip()
 
             rows.append((
-                date_str, OPERATOR, "outlier_delay",
+                date_str, row_operator, "outlier_delay",
                 line_ref, journey_id, stop_ref, aimed_time,
                 round(delay, 1), 1, None, message,
             ))
 
-    # --- 2. Missing timing data ---
+    # --- 2. Missing timing data (per operator) ---
     if "aimed" in df.columns:
-        n_missing = int(df["aimed"].isna().sum())
-        n_total = len(df)
-        if n_missing > 0 and n_total > 0:
-            pct = round(n_missing / n_total * 100, 1)
-            message = (
-                f"{n_missing} av {n_total} registreringer ({pct}%) manglet "
-                f"tidsstempeldata for {date_str} og ble utelatt fra statistikken."
-            )
-            rows.append((
-                date_str, OPERATOR, "missing_time",
-                None, None, None, None,
-                None, n_missing, n_total, message,
-            ))
+        for op in ops_in_df:
+            op_df = df[df["dataSource"] == op] if "dataSource" in df.columns else df
+            n_missing = int(op_df["aimed"].isna().sum())
+            n_total = len(op_df)
+            if n_missing > 0 and n_total > 0:
+                pct = round(n_missing / n_total * 100, 1)
+                message = (
+                    f"{n_missing} av {n_total} registreringer ({pct}%) manglet "
+                    f"tidsstempeldata for {date_str} og ble utelatt fra statistikken."
+                )
+                rows.append((
+                    date_str, op, "missing_time",
+                    None, None, None, None,
+                    None, n_missing, n_total, message,
+                ))
 
     if not rows:
         return
 
-    # Clear old entries for this date+operator before re-inserting
+    # Clear old entries for this date + all operators in this batch before re-inserting
+    ops_placeholders = ",".join("?" * len(ops_in_df))
     conn.execute(
-        "DELETE FROM data_quality_log WHERE date = ? AND operator = ?",
-        (date_str, OPERATOR),
+        f"DELETE FROM data_quality_log WHERE date = ? AND operator IN ({ops_placeholders})",
+        (date_str, *ops_in_df),
     )
     conn.executemany(
         """
@@ -987,11 +1035,13 @@ def log_realtime_coverage(date_str: str, df: pd.DataFrame) -> None:
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def run(target_date: date) -> None:
-    log.info("=== Nightly ingest: %s ===", target_date)
+def run(target_date: date, operators: list[str] | None = None) -> None:
+    if operators is None:
+        operators = OPERATORS
+    log.info("=== Nightly ingest: %s (operators: %s) ===", target_date, operators)
 
     client = bigquery.Client()
-    df = fetch_day(client, target_date)
+    df = fetch_day(client, target_date, operators)
 
     if df.empty:
         log.warning("No rows returned for %s – nothing to commit", target_date)
@@ -1026,8 +1076,36 @@ def run(target_date: date) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        target = date.fromisoformat(sys.argv[1])
-    else:
-        target = date.today() - timedelta(days=1)
-    run(target)
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Nightly BigQuery → SQLite ingest for bussforsinkelser.no",
+    )
+    parser.add_argument(
+        "date",
+        nargs="?",
+        help="Operating date (YYYY-MM-DD). Defaults to yesterday.",
+    )
+    parser.add_argument(
+        "--operator",
+        "--operators",
+        dest="operator",
+        default=None,
+        help=(
+            "Comma-separated operator code(s) to ingest, e.g. SKY or SKY,RUT. "
+            "Overrides BQ_OPERATOR env var. Defaults to SKY."
+        ),
+    )
+    args = parser.parse_args()
+
+    target = (
+        date.fromisoformat(args.date)
+        if args.date
+        else date.today() - timedelta(days=1)
+    )
+    ops = (
+        [op.strip() for op in args.operator.split(",") if op.strip()]
+        if args.operator
+        else OPERATORS
+    )
+    run(target, ops)
