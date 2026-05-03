@@ -199,45 +199,13 @@ export const stopCoords = sqliteTable("stop_coords", {
   stopPlaceName: text("stop_place_name"),
 });
 
-// Per-journey per-stop weekly aggregates (bus only, 13-week rolling window).
+// Raw per-journey per-stop daily observations (90-day rolling window).
 //
-// Enables:
-//   • Journey profile: delay at each stop along a route (Thomas-analysen)
-//   • Worst stop on a line: GROUP BY stop_ref WHERE line_ref = X
-//   • Filter stop leaderboard by line
-//   • Lines per stop: GROUP BY line_ref WHERE stop_ref = X
-export const journeyStopWeekly = sqliteTable(
-  "journey_stop_weekly",
-  {
-    weekStart: text("week_start").notNull(),         // Monday ISO date
-    serviceJourneyId: text("service_journey_id").notNull(), // NeTEx ServiceJourney ID
-    lineRef: text("line_ref").notNull(),
-    directionRef: text("direction_ref").notNull(),
-    stopRef: text("stop_ref").notNull(),
-    stopSequence: integer("stop_sequence").notNull(), // order along route
-    aimedTime: text("aimed_time"),                   // 'HH:MM' local (dep preferred, arr fallback)
-    aimedArrivalTime: text("aimed_arrival_time"),    // 'HH:MM' planned arrival (NULL at first stop)
-    aimedDepartureTime: text("aimed_departure_time"),// 'HH:MM' planned departure (NULL at last stop)
-    // Functionally 1:1 with service_journey_id; column for cheap filter.
-    vehicleMode: text("vehicle_mode").default("bus"),
-    avgDelayMin: real("avg_delay_min"),               // combined delay
-    maxDelayMin: real("max_delay_min"),
-    minDelayMin: real("min_delay_min"),
-    avgDelayArrivalMin: real("avg_delay_arrival_min"),    // delay at arrival
-    avgDelayDepartureMin: real("avg_delay_departure_min"),// delay at departure
-    avgDwellTimeSec: real("avg_dwell_time_sec"),          // time stopped (seconds)
-    numSamples: integer("num_samples"),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.weekStart, table.serviceJourneyId, table.stopRef] }),
-  }),
-);
-
-// Raw per-journey per-stop daily observations (bus only, 90-day rolling window).
-//
-// Unlike journeyStopWeekly (weekly aggregates), each row is one calendar day —
-// the un-aggregated truth. Enables percentiles, scatter-plots, transfer probability,
-// and historical single-trip lookup. Exported weekly to Parquet on R2.
+// Each row is one calendar day — the un-aggregated truth. Enables percentiles,
+// scatter-plots, transfer probability, and historical single-trip lookup.
+// Exported weekly to Parquet for DuckDB-WASM client-side queries.
+// Also serves all journey-profile and stop-ranking queries (previously served
+// by the now-removed journeyStopWeekly table).
 export const journeyStopDaily = sqliteTable(
   "journey_stop_daily",
   {
@@ -274,7 +242,6 @@ export type LineHourlyProfile = typeof lineHourlyProfile.$inferSelect;
 export type LeaderboardLine = typeof leaderboardLines.$inferSelect;
 export type WorstDay = typeof worstDays.$inferSelect;
 export type StopCoord = typeof stopCoords.$inferSelect;
-export type JourneyStopWeekly = typeof journeyStopWeekly.$inferSelect;
 export type JourneyStopDaily = typeof journeyStopDaily.$inferSelect;
 
 // Data quality warnings logged during ingest.

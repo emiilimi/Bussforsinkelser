@@ -505,29 +505,29 @@ export async function getJourneysForLine(
   return sqlite
     .prepare(
       `SELECT
-         direction_ref  AS directionRef,
+         direction_ref   AS directionRef,
          first_stop_time AS firstStopTime,
          COUNT(*)        AS numVariants,
          MAX(first_stop_name) AS firstStopName,
          MAX(last_stop_name)  AS lastStopName
        FROM (
          SELECT
-           jsw.service_journey_id,
-           jsw.direction_ref,
-           MIN(jsw.aimed_time) AS first_stop_time,
-           (SELECT COALESCE(sc1.stop_name, jsw1.stop_ref)
-            FROM journey_stop_weekly jsw1
-            LEFT JOIN stop_coords sc1 ON sc1.stop_ref = jsw1.stop_ref
-            WHERE jsw1.service_journey_id = jsw.service_journey_id
-            ORDER BY jsw1.stop_sequence ASC LIMIT 1) AS first_stop_name,
-           (SELECT COALESCE(sc2.stop_name, jsw2.stop_ref)
-            FROM journey_stop_weekly jsw2
-            LEFT JOIN stop_coords sc2 ON sc2.stop_ref = jsw2.stop_ref
-            WHERE jsw2.service_journey_id = jsw.service_journey_id
-            ORDER BY jsw2.stop_sequence DESC LIMIT 1) AS last_stop_name
-         FROM journey_stop_weekly jsw
-         WHERE jsw.line_ref = ? AND jsw.week_start >= ?
-         GROUP BY jsw.service_journey_id, jsw.direction_ref
+           jsd.service_journey_id,
+           jsd.direction_ref,
+           MIN(COALESCE(jsd.aimed_departure, jsd.aimed_arrival)) AS first_stop_time,
+           (SELECT COALESCE(sc1.stop_name, jsd1.stop_ref)
+            FROM journey_stop_daily jsd1
+            LEFT JOIN stop_coords sc1 ON sc1.stop_ref = jsd1.stop_ref
+            WHERE jsd1.service_journey_id = jsd.service_journey_id
+            ORDER BY jsd1.stop_sequence ASC LIMIT 1) AS first_stop_name,
+           (SELECT COALESCE(sc2.stop_name, jsd2.stop_ref)
+            FROM journey_stop_daily jsd2
+            LEFT JOIN stop_coords sc2 ON sc2.stop_ref = jsd2.stop_ref
+            WHERE jsd2.service_journey_id = jsd.service_journey_id
+            ORDER BY jsd2.stop_sequence DESC LIMIT 1) AS last_stop_name
+         FROM journey_stop_daily jsd
+         WHERE jsd.line_ref = ? AND jsd.date >= ?
+         GROUP BY jsd.service_journey_id, jsd.direction_ref
        )
        GROUP BY direction_ref, first_stop_time
        ORDER BY direction_ref, first_stop_time`,
@@ -548,143 +548,89 @@ export async function getJourneyProfile(
   fromWeek?: string,
   dayTypes?: DayType[] | null,
 ): Promise<Array<{ stopRef: string; stopSequence: number; aimedTime: string | null; avgDelayMin: number; maxDelayMin: number; minDelayMin: number; numSamples: number; numJourneys: number; stopName: string; avgDelayArrivalMin: number | null; avgDelayDepartureMin: number | null; avgDwellTimeSec: number | null; stddevDelayMin: number | null }>> {
-  // Find ALL service_journey_ids for this departure time (one per calendar date in SIRI ET).
-  // They all represent the same scheduled run on different dates — aggregate across all of them
-  // to give accurate multi-week statistics rather than a single day's snapshot.
-  // fromWeek (optional) limits the data window — useful for the time-window picker.
-  const sjQuery = `SELECT service_journey_id
-       FROM journey_stop_weekly
-       WHERE line_ref = ? AND direction_ref = ?${fromWeek ? " AND week_start >= ?" : ""}
+  // Find ALL service_journey_ids that share this departure time.
+  // One SJID per calendar date in SIRI ET — aggregate across all to get long-term stats.
+  const dateClause = fromWeek ? "AND jsd.date >= ?" : "AND jsd.date >= date('now', '-91 days')";
+  const sjBaseParams: any[] = fromWeek
+    ? [lineRef, directionRef, fromWeek]
+    : [lineRef, directionRef];
+
+  const matchingSJs = sqlite
+    .prepare(
+      `SELECT DISTINCT service_journey_id
+       FROM journey_stop_daily jsd
+       WHERE jsd.line_ref = ? AND jsd.direction_ref = ? ${dateClause}
        GROUP BY service_journey_id
-       HAVING MIN(aimed_time) = ?`;
-  const sjParams = fromWeek
-    ? [lineRef, directionRef, fromWeek, firstStopTime]
-    : [lineRef, directionRef, firstStopTime];
-  const matchingSJs = sqlite.prepare(sjQuery).all(...sjParams) as Array<{ service_journey_id: string }>;
+       HAVING MIN(COALESCE(jsd.aimed_departure, jsd.aimed_arrival)) = ?`,
+    )
+    .all(...sjBaseParams, firstStopTime) as Array<{ service_journey_id: string }>;
 
   if (matchingSJs.length === 0) return [];
-
-  // When a day_type filter is supplied, fall back to journey_stop_daily (which carries
-  // a day_type column). journey_stop_weekly mixes all day types and cannot answer this
-  // question. Daily window is 90 days vs. weekly's 13 weeks, so coverage is comparable.
-  if (dayTypes && dayTypes.length) {
-    // Use the first matching SJID as representative (bestJourney equivalent)
-    const bestSjId = matchingSJs[0].service_journey_id;
-    const dtList = dayTypes.map((d) => `'${d}'`).join(",");
-    return sqlite
-      .prepare(
-        `SELECT
-           jsd.stop_ref        AS stopRef,
-           jsd.stop_sequence   AS stopSequence,
-           COALESCE(jsd.aimed_arrival, jsd.aimed_departure) AS aimedTime,
-           ROUND(AVG(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS avgDelayMin,
-           ROUND(MAX(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS maxDelayMin,
-           ROUND(MIN(COALESCE(jsd.delay_arrival_min, jsd.delay_departure_min)), 2) AS minDelayMin,
-           COUNT(*)             AS numSamples,
-           COUNT(*)             AS numJourneys,
-           COALESCE(MAX(sc.stop_name), jsd.stop_ref) AS stopName,
-           NULL AS avgDelayArrivalMin,
-           NULL AS avgDelayDepartureMin,
-           NULL AS avgDwellTimeSec,
-           NULL AS stddevDelayMin
-         FROM journey_stop_daily jsd
-         LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
-         WHERE jsd.service_journey_id = ?
-           AND jsd.day_type IN (${dtList})
-         GROUP BY jsd.stop_ref
-         ORDER BY MIN(jsd.stop_sequence) ASC`,
-      )
-      .all(bestSjId) as any;
-  }
 
   const placeholders = matchingSJs.map(() => "?").join(", ");
   const sjIds = matchingSJs.map((r) => r.service_journey_id);
 
-  // Aggregate stop profile across all matching service journey IDs.
-  // Stop order: sort by aimed_time then stop_sequence (consistent across dates for same run).
-  const profileRows = sqlite
+  // Optional day_type filter
+  const dtFilter =
+    dayTypes && dayTypes.length
+      ? `AND jsd.day_type IN (${dayTypes.map(() => "?").join(",")})`
+      : "";
+  const dtParams: string[] = dayTypes && dayTypes.length ? (dayTypes as string[]) : [];
+
+  // Single unified query over journey_stop_daily — works with or without dayType filter.
+  // d = COALESCE(delay_departure_min, delay_arrival_min) — combined delay, dep preferred.
+  return sqlite
     .prepare(
       `SELECT
-         jsw.stop_ref                                           AS stopRef,
-         MIN(jsw.stop_sequence)                                 AS stopSequence,
-         MIN(jsw.aimed_time)                                    AS aimedTime,
-         ROUND(
-           SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
-           / NULLIF(SUM(jsw.num_samples), 0),
-           2
-         )                                                      AS avgDelayMin,
-         ROUND(MAX(jsw.max_delay_min), 2)                       AS maxDelayMin,
-         ROUND(MIN(jsw.min_delay_min), 2)                       AS minDelayMin,
-         SUM(jsw.num_samples)                                   AS numSamples,
-         COALESCE(MAX(sc.stop_name), MAX(jsw.stop_ref))         AS stopName,
-         ROUND(
-           SUM(jsw.avg_delay_arrival_min * jsw.num_samples) * 1.0
-           / NULLIF(SUM(jsw.num_samples), 0),
-           2
-         )                                                      AS avgDelayArrivalMin,
-         ROUND(
-           SUM(jsw.avg_delay_departure_min * jsw.num_samples) * 1.0
-           / NULLIF(SUM(jsw.num_samples), 0),
-           2
-         )                                                      AS avgDelayDepartureMin,
-         ROUND(AVG(jsw.avg_dwell_time_sec), 1)                  AS avgDwellTimeSec,
-         ROUND(
-           SQRT(MAX(0,
-             AVG(jsw.avg_delay_min * jsw.avg_delay_min)
-             - AVG(jsw.avg_delay_min) * AVG(jsw.avg_delay_min)
-           )),
-           2
-         )                                                      AS stddevDelayMin
-       FROM journey_stop_weekly jsw
-       LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
-       WHERE jsw.service_journey_id IN (${placeholders})
-       GROUP BY jsw.stop_ref
-       ORDER BY MIN(jsw.aimed_time) ASC, MIN(jsw.stop_sequence) ASC`,
+         jsd.stop_ref                                                              AS stopRef,
+         MIN(jsd.stop_sequence)                                                    AS stopSequence,
+         MIN(COALESCE(jsd.aimed_departure, jsd.aimed_arrival))                    AS aimedTime,
+         ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2)  AS avgDelayMin,
+         ROUND(MAX(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2)  AS maxDelayMin,
+         ROUND(MIN(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2)  AS minDelayMin,
+         COUNT(*)                                                                  AS numSamples,
+         COUNT(DISTINCT jsd.date)                                                  AS numJourneys,
+         COALESCE(MAX(sc.stop_name), MAX(jsd.stop_ref))                           AS stopName,
+         ROUND(AVG(jsd.delay_arrival_min), 2)                                     AS avgDelayArrivalMin,
+         ROUND(AVG(jsd.delay_departure_min), 2)                                   AS avgDelayDepartureMin,
+         ROUND(AVG(jsd.dwell_time_sec), 1)                                        AS avgDwellTimeSec,
+         ROUND(SQRT(MAX(0,
+           AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)
+               * COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min))
+           - AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min))
+           * AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min))
+         )), 2)                                                                    AS stddevDelayMin
+       FROM journey_stop_daily jsd
+       LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
+       WHERE jsd.service_journey_id IN (${placeholders})
+         ${dtFilter}
+       GROUP BY jsd.stop_ref
+       ORDER BY MIN(COALESCE(jsd.aimed_departure, jsd.aimed_arrival)) ASC,
+                MIN(jsd.stop_sequence) ASC`,
     )
-    .all(...sjIds) as any[];
-
-  // Per-stop unique date count from journey_stop_daily (90d rolling window) across all SJIDs.
-  const journeyCounts = sqlite
-    .prepare(
-      `SELECT stop_ref AS stopRef, COUNT(DISTINCT date) AS numJourneys
-       FROM journey_stop_daily
-       WHERE service_journey_id IN (${placeholders})
-       GROUP BY stop_ref`,
-    )
-    .all(...sjIds) as Array<{ stopRef: string; numJourneys: number }>;
-  const countMap = new Map(journeyCounts.map((r) => [r.stopRef, r.numJourneys]));
-
-  return profileRows.map((r) => ({
-    ...r,
-    numJourneys: countMap.get(r.stopRef) ?? r.numSamples,
-  }));
+    .all(...sjIds, ...dtParams) as any;
 }
 
 /** Worst stops on a line — aggregated across all service journeys on the line.
  *  Only includes stops with >= 20 samples (enough data to be meaningful).
  */
 export async function getWorstStopsForLine(lineRef: string, fromWeek: string, limit = 15) {
-  const avgExpr = sql<number>`ROUND(SUM(${schema.journeyStopWeekly.avgDelayMin} * ${schema.journeyStopWeekly.numSamples}) * 1.0 / SUM(${schema.journeyStopWeekly.numSamples}), 2)`;
-  return db
-    .select({
-      stopRef: schema.journeyStopWeekly.stopRef,
-      stopName: sql<string>`COALESCE(MAX(${schema.stopCoords.stopName}), MAX(${schema.journeyStopWeekly.stopRef}))`,
-      avgDelayMin: avgExpr,
-      numSamples: sql<number>`SUM(${schema.journeyStopWeekly.numSamples})`,
-    })
-    .from(schema.journeyStopWeekly)
-    .leftJoin(schema.stopCoords, eq(schema.stopCoords.stopRef, schema.journeyStopWeekly.stopRef))
-    .where(
-      and(
-        eq(schema.journeyStopWeekly.lineRef, lineRef),
-        gte(schema.journeyStopWeekly.weekStart, fromWeek),
-      ),
+  return sqlite
+    .prepare(
+      `SELECT
+         jsd.stop_ref AS stopRef,
+         COALESCE(MAX(sc.stop_name), MAX(jsd.stop_ref)) AS stopName,
+         ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+         COUNT(*) AS numSamples
+       FROM journey_stop_daily jsd
+       LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
+       WHERE jsd.line_ref = ? AND jsd.date >= ?
+       GROUP BY jsd.stop_ref
+       HAVING COUNT(*) >= 20
+       ORDER BY avgDelayMin DESC
+       LIMIT ?`,
     )
-    .groupBy(schema.journeyStopWeekly.stopRef)
-    .having(sql`SUM(${schema.journeyStopWeekly.numSamples}) >= 20`)
-    .orderBy(desc(avgExpr))
-    .limit(limit)
-    .all();
+    .all(lineRef, fromWeek, limit);
 }
 
 /** Route variants for a line — groups service journeys by their stop set.
@@ -714,29 +660,29 @@ export async function getRouteVariants(
       MIN(first_time)      AS exampleTime
     FROM (
       SELECT
-        jsw.service_journey_id,
-        COUNT(DISTINCT jsw.stop_ref) AS num_stops,
-        MIN(jsw.aimed_time) AS first_time,
-        SUM(jsw.num_samples) AS total_samples,
-        (SELECT j2.stop_ref FROM journey_stop_weekly j2
-         WHERE j2.service_journey_id = jsw.service_journey_id
+        jsd.service_journey_id,
+        COUNT(DISTINCT jsd.stop_ref) AS num_stops,
+        MIN(COALESCE(jsd.aimed_departure, jsd.aimed_arrival)) AS first_time,
+        COUNT(*) AS total_samples,
+        (SELECT j2.stop_ref FROM journey_stop_daily j2
+         WHERE j2.service_journey_id = jsd.service_journey_id
          ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop_ref,
-        (SELECT j2.stop_ref FROM journey_stop_weekly j2
-         WHERE j2.service_journey_id = jsw.service_journey_id
+        (SELECT j2.stop_ref FROM journey_stop_daily j2
+         WHERE j2.service_journey_id = jsd.service_journey_id
          ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop_ref,
         (SELECT COALESCE(sc.stop_name, j2.stop_ref)
-         FROM journey_stop_weekly j2
+         FROM journey_stop_daily j2
          LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-         WHERE j2.service_journey_id = jsw.service_journey_id
+         WHERE j2.service_journey_id = jsd.service_journey_id
          ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop_name,
         (SELECT COALESCE(sc.stop_name, j2.stop_ref)
-         FROM journey_stop_weekly j2
+         FROM journey_stop_daily j2
          LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-         WHERE j2.service_journey_id = jsw.service_journey_id
+         WHERE j2.service_journey_id = jsd.service_journey_id
          ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop_name
-      FROM journey_stop_weekly jsw
-      WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
-      GROUP BY jsw.service_journey_id
+      FROM journey_stop_daily jsd
+      WHERE jsd.line_ref = ? AND jsd.direction_ref = ? AND jsd.date >= ?
+      GROUP BY jsd.service_journey_id
     )
     GROUP BY first_stop_ref, last_stop_ref, num_stops
     HAVING SUM(total_samples) >= 20
@@ -781,32 +727,32 @@ export async function getLineStopProfile(
     if (match) {
       const [, firstStop, lastStop, numStops] = match;
       dominantSql = `
-        SELECT jsw.service_journey_id
-        FROM journey_stop_weekly jsw
-        WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
-        GROUP BY jsw.service_journey_id
-        HAVING COUNT(DISTINCT jsw.stop_ref) = ?
-          AND (SELECT j2.stop_ref FROM journey_stop_weekly j2
-               WHERE j2.service_journey_id = jsw.service_journey_id
+        SELECT jsd.service_journey_id
+        FROM journey_stop_daily jsd
+        WHERE jsd.line_ref = ? AND jsd.direction_ref = ? AND jsd.date >= ?
+        GROUP BY jsd.service_journey_id
+        HAVING COUNT(DISTINCT jsd.stop_ref) = ?
+          AND (SELECT j2.stop_ref FROM journey_stop_daily j2
+               WHERE j2.service_journey_id = jsd.service_journey_id
                ORDER BY j2.stop_sequence ASC LIMIT 1) = ?
-          AND (SELECT j2.stop_ref FROM journey_stop_weekly j2
-               WHERE j2.service_journey_id = jsw.service_journey_id
+          AND (SELECT j2.stop_ref FROM journey_stop_daily j2
+               WHERE j2.service_journey_id = jsd.service_journey_id
                ORDER BY j2.stop_sequence DESC LIMIT 1) = ?
-        ORDER BY SUM(jsw.num_samples) DESC
+        ORDER BY COUNT(*) DESC
         LIMIT 1`;
       dominantParams = [lineRef, directionRef, fromWeek, parseInt(numStops), firstStop, lastStop];
     } else {
       dominantSql = `
-        SELECT service_journey_id FROM journey_stop_weekly
-        WHERE line_ref = ? AND direction_ref = ? AND week_start >= ?
-        GROUP BY service_journey_id ORDER BY SUM(num_samples) DESC LIMIT 1`;
+        SELECT service_journey_id FROM journey_stop_daily
+        WHERE line_ref = ? AND direction_ref = ? AND date >= ?
+        GROUP BY service_journey_id ORDER BY COUNT(*) DESC LIMIT 1`;
       dominantParams = [lineRef, directionRef, fromWeek];
     }
   } else {
     dominantSql = `
-      SELECT service_journey_id FROM journey_stop_weekly
-      WHERE line_ref = ? AND direction_ref = ? AND week_start >= ?
-      GROUP BY service_journey_id ORDER BY SUM(num_samples) DESC LIMIT 1`;
+      SELECT service_journey_id FROM journey_stop_daily
+      WHERE line_ref = ? AND direction_ref = ? AND date >= ?
+      GROUP BY service_journey_id ORDER BY COUNT(*) DESC LIMIT 1`;
     dominantParams = [lineRef, directionRef, fromWeek];
   }
 
@@ -815,11 +761,10 @@ export async function getLineStopProfile(
 
   // Step 2: Get the canonical stop set from the dominant journey
   const canonicalStops = sqlite.prepare(`
-    SELECT stop_ref FROM journey_stop_weekly
+    SELECT stop_ref FROM journey_stop_daily
     WHERE service_journey_id = ?
     GROUP BY stop_ref
   `).all(dominant.service_journey_id) as Array<{ stop_ref: string }>;
-  const stopSet = new Set(canonicalStops.map(s => s.stop_ref));
 
   // Step 3: Query only stops that appear on the dominant journey's route,
   // but aggregate data from ALL matching journeys for those stops.
@@ -827,36 +772,26 @@ export async function getLineStopProfile(
 
   return sqlite.prepare(`
     SELECT
-      jsw.stop_ref           AS stopRef,
-      (SELECT co.stop_sequence FROM journey_stop_weekly co
-       WHERE co.service_journey_id = ? AND co.stop_ref = jsw.stop_ref
+      jsd.stop_ref           AS stopRef,
+      (SELECT co.stop_sequence FROM journey_stop_daily co
+       WHERE co.service_journey_id = ? AND co.stop_ref = jsd.stop_ref
        LIMIT 1)              AS stopSequence,
-      ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
-            / NULLIF(SUM(jsw.num_samples), 0), 2)   AS avgDelayMin,
-      ROUND(MAX(jsw.max_delay_min), 2)               AS maxDelayMin,
-      ROUND(MIN(jsw.min_delay_min), 2)               AS minDelayMin,
-      ROUND(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-            THEN jsw.avg_delay_arrival_min * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-            THEN jsw.num_samples ELSE 0 END), 0), 2)  AS avgDelayArrivalMin,
-      ROUND(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-            THEN jsw.avg_delay_departure_min * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-            THEN jsw.num_samples ELSE 0 END), 0), 2)  AS avgDelayDepartureMin,
-      ROUND(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-            THEN jsw.avg_dwell_time_sec * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-            THEN jsw.num_samples ELSE 0 END), 0), 1)  AS avgDwellTimeSec,
-      SUM(jsw.num_samples)                           AS numSamples,
-      COALESCE(MAX(sc.stop_name), jsw.stop_ref)      AS stopName
-    FROM journey_stop_weekly jsw
-    LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
-    WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
-      AND jsw.stop_ref IN (${placeholders})
-    GROUP BY jsw.stop_ref
-    HAVING SUM(jsw.num_samples) >= 3
-    ORDER BY (SELECT co.stop_sequence FROM journey_stop_weekly co
-              WHERE co.service_journey_id = ? AND co.stop_ref = jsw.stop_ref
+      ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+      ROUND(MAX(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS maxDelayMin,
+      ROUND(MIN(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS minDelayMin,
+      ROUND(AVG(jsd.delay_arrival_min), 2)  AS avgDelayArrivalMin,
+      ROUND(AVG(jsd.delay_departure_min), 2) AS avgDelayDepartureMin,
+      ROUND(AVG(jsd.dwell_time_sec), 1)     AS avgDwellTimeSec,
+      COUNT(*)                              AS numSamples,
+      COALESCE(MAX(sc.stop_name), jsd.stop_ref) AS stopName
+    FROM journey_stop_daily jsd
+    LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
+    WHERE jsd.line_ref = ? AND jsd.direction_ref = ? AND jsd.date >= ?
+      AND jsd.stop_ref IN (${placeholders})
+    GROUP BY jsd.stop_ref
+    HAVING COUNT(*) >= 3
+    ORDER BY (SELECT co.stop_sequence FROM journey_stop_daily co
+              WHERE co.service_journey_id = ? AND co.stop_ref = jsd.stop_ref
               LIMIT 1)
   `).all(
     dominant.service_journey_id,
@@ -867,9 +802,9 @@ export async function getLineStopProfile(
 }
 
 /** Worst (and best) individual scheduled departures for a line.
- *  Groups journey_stop_weekly by service_journey_id, computes weighted average
+ *  Groups journey_stop_daily by service_journey_id, computes average
  *  delay across all stops, and returns sorted by avg delay descending/ascending.
- *  departure_time = aimed_time at the stop with the lowest stop_sequence (origin).
+ *  departure_time = aimed_departure/arrival at the stop with the lowest stop_sequence (origin).
  */
 export async function getWorstJourneysForLine(
   lineRef: string,
@@ -887,40 +822,37 @@ export async function getWorstJourneysForLine(
 }>> {
   return sqlite.prepare(`
     SELECT
-      jsw.service_journey_id  AS serviceJourneyId,
+      jsd.service_journey_id AS serviceJourneyId,
       (
-        SELECT j2.aimed_time
-        FROM journey_stop_weekly j2
-        WHERE j2.service_journey_id = jsw.service_journey_id
-          AND j2.aimed_time IS NOT NULL
+        SELECT COALESCE(j2.aimed_departure, j2.aimed_arrival)
+        FROM journey_stop_daily j2
+        WHERE j2.service_journey_id = jsd.service_journey_id
+          AND COALESCE(j2.aimed_departure, j2.aimed_arrival) IS NOT NULL
         ORDER BY j2.stop_sequence ASC
         LIMIT 1
-      )                        AS departureTime,
+      )                       AS departureTime,
       (
         SELECT COALESCE(sc.stop_name, j2.stop_ref)
-        FROM journey_stop_weekly j2
+        FROM journey_stop_daily j2
         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-        WHERE j2.service_journey_id = jsw.service_journey_id
+        WHERE j2.service_journey_id = jsd.service_journey_id
         ORDER BY j2.stop_sequence ASC
         LIMIT 1
-      )                        AS firstStopName,
+      )                       AS firstStopName,
       (
         SELECT COALESCE(sc.stop_name, j2.stop_ref)
-        FROM journey_stop_weekly j2
+        FROM journey_stop_daily j2
         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-        WHERE j2.service_journey_id = jsw.service_journey_id
+        WHERE j2.service_journey_id = jsd.service_journey_id
         ORDER BY j2.stop_sequence DESC
         LIMIT 1
-      )                        AS lastStopName,
-      ROUND(
-        SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
-        / NULLIF(SUM(jsw.num_samples), 0), 2
-      )                        AS avgDelayMin,
-      MAX(jsw.num_samples)     AS observedDepartures,
-      COUNT(DISTINCT jsw.stop_ref) AS numStops
-    FROM journey_stop_weekly jsw
-    WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
-    GROUP BY jsw.service_journey_id
+      )                       AS lastStopName,
+      ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+      COUNT(DISTINCT jsd.date)      AS observedDepartures,
+      COUNT(DISTINCT jsd.stop_ref)  AS numStops
+    FROM journey_stop_daily jsd
+    WHERE jsd.line_ref = ? AND jsd.direction_ref = ? AND jsd.date >= ?
+    GROUP BY jsd.service_journey_id
     HAVING numStops >= 3
     ORDER BY avgDelayMin DESC
     LIMIT ?
@@ -944,47 +876,44 @@ export async function getBestJourneysForLine(
 }>> {
   return sqlite.prepare(`
     SELECT
-      jsw.service_journey_id  AS serviceJourneyId,
+      jsd.service_journey_id AS serviceJourneyId,
       (
-        SELECT j2.aimed_time
-        FROM journey_stop_weekly j2
-        WHERE j2.service_journey_id = jsw.service_journey_id
-          AND j2.aimed_time IS NOT NULL
+        SELECT COALESCE(j2.aimed_departure, j2.aimed_arrival)
+        FROM journey_stop_daily j2
+        WHERE j2.service_journey_id = jsd.service_journey_id
+          AND COALESCE(j2.aimed_departure, j2.aimed_arrival) IS NOT NULL
         ORDER BY j2.stop_sequence ASC
         LIMIT 1
-      )                        AS departureTime,
+      )                       AS departureTime,
       (
         SELECT COALESCE(sc.stop_name, j2.stop_ref)
-        FROM journey_stop_weekly j2
+        FROM journey_stop_daily j2
         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-        WHERE j2.service_journey_id = jsw.service_journey_id
+        WHERE j2.service_journey_id = jsd.service_journey_id
         ORDER BY j2.stop_sequence ASC
         LIMIT 1
-      )                        AS firstStopName,
+      )                       AS firstStopName,
       (
         SELECT COALESCE(sc.stop_name, j2.stop_ref)
-        FROM journey_stop_weekly j2
+        FROM journey_stop_daily j2
         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
-        WHERE j2.service_journey_id = jsw.service_journey_id
+        WHERE j2.service_journey_id = jsd.service_journey_id
         ORDER BY j2.stop_sequence DESC
         LIMIT 1
-      )                        AS lastStopName,
-      ROUND(
-        SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
-        / NULLIF(SUM(jsw.num_samples), 0), 2
-      )                        AS avgDelayMin,
-      MAX(jsw.num_samples)     AS observedDepartures,
-      COUNT(DISTINCT jsw.stop_ref) AS numStops
-    FROM journey_stop_weekly jsw
-    WHERE jsw.line_ref = ? AND jsw.direction_ref = ? AND jsw.week_start >= ?
-    GROUP BY jsw.service_journey_id
+      )                       AS lastStopName,
+      ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+      COUNT(DISTINCT jsd.date)      AS observedDepartures,
+      COUNT(DISTINCT jsd.stop_ref)  AS numStops
+    FROM journey_stop_daily jsd
+    WHERE jsd.line_ref = ? AND jsd.direction_ref = ? AND jsd.date >= ?
+    GROUP BY jsd.service_journey_id
     HAVING numStops >= 3
     ORDER BY avgDelayMin ASC
     LIMIT ?
   `).all(lineRef, directionRef, fromWeek, limit) as any;
 }
 
-/** Lines serving a stop with their avg delay (from journey_stop_weekly).
+/** Lines serving a stop with their avg delay (from journey_stop_daily).
  *  Used to filter stop analysis by line and show which lines drive delay.
  */
 export async function getLineHourlyAtStop(
@@ -999,15 +928,13 @@ export async function getLineHourlyAtStop(
     .prepare(
       `SELECT
          line_ref AS lineRef,
-         CAST(SUBSTR(aimed_time, 1, 2) AS INTEGER) AS hour,
-         ROUND(
-           SUM(avg_delay_min * num_samples) * 1.0 / NULLIF(SUM(num_samples), 0),
-           2
-         ) AS avgDelayMin,
-         SUM(num_samples) AS numSamples
-       FROM journey_stop_weekly
-       WHERE ${stopFilter} AND week_start >= ? AND aimed_time IS NOT NULL
-       GROUP BY line_ref, CAST(SUBSTR(aimed_time, 1, 2) AS INTEGER)
+         CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
+         ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
+         COUNT(*) AS numSamples
+       FROM journey_stop_daily
+       WHERE ${stopFilter} AND date >= ?
+         AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
+       GROUP BY line_ref, CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)
        ORDER BY line_ref, hour`,
     )
     .all(stopRef, fromWeek) as any;
@@ -1016,16 +943,16 @@ export async function getLineHourlyAtStop(
 export async function getLinesAtStop(stopRef: string, fromWeek: string) {
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const stopFilter = isStopPlace
-    ? `jsw.stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
-    : `jsw.stop_ref = ?`;
+    ? `jsd.stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
+    : `jsd.stop_ref = ?`;
   return sqlite.prepare(`
     SELECT
-      jsw.line_ref AS lineRef,
-      ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0 / SUM(jsw.num_samples), 2) AS avgDelayMin,
-      SUM(jsw.num_samples) AS numSamples
-    FROM journey_stop_weekly jsw
-    WHERE ${stopFilter} AND jsw.week_start >= ?
-    GROUP BY jsw.line_ref
+      jsd.line_ref AS lineRef,
+      ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+      COUNT(*) AS numSamples
+    FROM journey_stop_daily jsd
+    WHERE ${stopFilter} AND jsd.date >= ?
+    GROUP BY jsd.line_ref
     ORDER BY avgDelayMin DESC
   `).all(stopRef, fromWeek) as any;
 }
@@ -1287,28 +1214,18 @@ export async function getCorridorComparison(
 
     const rows = sqlite.prepare(`
       SELECT
-        jsw.stop_ref AS stopRef,
-        COALESCE(MAX(sc.stop_name), jsw.stop_ref) AS stopName,
-        ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0
-              / NULLIF(SUM(jsw.num_samples), 0), 2) AS avgDelayMin,
-        ROUND(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-              THEN jsw.avg_delay_arrival_min * jsw.num_samples ELSE 0 END) * 1.0
-              / NULLIF(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-              THEN jsw.num_samples ELSE 0 END), 0), 2) AS avgDelayArrivalMin,
-        ROUND(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-              THEN jsw.avg_delay_departure_min * jsw.num_samples ELSE 0 END) * 1.0
-              / NULLIF(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-              THEN jsw.num_samples ELSE 0 END), 0), 2) AS avgDelayDepartureMin,
-        ROUND(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-              THEN jsw.avg_dwell_time_sec * jsw.num_samples ELSE 0 END) * 1.0
-              / NULLIF(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-              THEN jsw.num_samples ELSE 0 END), 0), 1) AS avgDwellTimeSec,
-        SUM(jsw.num_samples) AS numSamples
-      FROM journey_stop_weekly jsw
-      LEFT JOIN stop_coords sc ON sc.stop_ref = jsw.stop_ref
-      WHERE jsw.line_ref = ? AND jsw.week_start >= ?
-        AND jsw.stop_ref IN (${placeholders})
-      GROUP BY jsw.stop_ref
+        jsd.stop_ref AS stopRef,
+        COALESCE(MAX(sc.stop_name), MAX(jsd.stop_ref)) AS stopName,
+        ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+        ROUND(AVG(jsd.delay_arrival_min), 2) AS avgDelayArrivalMin,
+        ROUND(AVG(jsd.delay_departure_min), 2) AS avgDelayDepartureMin,
+        ROUND(AVG(jsd.dwell_time_sec), 1) AS avgDwellTimeSec,
+        COUNT(*) AS numSamples
+      FROM journey_stop_daily jsd
+      LEFT JOIN stop_coords sc ON sc.stop_ref = jsd.stop_ref
+      WHERE jsd.line_ref = ? AND jsd.date >= ?
+        AND jsd.stop_ref IN (${placeholders})
+      GROUP BY jsd.stop_ref
     `).all(entry.lineRef, fromWeek, ...entry.stopRefs) as any[];
 
     // Build a lookup for this line's stop data
@@ -1366,7 +1283,7 @@ export async function searchStopsForCorridor(
 // ---------------------------------------------------------------------------
 
 /**
- * Look up historical delay stats from journey_stop_weekly for a list of
+ * Look up historical delay stats from journey_stop_daily for a list of
  * (stopRef, lineRef) pairs. Returns avg delay, sample count, and stddev
  * for each pair — used to annotate Entur trip legs with "how late is
  * this line typically at this stop?"
@@ -1385,33 +1302,25 @@ export async function getTripStopStats(
   if (stops.length === 0) return [];
 
   // Build a single query with OR conditions for each (stopRef, lineRef) pair.
-  // journey_stop_weekly has a 13-week rolling window — aggregate across all weeks.
+  // journey_stop_daily has a 90-day rolling window — aggregate across all rows.
   const conditions = stops
-    .map(() => `(jsw.stop_ref = ? AND jsw.line_ref = ?)`)
+    .map(() => `(jsd.stop_ref = ? AND jsd.line_ref = ?)`)
     .join(" OR ");
   const params = stops.flatMap((s) => [s.stopRef, s.lineRef]);
 
   const rows = sqlite.prepare(`
     SELECT
-      jsw.stop_ref AS stopRef,
-      jsw.line_ref AS lineRef,
-      ROUND(SUM(jsw.avg_delay_min * jsw.num_samples) * 1.0 / SUM(jsw.num_samples), 2) AS avgDelayMin,
-      ROUND(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-                     THEN jsw.avg_delay_arrival_min * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_delay_arrival_min IS NOT NULL
-                              THEN jsw.num_samples ELSE 0 END), 0), 2) AS avgDelayArrivalMin,
-      ROUND(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-                     THEN jsw.avg_delay_departure_min * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_delay_departure_min IS NOT NULL
-                              THEN jsw.num_samples ELSE 0 END), 0), 2) AS avgDelayDepartureMin,
-      ROUND(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-                     THEN jsw.avg_dwell_time_sec * jsw.num_samples ELSE 0 END) * 1.0
-            / NULLIF(SUM(CASE WHEN jsw.avg_dwell_time_sec IS NOT NULL
-                              THEN jsw.num_samples ELSE 0 END), 0), 1) AS avgDwellTimeSec,
-      SUM(jsw.num_samples) AS numSamples
-    FROM journey_stop_weekly jsw
-    WHERE (${conditions})
-    GROUP BY jsw.stop_ref, jsw.line_ref
+      jsd.stop_ref AS stopRef,
+      jsd.line_ref AS lineRef,
+      ROUND(AVG(COALESCE(jsd.delay_departure_min, jsd.delay_arrival_min)), 2) AS avgDelayMin,
+      ROUND(AVG(jsd.delay_arrival_min), 2) AS avgDelayArrivalMin,
+      ROUND(AVG(jsd.delay_departure_min), 2) AS avgDelayDepartureMin,
+      ROUND(AVG(jsd.dwell_time_sec), 1) AS avgDwellTimeSec,
+      COUNT(*) AS numSamples
+    FROM journey_stop_daily jsd
+    WHERE jsd.date >= date('now', '-91 days')
+      AND (${conditions})
+    GROUP BY jsd.stop_ref, jsd.line_ref
   `).all(...params) as any;
 
   return rows;

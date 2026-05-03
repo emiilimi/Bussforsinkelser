@@ -198,45 +198,12 @@ CREATE TABLE IF NOT EXISTS stop_coords (
     stop_place_name TEXT    -- display name of the parent stop place
 );
 
--- Per-journey per-stop weekly aggregates (multimodal, 13-week rolling window).
---
--- Core table for:
---   • Journey profile ("Thomas-analysen"): delay at each stop along a route
---     → see exactly where delay builds up
---   • Worst stop on a line: GROUP BY stop_ref WHERE line_ref = 'SKY:Line:6'
---   • Filter stop leaderboard by line
---   • Lines per stop: GROUP BY line_ref WHERE stop_ref = 'NSR:Quay:xxxxx'
---
--- service_journey_id: stable NeTEx ID for one specific scheduled run,
---   e.g. 'SKY:ServiceJourney:10-123456' (the "06:15 Linje 6 to Nesttun").
--- stop_sequence: stop order along the route (from BQ sequenceNr).
--- aimed_time: scheduled departure at this specific stop in HH:MM local time.
--- vehicle_mode: stored for filtering (functionally derivable from line_ref).
---
--- Upsert logic: weighted average merge so multiple days accumulate within a week.
--- Old weeks are pruned automatically (>91 days / 13 weeks).
-CREATE TABLE IF NOT EXISTS journey_stop_weekly (
-    week_start             TEXT    NOT NULL,  -- Monday ISO date, e.g. '2026-03-16'
-    service_journey_id     TEXT    NOT NULL,  -- NeTEx ServiceJourney ID
-    line_ref               TEXT    NOT NULL,  -- for filtering by line
-    direction_ref          TEXT    NOT NULL,
-    stop_ref               TEXT    NOT NULL,  -- NSR:Quay:xxxxx
-    stop_sequence          INTEGER NOT NULL,  -- order along route
-    aimed_time             TEXT,             -- 'HH:MM' local time (departure preferred, arrival fallback)
-    aimed_arrival_time     TEXT,             -- 'HH:MM' planned arrival (NULL at first stop)
-    aimed_departure_time   TEXT,             -- 'HH:MM' planned departure (NULL at last stop)
-    -- vehicle_mode is functionally determined by service_journey_id (1:1) but
-    -- stored as a column for cheap filtering without joining line_daily.
-    vehicle_mode           TEXT             DEFAULT 'bus',  -- 'bus', 'coach', 'tram', 'metro', 'rail', 'water'
-    avg_delay_min          REAL,             -- combined delay (departure preferred, arrival fallback)
-    max_delay_min          REAL,
-    min_delay_min          REAL,
-    avg_delay_arrival_min  REAL,             -- delay at arrival (actual_arr - aimed_arr)
-    avg_delay_departure_min REAL,            -- delay at departure (actual_dep - aimed_dep)
-    avg_dwell_time_sec     REAL,             -- time stopped (actual_dep - actual_arr), seconds
-    num_samples            INTEGER,
-    PRIMARY KEY (week_start, service_journey_id, stop_ref)
-);
+-- (journey_stop_weekly removed 2026-05 — replaced by direct queries on
+--  journey_stop_daily. The 13-week weighted-average merge in SQLite became
+--  the bottleneck for nightly ingest at multi-operator scale; storage.ts
+--  now GROUPs BY stop_ref / service_journey_id at query time over the
+--  90-day journey_stop_daily window. Indexes on journey_stop_daily below
+--  cover all the access patterns previously served by jsw.)
 
 -- Performance indexes
 CREATE INDEX IF NOT EXISTS idx_line_daily_date         ON line_daily (date);
@@ -249,11 +216,6 @@ CREATE INDEX IF NOT EXISTS idx_stop_daily_operator     ON stop_daily (operator);
 CREATE INDEX IF NOT EXISTS idx_line_hourly_raw_date    ON line_hourly_raw (date);
 CREATE INDEX IF NOT EXISTS idx_stop_hourly_raw_date    ON stop_hourly_raw (date);
 CREATE INDEX IF NOT EXISTS idx_stop_hourly_raw_stop    ON stop_hourly_raw (stop_ref);
-CREATE INDEX IF NOT EXISTS idx_jsw_line_dir            ON journey_stop_weekly (line_ref, direction_ref);
-CREATE INDEX IF NOT EXISTS idx_jsw_stop                ON journey_stop_weekly (stop_ref);
-CREATE INDEX IF NOT EXISTS idx_jsw_week                ON journey_stop_weekly (week_start);
-CREATE INDEX IF NOT EXISTS idx_jsw_journey             ON journey_stop_weekly (service_journey_id);
-
 -- Raw per-journey per-stop daily observations (multimodal, 90-day rolling window).
 --
 -- Unlike journey_stop_weekly (which stores weekly aggregates), this table stores

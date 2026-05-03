@@ -63,6 +63,8 @@ ARROW_SCHEMA = pa.schema([
     ("delay_arrival_min", pa.float32()),
     ("delay_departure_min", pa.float32()),
     ("dwell_time_sec", pa.float32()),
+    ("vehicle_mode", pa.string()),
+    ("day_type", pa.string()),
 ])
 
 
@@ -115,7 +117,8 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         """
         SELECT date, service_journey_id, line_ref, direction_ref, stop_ref,
                stop_sequence, aimed_arrival, aimed_departure,
-               delay_arrival_min, delay_departure_min, dwell_time_sec
+               delay_arrival_min, delay_departure_min, dwell_time_sec,
+               vehicle_mode, day_type
         FROM journey_stop_daily
         WHERE date >= ? AND date <= ?
         ORDER BY date, line_ref, service_journey_id, stop_sequence

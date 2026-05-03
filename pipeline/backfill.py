@@ -41,7 +41,6 @@ from ingest import (
     upsert_stop_daily,
     upsert_line_hourly_raw,
     upsert_stop_hourly_raw,
-    upsert_journey_stop_weekly,
     upsert_journey_stop_daily,
     refresh_line_hourly_profile,
     refresh_stop_hourly_profile,
@@ -205,7 +204,6 @@ def run(
                     upsert_stop_daily(conn, date_str, day_df)
                     upsert_line_hourly_raw(conn, date_str, day_df, day_type)
                     upsert_stop_hourly_raw(conn, date_str, day_df, day_type)
-                    upsert_journey_stop_weekly(conn, date_str, day_df)
                     upsert_journey_stop_daily(conn, date_str, day_df, day_type)
 
                 cur += timedelta(days=1)
