@@ -144,6 +144,8 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         pa.array(cols[8], type=pa.float32()),      # delay_arrival_min
         pa.array(cols[9], type=pa.float32()),      # delay_departure_min
         pa.array(cols[10], type=pa.float32()),     # dwell_time_sec
+        pa.array(cols[11], type=pa.string()),      # vehicle_mode
+        pa.array(cols[12], type=pa.string()),      # day_type
     ]
 
     table = pa.table(arrays, schema=ARROW_SCHEMA)
