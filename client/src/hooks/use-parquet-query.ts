@@ -3,14 +3,27 @@ import type { AsyncDuckDB, AsyncDuckDBConnection } from "@duckdb/duckdb-wasm";
 import { useDuckDB } from "./use-duckdb";
 
 // ---------------------------------------------------------------------------
+// Base URL for Parquet files — falls back to local server during development.
+// In production, point VITE_PARQUET_BASE_URL at Cloudflare R2 public URL.
+// ---------------------------------------------------------------------------
+
+const PARQUET_BASE =
+  (import.meta as any).env?.VITE_PARQUET_BASE_URL?.replace(/\/$/, "") ??
+  `${typeof window !== "undefined" ? window.location.origin : ""}/api/parquet`;
+
+// ---------------------------------------------------------------------------
 // Track which Parquet files have been registered in DuckDB
 // ---------------------------------------------------------------------------
 
 const registeredFiles = new Set<string>();
 
 async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
-  // Fetch the manifest of available week files
-  const res = await fetch("/api/parquet/manifest");
+  // Fetch manifest — from R2 (manifest.json) or from local server
+  const manifestUrl = PARQUET_BASE.includes("/api/parquet")
+    ? `${PARQUET_BASE}/manifest`      // local Express endpoint returns JSON array
+    : `${PARQUET_BASE}/manifest.json`; // R2 serves a static JSON file
+
+  const res = await fetch(manifestUrl);
   if (!res.ok) return;
 
   const files: string[] = await res.json();
@@ -19,9 +32,9 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   for (const file of files) {
     if (registeredFiles.has(file)) continue;
 
-    // Use absolute URL — DuckDB worker runs from a blob: origin and
+    // Full absolute URL — DuckDB worker runs from a blob: origin and
     // cannot resolve relative paths.
-    const url = `${window.location.origin}/api/parquet/${file}`;
+    const url = `${PARQUET_BASE}/${file}`;
     await db.registerFileURL(file, url, 4 /* DuckDBDataProtocol.HTTP */, false);
     registeredFiles.add(file);
   }
@@ -32,7 +45,7 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
     const conn = await db.connect();
     try {
       const fileList = Array.from(registeredFiles)
-        .map((f) => `'${f}'`)
+        .map((f) => `'${PARQUET_BASE}/${f}'`)
         .join(", ");
       await conn.query(
         `CREATE OR REPLACE VIEW delays AS SELECT * FROM read_parquet([${fileList}])`,
@@ -54,7 +67,8 @@ export interface ParquetQueryState {
   error: string | null;
   /** Whether any Parquet files are available */
   ready: boolean;
-  /** Run an arbitrary SQL query against loaded Parquet data */
+  /** Run an arbitrary SQL query against loaded Parquet data.
+   *  Supports ? parameter binding (replaced sequentially). */
   query: <T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
@@ -108,17 +122,34 @@ export function useParquetQuery(): ParquetQueryState {
   const queryFn = useCallback(
     async <T = Record<string, unknown>>(
       sql: string,
-      _params?: unknown[],
+      params?: unknown[],
     ): Promise<T[]> => {
       if (!db) throw new Error("DuckDB not initialized");
 
       // Re-register files in case new weeks appeared since last check
       await ensureFilesRegistered(db);
 
+      // Substitute ? placeholders with escaped parameter values.
+      // DuckDB-WASM's JS API does not support native prepared-statement
+      // parameter binding via conn.query(), so we inline them safely.
+      let finalSql = sql;
+      if (params && params.length > 0) {
+        let idx = 0;
+        finalSql = sql.replace(/\?/g, () => {
+          if (idx >= params.length) return "NULL";
+          const val = params[idx++];
+          if (val === null || val === undefined) return "NULL";
+          if (typeof val === "number" || typeof val === "bigint") return String(val);
+          if (typeof val === "boolean") return val ? "TRUE" : "FALSE";
+          // String: escape single quotes
+          return `'${String(val).replace(/'/g, "''")}'`;
+        });
+      }
+
       let conn: AsyncDuckDBConnection | null = null;
       try {
         conn = await db.connect();
-        const result = await conn.query(sql);
+        const result = await conn.query(finalSql);
 
         // Convert Arrow table to plain JS objects
         const rows: T[] = [];
