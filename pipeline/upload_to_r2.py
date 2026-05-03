@@ -190,11 +190,28 @@ def main():
         if did_upload:
             uploaded += 1
 
+    # Last opp strippet prod-DB hvis den finnes
+    prod_db = REPO_ROOT / "data" / "bussforsinkelser_prod.db"
+    if prod_db.exists():
+        log.info("Laster opp prod-database …")
+        if args.dry_run:
+            log.info("  [dry-run] Ville lastet opp: bussforsinkelser_prod.db (%.0f MB)", prod_db.stat().st_size / 1024 / 1024)
+        else:
+            did_upload = upload_file(s3, bucket, prod_db, "bussforsinkelser_prod.db", force=args.all)
+            if did_upload:
+                uploaded += 1
+            else:
+                skipped += 1
+    else:
+        log.warning("Prod-DB ikke funnet (%s) — kjør strip_for_prod.py først", prod_db)
+
     log.info("")
     log.info("Ferdig: %d lastet opp, %d uendret/hoppet over", uploaded, skipped)
     if public_url:
         log.info("Public URL: %s", public_url)
-        log.info("Eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
+        log.info("Parquet-eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
+        if prod_db.exists():
+            log.info("Prod-DB URL:      %s/bussforsinkelser_prod.db", public_url)
 
 
 if __name__ == "__main__":
