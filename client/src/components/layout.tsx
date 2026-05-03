@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Bus className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight leading-none text-primary">bussforsinkelser.no</h1>
+            <h1 className="font-bold text-lg tracking-tight leading-none text-primary">bussforsinkelser</h1>
             <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">Historisk statistikk</p>
           </div>
         </div>
@@ -71,15 +71,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="font-semibold">Entur åpne data</span>
             </div>
-            <p>Historiske SIRI ET-data. Oppdateres nightly.</p>
+            <p>Historiske SIRI ET-data. Oppdateres for øyeblikket sporadisk, da dette fortsatt er i testfasen.</p>
             <p className="opacity-70">Kilde: ent-data-sharing-ext-prd</p>
           </div>
 
           <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-[9px] text-muted-foreground space-y-2">
             <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <svg viewBox="0 0 300 80" className="h-4 w-auto flex-shrink-0" aria-label="Entur logo">
-                <text x="0" y="58" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="62" fill="currentColor">entur</text>
-              </svg>
+              <img src="/entur-logo.svg" alt="Entur" className="h-4 w-auto flex-shrink-0" />
             </a>
             <p>
               Inneholder data under{" "}
