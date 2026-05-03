@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLinesAtStop, useLineHourlyAtStop } from "@/hooks/use-journey-queries";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,18 +57,6 @@ type StopStatsResponse = {
   }>;
 };
 
-type LineAtStop = {
-  lineRef: string;
-  avgDelayMin: number | null;
-  numSamples: number | null;
-};
-
-type LineHourlyAtStop = {
-  lineRef: string;
-  hour: number;
-  avgDelayMin: number | null;
-  numSamples: number | null;
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -231,15 +220,15 @@ export default function StopAnalysis() {
   const lineNameMap = Object.fromEntries(allLines.map(l => [l.lineRef, l.lineName]));
   function lineNumber(ref: string) { return ref.split(":").pop() ?? ref; }
 
-  const { data: linesAtStop = [] } = useQuery<LineAtStop[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/lines`],
-    enabled: activeRef != null,
-  });
+  const stopFromDate = (() => {
+    if (window.kind === "custom") return window.from;
+    const d = new Date();
+    d.setDate(d.getDate() - window.days);
+    return d.toISOString().slice(0, 10);
+  })();
 
-  const { data: lineHourlyRaw = [] } = useQuery<LineHourlyAtStop[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/lines/hourly`],
-    enabled: activeRef != null,
-  });
+  const { data: linesAtStop = [] } = useLinesAtStop(activeRef ?? "", stopFromDate);
+  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(activeRef ?? "", stopFromDate);
 
   const trendData = (stats?.daily ?? []).map((r) => ({
     date: r.date,

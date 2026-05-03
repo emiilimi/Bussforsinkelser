@@ -1,4 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+  useJourneysForLine,
+  useWorstStopsForLine,
+  useRouteVariants,
+  useLineStopProfile,
+  useWorstJourneysForLine,
+  useBestJourneysForLine,
+  useJourneyProfile,
+  type JourneyEntry,
+} from "@/hooks/use-journey-queries";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,14 +63,6 @@ type HourlyProfile = {
 };
 
 type LineStatsResponse = { daily: LineDaily[]; hourly: HourlyProfile[] };
-
-type JourneyEntry = {
-  directionRef: string;
-  firstStopTime: string;
-  numVariants: number;
-  firstStopName: string | null;
-  lastStopName: string | null;
-};
 
 type JourneyStop = {
   stopRef: string;
@@ -236,11 +238,13 @@ export default function JourneyDetails() {
   // Direction filter for stats charts ('all' = both directions aggregated)
   const [direction, setDirection] = useState<string>("all");
 
-  // Time window (5 presets + custom range). `days` derived for journey_stop_weekly endpoints (capped at 13 weeks).
+  // Time window (5 presets + custom range).
   const [tw, setTw] = useState<TimeWindow>({ kind: "preset", days: 30, label: "Siste måned" });
   const wq = windowToQuery(tw);
-  // daysVal kept available for components that need a numeric window size.
-  // Backend caps journey_stop_weekly queries at 13 weeks regardless.
+  // fromDate: ISO date string used by DuckDB hooks (replaces server-side week window)
+  const fromDate = tw.kind === "custom"
+    ? tw.from
+    : (() => { const d = new Date(); d.setDate(d.getDate() - tw.days); return d.toISOString().slice(0, 10); })();
   const _daysVal = windowDaysFn(tw); void _daysVal;
 
   // Line picker state
@@ -277,31 +281,19 @@ export default function JourneyDetails() {
     enabled: lineStatsUrl != null,
   });
 
-  const { data: journeys = [] } = useQuery<JourneyEntry[]>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/journeys?${wq}`],
-    enabled: fetchedLine.length > 0,
-  });
+  const { data: journeys = [] } = useJourneysForLine(fetchedLine, fromDate);
 
-  const { data: worstStops = [] } = useQuery<WorstStop[]>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/stops?${wq}`],
-    enabled: fetchedLine.length > 0,
-  });
+  const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate);
 
   const [stopProfileDir, setStopProfileDir] = useState<string>("");
   const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
 
   // Route variants for the current line + direction
-  const { data: routeVariants = [] } = useQuery<Array<{
-    variantId: string;
-    firstStopName: string | null;
-    lastStopName: string | null;
-    numStops: number;
-    totalSamples: number;
-    exampleTime: string | null;
-  }>>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/route-variants?direction=${stopProfileDir}&${wq}`],
-    enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
-  });
+  const { data: routeVariants = [] } = useRouteVariants(
+    fetchedLine,
+    stopProfileDir,
+    fromDate,
+  );
 
   // Auto-select the dominant variant (most samples), reset when direction changes
   useEffect(() => {
@@ -312,43 +304,26 @@ export default function JourneyDetails() {
     }
   }, [routeVariants]);
 
-  type JourneyRanking = {
-    serviceJourneyId: string;
-    departureTime: string | null;
-    firstStopName: string | null;
-    lastStopName: string | null;
-    avgDelayMin: number;
-    observedDepartures: number;
-    numStops: number;
-  };
 
-  const { data: worstJourneys = [] } = useQuery<JourneyRanking[]>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/worst-journeys?direction=${stopProfileDir}&${wq}&limit=5`],
-    enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
-  });
 
-  const { data: bestJourneys = [] } = useQuery<JourneyRanking[]>({
-    queryKey: [`/api/line/${encodeURIComponent(fetchedLine)}/best-journeys?direction=${stopProfileDir}&${wq}&limit=5`],
-    enabled: fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all",
-  });
+  const { data: worstJourneys = [] } = useWorstJourneysForLine(
+    fetchedLine, stopProfileDir, fromDate, 5,
+  );
 
-  const stopProfileUrl = selectedVariant
-    ? `/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}&${wq}&variant=${encodeURIComponent(selectedVariant)}`
-    : `/api/line/${encodeURIComponent(fetchedLine)}/stop-profile?direction=${stopProfileDir}&${wq}`;
+  const { data: bestJourneys = [] } = useBestJourneysForLine(
+    fetchedLine, stopProfileDir, fromDate, 5,
+  );
 
-  const { data: lineStopProfile = [] } = useQuery<LineStopProfile[]>({
-    queryKey: [stopProfileUrl],
-    enabled: fetchedLine.length > 0 && stopProfileDir !== "",
-  });
+  const { data: lineStopProfile = [] } = useLineStopProfile(
+    fetchedLine, stopProfileDir, fromDate, selectedVariant,
+  );
 
-  const journeyProfileUrl = selectedJourney
-    ? `/api/journey?line=${encodeURIComponent(fetchedLine)}&dir=${encodeURIComponent(selectedJourney.directionRef)}&time=${encodeURIComponent(selectedJourney.firstStopTime)}&${wq}`
-    : null;
-
-  const { data: journeyProfile = [] } = useQuery<JourneyStop[]>({
-    queryKey: [journeyProfileUrl],
-    enabled: journeyProfileUrl != null,
-  });
+  const { data: journeyProfile = [] } = useJourneyProfile(
+    fetchedLine,
+    selectedJourney?.directionRef ?? "",
+    selectedJourney?.firstStopTime ?? "",
+    fromDate,
+  );
 
   const handleSearch = () => {
     setFetchedLine(selectedLine);

@@ -37,5 +37,4 @@ data/parquet/
 data/diagnostics/
 
 # Stray directories that don't belong in the repo
-Skrivebord/
 emiliesBussprosjekt/

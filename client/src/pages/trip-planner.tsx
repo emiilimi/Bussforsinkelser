@@ -1044,9 +1044,25 @@ export default function TripPlanner() {
       });
 
       let statsMap = new Map<string, TripStopStat>();
-      if (stops.length > 0) {
-        const statsRes = await apiRequest("POST", "/api/trip/stats", { stops });
-        const statsData: TripStopStat[] = await statsRes.json();
+      if (stops.length > 0 && duckReady) {
+        const conditions = stops
+          .map((s) => `(stop_ref = '${s.stopRef.replace(/'/g, "''")}' AND line_ref = '${s.lineRef.replace(/'/g, "''")}')`)
+          .join(" OR ");
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - 91);
+        const cutoffStr = cutoff.toISOString().slice(0, 10);
+        const statsData = await duckQuery<TripStopStat>(`
+          SELECT
+            stop_ref AS stopRef,
+            line_ref AS lineRef,
+            ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
+            ROUND(AVG(delay_arrival_min), 2)   AS avgDelayArrivalMin,
+            ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
+            ROUND(AVG(dwell_time_sec), 1)       AS avgDwellTimeSec,
+            COUNT(*) AS numSamples
+          FROM delays
+          WHERE date >= '${cutoffStr}' AND (${conditions})
+          GROUP BY stop_ref, line_ref`);
         statsMap = new Map(statsData.map((s) => [`${s.stopRef}|${s.lineRef}`, s]));
       }
 

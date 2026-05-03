@@ -23,22 +23,11 @@ import {
   getWorstDays,
   getBestDays,
   getLatestStopDate,
-  getJourneysForLine,
-  getJourneyProfile,
-  getWorstStopsForLine,
-  getLineStopProfile,
-  getLinesAtStop,
-  getLineHourlyAtStop,
   getDataQuality,
   getStopsForMapFiltered,
   getStopDirections,
-  getWorstJourneysForLine,
-  getBestJourneysForLine,
   getLeaderboardLinesByReliability,
-  getRouteVariants,
-  getCorridorComparison,
   searchStopsForCorridor,
-  getTripStopStats,
   parseDayTypes,
 } from "./storage";
 
@@ -189,110 +178,10 @@ export async function registerRoutes(
     return res.json({ daily, hourly });
   });
 
-  /**
-   * GET /api/line/:lineref/journeys?weeks=4
-   * Unique service journeys on a line for the journey picker dropdown.
-   * Returns (serviceJourneyId, directionRef, firstStopTime) per journey.
-   */
-  app.get("/api/line/:lineref/journeys", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const rows = await getJourneysForLine(lineRef, fromIso);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/line/:lineref/stops?weeks=4
-   * Worst stops on a line (aggregated from journey_stop_weekly).
-   */
-  app.get("/api/line/:lineref/stops", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const rows = await getWorstStopsForLine(lineRef, fromIso);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/line/:lineref/worst-journeys?direction=1&weeks=13
-   * Worst (most delayed) individual scheduled departures for a line.
-   * Returns service journeys ranked by weighted avg delay across all stops.
-   */
-  app.get("/api/line/:lineref/worst-journeys", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const limit = Math.min(Number(req.query.limit) || 15, 50);
-    const rows = await getWorstJourneysForLine(lineRef, direction, fromIso, limit);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/line/:lineref/best-journeys?direction=1&weeks=13&limit=5
-   * Best (least delayed / most punctual) individual scheduled departures.
-   */
-  app.get("/api/line/:lineref/best-journeys", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const limit = Math.min(Number(req.query.limit) || 15, 50);
-    const rows = await getBestJourneysForLine(lineRef, direction, fromIso, limit);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/line/:lineref/route-variants?direction=1&weeks=4
-   * Distinct route patterns for a line (different start/end/stop counts).
-   * Used to populate a variant picker when a line has multiple routes.
-   */
-  app.get("/api/line/:lineref/route-variants", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const direction = typeof req.query.direction === "string" ? req.query.direction : "1";
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const rows = await getRouteVariants(lineRef, direction, fromIso);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/line/:lineref/stop-profile?direction=0|1&weeks=4&variant=...
-   * All stops on a line in route order with avg/max/min delay.
-   * direction defaults to '0'. Route order is direction-specific.
-   * Optional variant param filters to a specific route pattern.
-   */
-  app.get("/api/line/:lineref/stop-profile", async (req, res) => {
-    const lineRef = req.params.lineref;
-    const direction = typeof req.query.direction === "string" ? req.query.direction : "0";
-    const fromIso = parseWeeksWindow(req.query, 13);
-    const variant = typeof req.query.variant === "string" ? req.query.variant : undefined;
-    const rows = await getLineStopProfile(lineRef, direction, fromIso, variant);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/journey?line=SKY:Line:6&dir=0&time=05:48
-   * Delay profile at each stop, aggregated across all dated variants of this
-   * logical journey (identified by line + direction + first-stop departure time).
-   */
-  app.get("/api/journey", async (req, res) => {
-    const lineRef = typeof req.query.line === "string" ? req.query.line : "";
-    const directionRef = typeof req.query.dir === "string" ? req.query.dir : "0";
-    const firstStopTime = typeof req.query.time === "string" ? req.query.time : "";
-    if (!lineRef || !firstStopTime) {
-      return res.status(400).json({ message: "line og time er påkrevd" });
-    }
-    // Optional time window — if any window param is provided, restrict to that window
-    // (capped at 13 weeks since journey_stop_weekly retains 13 weeks).
-    const hasWindow =
-      typeof req.query.from === "string" ||
-      typeof req.query.days === "string" ||
-      typeof req.query.weeks === "string";
-    const fromWeek = hasWindow ? parseWeeksWindow(req.query, 13) : undefined;
-    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
-    const rows = await getJourneyProfile(lineRef, directionRef, firstStopTime, fromWeek, dayTypes);
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Reise ikke funnet" });
-    }
-    return res.json(rows);
-  });
+  // NOTE: /api/line/:lineref/journeys, /stops, /worst-journeys, /best-journeys,
+  // /route-variants, /stop-profile, and /api/journey have been removed.
+  // These queries now run client-side via DuckDB-WASM against Parquet on R2.
+  // See client/src/hooks/use-journey-queries.ts
 
   /**
    * GET /api/stop/:stopref?days=30&operator=SKY&direction=all|0|1
@@ -339,27 +228,8 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/stop/:stopref/lines?weeks=4
-   * Lines serving a stop with their avg delay (last N weeks).
-   */
-  app.get("/api/stop/:stopref/lines", async (req, res) => {
-    const stopRef = req.params.stopref;
-    const fromIso = parseWeeksWindow(req.query, 4);
-    const rows = await getLinesAtStop(stopRef, fromIso);
-    return res.json(rows);
-  });
-
-  /**
-   * GET /api/stop/:stopref/lines/hourly?weeks=4
-   * Hourly delay profile per line at a given stop (from journey_stop_weekly).
-   * Returns one row per (lineRef, hour) with weighted average delay.
-   */
-  app.get("/api/stop/:stopref/lines/hourly", async (req, res) => {
-    const stopRef = req.params.stopref;
-    const fromIso = parseWeeksWindow(req.query, 4);
-    const rows = await getLineHourlyAtStop(stopRef, fromIso);
-    return res.json(rows);
-  });
+  // NOTE: /api/stop/:stopref/lines and /api/stop/:stopref/lines/hourly removed.
+  // These queries now run client-side via DuckDB-WASM. See use-journey-queries.ts
 
   /**
    * GET /api/stops/lookup?refs=NSR:Quay:1,NSR:Quay:2,...
@@ -522,24 +392,7 @@ export async function registerRoutes(
     return res.json(rows);
   });
 
-  // -----------------------------------------------------------------------
-  // Corridor comparison (for /reise page)
-  // -----------------------------------------------------------------------
-
-  /**
-   * POST /api/corridor
-   * Body: { corridor: [{lineRef, stopRefs: string[]}], weeks?: number }
-   * Returns delay data at each stop for each line in corridor order.
-   */
-  app.post("/api/corridor", async (req, res) => {
-    const { corridor, weeks } = req.body ?? {};
-    if (!Array.isArray(corridor) || corridor.length === 0) {
-      return res.status(400).json({ error: "corridor array required" });
-    }
-    const w = Math.min(Number(weeks) || 4, 13);
-    const rows = await getCorridorComparison(corridor, daysAgoIso(w * 7));
-    return res.json(rows);
-  });
+  // NOTE: POST /api/corridor removed. Now client-side DuckDB. See use-journey-queries.ts
 
   /**
    * GET /api/stops/corridor-search?q=birkelund
@@ -845,20 +698,7 @@ export async function registerRoutes(
     }),
   );
 
-  /**
-   * POST /api/trip/stats
-   * Body: { stops: [{ stopRef: "NSR:Quay:X", lineRef: "SKY:Line:6" }, ...] }
-   * Returns historical delay stats from journey_stop_weekly for each stop+line pair.
-   * Used to overlay delay data on Entur trip suggestions.
-   */
-  app.post("/api/trip/stats", async (req, res) => {
-    const { stops } = req.body ?? {};
-    if (!Array.isArray(stops) || stops.length === 0) {
-      return res.status(400).json({ error: "stops array required" });
-    }
-    const stats = await getTripStopStats(stops);
-    return res.json(stats);
-  });
+  // NOTE: POST /api/trip/stats removed. Now client-side DuckDB. See trip-planner.tsx
 
   return httpServer;
 }
