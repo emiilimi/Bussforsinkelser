@@ -15,6 +15,7 @@ import {
   getStopStats,
   getStopHourlyProfile,
   searchStops,
+  getStopsByRefs,
   getStopsForMap,
   getLeaderboardLines,
   getLeaderboardLinesPeriod,
@@ -357,6 +358,24 @@ export async function registerRoutes(
     const stopRef = req.params.stopref;
     const fromIso = parseWeeksWindow(req.query, 4);
     const rows = await getLineHourlyAtStop(stopRef, fromIso);
+    return res.json(rows);
+  });
+
+  /**
+   * GET /api/stops/lookup?refs=NSR:Quay:1,NSR:Quay:2,...
+   * Batch oppslag: stop_ref → stop_name + stop_place_ref. Brukes av klient-side
+   * DuckDB-WASM-hooks for å berike resultater med stoppnavn etter en Parquet-query.
+   */
+  app.get("/api/stops/lookup", async (req, res) => {
+    const refs = String(req.query.refs ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (refs.length === 0) return res.json([]);
+    if (refs.length > 500) {
+      return res.status(400).json({ error: "Max 500 refs per request" });
+    }
+    const rows = await getStopsByRefs(refs);
     return res.json(rows);
   });
 

@@ -334,6 +334,33 @@ export async function getStopHourlyProfile(stopRef: string, operator = "SKY", di
   `).all(stopRef, operator, direction);
 }
 
+/** Batch lookup: gitt en liste stop_refs, returner navn + StopPlace-info.
+ *  Brukes av klient-side DuckDB-WASM-hooks for å berike resultater med stoppnavn
+ *  uten å måtte shippe stop_coords til klienten via Parquet.
+ */
+export async function getStopsByRefs(refs: string[]): Promise<Array<{
+  stopRef: string;
+  stopName: string | null;
+  stopPlaceRef: string | null;
+  stopPlaceName: string | null;
+  lat: number | null;
+  lng: number | null;
+}>> {
+  if (refs.length === 0) return [];
+  const ph = refs.map(() => "?").join(",");
+  return sqlite
+    .prepare(
+      `SELECT stop_ref AS stopRef,
+              stop_name AS stopName,
+              stop_place_ref AS stopPlaceRef,
+              stop_place_name AS stopPlaceName,
+              lat, lng
+         FROM stop_coords
+        WHERE stop_ref IN (${ph})`,
+    )
+    .all(...refs) as any;
+}
+
 export async function searchStops(query: string, limit = 20) {
   // Group quays by their parent stop place so "Olav Kyrres gate" appears once
   // with platform letters aggregated (e.g. "E, F, G, H, J") instead of 5× separately.

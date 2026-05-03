@@ -8,7 +8,7 @@ Two strategies, chosen automatically per operator:
              <Line id="..."><Name>...</Name></Line> element.  Used when the
              directory exists (e.g. netex/sky/ for SKY lines).
 
-  DB-derived — queries journey_stop_weekly to find the dominant terminus pair,
+  DB-derived — queries journey_stop_daily to find the dominant terminus pair,
              weighted by total num_samples.  Used when no NeTEx directory is
              present (e.g. SOF, FIR).
 
@@ -81,18 +81,18 @@ TERMINUS_SQL = """
 WITH journey_endpoints AS (
     SELECT
         j.service_journey_id,
-        SUM(j.num_samples) AS journey_weight,
+        COUNT(*) AS journey_weight,
         (SELECT COALESCE(sc.stop_name, j2.stop_ref)
-         FROM journey_stop_weekly j2
+         FROM journey_stop_daily j2
          LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
          WHERE j2.service_journey_id = j.service_journey_id
          ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop,
         (SELECT COALESCE(sc.stop_name, j2.stop_ref)
-         FROM journey_stop_weekly j2
+         FROM journey_stop_daily j2
          LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
          WHERE j2.service_journey_id = j.service_journey_id
          ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop
-    FROM journey_stop_weekly j
+    FROM journey_stop_daily j
     WHERE j.line_ref = ?
     GROUP BY j.service_journey_id
 ),
@@ -117,7 +117,7 @@ def short_id(line_ref: str) -> str:
 
 
 def derive_db_name(conn: sqlite3.Connection, line_ref: str) -> str | None:
-    """Derive a display name from journey_stop_weekly terminus data."""
+    """Derive a display name from journey_stop_daily terminus data."""
     rows = conn.execute(TERMINUS_SQL, (line_ref,)).fetchall()
     if not rows:
         return None
