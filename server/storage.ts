@@ -202,11 +202,8 @@ export async function getLineHourlyProfile(lineRef: string, direction?: string, 
 const EXCLUDED_LINE_REFS = ["SKY:Line:1", "SKY:Line:2"];
 
 export async function getAllLines(operator?: string) {
-  // NOTE: We intentionally do NOT filter by operator prefix here.
-  // All lines in line_daily were ingested from Skyss's SIRI ET feed (dataSource='SKY'),
-  // but some have non-SKY lineRef prefixes (e.g. SOF:Line:901, FIR:Line:123 for Sogn og
-  // Fjordane / Firda Billag routes operated under Skyss's contract). Filtering to SKY:%
-  // would hide these lines from the picker.
+  // When operator is provided and non-empty, filter by lineRef prefix (e.g. "SKY:%").
+  // Empty string or undefined = no filter (alle regioner).
   return db
     .selectDistinct({
       lineRef: schema.lineDaily.lineRef,
@@ -217,6 +214,7 @@ export async function getAllLines(operator?: string) {
       and(
         inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
         notInArray(schema.lineDaily.lineRef, EXCLUDED_LINE_REFS),
+        operator ? like(schema.lineDaily.lineRef, `${operator}:%`) : undefined,
       ),
     )
     .orderBy(schema.lineDaily.lineName)

@@ -227,7 +227,7 @@ export function useJourneyProfile(
           ROUND(AVG(delay_arrival_min), 2)                                      AS avgDelayArrivalMin,
           ROUND(AVG(delay_departure_min), 2)                                    AS avgDelayDepartureMin,
           ROUND(AVG(dwell_time_sec), 1)                                         AS avgDwellTimeSec,
-          ROUND(SQRT(MAX(0,
+          ROUND(SQRT(GREATEST(0,
             AVG(COALESCE(delay_departure_min, delay_arrival_min)
                 * COALESCE(delay_departure_min, delay_arrival_min))
             - AVG(COALESCE(delay_departure_min, delay_arrival_min))

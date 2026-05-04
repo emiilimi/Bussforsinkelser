@@ -1,24 +1,49 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type Region = "vestland" | "oslo" | "viken" | "rogaland" | "trondelag" | "agder";
+export type Region =
+  | "alle"
+  | "sky"
+  | "mor"
+  | "inn"
+  | "ost"
+  | "rut"
+  | "kol"
+  | "vyg"
+  | "tro"
+  | "bra"
+  | "fin"
+  | "nor";
 
-// Maps each region to its Entur NeTEx operator code (used to filter lineRef)
+// Maps each region key to its NeTEx operator code (used to filter lineRef / API calls).
+// Empty string = no filter (alle).
 export const REGION_OPERATOR: Record<Region, string> = {
-  vestland: "SKY",
-  oslo: "RUT",
-  viken: "RUT",
-  rogaland: "KOL",
-  trondelag: "ATB",
-  agder: "AKT",
+  alle: "",
+  sky: "SKY",
+  mor: "MOR",
+  inn: "INN",
+  ost: "OST",
+  rut: "RUT",
+  kol: "KOL",
+  vyg: "VYG",
+  tro: "TRO",
+  bra: "BRA",
+  fin: "FIN",
+  nor: "NOR",
 };
 
 export const REGION_LABEL: Record<Region, string> = {
-  vestland: "Vestland",
-  oslo: "Oslo",
-  viken: "Viken",
-  rogaland: "Rogaland",
-  trondelag: "Trøndelag",
-  agder: "Agder",
+  alle: "Alle regioner",
+  sky: "Skyss (Vestland)",
+  mor: "Møre og Romsdal",
+  inn: "Innlandet",
+  ost: "Østfold",
+  rut: "Ruter (Oslo/Akershus)",
+  kol: "Kolumbus (Rogaland)",
+  vyg: "Vy grønn",
+  tro: "Troms",
+  bra: "Brakar (Viken)",
+  fin: "Finnmark",
+  nor: "Nordland",
 };
 
 interface RegionContextType {
@@ -32,11 +57,23 @@ const STORAGE_KEY = "bussforsinkelser_region";
 function getSavedRegion(): Region {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && saved in REGION_OPERATOR) return saved as Region;
+    // Migrate old keys (vestland→sky, oslo/viken→rut, rogaland→kol, trondelag→tro, agder→kol)
+    const MIGRATE: Record<string, Region> = {
+      vestland: "sky",
+      oslo: "rut",
+      viken: "rut",
+      rogaland: "kol",
+      trondelag: "tro",
+      agder: "kol",
+    };
+    if (saved) {
+      if (saved in REGION_OPERATOR) return saved as Region;
+      if (saved in MIGRATE) return MIGRATE[saved];
+    }
   } catch {
-    // localStorage unavailable (SSR, private mode)
+    // localStorage unavailable
   }
-  return "vestland";
+  return "sky";
 }
 
 const RegionContext = createContext<RegionContextType | undefined>(undefined);
@@ -49,7 +86,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, r);
     } catch {
-      // ignore write errors
+      // ignore
     }
   };
 
