@@ -616,11 +616,14 @@ export async function getLeaderboardStops(
   const pctExpr = sql<number>`ROUND(SUM(${schema.stopDaily.pctDelayed2plus} * ${schema.stopDaily.numDepartures}) * 1.0 / SUM(${schema.stopDaily.numDepartures}), 1)`;
   const order = type === "worst" ? desc(avgExpr) : avgExpr;
 
+  const stddevExpr = sql<number | null>`ROUND(SUM(${schema.stopDaily.stddevDelayMin} * ${schema.stopDaily.numDepartures}) * 1.0 / SUM(${schema.stopDaily.numDepartures}), 2)`;
+
   return db
     .select({
       stopRef: schema.stopDaily.stopRef,
       stopName: sql<string>`COALESCE(MAX(${schema.stopCoords.stopName}), MAX(${schema.stopDaily.stopName}))`,
       avgDelayMin: avgExpr,
+      stddevDelayMin: stddevExpr,
       pctDelayed2plus: pctExpr,
       totalDepartures: sql<number>`SUM(${schema.stopDaily.numDepartures})`,
     })

@@ -3,7 +3,49 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-04-30
+**Sist oppdatert**: 2026-05-03
+
+## Endringslogg — 2026-05-03: DuckDB-WASM full migrering + R2 + stripped prod-DB
+
+**Arkitektur**:
+- `journey_stop_daily` fjernet fra prod-DB. Tabellen lever kun lokalt for Parquet-eksport og pipeline.
+- 11 storage-funksjoner + server-endepunkter mot `journey_stop_daily` er fjernet fra server.
+- Klienten kjører nå alle per-avgang-per-stopp queries direkte i DuckDB-WASM mot Parquet på R2.
+- Ny arkitektur: Railway har kun aggregert DB (uten `journey_stop_daily`), R2 har Parquet-filer.
+
+**Pipeline**:
+- `pipeline/strip_for_prod.py` (ny): kopierer full DB, dropper `journey_stop_daily`, kjører VACUUM → liten Railway-DB.
+- `pipeline/export_parquet.py`: bug-fiks — arrays-lista manglet `vehicle_mode` og `day_type` (kolonne 11 og 12), krasjet med "Schema and number of arrays unequal". Fikset.
+- `pipeline/upload_to_r2.py` (ny): boto3-basert opplasting av Parquet-filer + `manifest.json` + `bussforsinkelser_prod.db` til Cloudflare R2. Skipper uendrede filer via ETag-sammenligning.
+
+**Infrastruktur**:
+- Cloudflare R2 bucket `bussforsinkelser-parquet` med public access og CORS for range requests.
+- `scripts/download-db.mjs` (ny): Node.js startup-script som laster ned prod-DB fra R2 ved Railway-oppstart. Bruker `DB_DOWNLOAD_URL` + `DATABASE_PATH` env-variabler. Exits 0 hvis URL ikke satt.
+- Railway start-kommando: `node scripts/download-db.mjs && npm start`
+- Railway env-vars: `DB_DOWNLOAD_URL`, `DATABASE_PATH`, `VITE_PARQUET_BASE_URL`
+
+**Klient**:
+- `client/src/hooks/use-journey-queries.ts` (ny): 11 DuckDB-hooks som speiler de fjernede server-funksjonene. Stop-navn berikkes via `useStopLookup` → `/api/stops/lookup`.
+- `client/src/pages/journey-details.tsx`: 7 React Query-kall byttet fra `/api/...` til DuckDB-hooks.
+- `client/src/pages/stop-analysis.tsx`: `useLinesAtStop` + `useLineHourlyAtStop` erstatter server-kall.
+- `client/src/pages/trip-planner.tsx`: `/api/trip/stats` POST erstattet med inline `duckQuery` i mutasjon. Wrapped i try/catch for graceful degradation (trip vises selv om DuckDB feiler).
+- `server/routes.ts` + `server/storage.ts`: 11 endepunkter + funksjoner fjernet. Ny `GET /api/stops/lookup?refs=...` lagt til for stop-navn batch-oppslag.
+
+**Topplister — stopp σ-kolonne**:
+- `server/storage.ts` `getLeaderboardStops()`: `stddevDelayMin` lagt til i select (vektet snitt).
+- `worst-lists.tsx`: `LeaderboardStop` type + σ-kolonne i både verste og beste stopp-tabell.
+
+**Layout**:
+- Entur-logo i sidebar: økt fra `h-4` til `h-10` (2.5x større).
+
+**Brukeransvar for full oppsett**:
+```powershell
+python pipeline/export_parquet.py --all
+python pipeline/upload_to_r2.py
+python pipeline/strip_for_prod.py
+# Sett DB_DOWNLOAD_URL, DATABASE_PATH, VITE_PARQUET_BASE_URL på Railway
+# Start-kommando på Railway: node scripts/download-db.mjs && npm start
+```
 
 ## Endringslogg — 2026-04-30: Multimodal + day_type-filter (backend)
 

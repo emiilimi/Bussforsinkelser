@@ -28,6 +28,7 @@ type LeaderboardStop = {
   stopRef: string;
   stopName: string | null;
   avgDelayMin: number | null;
+  stddevDelayMin: number | null;
   pctDelayed2plus: number | null;
   totalDepartures: number | null;
 };
@@ -263,6 +264,7 @@ export default function WorstLists() {
                   <TableRow>
                     <TableHead>Stoppested</TableHead>
                     <TableHead className="text-right">Snitt</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">σ</TableHead>
                     <TableHead className="text-right">&gt;2m</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -280,6 +282,9 @@ export default function WorstLists() {
                       </TableCell>
                       <TableCell className="text-right text-destructive font-mono">
                         {stop.avgDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
+                        {stop.stddevDelayMin?.toFixed(1) ?? "—"}m
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {stop.pctDelayed2plus?.toFixed(1) ?? "—"}%
@@ -307,6 +312,7 @@ export default function WorstLists() {
                   <TableRow>
                     <TableHead>Stoppested</TableHead>
                     <TableHead className="text-right">Snitt</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">σ</TableHead>
                     <TableHead className="text-right">&gt;2m</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -324,6 +330,9 @@ export default function WorstLists() {
                       </TableCell>
                       <TableCell className="text-right text-green-600 font-mono">
                         {stop.avgDelayMin?.toFixed(1) ?? "—"}m
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
+                        {stop.stddevDelayMin?.toFixed(1) ?? "—"}m
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {stop.pctDelayed2plus?.toFixed(1) ?? "—"}%

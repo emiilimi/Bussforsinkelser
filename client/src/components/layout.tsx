@@ -77,7 +77,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-[9px] text-muted-foreground space-y-2">
             <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img src="/entur-logo.svg" alt="Entur" className="h-4 w-auto flex-shrink-0" />
+              <img src="/entur-logo.svg" alt="Entur" className="h-10 w-auto flex-shrink-0" />
             </a>
             <p>
               Inneholder data under{" "}

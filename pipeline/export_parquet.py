@@ -65,6 +65,7 @@ ARROW_SCHEMA = pa.schema([
     ("dwell_time_sec", pa.float32()),
     ("vehicle_mode", pa.string()),
     ("day_type", pa.string()),
+    ("stop_name", pa.string()),   # fra stop_coords JOIN — brukes av DuckDB-WASM direkte
 ])
 
 
@@ -115,13 +116,15 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
 
     rows = conn.execute(
         """
-        SELECT date, service_journey_id, line_ref, direction_ref, stop_ref,
-               stop_sequence, aimed_arrival, aimed_departure,
-               delay_arrival_min, delay_departure_min, dwell_time_sec,
-               vehicle_mode, day_type
-        FROM journey_stop_daily
-        WHERE date >= ? AND date <= ?
-        ORDER BY date, line_ref, service_journey_id, stop_sequence
+        SELECT j.date, j.service_journey_id, j.line_ref, j.direction_ref, j.stop_ref,
+               j.stop_sequence, j.aimed_arrival, j.aimed_departure,
+               j.delay_arrival_min, j.delay_departure_min, j.dwell_time_sec,
+               j.vehicle_mode, j.day_type,
+               s.stop_name
+        FROM journey_stop_daily j
+        LEFT JOIN stop_coords s ON s.stop_ref = j.stop_ref
+        WHERE j.date >= ? AND j.date <= ?
+        ORDER BY j.date, j.line_ref, j.service_journey_id, j.stop_sequence
         """,
         (mon.isoformat(), sun.isoformat()),
     ).fetchall()
@@ -146,6 +149,7 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         pa.array(cols[10], type=pa.float32()),     # dwell_time_sec
         pa.array(cols[11], type=pa.string()),      # vehicle_mode
         pa.array(cols[12], type=pa.string()),      # day_type
+        pa.array(cols[13], type=pa.string()),      # stop_name
     ]
 
     table = pa.table(arrays, schema=ARROW_SCHEMA)

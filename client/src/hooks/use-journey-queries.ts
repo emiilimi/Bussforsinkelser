@@ -4,8 +4,9 @@
  *
  * Architecture:
  *   1. useParquetQuery()  — runs SQL against Parquet files from Cloudflare R2
- *   2. useStopLookup()    — batch-resolves stop_refs → stop_name via /api/stops/lookup
- *   3. Each hook merges the two results before returning
+ *   2. Stop names are embedded directly in the Parquet files (stop_name column,
+ *      populated via LEFT JOIN stop_coords in export_parquet.py).
+ *      No separate server round-trip needed.
  *
  * SQL dialect: DuckDB (not SQLite). Key differences:
  *   - date arithmetic: current_date - INTERVAL N DAY  (not date('now', '-N days'))
@@ -17,7 +18,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParquetQuery } from "./use-parquet-query";
-import { useStopLookup } from "./use-stop-lookup";
 
 // ---------------------------------------------------------------------------
 // Types (mirror the server return shapes exactly)
@@ -153,11 +153,11 @@ export function useJourneysForLine(lineRef: string, fromDate: string) {
             d.service_journey_id,
             d.direction_ref,
             MIN(COALESCE(d.aimed_departure, d.aimed_arrival)) AS first_stop_time,
-            (SELECT COALESCE(d2.stop_ref, d2.stop_ref)
+            (SELECT COALESCE(d2.stop_name, d2.stop_ref)
              FROM delays d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_name,
-            (SELECT COALESCE(d2.stop_ref, d2.stop_ref)
+            (SELECT COALESCE(d2.stop_name, d2.stop_ref)
              FROM delays d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_name
@@ -223,7 +223,7 @@ export function useJourneyProfile(
           ROUND(MIN(COALESCE(delay_departure_min, delay_arrival_min)), 2)       AS minDelayMin,
           COUNT(*)                                                              AS numSamples,
           COUNT(DISTINCT date)                                                  AS numJourneys,
-          stop_ref                                                              AS stopName,
+          COALESCE(MAX(stop_name), stop_ref)                                    AS stopName,
           ROUND(AVG(delay_arrival_min), 2)                                      AS avgDelayArrivalMin,
           ROUND(AVG(delay_departure_min), 2)                                    AS avgDelayDepartureMin,
           ROUND(AVG(dwell_time_sec), 1)                                         AS avgDwellTimeSec,
@@ -242,17 +242,10 @@ export function useJourneyProfile(
     staleTime: Infinity,
   });
 
-  // Step 3: enrich with stop names
-  const stopRefs = profileQuery.data?.map((r) => r.stopRef) ?? [];
-  const lookup = useStopLookup(stopRefs);
-
   return {
     ...profileQuery,
     isLoading: sjQuery.isLoading || profileQuery.isLoading,
-    data: profileQuery.data?.map((r) => ({
-      ...r,
-      stopName: lookup.data?.find((s) => s.stopRef === r.stopRef)?.stopName ?? r.stopRef,
-    })),
+    data: profileQuery.data,
   };
 }
 
@@ -262,12 +255,13 @@ export function useJourneyProfile(
 
 export function useWorstStopsForLine(lineRef: string, fromDate: string, limit = 15) {
   const { query, ready } = useParquetQuery();
-  const stats = useQuery<Array<{ stopRef: string; avgDelayMin: number; numSamples: number }>>({
+  const stats = useQuery<WorstStop[]>({
     queryKey: ["worst-stops-line", lineRef, fromDate, limit],
     enabled: ready && !!lineRef,
     queryFn: () =>
-      query(`
+      query<WorstStop>(`
         SELECT stop_ref AS stopRef,
+          COALESCE(MAX(stop_name), stop_ref) AS stopName,
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
         FROM delays
@@ -279,15 +273,7 @@ export function useWorstStopsForLine(lineRef: string, fromDate: string, limit = 
         [lineRef, fromDate, limit]),
     staleTime: Infinity,
   });
-  const refs = stats.data?.map((r) => r.stopRef as string) ?? [];
-  const lookup = useStopLookup(refs);
-  return {
-    ...stats,
-    data: stats.data?.map((r) => ({
-      ...r,
-      stopName: lookup.data?.find((s) => s.stopRef === r.stopRef)?.stopName ?? r.stopRef,
-    })) as WorstStop[] | undefined,
-  };
+  return stats;
 }
 
 // ---------------------------------------------------------------------------
@@ -303,8 +289,8 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
       query<RouteVariant>(`
         SELECT
           first_stop_ref || '->' || last_stop_ref || ':' || num_stops AS variantId,
-          MAX(first_stop_ref) AS firstStopName,
-          MAX(last_stop_ref)  AS lastStopName,
+          MAX(COALESCE(first_stop_name, first_stop_ref)) AS firstStopName,
+          MAX(COALESCE(last_stop_name, last_stop_ref))   AS lastStopName,
           num_stops           AS numStops,
           SUM(total_samples)  AS totalSamples,
           MIN(first_time)     AS exampleTime
@@ -319,7 +305,13 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
              ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_ref,
             (SELECT d2.stop_ref FROM delays d2
              WHERE d2.service_journey_id = d.service_journey_id
-             ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_ref
+             ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_ref,
+            (SELECT d2.stop_name FROM delays d2
+             WHERE d2.service_journey_id = d.service_journey_id
+             ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_name,
+            (SELECT d2.stop_name FROM delays d2
+             WHERE d2.service_journey_id = d.service_journey_id
+             ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_name
           FROM delays d
           WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           GROUP BY d.service_journey_id
@@ -416,7 +408,7 @@ export function useLineStopProfile(
           ROUND(AVG(d.delay_departure_min), 2)  AS avgDelayDepartureMin,
           ROUND(AVG(d.dwell_time_sec), 1)       AS avgDwellTimeSec,
           COUNT(*)                              AS numSamples,
-          d.stop_ref                            AS stopName
+          COALESCE(MAX(d.stop_name), d.stop_ref) AS stopName
         FROM delays d
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           AND d.stop_ref IN (${ph})
@@ -430,17 +422,10 @@ export function useLineStopProfile(
     staleTime: Infinity,
   });
 
-  // Step 4: enrich with stop names
-  const stopRefs = profileQuery.data?.map((r) => r.stopRef) ?? [];
-  const lookup = useStopLookup(stopRefs);
-
   return {
     isLoading: dominantQuery.isLoading || canonicalQuery.isLoading || profileQuery.isLoading,
     error: dominantQuery.error ?? canonicalQuery.error ?? profileQuery.error,
-    data: profileQuery.data?.map((r) => ({
-      ...r,
-      stopName: lookup.data?.find((s) => s.stopRef === r.stopRef)?.stopName ?? r.stopRef,
-    })),
+    data: profileQuery.data,
   };
 }
 
@@ -468,10 +453,10 @@ function useJourneyRankings(
            WHERE d2.service_journey_id = d.service_journey_id
              AND COALESCE(d2.aimed_departure, d2.aimed_arrival) IS NOT NULL
            ORDER BY d2.stop_sequence ASC LIMIT 1) AS departureTime,
-          (SELECT d2.stop_ref FROM delays d2
+          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays d2
            WHERE d2.service_journey_id = d.service_journey_id
            ORDER BY d2.stop_sequence ASC LIMIT 1) AS firstStopRef,
-          (SELECT d2.stop_ref FROM delays d2
+          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays d2
            WHERE d2.service_journey_id = d.service_journey_id
            ORDER BY d2.stop_sequence DESC LIMIT 1) AS lastStopRef,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
@@ -487,23 +472,13 @@ function useJourneyRankings(
     staleTime: Infinity,
   });
 
-  // Collect all unique first/last stop refs for batch lookup
-  const stopRefsRaw = [
-    ...(stats.data?.map((r) => r.firstStopRef as string) ?? []),
-    ...(stats.data?.map((r) => r.lastStopRef as string) ?? []),
-  ].filter(Boolean);
-  const stopRefs = stopRefsRaw.filter((v, i) => stopRefsRaw.indexOf(v) === i);
-  const lookup = useStopLookup(stopRefs);
-
   return {
     ...stats,
     data: stats.data?.map((r) => ({
       serviceJourneyId: r.serviceJourneyId,
       departureTime: r.departureTime,
-      firstStopName:
-        lookup.data?.find((s) => s.stopRef === r.firstStopRef)?.stopName ?? (r.firstStopRef as string) ?? null,
-      lastStopName:
-        lookup.data?.find((s) => s.stopRef === r.lastStopRef)?.stopName ?? (r.lastStopRef as string) ?? null,
+      firstStopName: (r.firstStopRef as string) ?? null,
+      lastStopName: (r.lastStopRef as string) ?? null,
       avgDelayMin: r.avgDelayMin,
       observedDepartures: r.observedDepartures,
       numStops: r.numStops,
@@ -536,13 +511,8 @@ export function useBestJourneysForLine(
 export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
   const { query, ready } = useParquetQuery();
 
-  // NSR:StopPlace → expand to all quays via /api/stops/lookup
+  // NSR:StopPlace → expand to all quays via /api/stops/lookup (raw fetch, not hook)
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
-  const { data: quayData } = useStopLookup(isStopPlace ? [] : []);
-  // For StopPlace: we need quays. Use stop_ref filter differently:
-  // DuckDB can't do server-side JOIN to stop_coords, so we pass stop_refs
-  // — for a StopPlace, pass the stopRef and filter by stop_place_ref subquery
-  // won't work. Instead: we allow the lookup via a placeholder quay expansion below.
 
   return useQuery<HourlyAtStop[]>({
     queryKey: ["line-hourly-at-stop", stopRef, fromDate],
@@ -661,9 +631,10 @@ export function useCorridorComparison(
         const ph = entry.stopRefs.map((s) => `'${s.replace(/'/g, "''")}'`).join(",");
         const lineRef = entry.lineRef.replace(/'/g, "''");
 
-        const rows = await query<Omit<CorridorStop, "stopName" | "corridorIndex" | "lineRef"> & { stopRef: string }>(`
+        const rows = await query<Omit<CorridorStop, "corridorIndex" | "lineRef"> & { stopRef: string }>(`
           SELECT
             stop_ref AS stopRef,
+            COALESCE(MAX(stop_name), stop_ref) AS stopName,
             ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
             ROUND(AVG(delay_arrival_min), 2)   AS avgDelayArrivalMin,
             ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
@@ -680,7 +651,7 @@ export function useCorridorComparison(
           results.push({
             lineRef: entry.lineRef,
             stopRef,
-            stopName: null, // enriched below
+            stopName: data?.stopName ?? null,
             corridorIndex: idx,
             avgDelayMin: data?.avgDelayMin ?? null,
             avgDelayArrivalMin: data?.avgDelayArrivalMin ?? null,
