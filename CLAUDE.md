@@ -1,4 +1,4 @@
-# bussforsinkelser.no — Prosjektnotater for Claude
+# Bussforsinkelser — Prosjektnotater for Claude
 
 Denne filen lastes automatisk inn i kontekst ved oppstart. Hold den oppdatert.
 Se også: `STATUS.md` (endringslogg, funksjonsstatus), `ARCHITECTURE.md` (detaljert skjema, sideinfo).

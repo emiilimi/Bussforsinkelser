@@ -1,4 +1,4 @@
-# bussforsinkelser.no
+# Bussforsinkelser
 
 Historisk statistikk over bussforsinkelser i Norge, region for region.
 Datakilde: Entur SIRI ET (BigQuery) + NSR (National Stop Registry).

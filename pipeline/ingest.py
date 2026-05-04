@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Nightly BigQuery -> SQLite pipeline for bussforsinkelser.no
+Nightly BigQuery -> SQLite pipeline for Bussforsinkelser
 
 Fetches one day of SIRI ET data for one or more operators, computes delay
 statistics, and writes them to the local SQLite database.
@@ -932,7 +932,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Nightly BigQuery → SQLite ingest for bussforsinkelser.no",
+        description="Nightly BigQuery → SQLite ingest for Bussforsinkelser",
     )
     parser.add_argument(
         "date",

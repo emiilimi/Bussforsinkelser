@@ -1,4 +1,4 @@
-# bussforsinkelser.no — Statusoversikt
+# Bussforsinkelser — Statusoversikt
 
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.

@@ -1,5 +1,5 @@
 """
-check_data.py — Manual inspection helpers for bussforsinkelser.no
+check_data.py — Manual inspection helpers for Bussforsinkelser
 Run individual sections by commenting/uncommenting them below.
 
 Usage:

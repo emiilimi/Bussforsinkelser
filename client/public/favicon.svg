@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#2563eb"/>
+  <!-- bus body -->
+  <rect x="5" y="8" width="22" height="13" rx="2" fill="white"/>
+  <!-- windows -->
+  <rect x="8" y="11" width="5" height="4" rx="1" fill="#2563eb"/>
+  <rect x="15" y="11" width="5" height="4" rx="1" fill="#2563eb"/>
+  <!-- wheels -->
+  <circle cx="10" cy="23" r="3" fill="white"/>
+  <circle cx="22" cy="23" r="3" fill="white"/>
+  <circle cx="10" cy="23" r="1.5" fill="#2563eb"/>
+  <circle cx="22" cy="23" r="1.5" fill="#2563eb"/>
+  <!-- front bar -->
+  <rect x="5" y="19" width="22" height="2" fill="#bfdbfe"/>
+</svg>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-One-time historical backfill for bussforsinkelser.no
+One-time historical backfill for Bussforsinkelser
 
 Fetches data from 2021-01-01 to yesterday, month by month, and populates
 the local SQLite database. Supports multiple operators (e.g. SKY and RUT).
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Historical backfill for bussforsinkelser.no",
+        description="Historical backfill for Bussforsinkelser",
     )
     parser.add_argument(
         "start",

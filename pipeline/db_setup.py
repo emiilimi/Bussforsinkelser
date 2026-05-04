@@ -1,5 +1,5 @@
 """
-Creates the SQLite database schema for bussforsinkelser.no.
+Creates the SQLite database schema for Bussforsinkelser.
 Run once before first ingest: python pipeline/db_setup.py
 
 NOTE: If the database already exists, drop it first:

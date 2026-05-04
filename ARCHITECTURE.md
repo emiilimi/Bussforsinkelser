@@ -1,4 +1,4 @@
-# bussforsinkelser.no — Arkitektur og funksjonsoversikt
+# Bussforsinkelser — Arkitektur og funksjonsoversikt
 
 ---
 
@@ -464,7 +464,7 @@ CREATE INDEX idx_jsw_journey     ON journey_stop_weekly (service_journey_id);
 ## Filstruktur
 
 ```
-bussforsinkelser.no/
+Bussforsinkelser/
 ├── pipeline/
 │   ├── db_setup.py          Oppretter SQLite-skjema
 │   ├── populate_stops.py    Henter NSR-koordinater (quays JOIN stop_places)
