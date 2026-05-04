@@ -6,10 +6,10 @@ Fetches one day of SIRI ET data for one or more operators, computes delay
 statistics, and writes them to the local SQLite database.
 
 Usage:
-    python pipeline/ingest.py                          # yesterday, operator SKY
-    python pipeline/ingest.py 2025-03-07               # specific date, operator SKY
-    python pipeline/ingest.py --operator RUT           # yesterday, Ruter
-    python pipeline/ingest.py --operator SKY,RUT       # yesterday, both operators
+    python pipeline/ingest.py                          # yesterday, all operators
+    python pipeline/ingest.py 2025-03-07               # specific date, all operators
+    python pipeline/ingest.py --operator RUT           # yesterday, Ruter only
+    python pipeline/ingest.py --operator SKY,RUT       # yesterday, two operators
     python pipeline/ingest.py 2025-03-07 --operator RUT
 
 Railway cron: 0 2 * * *   (02:00 Oslo time)
@@ -54,10 +54,11 @@ DB_PATH = os.environ.get(
     str(Path(__file__).parent.parent / "data" / "bussforsinkelser.db"),
 )
 
-# Comma-separated operator codes; can be overridden via --operator CLI flag.
-# Examples: "SKY", "RUT", "SKY,RUT"
+# Comma-separated operator codes; can be overridden via --operator CLI flag or BQ_OPERATOR env var.
+# Default: all known operators.
+_ALL_OPERATORS = "SKY,MOR,INN,OST,RUT,KOL,VYG,TRO,BRA,FIN,NOR"
 OPERATORS: list[str] = [
-    op.strip() for op in os.environ.get("BQ_OPERATOR", "SKY").split(",") if op.strip()
+    op.strip() for op in os.environ.get("BQ_OPERATOR", _ALL_OPERATORS).split(",") if op.strip()
 ]
 OSLO_TZ = pytz.timezone("Europe/Oslo")
 
@@ -945,7 +946,7 @@ if __name__ == "__main__":
         default=None,
         help=(
             "Comma-separated operator code(s) to ingest, e.g. SKY or SKY,RUT. "
-            "Overrides BQ_OPERATOR env var. Defaults to SKY."
+            f"Overrides BQ_OPERATOR env var. Defaults to all operators ({_ALL_OPERATORS})."
         ),
     )
     args = parser.parse_args()
