@@ -83,7 +83,7 @@ const DAY_LABELS: Record<DayFilter, string> = { all: "Alle dager", weekday: "Uke
 
 
 export default function DelayMap() {
-  const { region, operator } = useRegion();
+  const { region, operators } = useRegion();
   const mapConfig = REGION_MAP_CENTER[region];
   const center: [number, number] = [mapConfig.lat, mapConfig.lng];
 
@@ -94,7 +94,9 @@ export default function DelayMap() {
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
 
   const wq = windowToQuery(window);
-  const queryParams = new URLSearchParams({ operator });
+  const queryParams = new URLSearchParams(
+    operators.length ? { operator: operators.join(",") } : {},
+  );
   if (dayType !== "all") queryParams.set("dayType", dayType);
   if (timePreset.hourMin != null) queryParams.set("hourMin", String(timePreset.hourMin));
   if (timePreset.hourMax != null) queryParams.set("hourMax", String(timePreset.hourMax));

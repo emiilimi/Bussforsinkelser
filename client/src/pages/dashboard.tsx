@@ -53,18 +53,20 @@ function formatTrendDate(isoDate: string, period: string): string {
 export default function Dashboard() {
   const [period, setPeriod] = useState("week");
   const [, navigate] = useLocation();
-  const { region, operator } = useRegion();
+  const { operators, region, operator } = useRegion();
   const days = PERIOD_DAYS[period];
 
-  const { data: summary } = useQuery<DailySummary>({ queryKey: ["/api/summary"] });
+  const opParam = operators.length ? `&operator=${operators.join(",")}` : "";
+
+  const { data: summary } = useQuery<DailySummary>({ queryKey: [`/api/summary${opParam}`] });
   const { data: trend = [] } = useQuery<DailySummary[]>({
-    queryKey: [`/api/summary/trend?days=${days}`],
+    queryKey: [`/api/summary/trend?days=${days}${opParam}`],
   });
   const { data: worstLines = [] } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=worst&period=${period}&operator=${operator}`],
+    queryKey: [`/api/leaderboard/lines?type=worst&period=${period}${opParam}`],
   });
   const { data: bestLines = [] } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=best&period=${period}&operator=${operator}`],
+    queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opParam}`],
   });
 
   const trendData = useMemo(() => {

@@ -1,12 +1,36 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, AlertTriangle, Map, Clock, Map as MapIcon, Navigation } from "lucide-react";
+import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRegion, REGION_LABEL, type Region } from "@/lib/RegionContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRegion, REGION_LABEL, INDIVIDUAL_REGIONS, type Region } from "@/lib/RegionContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { region, setRegion } = useRegion();
+  const { regions, setRegions } = useRegion();
+
+  // "Alle regioner" when empty array
+  const isAll = regions.length === 0;
+
+  function toggleRegion(r: Region) {
+    if (r === "alle") {
+      setRegions([]);
+      return;
+    }
+    if (regions.includes(r)) {
+      const next = regions.filter((x) => x !== r);
+      setRegions(next); // empty = alle
+    } else {
+      setRegions([...regions, r]);
+    }
+  }
+
+  function labelForSelection() {
+    if (isAll) return "Alle regioner";
+    if (regions.length === 1) return REGION_LABEL[regions[0]];
+    if (regions.length === 2) return `${REGION_LABEL[regions[0]]}, ${REGION_LABEL[regions[1]]}`;
+    return `${REGION_LABEL[regions[0]]} +${regions.length - 1}`;
+  }
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
@@ -32,16 +56,50 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="px-2 space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Region</label>
-          <Select value={region} onValueChange={(v) => setRegion(v as Region)}>
-            <SelectTrigger className="w-full h-9 bg-background/50 text-sm">
-              <SelectValue placeholder="Velg region" />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.entries(REGION_LABEL) as [Region, string][]).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full h-9 bg-background/50 text-sm justify-between font-normal truncate"
+              >
+                <span className="truncate text-left">{labelForSelection()}</span>
+                <ChevronDown className="w-4 h-4 flex-shrink-0 opacity-50 ml-1" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="start">
+              {/* Alle-option */}
+              <button
+                onClick={() => setRegions([])}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 rounded-sm text-sm hover:bg-muted transition-colors",
+                  isAll && "font-semibold",
+                )}
+              >
+                <span className={cn("flex h-4 w-4 items-center justify-center rounded border border-primary", isAll ? "bg-primary" : "bg-transparent")}>
+                  {isAll && <Check className="w-3 h-3 text-primary-foreground" />}
+                </span>
+                Alle regioner
+              </button>
+
+              <div className="my-1 border-t border-border" />
+
+              {INDIVIDUAL_REGIONS.map((r) => {
+                const checked = regions.includes(r);
+                return (
+                  <button
+                    key={r}
+                    onClick={() => toggleRegion(r)}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-sm text-sm hover:bg-muted transition-colors"
+                  >
+                    <span className={cn("flex h-4 w-4 items-center justify-center rounded border border-primary flex-shrink-0", checked ? "bg-primary" : "bg-transparent")}>
+                      {checked && <Check className="w-3 h-3 text-primary-foreground" />}
+                    </span>
+                    <span className="truncate">{REGION_LABEL[r]}</span>
+                  </button>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
         </div>
 
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">

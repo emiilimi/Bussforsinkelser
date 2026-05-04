@@ -64,19 +64,23 @@ function InfoTip({ children }: { children: React.ReactNode }) {
 
 export default function WorstLists() {
   const [, navigate] = useLocation();
-  const { operator } = useRegion();
+  const { operators } = useRegion();
   const [daySort, setDaySort] = useState<"delay" | "cancellations">("delay");
   const [stopSort, setStopSort] = useState<"delay" | "pct">("delay");
   const [lineSort, setLineSort] = useState<"stddev" | "pctOnTime" | "cancellations">("stddev");
+  const [vehicleMode, setVehicleMode] = useState("all");
   const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 7, label: "Siste uke" });
   const wq = windowToQuery(window);
 
-  const { data: worstDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?limit=10&operator=${operator}&${wq}`] });
-  const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?limit=10&operator=${operator}&${wq}`] });
-  const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=worst&operator=${operator}&${wq}`] });
-  const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=best&operator=${operator}&${wq}`] });
-  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=reliable&operator=${operator}`] });
-  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=unreliable&operator=${operator}`] });
+  const opParam = operators.length ? `operator=${operators.join(",")}&` : "";
+  const modeParam = vehicleMode !== "all" ? `&mode=${vehicleMode}` : "";
+
+  const { data: worstDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?limit=10&${opParam}${wq}`] });
+  const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?limit=10&${opParam}${wq}`] });
+  const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=worst&${opParam}${wq}${modeParam}`] });
+  const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=best&${opParam}${wq}${modeParam}`] });
+  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=reliable&${opParam}${modeParam}`] });
+  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=unreliable&${opParam}${modeParam}`] });
 
   // Sort days
   const sortedWorstDays = [...worstDays].sort((a, b) =>
@@ -145,7 +149,7 @@ export default function WorstLists() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-destructive" />
-                Verste dager
+                Mest forsinkede dager
                 <InfoTip>Dager rangert etter høyeste vektet snittforsinkelse i valgt tidsvindu. "Snitt" er minutter forsinkelse, "I rute" er andel ankomster ≤2 min over rutetid.</InfoTip>
               </CardTitle>
               <CardDescription>Dager med høyest gjennomsnittlig forsinkelse.</CardDescription>
@@ -192,7 +196,7 @@ export default function WorstLists() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-green-500" />
-                Beste dager
+                Mest punktlige dager
                 <InfoTip>Dager med lavest vektet snittforsinkelse i valgt tidsvindu.</InfoTip>
               </CardTitle>
               <CardDescription>Dager med lavest gjennomsnittlig forsinkelse.</CardDescription>
@@ -235,8 +239,8 @@ export default function WorstLists() {
           </Card>
         </div>
 
-        {/* Stop sort */}
-        <div className="flex items-center gap-3">
+        {/* Stop sort + mode filter */}
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-muted-foreground">Sorter stopp:</span>
           <Tabs value={stopSort} onValueChange={(v) => setStopSort(v as any)} className="w-auto">
             <TabsList>
@@ -245,6 +249,16 @@ export default function WorstLists() {
             </TabsList>
           </Tabs>
           <InfoTip>"Snitt" sorterer etter vektet snittforsinkelse. "Forsinket &gt;2m" sorterer etter andel avganger som var mer enn 2 min forsinket.</InfoTip>
+          <span className="text-sm text-muted-foreground ml-2">Modus:</span>
+          <Tabs value={vehicleMode} onValueChange={setVehicleMode} className="w-auto">
+            <TabsList>
+              <TabsTrigger value="all" className="text-xs">Alle</TabsTrigger>
+              <TabsTrigger value="bus" className="text-xs">Buss</TabsTrigger>
+              <TabsTrigger value="tram" className="text-xs">Trikk</TabsTrigger>
+              <TabsTrigger value="metro" className="text-xs">T-bane</TabsTrigger>
+              <TabsTrigger value="water" className="text-xs">Båt</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -253,7 +267,7 @@ export default function WorstLists() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPinOff className="h-5 w-5 text-destructive" />
-                Verste stopp
+                Mest forsinkede stopp
                 <InfoTip>Stopp rangert etter vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt for å være med.</InfoTip>
               </CardTitle>
               <CardDescription>I valgt tidsvindu — min. 100 avganger totalt.</CardDescription>
@@ -301,7 +315,7 @@ export default function WorstLists() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-green-500" />
-                Beste stopp
+                Mest punktlige stopp
                 <InfoTip>Stopp med lavest vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt.</InfoTip>
               </CardTitle>
               <CardDescription>I valgt tidsvindu — min. 100 avganger totalt.</CardDescription>

@@ -61,42 +61,131 @@ export function parseDayTypes(input: string | string[] | undefined): DayType[] |
 // Summary
 // ---------------------------------------------------------------------------
 
-export async function getDailySummary(date: string, operator = "SKY") {
-  return db
+/** Aggregate multiple rows from daily_summary into a single combined row. */
+function aggregateSummaryRows(
+  rows: Array<{
+    date: string;
+    operator: string;
+    vehicleMode: string;
+    avgDelayMin: number | null;
+    pctOnTime: number | null;
+    pctDelayed10plus: number | null;
+    totalJourneys: number | null;
+    totalCancellations: number | null;
+  }>,
+): {
+  date: string;
+  operator: string;
+  vehicleMode: string;
+  avgDelayMin: number | null;
+  pctOnTime: number | null;
+  pctDelayed10plus: number | null;
+  totalJourneys: number | null;
+  totalCancellations: number | null;
+} | null {
+  if (rows.length === 0) return null;
+  if (rows.length === 1) return rows[0];
+  let totalJourneys = 0;
+  let totalCancellations = 0;
+  let sumDelay = 0;
+  let sumPctOnTime = 0;
+  let sumPct10late = 0;
+  let weightedCount = 0;
+  for (const r of rows) {
+    const w = r.totalJourneys ?? 0;
+    totalJourneys += w;
+    totalCancellations += r.totalCancellations ?? 0;
+    if (w > 0) {
+      sumDelay += (r.avgDelayMin ?? 0) * w;
+      sumPctOnTime += (r.pctOnTime ?? 0) * w;
+      sumPct10late += (r.pctDelayed10plus ?? 0) * w;
+      weightedCount += w;
+    }
+  }
+  return {
+    date: rows[0].date,
+    operator: "alle",
+    vehicleMode: "all",
+    avgDelayMin: weightedCount > 0 ? Math.round((sumDelay / weightedCount) * 100) / 100 : null,
+    pctOnTime: weightedCount > 0 ? Math.round((sumPctOnTime / weightedCount) * 10) / 10 : null,
+    pctDelayed10plus: weightedCount > 0 ? Math.round((sumPct10late / weightedCount) * 10) / 10 : null,
+    totalJourneys,
+    totalCancellations,
+  };
+}
+
+/**
+ * getDailySummary — operators[] = [] means no filter (all operators, aggregated).
+ * Single operator in array returns that operator's row.
+ * Multiple operators: returns aggregated row.
+ */
+export async function getDailySummary(date: string, operators: string[] = []) {
+  const rows = await db
     .select()
     .from(schema.dailySummary)
     .where(
       and(
         eq(schema.dailySummary.date, date),
-        eq(schema.dailySummary.operator, operator),
+        operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
+        inArray(schema.dailySummary.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
       ),
     )
-    .get();
+    .all();
+  return aggregateSummaryRows(rows);
 }
 
-export async function getLatestSummary(operator = "SKY") {
-  return db
-    .select()
+export async function getLatestSummary(operators: string[] = []) {
+  // Get the latest date available
+  const latestDate = await db
+    .select({ date: schema.dailySummary.date })
     .from(schema.dailySummary)
-    .where(eq(schema.dailySummary.operator, operator))
+    .where(
+      operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
+    )
     .orderBy(desc(schema.dailySummary.date))
     .limit(1)
     .get();
+  if (!latestDate) return null;
+  const rows = await db
+    .select()
+    .from(schema.dailySummary)
+    .where(
+      and(
+        eq(schema.dailySummary.date, latestDate.date),
+        operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
+        inArray(schema.dailySummary.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
+      ),
+    )
+    .all();
+  return aggregateSummaryRows(rows);
 }
 
-export async function getDailySummaryRange(fromDate: string, toDate: string, operator = "SKY") {
-  return db
+export async function getDailySummaryRange(fromDate: string, toDate: string, operators: string[] = []) {
+  const rows = await db
     .select()
     .from(schema.dailySummary)
     .where(
       and(
         gte(schema.dailySummary.date, fromDate),
         lte(schema.dailySummary.date, toDate),
-        eq(schema.dailySummary.operator, operator),
+        operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
+        inArray(schema.dailySummary.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
       ),
     )
     .orderBy(schema.dailySummary.date)
     .all();
+
+  // Group by date, aggregate across operators
+  const byDate = new Map<string, typeof rows>();
+  for (const r of rows) {
+    const bucket = byDate.get(r.date) ?? [];
+    bucket.push(r);
+    byDate.set(r.date, bucket);
+  }
+  return Array.from(byDate.values())
+    .map(aggregateSummaryRows)
+    .filter((r): r is NonNullable<typeof r> => r !== null)
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 // ---------------------------------------------------------------------------
@@ -397,8 +486,13 @@ export async function searchStops(query: string, limit = 20) {
     }>;
 }
 
-export async function getStopsForMap(date: string, operator = "SKY") {
+export async function getStopsForMap(date: string, operators: string[] = []) {
   // Aggregate over a rolling 7-day window ending on `date`
+  const opFilter =
+    operators.length
+      ? `AND sd.operator IN (${operators.map(() => "?").join(",")})`
+      : "";
+  const params: unknown[] = [date, date, ...operators];
   return sqlite.prepare(`
     SELECT
       sd.stop_ref                                                     AS stopRef,
@@ -417,10 +511,10 @@ export async function getStopsForMap(date: string, operator = "SKY") {
     WHERE sd.date > date(?, '-7 days')
       AND sd.date <= ?
       AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL})
-      AND sd.operator = ?
+      ${opFilter}
     GROUP BY sd.stop_ref
     HAVING SUM(sd.num_departures) > 0
-  `).all(date, date, operator);
+  `).all(...params);
 }
 
 /**
@@ -431,7 +525,7 @@ export async function getStopsForMap(date: string, operator = "SKY") {
  */
 export async function getStopsForMapFiltered(
   date: string,
-  operator = "SKY",
+  operators: string[] = [],
   dayType: "all" | "weekday" | "weekend" = "all",
   hourMin?: number,
   hourMax?: number,
@@ -442,6 +536,11 @@ export async function getStopsForMapFiltered(
       ? `AND CAST(strftime('%w', t.date) AS INT) BETWEEN 1 AND 5`
       : dayType === "weekend"
       ? `AND CAST(strftime('%w', t.date) AS INT) IN (0, 6)`
+      : "";
+
+  const opFilter =
+    operators.length
+      ? `AND t.operator IN (${operators.map(() => "?").join(",")})`
       : "";
 
   if (hourMin != null && hourMax != null) {
@@ -464,16 +563,17 @@ export async function getStopsForMapFiltered(
       LEFT JOIN stop_coords sc ON sc.stop_ref = t.stop_ref
       WHERE t.date > date(?, '-${windowDays} days')
         AND t.date <= ?
-        AND t.operator = ?
+        ${opFilter}
         ${dayFilter}
         ${hourFilter}
       GROUP BY t.stop_ref
       HAVING SUM(t.num_samples) > 0
-    `).all(date, date, operator);
+    `).all(date, date, ...operators);
   }
 
   // No hour filter — use stop_daily (has pct_delayed_2plus)
   const dayFilterDaily = dayFilter.replace(/t\./g, "sd.");
+  const opFilterDaily = opFilter.replace(/t\./g, "sd.");
   return sqlite.prepare(`
     SELECT
       sd.stop_ref                                                     AS stopRef,
@@ -492,11 +592,11 @@ export async function getStopsForMapFiltered(
     WHERE sd.date > date(?, '-${windowDays} days')
       AND sd.date <= ?
       AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL})
-      AND sd.operator = ?
+      ${opFilterDaily}
       ${dayFilterDaily}
     GROUP BY sd.stop_ref
     HAVING SUM(sd.num_departures) > 0
-  `).all(date, date, operator);
+  `).all(date, date, ...operators);
 }
 
 export async function getLatestStopDate(): Promise<string | null> {
@@ -536,15 +636,33 @@ export async function getLatestStopDate(): Promise<string | null> {
 // Leaderboards
 // ---------------------------------------------------------------------------
 
-export async function getLeaderboardLines(type: "worst" | "best", operator?: string, limit = 10) {
+/** Build a WHERE condition that matches any of the given operator prefixes on lineRef. */
+function operatorsLineFilter(operators: string[], lineRefCol: Parameters<typeof like>[0]) {
+  if (!operators.length) return undefined;
+  if (operators.length === 1) return like(lineRefCol, `${operators[0]}:%`);
+  // OR-join for multiple operators — use sql for safety
+  const clauses = operators.map((op) => sql`${lineRefCol} LIKE ${op + ":%"}`);
+  return sql.join(clauses, sql` OR `);
+}
+
+export async function getLeaderboardLines(
+  type: "worst" | "best",
+  operators: string[] = [],
+  limit = 10,
+  mode = "all",
+) {
   const order =
     type === "worst"
       ? desc(schema.leaderboardLines.avgDelayMin)
       : schema.leaderboardLines.avgDelayMin;
+  const modeFilter =
+    mode === "all"
+      ? inArray(schema.leaderboardLines.vehicleMode, INCLUDED_MODES as readonly string[] as string[])
+      : eq(schema.leaderboardLines.vehicleMode, mode);
   return db
     .select()
     .from(schema.leaderboardLines)
-    .where(operator ? like(schema.leaderboardLines.lineRef, `${operator}:%`) : undefined)
+    .where(and(operatorsLineFilter(operators, schema.leaderboardLines.lineRef), modeFilter))
     .orderBy(order)
     .limit(limit)
     .all();
@@ -553,19 +671,25 @@ export async function getLeaderboardLines(type: "worst" | "best", operator?: str
 /** Reliability leaderboard: lines sorted by stddev (low = reliable, high = unpredictable). */
 export async function getLeaderboardLinesByReliability(
   type: "reliable" | "unreliable",
-  operator?: string,
+  operators: string[] = [],
   limit = 10,
+  mode = "all",
 ) {
   const order =
     type === "unreliable"
       ? desc(schema.leaderboardLines.stddevDelayMin)
       : schema.leaderboardLines.stddevDelayMin;
+  const modeFilter =
+    mode === "all"
+      ? inArray(schema.leaderboardLines.vehicleMode, INCLUDED_MODES as readonly string[] as string[])
+      : eq(schema.leaderboardLines.vehicleMode, mode);
   return db
     .select()
     .from(schema.leaderboardLines)
     .where(
       and(
-        operator ? like(schema.leaderboardLines.lineRef, `${operator}:%`) : undefined,
+        operatorsLineFilter(operators, schema.leaderboardLines.lineRef),
+        modeFilter,
         sql`${schema.leaderboardLines.stddevDelayMin} IS NOT NULL`,
         sql`${schema.leaderboardLines.totalDepartures} >= 500`,
       ),
@@ -578,11 +702,16 @@ export async function getLeaderboardLinesByReliability(
 export async function getLeaderboardLinesPeriod(
   type: "worst" | "best",
   fromDate: string,
-  operator?: string,
+  operators: string[] = [],
   limit = 10,
+  mode = "all",
 ) {
   const avgExpr = sql<number>`ROUND(SUM(${schema.lineDaily.avgDelayMin} * ${schema.lineDaily.numDepartures}) * 1.0 / SUM(${schema.lineDaily.numDepartures}), 2)`;
   const order = type === "worst" ? desc(avgExpr) : avgExpr;
+  const modeFilter =
+    mode === "all"
+      ? inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[])
+      : eq(schema.lineDaily.vehicleMode, mode);
 
   return db
     .select({
@@ -593,9 +722,11 @@ export async function getLeaderboardLinesPeriod(
     })
     .from(schema.lineDaily)
     .where(
-      operator
-        ? and(gte(schema.lineDaily.date, fromDate), inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]), like(schema.lineDaily.lineRef, `${operator}:%`))
-        : and(gte(schema.lineDaily.date, fromDate), inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[])),
+      and(
+        gte(schema.lineDaily.date, fromDate),
+        modeFilter,
+        operatorsLineFilter(operators, schema.lineDaily.lineRef),
+      ),
     )
     .groupBy(schema.lineDaily.lineRef, schema.lineDaily.lineName)
     .orderBy(order)
@@ -606,15 +737,21 @@ export async function getLeaderboardLinesPeriod(
 export async function getLeaderboardStops(
   type: "worst" | "best" = "worst",
   fromDate: string,
-  operator = "SKY",
+  operators: string[] = [],
   limit = 10,
   toDate?: string,
+  mode = "all",
 ) {
   const avgExpr = sql<number>`ROUND(SUM(${schema.stopDaily.avgDelayMin} * ${schema.stopDaily.numDepartures}) * 1.0 / SUM(${schema.stopDaily.numDepartures}), 2)`;
   const pctExpr = sql<number>`ROUND(SUM(${schema.stopDaily.pctDelayed2plus} * ${schema.stopDaily.numDepartures}) * 1.0 / SUM(${schema.stopDaily.numDepartures}), 1)`;
   const order = type === "worst" ? desc(avgExpr) : avgExpr;
 
   const stddevExpr = sql<number | null>`ROUND(SUM(${schema.stopDaily.stddevDelayMin} * ${schema.stopDaily.numDepartures}) * 1.0 / SUM(${schema.stopDaily.numDepartures}), 2)`;
+
+  const modeFilter =
+    mode === "all"
+      ? inArray(schema.stopDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[])
+      : eq(schema.stopDaily.vehicleMode, mode);
 
   return db
     .select({
@@ -631,8 +768,8 @@ export async function getLeaderboardStops(
       and(
         gte(schema.stopDaily.date, fromDate),
         toDate ? lte(schema.stopDaily.date, toDate) : undefined,
-        inArray(schema.stopDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
-        eq(schema.stopDaily.operator, operator),
+        modeFilter,
+        operators.length ? inArray(schema.stopDaily.operator, operators) : undefined,
         like(schema.stopDaily.stopRef, "NSR:%"),
       ),
     )
@@ -648,14 +785,14 @@ export async function getLeaderboardStops(
  * Otherwise, use the materialized worst_days table (for default all-time view).
  * dayTypes filters by day type (weekday/saturday/sunday/holiday/may17) on the materialized table.
  */
-export async function getWorstDays(limit = 10, operator = "SKY", fromDate?: string, toDate?: string, dayTypes?: DayType[] | null) {
+export async function getWorstDays(limit = 10, operators: string[] = [], fromDate?: string, toDate?: string, dayTypes?: DayType[] | null) {
   if (fromDate || toDate) {
     return db
       .select()
       .from(schema.dailySummary)
       .where(
         and(
-          eq(schema.dailySummary.operator, operator),
+          operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
           fromDate ? gte(schema.dailySummary.date, fromDate) : undefined,
           toDate ? lte(schema.dailySummary.date, toDate) : undefined,
         ),
@@ -669,7 +806,7 @@ export async function getWorstDays(limit = 10, operator = "SKY", fromDate?: stri
     .from(schema.worstDays)
     .where(
       and(
-        eq(schema.worstDays.operator, operator),
+        operators.length ? inArray(schema.worstDays.operator, operators) : undefined,
         dayTypes && dayTypes.length
           ? inArray(schema.worstDays.dayType, dayTypes as readonly string[] as string[])
           : undefined,
@@ -680,13 +817,13 @@ export async function getWorstDays(limit = 10, operator = "SKY", fromDate?: stri
     .all();
 }
 
-export async function getBestDays(limit = 10, operator = "SKY", fromDate?: string, toDate?: string) {
+export async function getBestDays(limit = 10, operators: string[] = [], fromDate?: string, toDate?: string) {
   return db
     .select()
     .from(schema.dailySummary)
     .where(
       and(
-        eq(schema.dailySummary.operator, operator),
+        operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
         fromDate ? gte(schema.dailySummary.date, fromDate) : undefined,
         toDate ? lte(schema.dailySummary.date, toDate) : undefined,
       ),

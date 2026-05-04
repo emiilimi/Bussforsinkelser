@@ -53,6 +53,20 @@ function parseOperator(raw: unknown, fallback = "SKY"): string {
 }
 
 /**
+ * Parses ?operator=SKY,RUT,MOR → ["SKY","RUT","MOR"]
+ * Empty string or missing → [] (means "all operators, no filter").
+ */
+function parseOperators(raw: unknown): string[] {
+  if (typeof raw !== "string" || !raw) return [];
+  return raw.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+}
+
+/** Parse ?mode=bus|tram|metro|water|all (default "all"). */
+function parseMode(raw: unknown): string {
+  return typeof raw === "string" && raw.length > 0 ? raw.toLowerCase() : "all";
+}
+
+/**
  * Parses ?days=N or ?from=YYYY-MM-DD&to=YYYY-MM-DD into a normalized window.
  * Returns { fromIso, toIso, days } where `days` is the number of calendar days
  * in the window (used for `journey_stop_weekly` queries which need `weeks`).
@@ -116,10 +130,10 @@ export async function registerRoutes(
    */
   app.get("/api/summary", async (req, res) => {
     const date = parseDate(req.query.date, yesterday());
-    const operator = parseOperator(req.query.operator);
-    const row = await getDailySummary(date, operator);
+    const operators = parseOperators(req.query.operator);
+    const row = await getDailySummary(date, operators);
     if (!row) {
-      const latest = await getLatestSummary(operator);
+      const latest = await getLatestSummary(operators);
       if (!latest) return res.status(404).json({ message: "Ingen data tilgjengelig" });
       return res.json(latest);
     }
@@ -127,13 +141,13 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/summary/trend?days=30&operator=SKY
+   * GET /api/summary/trend?days=30&operator=SKY,RUT
    * Returns daily summaries for the last N days (for the trend chart).
    */
   app.get("/api/summary/trend", async (req, res) => {
     const { fromIso, toIso } = parseTimeWindow(req.query, 7);
-    const operator = parseOperator(req.query.operator);
-    const rows = await getDailySummaryRange(fromIso, toIso, operator);
+    const operators = parseOperators(req.query.operator);
+    const rows = await getDailySummaryRange(fromIso, toIso, operators);
     return res.json(rows);
   });
 
@@ -278,7 +292,7 @@ export async function registerRoutes(
    */
   app.get("/api/stops/map", async (req, res) => {
     const requestedDate = parseDate(req.query.date, yesterday());
-    const operator = parseOperator(req.query.operator);
+    const operators = parseOperators(req.query.operator);
     const dayType = (req.query.dayType as string) || "all";
     const hourMin = req.query.hourMin != null ? Number(req.query.hourMin) : undefined;
     const hourMax = req.query.hourMax != null ? Number(req.query.hourMax) : undefined;
@@ -290,18 +304,18 @@ export async function registerRoutes(
     if (hasFilters) {
       rows = await getStopsForMapFiltered(
         requestedDate,
-        operator,
+        operators,
         dayType as any,
         hourMin,
         hourMax,
         windowDays,
       );
     } else {
-      rows = await getStopsForMap(requestedDate, operator);
+      rows = await getStopsForMap(requestedDate, operators);
       if (rows.length === 0) {
         const latestDate = await getLatestStopDate();
         if (latestDate && latestDate !== requestedDate) {
-          rows = await getStopsForMap(latestDate, operator);
+          rows = await getStopsForMap(latestDate, operators);
         }
       }
     }
@@ -314,44 +328,46 @@ export async function registerRoutes(
   app.get("/api/leaderboard/lines", async (req, res) => {
     const rawType = req.query.type as string | undefined;
     const period = req.query.period as string;
-    const operator = typeof req.query.operator === "string" ? req.query.operator : undefined;
+    const operators = parseOperators(req.query.operator);
+    const mode = parseMode(req.query.mode);
 
     // Reliability leaderboards (sort by stddev) — separate from delay-based leaderboards.
     if (rawType === "reliable" || rawType === "unreliable") {
-      const rows = await getLeaderboardLinesByReliability(rawType, operator);
+      const rows = await getLeaderboardLinesByReliability(rawType, operators, 10, mode);
       return res.json(rows);
     }
 
     const type = rawType === "best" ? "best" : "worst";
     let rows;
     if (period === "week") {
-      rows = await getLeaderboardLinesPeriod(type, daysAgoIso(7), operator);
+      rows = await getLeaderboardLinesPeriod(type, daysAgoIso(7), operators, 10, mode);
     } else if (period === "month") {
-      rows = await getLeaderboardLinesPeriod(type, daysAgoIso(30), operator);
+      rows = await getLeaderboardLinesPeriod(type, daysAgoIso(30), operators, 10, mode);
     } else {
-      rows = await getLeaderboardLines(type, operator);
+      rows = await getLeaderboardLines(type, operators, 10, mode);
     }
     return res.json(rows);
   });
 
   /**
-   * GET /api/leaderboard/stops?type=worst|best&days=7&operator=SKY
+   * GET /api/leaderboard/stops?type=worst|best&days=7&operator=SKY,RUT&mode=bus
    * Computed live from stop_daily for the last N days (default 7).
    */
   app.get("/api/leaderboard/stops", async (req, res) => {
     const type = req.query.type === "best" ? "best" : "worst";
     const { fromIso, toIso } = parseTimeWindow(req.query, 7);
-    const operator = parseOperator(req.query.operator);
-    const rows = await getLeaderboardStops(type, fromIso, operator, 10, toIso);
+    const operators = parseOperators(req.query.operator);
+    const mode = parseMode(req.query.mode);
+    const rows = await getLeaderboardStops(type, fromIso, operators, 10, toIso, mode);
     return res.json(rows);
   });
 
   /**
-   * GET /api/worst-days?limit=10&operator=SKY
+   * GET /api/worst-days?limit=10&operator=SKY,RUT
    */
   app.get("/api/worst-days", async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 10, 100);
-    const operator = parseOperator(req.query.operator);
+    const operators = parseOperators(req.query.operator);
     // Only pass from/to when explicitly provided to keep materialized-table fast path.
     const hasWindow =
       typeof req.query.from === "string" ||
@@ -359,22 +375,22 @@ export async function registerRoutes(
       typeof req.query.days === "string";
     const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
     const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
-    const rows = await getWorstDays(limit, operator, window?.fromIso, window?.toIso, dayTypes);
+    const rows = await getWorstDays(limit, operators, window?.fromIso, window?.toIso, dayTypes);
     return res.json(rows);
   });
 
   /**
-   * GET /api/best-days?limit=10&operator=SKY
+   * GET /api/best-days?limit=10&operator=SKY,RUT
    */
   app.get("/api/best-days", async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 10, 100);
-    const operator = parseOperator(req.query.operator);
+    const operators = parseOperators(req.query.operator);
     const hasWindow =
       typeof req.query.from === "string" ||
       typeof req.query.to === "string" ||
       typeof req.query.days === "string";
     const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
-    const rows = await getBestDays(limit, operator, window?.fromIso, window?.toIso);
+    const rows = await getBestDays(limit, operators, window?.fromIso, window?.toIso);
     return res.json(rows);
   });
 
