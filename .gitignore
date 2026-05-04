@@ -21,7 +21,7 @@ gcp-credentials.json
 service-account*.json
 
 # Env
-.env
+*.env
 .env.local
 
 # Claude memory / project context (local only)
