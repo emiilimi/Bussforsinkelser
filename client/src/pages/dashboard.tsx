@@ -56,17 +56,18 @@ export default function Dashboard() {
   const { operators, region, operator } = useRegion();
   const days = PERIOD_DAYS[period];
 
-  const opParam = operators.length ? `&operator=${operators.join(",")}` : "";
+  // opStr is the raw query param (no leading separator) — appended with ? or & as needed per URL
+  const opStr = operators.length ? `operator=${operators.join(",")}` : "";
 
-  const { data: summary } = useQuery<DailySummary>({ queryKey: [`/api/summary${opParam}`] });
+  const { data: summary } = useQuery<DailySummary>({ queryKey: [`/api/summary${opStr ? `?${opStr}` : ""}`] });
   const { data: trend = [] } = useQuery<DailySummary[]>({
-    queryKey: [`/api/summary/trend?days=${days}${opParam}`],
+    queryKey: [`/api/summary/trend?days=${days}${opStr ? `&${opStr}` : ""}`],
   });
   const { data: worstLines = [] } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=worst&period=${period}${opParam}`],
+    queryKey: [`/api/leaderboard/lines?type=worst&period=${period}${opStr ? `&${opStr}` : ""}`],
   });
   const { data: bestLines = [] } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opParam}`],
+    queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opStr ? `&${opStr}` : ""}`],
   });
 
   const trendData = useMemo(() => {
