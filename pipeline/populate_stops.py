@@ -2,6 +2,11 @@
 """
 Populate stop_coords from NSR (National Stop Registry).
 
+Fetches all quays from BigQuery — including stop_place_ref (parent stop place)
+and platform_code (publicCode, e.g. "A", "B", "C") — for ALL operators.
+This makes populate_stop_places.py optional (it can still run as a Skyss override
+for platform_code corrections, but is no longer the primary source for any operator).
+
 First run: fetches from BigQuery and saves a local cache file (data/stop_coords.json).
 Subsequent runs: loads from the cache — no BigQuery call needed.
 
@@ -42,8 +47,13 @@ def fetch_from_bigquery() -> list[tuple]:
     log.info("Fetching NSR stop coordinates from BigQuery …")
     client = bigquery.Client()
     # SIRI ET stopPointRef = NSR:Quay:xxxxx, so we key on quay IDs.
-    # Quays have no name column, so we join to stop_places to get the
-    # human-readable stop place name (the parent of the quay).
+    # Quays have no name column — join to stop_places to get the human-readable
+    # stop place name (the parent of the quay).
+    # publicCode is the NeTEx platform designation (e.g. "A", "B", "1", "2").
+    # NOTE: If BigQuery raises "Unrecognized name: publicCode", try
+    # replacing q.publicCode with q.platformCode or check the schema with:
+    #   SELECT column_name FROM `ent-data-sharing-ext-prd.national_stop_registry.INFORMATION_SCHEMA.COLUMNS`
+    #   WHERE table_name = 'quays_last_version'
     query = f"""
     SELECT
         q.id                  AS stop_ref,
@@ -51,7 +61,8 @@ def fetch_from_bigquery() -> list[tuple]:
         q.location_latitude   AS lat,
         q.location_longitude  AS lng,
         q.stopPlaceRef        AS stop_place_ref,
-        sp.name               AS stop_place_name
+        sp.name               AS stop_place_name,
+        q.publicCode          AS platform_code
     FROM `{NSR_QUAYS_TABLE}` q
     LEFT JOIN `{NSR_STOPS_TABLE}` sp ON sp.id = q.stopPlaceRef
     WHERE q.location_latitude  IS NOT NULL
@@ -62,7 +73,8 @@ def fetch_from_bigquery() -> list[tuple]:
     return [
         (str(r.stop_ref), str(r.stop_name) if r.stop_name else None, r.lat, r.lng,
          str(r.stop_place_ref) if r.stop_place_ref else None,
-         str(r.stop_place_name) if r.stop_place_name else None)
+         str(r.stop_place_name) if r.stop_place_name else None,
+         str(r.platform_code) if r.platform_code else None)
         for r in df.itertuples(index=False)
     ]
 
@@ -77,7 +89,10 @@ def save_cache(rows: list[tuple]) -> None:
 def load_cache() -> list[tuple]:
     with open(CACHE_PATH) as f:
         data = json.load(f)
-    return [tuple(r) for r in data]
+    rows = [tuple(r) for r in data]
+    # Backward compatibility: old cache had 6 columns (no platform_code).
+    # Pad with None so the rest of the code always sees 7-tuples.
+    return [r if len(r) == 7 else r + (None,) for r in rows]
 
 
 CACHE_MAX_AGE_DAYS = 30
@@ -110,8 +125,8 @@ def populate(db_path: str = DB_PATH, force_refresh: bool = False) -> None:
             conn.execute("DELETE FROM stop_coords")
             conn.executemany(
                 """INSERT OR REPLACE INTO stop_coords
-                   (stop_ref, stop_name, lat, lng, stop_place_ref, stop_place_name)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   (stop_ref, stop_name, lat, lng, stop_place_ref, stop_place_name, platform_code)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 rows,
             )
         log.info("  Inserted %d rows into stop_coords", len(rows))
