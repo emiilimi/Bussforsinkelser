@@ -454,11 +454,15 @@ export async function searchStops(query: string, limit = 20) {
   // For quays without a stop_place_ref mapping we fall back to the quay itself.
   // quayData: "NSR:Quay:53114|J,NSR:Quay:53115|F,..." for individual platform picker.
   // Uses DISTINCT subquery on stop_daily to avoid duplicating quays across dates.
+  //
+  // GROUP BY stop name (not stop_place_ref) so that major hubs like "Jernbanetorget"
+  // which have several distinct NSR:StopPlace IDs all named identically collapse into
+  // one search result. MIN(stopRef) picks one representative stop-place ref.
   return sqlite
     .prepare(
       `
       SELECT
-        COALESCE(sc.stop_place_ref, sc.stop_ref)             AS stopRef,
+        MIN(COALESCE(sc.stop_place_ref, sc.stop_ref))        AS stopRef,
         COALESCE(sc.stop_place_name, MAX(sc.stop_name))      AS stopName,
         GROUP_CONCAT(
           DISTINCT sc.platform_code
@@ -473,7 +477,7 @@ export async function searchStops(query: string, limit = 20) {
         ON sd.stop_ref = sc.stop_ref
       WHERE sc.stop_name LIKE ?
          OR sc.stop_place_name LIKE ?
-      GROUP BY COALESCE(sc.stop_place_ref, sc.stop_ref)
+      GROUP BY COALESCE(sc.stop_place_name, sc.stop_name)
       ORDER BY stopName
       LIMIT ?
       `,

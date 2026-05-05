@@ -3,7 +3,38 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-05-03
+**Sist oppdatert**: 2026-05-05
+
+## Endringslogg — 2026-05-05: Multi-regionvelger + modus-filter + stop place-berikelse
+
+**Regionvelger (multi-select)**:
+- `client/src/lib/RegionContext.tsx`: endret fra enkelt `region: Region` til `regions: Region[]` + `operators: string[]`. Tom array = "Alle regioner". localStorage migreres automatisk fra gammelt streng-format.
+- `client/src/components/layout.tsx`: `<Select>` erstattet med `<Popover>` + checkboxer. Knapp viser "Alle regioner", enkelt navn, eller "X +N" for flervalg. Alle 11 operatører tilgjengelige.
+
+**Dashboard-fix (global stats bug)**:
+- `client/src/pages/dashboard.tsx`: `queryKey` for `/api/summary` og `/api/summary/trend` mangler operator. Nå inkludert via `opParam`. Alle brukere ser korrekt regionfiltrert data.
+
+**Kart-fix (viste kun Skyss)**:
+- `client/src/pages/delay-map.tsx`: sender nå `operator=SKY,RUT,...` eller ingenting (alle) til `/api/stops/map`.
+
+**Backend — multi-operator + modus**:
+- `server/routes.ts`: ny `parseOperators()` (kommaseparert → `string[]`) og `parseMode()` helper. Alle summary-, kart- og leaderboard-endepunkter bruker dem.
+- `server/storage.ts`: `getDailySummary/Range/Latest` bruker `inArray` + ny `aggregateSummaryRows()` (vektet avg på tvers av operatører). `getStopsForMap/Filtered`, `getLeaderboardLines/Stops/ByReliability/Period`, `getWorstDays`, `getBestDays` — alle støtter nå `operators: string[]` + `mode`-parameter.
+
+**Topplister — modus-filter + språk**:
+- `client/src/pages/worst-lists.tsx`: Tabs "Alle / Buss / Trikk / T-bane / Båt" for stopp- og linjeleaderboard. "Verste dager" → "Mest forsinkede dager", "Beste dager" → "Mest punktlige dager", tilsvarende for stopp.
+
+**Favicon + domene**:
+- `client/index.html`: fjernet alle `bussforsinkelser.no`-referanser og Replit OG-tags. Tittel: "Bussforsinkelser".
+- `client/public/favicon.svg`: ny blå buss-favicon (SVG, laget fra scratch). Erstatter Replit-favicon.png.
+
+**Stop place-berikelse (alle operatører)**:
+- `pipeline/populate_stops.py`: BQ-spørringen henter nå også `q.publicCode AS platform_code`. Cache-format endret fra 6-tuple til 7-tuple med bakover-kompatibilitet. Alle operatørers quays får nå `platform_code` fra NSR direkte — uten å være avhengig av Skyss GTFS-fila.
+- `populate_stop_places.py` kjøres fortsatt som valgfri Skyss-override, men er ikke lenger nødvendig for `stop_place_ref` eller `platform_code` hos andre operatører.
+- Kjør: `del data\stop_coords.json && python pipeline/populate_stops.py --refresh` for å ta i bruk ny 7-kolonne-cache.
+
+**Stoppsøk — Jernbanetorget-dedup**:
+- `server/storage.ts` `searchStops()`: `GROUP BY` endret fra `COALESCE(stop_place_ref, stop_ref)` til `COALESCE(stop_place_name, stop_name)`. Store knutepunkter (f.eks. Jernbanetorget) med 7 distinkte `NSR:StopPlace`-IDer men samme navn kollapser nå til én søketreff. `MIN(stopRef)` velger én representativ stop-place ref.
 
 ## Endringslogg — 2026-05-03: DuckDB-WASM full migrering + R2 + stripped prod-DB
 
