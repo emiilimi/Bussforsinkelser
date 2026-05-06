@@ -16,6 +16,7 @@ import {
   getStopHourlyProfile,
   searchStops,
   getStopsByRefs,
+  getStopsByRefsExpanded,
   getStopsForMap,
   getLeaderboardLines,
   getLeaderboardLinesPeriod,
@@ -64,6 +65,19 @@ function parseOperators(raw: unknown): string[] {
 /** Parse ?mode=bus|tram|metro|water|all (default "all"). */
 function parseMode(raw: unknown): string {
   return typeof raw === "string" && raw.length > 0 ? raw.toLowerCase() : "all";
+}
+
+/**
+ * Parse a numeric query parameter safely.
+ * - undefined/empty/non-string → fallback
+ * - non-numeric string → fallback (Number("abc") = NaN, which is filtered)
+ * - "0" still returns 0 (unlike `Number(x) || fallback`).
+ * Caller can clamp/validate further.
+ */
+function parseIntQuery(raw: unknown, fallback: number): number {
+  if (typeof raw !== "string" || raw.length === 0) return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 /**
@@ -157,7 +171,7 @@ export async function registerRoutes(
    */
   app.get("/api/lines", async (req, res) => {
     const date = parseDate(req.query.date, yesterday());
-    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const limit = Math.min(Math.max(1, parseIntQuery(req.query.limit, 20)), 100);
     const rows = await getLinesForDate(date, limit);
     return res.json(rows);
   });
@@ -249,6 +263,9 @@ export async function registerRoutes(
    * GET /api/stops/lookup?refs=NSR:Quay:1,NSR:Quay:2,...
    * Batch oppslag: stop_ref → stop_name + stop_place_ref. Brukes av klient-side
    * DuckDB-WASM-hooks for å berike resultater med stoppnavn etter en Parquet-query.
+   *
+   * Med ?expand=stopplace utvides NSR:StopPlace:X-refs til alle barne-quays
+   * (rader hvor stop_place_ref = X). Quay-refs slippes uendret gjennom.
    */
   app.get("/api/stops/lookup", async (req, res) => {
     const refs = String(req.query.refs ?? "")
@@ -259,7 +276,10 @@ export async function registerRoutes(
     if (refs.length > 500) {
       return res.status(400).json({ error: "Max 500 refs per request" });
     }
-    const rows = await getStopsByRefs(refs);
+    const expand = req.query.expand === "stopplace";
+    const rows = expand
+      ? await getStopsByRefsExpanded(refs)
+      : await getStopsByRefs(refs);
     return res.json(rows);
   });
 
@@ -294,9 +314,11 @@ export async function registerRoutes(
     const requestedDate = parseDate(req.query.date, yesterday());
     const operators = parseOperators(req.query.operator);
     const dayType = (req.query.dayType as string) || "all";
-    const hourMin = req.query.hourMin != null ? Number(req.query.hourMin) : undefined;
-    const hourMax = req.query.hourMax != null ? Number(req.query.hourMax) : undefined;
-    const windowDays = Math.min(Number(req.query.windowDays) || 7, 90);
+    const hmRaw = parseIntQuery(req.query.hourMin, NaN);
+    const hMaxRaw = parseIntQuery(req.query.hourMax, NaN);
+    const hourMin = Number.isFinite(hmRaw) ? hmRaw : undefined;
+    const hourMax = Number.isFinite(hMaxRaw) ? hMaxRaw : undefined;
+    const windowDays = Math.min(Math.max(1, parseIntQuery(req.query.windowDays, 7)), 90);
 
     const hasFilters = dayType !== "all" || hourMin != null || hourMax != null || windowDays !== 7;
 
@@ -366,7 +388,7 @@ export async function registerRoutes(
    * GET /api/worst-days?limit=10&operator=SKY,RUT
    */
   app.get("/api/worst-days", async (req, res) => {
-    const limit = Math.min(Number(req.query.limit) || 10, 100);
+    const limit = Math.min(Math.max(1, parseIntQuery(req.query.limit, 10)), 100);
     const operators = parseOperators(req.query.operator);
     // Only pass from/to when explicitly provided to keep materialized-table fast path.
     const hasWindow =
@@ -383,7 +405,7 @@ export async function registerRoutes(
    * GET /api/best-days?limit=10&operator=SKY,RUT
    */
   app.get("/api/best-days", async (req, res) => {
-    const limit = Math.min(Number(req.query.limit) || 10, 100);
+    const limit = Math.min(Math.max(1, parseIntQuery(req.query.limit, 10)), 100);
     const operators = parseOperators(req.query.operator);
     const hasWindow =
       typeof req.query.from === "string" ||
@@ -429,7 +451,7 @@ export async function registerRoutes(
   app.get("/api/geocoder/autocomplete", async (req, res) => {
     const text = String(req.query.text || "").trim();
     if (text.length < 2) return res.json([]);
-    const size = Math.min(Number(req.query.size) || 8, 20);
+    const size = Math.min(Math.max(1, parseIntQuery(req.query.size, 8)), 20);
     try {
       const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(text)}&size=${size}&lang=no`;
       const response = await fetch(url, {

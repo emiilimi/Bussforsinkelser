@@ -133,6 +133,9 @@ function transferProbabilityFromDist(
   bufferMinutes: number,
 ): number {
   if (p50 == null || p80 == null || p95 == null) return -1;
+  // Edge case: perfect punctuality (p50=p80=p95=0) means delay never exceeds 0.
+  // Any non-negative buffer is enough — return high success probability.
+  if (p95 <= 0 && bufferMinutes >= 0) return 0.97;
   if (bufferMinutes > p95) return 0.97;
   if (bufferMinutes > p80) return 0.80 + 0.17 * (bufferMinutes - p80) / (p95 - p80);
   if (bufferMinutes > p50) return 0.50 + 0.30 * (bufferMinutes - p50) / (p80 - p50);
@@ -907,6 +910,15 @@ export default function TripPlanner() {
   //   so that a sprint = walking at the chosen pace + 30 sec margin, until user overrides.
   const [transferMarginMin, setTransferMarginMin] = useState(5);
   const [sprintSpeedKmh, setSprintSpeedKmh] = useState<number | null>(null);
+
+  // Sprint speed must always be ≥ walk speed (you can't "sprint" slower than your walk).
+  // When walk speed increases past the current sprint setting, bump sprint up to match.
+  useEffect(() => {
+    if (sprintSpeedKmh != null && sprintSpeedKmh < walkSpeedKmh) {
+      setSprintSpeedKmh(walkSpeedKmh);
+    }
+  }, [walkSpeedKmh, sprintSpeedKmh]);
+
   const [maxTransfers, setMaxTransfers] = useState("any");
   const [transferSlack, setTransferSlack] = useState("default");
   const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach"]);

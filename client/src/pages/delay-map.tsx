@@ -110,7 +110,7 @@ export default function DelayMap() {
     else queryParams.set(k, v);
   });
 
-  const { data: stops = [], isLoading } = useQuery<MapStop[]>({
+  const { data: stops = [], isLoading, isError, error } = useQuery<MapStop[]>({
     queryKey: [`/api/stops/map?${queryParams.toString()}`],
   });
 
@@ -278,6 +278,15 @@ export default function DelayMap() {
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-[500]">
               <div className="text-sm text-muted-foreground animate-pulse">Laster stopp...</div>
+            </div>
+          )}
+
+          {/* Error overlay */}
+          {isError && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1100] bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 px-4 py-2 rounded-md shadow-lg max-w-md">
+              <p className="text-sm text-red-700 dark:text-red-300">
+                Kunne ikke laste stopp-data. {error instanceof Error ? error.message : ""}
+              </p>
             </div>
           )}
 

@@ -480,6 +480,56 @@ export async function getStopsByRefs(refs: string[]): Promise<Array<{
     .all(...refs) as any;
 }
 
+/** Som getStopsByRefs, men eksapanderer NSR:StopPlace:X-refs til alle barne-quays.
+ *  Quay-refs slippes uendret gjennom. Brukes f.eks. av useLinesAtStop for å
+ *  finne alle quays under et stoppested og spørre Parquet på stop_ref.
+ */
+export async function getStopsByRefsExpanded(refs: string[]): Promise<Array<{
+  stopRef: string;
+  stopName: string | null;
+  stopPlaceRef: string | null;
+  stopPlaceName: string | null;
+  lat: number | null;
+  lng: number | null;
+}>> {
+  if (refs.length === 0) return [];
+  const stopPlaceRefs = refs.filter((r) => r.startsWith("NSR:StopPlace:"));
+  const quayRefs = refs.filter((r) => !r.startsWith("NSR:StopPlace:"));
+
+  const results: any[] = [];
+  if (quayRefs.length) {
+    const ph = quayRefs.map(() => "?").join(",");
+    const rows = sqlite
+      .prepare(
+        `SELECT stop_ref AS stopRef,
+                stop_name AS stopName,
+                stop_place_ref AS stopPlaceRef,
+                stop_place_name AS stopPlaceName,
+                lat, lng
+           FROM stop_coords
+          WHERE stop_ref IN (${ph})`,
+      )
+      .all(...quayRefs);
+    results.push(...(rows as any[]));
+  }
+  if (stopPlaceRefs.length) {
+    const ph = stopPlaceRefs.map(() => "?").join(",");
+    const rows = sqlite
+      .prepare(
+        `SELECT stop_ref AS stopRef,
+                stop_name AS stopName,
+                stop_place_ref AS stopPlaceRef,
+                stop_place_name AS stopPlaceName,
+                lat, lng
+           FROM stop_coords
+          WHERE stop_place_ref IN (${ph})`,
+      )
+      .all(...stopPlaceRefs);
+    results.push(...(rows as any[]));
+  }
+  return results;
+}
+
 export async function searchStops(query: string, limit = 20) {
   // Group quays by their parent stop place so "Olav Kyrres gate" appears once
   // with platform letters aggregated (e.g. "E, F, G, H, J") instead of 5× separately.

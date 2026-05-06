@@ -18,7 +18,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
 import { Search, Clock, CheckCircle, AlertCircle, ChevronsUpDown, Check, MapPin, ArrowRight, CalendarDays, TrendingUp, TrendingDown, Map, BarChart2 } from "lucide-react";
-import { cn, formatStopName } from "@/lib/utils";
+import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Area, ComposedChart, Line, ReferenceLine } from "recharts";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
@@ -114,9 +114,10 @@ function delayColor(delay: number | null) {
 // Time-window now uses shared TimeWindowPicker (5 presets + custom range).
 // See client/src/components/time-window-picker.tsx
 
-function HourlyTooltip({ active, payload }: any) {
+type JdHourlyPoint = { hour: string; avgDelay: number | null; maxAvgDelay: number | null; minAvgDelay: number | null; numSamples: number | null };
+function HourlyTooltip({ active, payload }: RechartsTooltipProps<JdHourlyPoint>) {
   if (!active || !payload?.[0]) return null;
-  const d = payload[0].payload as { hour: string; avgDelay: number | null; maxAvgDelay: number | null; minAvgDelay: number | null; numSamples: number | null };
+  const d = payload[0].payload;
   return (
     <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
       <p className="font-medium">{d.hour}</p>
@@ -201,16 +202,17 @@ function DraggableYChart({ yMax, setYMax, dataMax, height, children }: {
   );
 }
 
-function DailyTrendTooltip({ active, payload }: any) {
+type JdDailyTrendPoint = {
+  date: string;
+  label: string;
+  avgDelay: number | null;
+  maxDelay: number | null;
+  minDelay: number | null;
+  numDepartures: number | null;
+};
+function DailyTrendTooltip({ active, payload }: RechartsTooltipProps<JdDailyTrendPoint>) {
   if (!active || !payload?.[0]) return null;
-  const d = payload[0].payload as {
-    date: string;
-    label: string;
-    avgDelay: number | null;
-    maxDelay: number | null;
-    minDelay: number | null;
-    numDepartures: number | null;
-  };
+  const d = payload[0].payload;
   return (
     <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[200px]">
       <p className="font-medium">{formatDateShortNO(d.date)}</p>
