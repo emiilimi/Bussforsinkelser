@@ -231,7 +231,9 @@ function DailyTrendTooltip({ active, payload }: any) {
 // ---------------------------------------------------------------------------
 
 export default function JourneyDetails() {
-  const { region, operator } = useRegion();
+  const { region, operators } = useRegion();
+  // Comma-separated operator list, or empty when "Alle regioner" — used in URL query.
+  const opStr = operators.length ? `operator=${operators.join(",")}` : "";
   const [, navigate] = useLocation();
   const search = useSearch();
 
@@ -269,7 +271,7 @@ export default function JourneyDetails() {
   const journeyProfileRef = useRef<HTMLDivElement>(null);
 
   const { data: allLines = [] } = useQuery<LineRef[]>({
-    queryKey: [`/api/lines/all?operator=${operator}`],
+    queryKey: [`/api/lines/all${opStr ? `?${opStr}` : ""}`],
   });
 
   const lineStatsUrl = fetchedLine
@@ -712,7 +714,7 @@ export default function JourneyDetails() {
             {daily.length > 0 && (
               <DataQualityBanner
                 date={daily[daily.length - 1].date}
-                operator={operator}
+                operator={operators[0]}
                 lineRef={fetchedLine}
               />
             )}

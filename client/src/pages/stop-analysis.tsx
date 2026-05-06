@@ -164,7 +164,9 @@ function HourlyTooltip({ active, payload }: any) {
 export default function StopAnalysis() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const { operator } = useRegion();
+  const { operators } = useRegion();
+  // Comma-separated operator list, or empty when "Alle regioner" — used in URL query.
+  const opStr = operators.length ? `operator=${operators.join(",")}` : "";
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string; quays: Quay[] } | null>(null);
@@ -199,11 +201,11 @@ export default function StopAnalysis() {
   const activeRef = selectedPlatform ?? selectedStop?.ref ?? null;
 
   const { data: availableDirections = [] } = useQuery<string[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/directions?operator=${operator}`],
+    queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/directions${opStr ? `?${opStr}` : ""}`],
     enabled: activeRef != null,
   });
   const stopStatsUrl = activeRef
-    ? `/api/stop/${encodeURIComponent(activeRef)}?operator=${operator}&${windowToQuery(window)}${direction !== "all" ? `&direction=${direction}` : ""}`
+    ? `/api/stop/${encodeURIComponent(activeRef)}?${windowToQuery(window)}${opStr ? `&${opStr}` : ""}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
@@ -213,7 +215,7 @@ export default function StopAnalysis() {
   });
 
   const { data: allLines = [] } = useQuery<Array<{ lineRef: string; lineName: string | null }>>({
-    queryKey: [`/api/lines/all?operator=${operator}`],
+    queryKey: [`/api/lines/all${opStr ? `?${opStr}` : ""}`],
     enabled: activeRef != null,
   });
 
@@ -496,7 +498,7 @@ export default function StopAnalysis() {
             {stats.daily.length > 0 && (
               <DataQualityBanner
                 date={stats.daily[stats.daily.length - 1].date}
-                operator={operator}
+                operator={operators[0]}
                 stopRef={selectedStop?.ref}
               />
             )}

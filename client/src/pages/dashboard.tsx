@@ -53,7 +53,7 @@ function formatTrendDate(isoDate: string, period: string): string {
 export default function Dashboard() {
   const [period, setPeriod] = useState("week");
   const [, navigate] = useLocation();
-  const { operators, region, operator } = useRegion();
+  const { operators, region } = useRegion();
   const days = PERIOD_DAYS[period];
 
   // opStr is the raw query param (no leading separator) — appended with ? or & as needed per URL
@@ -193,7 +193,7 @@ export default function Dashboard() {
         </div>
 
         {summary?.date && (
-          <DataQualityBanner date={summary.date} operator={operator} />
+          <DataQualityBanner date={summary.date} operator={operators[0]} />
         )}
 
         {/* Trend chart */}

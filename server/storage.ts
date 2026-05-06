@@ -57,6 +57,26 @@ export function parseDayTypes(input: string | string[] | undefined): DayType[] |
   return filtered.length ? filtered : null;
 }
 
+/**
+ * Build a Drizzle SQL condition that filters a date column by day_type categories
+ * computed via SQLite strftime. Used by tables that don't store day_type explicitly
+ * (e.g. dailySummary). Note: 'holiday' is NOT supported here — rows can't be
+ * distinguished from regular weekdays/weekends without a stored day_type column.
+ */
+function dayTypeDateFilter(dayTypes: DayType[] | null | undefined, dateColSql: any) {
+  if (!dayTypes || !dayTypes.length) return undefined;
+  const conds: any[] = [];
+  for (const dt of dayTypes) {
+    if (dt === "weekday") conds.push(sql`CAST(strftime('%w', ${dateColSql}) AS INT) BETWEEN 1 AND 5`);
+    else if (dt === "saturday") conds.push(sql`CAST(strftime('%w', ${dateColSql}) AS INT) = 6`);
+    else if (dt === "sunday") conds.push(sql`CAST(strftime('%w', ${dateColSql}) AS INT) = 0`);
+    else if (dt === "may17") conds.push(sql`${dateColSql} LIKE '%-05-17'`);
+    // 'holiday' silently dropped — can't filter without a day_type column.
+  }
+  if (!conds.length) return undefined;
+  return conds.length === 1 ? conds[0] : sql.join(conds, sql` OR `);
+}
+
 // ---------------------------------------------------------------------------
 // Summary
 // ---------------------------------------------------------------------------
@@ -290,9 +310,9 @@ export async function getLineHourlyProfile(lineRef: string, direction?: string, 
 // Bybanen (tram/light rail) — no SIRI ET realtime data available
 const EXCLUDED_LINE_REFS = ["SKY:Line:1", "SKY:Line:2"];
 
-export async function getAllLines(operator?: string) {
-  // When operator is provided and non-empty, filter by lineRef prefix (e.g. "SKY:%").
-  // Empty string or undefined = no filter (alle regioner).
+export async function getAllLines(operators: string[] = []) {
+  // operators[] = [] means no filter (alle regioner).
+  // Otherwise, filter by lineRef prefix (e.g. "SKY:%" OR "RUT:%").
   return db
     .selectDistinct({
       lineRef: schema.lineDaily.lineRef,
@@ -303,7 +323,7 @@ export async function getAllLines(operator?: string) {
       and(
         inArray(schema.lineDaily.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
         notInArray(schema.lineDaily.lineRef, EXCLUDED_LINE_REFS),
-        operator ? like(schema.lineDaily.lineRef, `${operator}:%`) : undefined,
+        operatorsLineFilter(operators, schema.lineDaily.lineRef),
       ),
     )
     .orderBy(schema.lineDaily.lineName)
@@ -314,33 +334,41 @@ export async function getAllLines(operator?: string) {
 // Stops
 // ---------------------------------------------------------------------------
 
-export async function getStopDirections(stopRef: string, operator = "SKY"): Promise<string[]> {
+export async function getStopDirections(stopRef: string, operators: string[] = []): Promise<string[]> {
+  // operators[] = [] means no operator filter (aggregate across all operators).
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const stopFilter = isStopPlace
     ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
     : `stop_ref = ?`;
+  const opFilter = operators.length
+    ? `AND operator IN (${operators.map(() => "?").join(",")})`
+    : "";
 
   const rows = sqlite.prepare(`
     SELECT DISTINCT direction_ref AS dir
     FROM stop_daily
-    WHERE ${stopFilter} AND operator = ? AND direction_ref IS NOT NULL
+    WHERE ${stopFilter} ${opFilter} AND direction_ref IS NOT NULL
     ORDER BY direction_ref
-  `).all(stopRef, operator) as Array<{ dir: string }>;
+  `).all(stopRef, ...operators) as Array<{ dir: string }>;
   return rows.map(r => r.dir);
 }
 
-export async function getStopStats(stopRef: string, fromDate: string, operator = "SKY", direction?: string, toDate?: string) {
+export async function getStopStats(stopRef: string, fromDate: string, operators: string[] = [], direction?: string, toDate?: string) {
   // stopRef can be either NSR:Quay:XXXXX (single quay) or NSR:StopPlace:XXXXX
   // (parent stop place, which groups multiple quays together in search results).
+  // operators[] = [] means no operator filter (aggregate across all operators serving the stop).
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const stopFilter = isStopPlace
     ? `sd.stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
     : `sd.stop_ref = ?`;
   const toClause = toDate ? `AND sd.date <= ?` : "";
+  const opFilter = operators.length
+    ? `AND sd.operator IN (${operators.map(() => "?").join(",")})`
+    : "";
 
   // 'all': aggregate across directions (and across quays if stop place)
   if (!direction || direction === "all") {
-    const params = [stopRef, stopRef, fromDate, ...(toDate ? [toDate] : []), operator];
+    const params = [stopRef, stopRef, fromDate, ...(toDate ? [toDate] : []), ...operators];
     return sqlite.prepare(`
       SELECT
         sd.date,
@@ -354,14 +382,14 @@ export async function getStopStats(stopRef: string, fromDate: string, operator =
         SUM(sd.num_departures) AS numDepartures
       FROM stop_daily sd
       LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
-      WHERE ${stopFilter} AND sd.date >= ? ${toClause} AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) AND sd.operator = ?
+      WHERE ${stopFilter} AND sd.date >= ? ${toClause} AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) ${opFilter}
       GROUP BY sd.date
       ORDER BY sd.date
     `).all(...params) as any[];
   }
 
   // Direction-specific: aggregate quays if stop place, keep direction filter
-  const params = [stopRef, stopRef, fromDate, ...(toDate ? [toDate] : []), operator, direction];
+  const params = [stopRef, stopRef, fromDate, ...(toDate ? [toDate] : []), ...operators, direction];
   return sqlite.prepare(`
     SELECT
       sd.date,
@@ -375,19 +403,23 @@ export async function getStopStats(stopRef: string, fromDate: string, operator =
       SUM(sd.num_departures) AS numDepartures
     FROM stop_daily sd
     LEFT JOIN stop_coords sc ON sc.stop_ref = sd.stop_ref
-    WHERE ${stopFilter} AND sd.date >= ? ${toClause} AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) AND sd.operator = ? AND sd.direction_ref = ?
+    WHERE ${stopFilter} AND sd.date >= ? ${toClause} AND sd.vehicle_mode IN (${INCLUDED_MODES_SQL}) ${opFilter} AND sd.direction_ref = ?
     GROUP BY sd.date
     ORDER BY sd.date
   `).all(...params) as any[];
 }
 
-export async function getStopHourlyProfile(stopRef: string, operator = "SKY", direction?: string, dayTypes?: DayType[] | null) {
+export async function getStopHourlyProfile(stopRef: string, operators: string[] = [], direction?: string, dayTypes?: DayType[] | null) {
+  // operators[] = [] means no operator filter (aggregate across all operators serving the stop).
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const stopFilter = isStopPlace
     ? `stop_ref IN (SELECT stop_ref FROM stop_coords WHERE stop_place_ref = ?)`
     : `stop_ref = ?`;
   const dtFilter = dayTypes && dayTypes.length
     ? `AND day_type IN (${dayTypes.map((d) => `'${d}'`).join(",")})`
+    : "";
+  const opFilter = operators.length
+    ? `AND operator IN (${operators.map(() => "?").join(",")})`
     : "";
 
   if (!direction || direction === "all") {
@@ -399,11 +431,11 @@ export async function getStopHourlyProfile(stopRef: string, operator = "SKY", di
         ROUND(MIN(min_avg_delay_min), 2) AS minAvgDelayMin,
         SUM(num_samples) AS numSamples
       FROM stop_hourly_profile
-      WHERE ${stopFilter} AND operator = ?
+      WHERE ${stopFilter} ${opFilter}
       ${dtFilter}
       GROUP BY hour
       ORDER BY hour
-    `).all(stopRef, operator);
+    `).all(stopRef, ...operators);
   }
 
   return sqlite.prepare(`
@@ -414,11 +446,11 @@ export async function getStopHourlyProfile(stopRef: string, operator = "SKY", di
       ROUND(MIN(min_avg_delay_min), 2) AS minAvgDelayMin,
       SUM(num_samples) AS numSamples
     FROM stop_hourly_profile
-    WHERE ${stopFilter} AND operator = ? AND direction_ref = ?
+    WHERE ${stopFilter} ${opFilter} AND direction_ref = ?
     ${dtFilter}
     GROUP BY hour
     ORDER BY hour
-  `).all(stopRef, operator, direction);
+  `).all(stopRef, ...operators, direction);
 }
 
 /** Batch lookup: gitt en liste stop_refs, returner navn + StopPlace-info.
@@ -799,6 +831,7 @@ export async function getWorstDays(limit = 10, operators: string[] = [], fromDat
           operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
           fromDate ? gte(schema.dailySummary.date, fromDate) : undefined,
           toDate ? lte(schema.dailySummary.date, toDate) : undefined,
+          dayTypeDateFilter(dayTypes, schema.dailySummary.date),
         ),
       )
       .orderBy(desc(schema.dailySummary.avgDelayMin))
@@ -821,7 +854,7 @@ export async function getWorstDays(limit = 10, operators: string[] = [], fromDat
     .all();
 }
 
-export async function getBestDays(limit = 10, operators: string[] = [], fromDate?: string, toDate?: string) {
+export async function getBestDays(limit = 10, operators: string[] = [], fromDate?: string, toDate?: string, dayTypes?: DayType[] | null) {
   return db
     .select()
     .from(schema.dailySummary)
@@ -830,6 +863,7 @@ export async function getBestDays(limit = 10, operators: string[] = [], fromDate
         operators.length ? inArray(schema.dailySummary.operator, operators) : undefined,
         fromDate ? gte(schema.dailySummary.date, fromDate) : undefined,
         toDate ? lte(schema.dailySummary.date, toDate) : undefined,
+        dayTypeDateFilter(dayTypes, schema.dailySummary.date),
       ),
     )
     .orderBy(schema.dailySummary.avgDelayMin)

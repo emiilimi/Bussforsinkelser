@@ -163,12 +163,12 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/lines/all?operator=SKY
-   * Full list of known lines (for dropdowns).
+   * GET /api/lines/all?operator=SKY,RUT
+   * Full list of known lines (for dropdowns). Empty/missing operator = all regions.
    */
   app.get("/api/lines/all", async (req, res) => {
-    const operator = typeof req.query.operator === "string" ? req.query.operator : undefined;
-    const rows = await getAllLines(operator);
+    const operators = parseOperators(req.query.operator);
+    const rows = await getAllLines(operators);
     return res.json(rows);
   });
 
@@ -205,12 +205,12 @@ export async function registerRoutes(
   app.get("/api/stop/:stopref", async (req, res) => {
     const stopRef = req.params.stopref;
     const { fromIso, toIso } = parseTimeWindow(req.query, 30);
-    const operator = parseOperator(req.query.operator);
+    const operators = parseOperators(req.query.operator);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
     const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
     const [rows, hourly] = await Promise.all([
-      getStopStats(stopRef, fromIso, operator, direction, toIso),
-      getStopHourlyProfile(stopRef, operator, direction, dayTypes).catch(() => []),
+      getStopStats(stopRef, fromIso, operators, direction, toIso),
+      getStopHourlyProfile(stopRef, operators, direction, dayTypes).catch(() => []),
     ]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Stoppested ikke funnet" });
@@ -236,8 +236,8 @@ export async function registerRoutes(
    */
   app.get("/api/stop/:stopref/directions", async (req, res) => {
     const stopRef = req.params.stopref;
-    const operator = parseOperator(req.query.operator);
-    const dirs = await getStopDirections(stopRef, operator);
+    const operators = parseOperators(req.query.operator);
+    const dirs = await getStopDirections(stopRef, operators);
     return res.json(dirs);
   });
 
@@ -390,7 +390,8 @@ export async function registerRoutes(
       typeof req.query.to === "string" ||
       typeof req.query.days === "string";
     const window = hasWindow ? parseTimeWindow(req.query, 30) : undefined;
-    const rows = await getBestDays(limit, operators, window?.fromIso, window?.toIso);
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
+    const rows = await getBestDays(limit, operators, window?.fromIso, window?.toIso, dayTypes);
     return res.json(rows);
   });
 
