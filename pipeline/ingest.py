@@ -84,7 +84,7 @@ def fetch_day(
     operator(s). vehicle_mode is stored as a column in the DB so stats can be
     filtered per mode at query time.
 
-    serviceJourneyId and sequenceNr are fetched for journey_stop_weekly:
+    serviceJourneyId and sequenceNr are fetched for journey_stop_daily:
     they identify the specific scheduled run ("the 06:15 Linje 6") and the
     stop's position along the route respectively.
     """

@@ -60,8 +60,8 @@ pipeline/          (Python)
   db_setup.py              Skjema-opprettelse (WAL mode)
   ingest.py                Daglig BQ → SQLite (alle upserts + profil/leaderboard rebuild)
   backfill.py              Historisk måned-for-måned ingest (importerer fra ingest.py)
-  populate_stops.py        NSR quay-koordinater fra BQ → stop_coords (cache: stop_coords.json)
-  populate_stop_places.py  GTFS stops.txt → stop_place_ref, platform_code, stop_place_name
+  populate_stops.py        NSR quay-koord + stop_place_ref + platform_code fra BQ (kanonisk, alle operatører)
+  populate_stop_places.py  Skyss GTFS stops.txt — kun NULL-felter (fallback for SKY-spesifikke gaps)
   populate_line_names.py   NeTEx XML (SKY) eller DB-derivert (andre) → line_name
   export_parquet.py        journey_stop_daily → ukentlige .parquet (ZSTD)
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
@@ -137,9 +137,10 @@ Lagrer nå **6 felter** per quay: `stop_ref`, `stop_name`, `lat`, `lng`, `stop_p
 - **VIKTIG**: Etter kodeendring må `--refresh` kjøres én gang for å oppdatere cachen med nye felter.
 
 ### `populate_stop_places.py`
-Leser `gtfs-legacy/sky/stops.txt`. Oppdaterer `platform_code` for Skyss-stopp.
-**Merk**: `stop_place_ref` og `stop_place_name` fylles nå primært av `populate_stops.py` fra BQ.
-`populate_stop_places.py` er nå kun nødvendig for `platform_code` (plattformbokstav A/B/C).
+Skyss GTFS-fallback. Leser `gtfs-legacy/sky/stops.txt`.
+**Kanonisk kilde er nå `populate_stops.py` (NSR via BQ)** — dette skriptet er valgfritt og
+oppdaterer kun `stop_place_ref` / `platform_code` / `stop_place_name` der NSR-data
+er NULL (bruker `COALESCE` slik at NSR-data aldri overskrives).
 **Krever** at `populate_stops.py` har kjørt først.
 
 ### `populate_line_names.py`

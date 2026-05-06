@@ -537,12 +537,23 @@ export async function registerRoutes(
     const toLocation = typeof to === "string" ? { place: to } : to;
 
     const dateTime = when || new Date().toISOString();
-    // Cache key includes all parameters that affect the query result
+    // Cache key includes all parameters that affect the query result.
+    // Normalize undefined → null so JSON.stringify produces stable, distinguishable
+    // keys (without normalization, `{ dm: undefined }` serializes to `{}`, colliding
+    // with calls that intentionally omit directMode).
     const filterFingerprint = JSON.stringify({
       f: fromLocation, t: toLocation,
-      m: transportModes, ab: arriveBy, ws: walkSpeed,
-      ts: transferSlack, mt: maximumTransfers, wc: wheelchairAccessible,
-      sw: searchWindow, np: numTripPatterns, am: accessMode, em: egressMode, dm: directMode,
+      m: transportModes ?? null,
+      ab: arriveBy ?? null,
+      ws: walkSpeed ?? null,
+      ts: transferSlack ?? null,
+      mt: maximumTransfers ?? null,
+      wc: wheelchairAccessible ?? null,
+      sw: searchWindow ?? null,
+      np: numTripPatterns ?? null,
+      am: accessMode ?? null,
+      em: egressMode ?? null,
+      dm: directMode ?? null,
     });
     const cacheKey = tripCacheKey(
       JSON.stringify(fromLocation), JSON.stringify(toLocation), dateTime

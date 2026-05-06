@@ -72,15 +72,17 @@ export default function WorstLists() {
   const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 7, label: "Siste uke" });
   const wq = windowToQuery(window);
 
-  const opParam = operators.length ? `operator=${operators.join(",")}&` : "";
-  const modeParam = vehicleMode !== "all" ? `&mode=${vehicleMode}` : "";
+  // opStr/modeStr: raw query params (no leading separator). Each callsite chooses ? or & explicitly.
+  const opStr = operators.length ? `operator=${operators.join(",")}` : "";
+  const modeStr = vehicleMode !== "all" ? `mode=${vehicleMode}` : "";
+  const join = (...parts: string[]) => parts.filter(Boolean).join("&");
 
-  const { data: worstDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?limit=10&${opParam}${wq}`] });
-  const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?limit=10&${opParam}${wq}`] });
-  const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=worst&${opParam}${wq}${modeParam}`] });
-  const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?type=best&${opParam}${wq}${modeParam}`] });
-  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=reliable&${opParam}${modeParam}`] });
-  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?type=unreliable&${opParam}${modeParam}`] });
+  const { data: worstDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?${join(`limit=10`, opStr, wq)}`] });
+  const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?${join(`limit=10`, opStr, wq)}`] });
+  const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr)}`] });
+  const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr)}`] });
+  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`] });
+  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr)}`] });
 
   // Sort days
   const sortedWorstDays = [...worstDays].sort((a, b) =>

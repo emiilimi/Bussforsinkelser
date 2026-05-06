@@ -1,9 +1,15 @@
 """
-Reads the GTFS stops.txt file and populates stop_place_ref, platform_code,
-and stop_place_name columns in the stop_coords table.
+Fills in missing stop_place_ref, platform_code and stop_place_name from Skyss GTFS.
 
-Run after db_setup.py and populate_stops.py:
-    python pipeline/populate_stop_places.py
+Canonical source: populate_stops.py (NSR via BigQuery — covers all operators).
+This script is a Skyss-only fallback: it only fills NULL fields, never
+overwrites values already present from NSR. Safe to run any time after
+populate_stops.py.
+
+Run order:
+    python pipeline/db_setup.py
+    python pipeline/populate_stops.py            # canonical (all operators)
+    python pipeline/populate_stop_places.py      # optional: fills SKY-specific gaps
 
 The GTFS stops.txt file is expected at:
     gtfs-legacy/sky/stops.txt
@@ -109,12 +115,14 @@ def update_stop_coords(
         platform = info["platform_code"]
         place_name = place_name_map.get(place_ref)
 
+        # COALESCE: only fill NULL fields. NSR (populate_stops.py) is canonical;
+        # never overwrite values it already populated.
         conn.execute(
             """
             UPDATE stop_coords
-               SET stop_place_ref  = ?,
-                   platform_code   = ?,
-                   stop_place_name = ?
+               SET stop_place_ref  = COALESCE(stop_place_ref, ?),
+                   platform_code   = COALESCE(platform_code, ?),
+                   stop_place_name = COALESCE(stop_place_name, ?)
              WHERE stop_ref = ?
             """,
             (place_ref, platform, place_name, stop_ref),
