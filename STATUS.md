@@ -3,7 +3,32 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-05-05
+**Sist oppdatert**: 2026-05-06
+
+## Endringslogg — 2026-05-06: Bugrensing — multi-operator-overgang + diverse opprydding
+
+**Iterasjon A — kritiske funksjonsbugs**:
+- `server/storage.ts` `getStopStats` / `getStopHourlyProfile` / `getStopDirections`: tar nå `operators: string[]` med dynamisk `IN (...)` i stedet for enkelt-`operator = "SKY"`. Stoppanalyse viser nå data ved "Alle regioner" og multi-region (ble før 404).
+- `server/storage.ts` `getAllLines`: tar `operators[]` og bruker `operatorsLineFilter` for OR-prefix-LIKE. Linjepicker i journey-details + stop-analysis fungerer for "Alle" og kombinasjoner som SKY+RUT.
+- `server/routes.ts` `/api/best-days`: tar nå `?dayType=` i symmetri med `/api/worst-days`. Ny `dayTypeDateFilter()` bruker SQLite strftime for `weekday/saturday/sunday/may17` (holiday krever day_type-kolonne på dailySummary, ikke støttet).
+- `client/src/pages/dashboard.tsx`: URL-konstruksjon med `?` vs `&` (tidligere fix), DataQualityBanner får `operators[0]`.
+- `client/src/pages/journey-details.tsx` + `stop-analysis.tsx`: bruker `operators[]` fra useRegion, sender `opStr` riktig formatert.
+
+**Iterasjon B — robusthet**:
+- `client/src/pages/worst-lists.tsx`: URL-konstruksjon refaktorert til `join()`-helper i stedet for `&`-prefix-streng — robust mot framtidige endepunkter.
+- `pipeline/populate_stop_places.py`: `UPDATE` bruker nå `COALESCE(eksisterende, ny)` slik at NSR-data fra `populate_stops.py` ikke overskrives. NSR (BQ) er kanonisk; GTFS-fila fyller bare NULL-felter. Docstring + CLAUDE.md oppdatert.
+- `server/routes.ts` trip cache-key: `?? null` på alle valgfrie felter i `filterFingerprint` slik at `undefined` ikke kolliderer med `null`.
+- `pipeline/ingest.py:87`: stale `journey_stop_weekly`-kommentar oppdatert.
+
+**Iterasjon C — opprydding**:
+- `client/src/pages/trip-planner.tsx`: useEffect synkroniserer `sprintSpeedKmh` opp når `walkSpeedKmh` overstiger den. `transferProbabilityFromDist` returnerer nå 0.97 ved p50=p80=p95=0 (perfekt punktlighet) i stedet for 0.10.
+- `client/src/pages/delay-map.tsx`: error overlay vises ved nettverksfeil mot `/api/stops/map`.
+- `client/src/lib/utils.ts`: ny `RechartsTooltipProps<T>`-type. Fire navngitte tooltip-funksjoner (DailyTrendTooltip + HourlyTooltip på journey-details og stop-analysis) er typet i stedet for `any`.
+- `server/routes.ts`: ny `parseIntQuery(raw, fallback)`-helper validerer `Number()`-resultat. Erstattet usikre `Number(req.query.X) || N` på fem steder (limit, hourMin/Max, windowDays, size).
+
+**Bonus-fiks — linjer-per-stopp på plattform-løse stopp**:
+- `client/src/hooks/use-journey-queries.ts` `useLinesAtStop` kalte `/api/stops/lookup?expand=stopplace`, men endepunktet støttet ikke `expand`-parameteren. Resultat: stopp med en `NSR:StopPlace`-ref men uten plattformbokstav (ikke terminaler) viste tom linjeliste.
+- Ny `getStopsByRefsExpanded()` i `server/storage.ts`: splitter refs etter prefix og kjører to spørringer (`WHERE stop_ref IN (...)` for quays + `WHERE stop_place_ref IN (...)` for stop places). `/api/stops/lookup?expand=stopplace` aktiverer dette.
 
 ## Endringslogg — 2026-05-05: Multi-regionvelger + modus-filter + stop place-berikelse
 
