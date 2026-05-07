@@ -318,7 +318,9 @@ data/
 | `stop-analysis.tsx:212` | Sender `direction=all` når "begge" er valgt, selv om serveren håndterer det. Ren støy i URL/cache-key. | ⚠️ Støy |
 | `dashboard.tsx:60-62` | `/api/summary/trend` har hardkodet 7/30/365 via period-tabs, men leaderboard under bruker `period=`-param. Inkonsistent mental modell. | ⚠️ UX |
 | `trip-planner.tsx` | Ingen "show raw data" / calculation breakdown-panel. P80-badge viser bare tallet, ikke hvor det kommer fra. | 📋 Manglende feature |
-| **Databasefriskhet** | Siste data: `daily_summary` = 2026-04-29, inkluderer også 04-28 med alle tilgjengelige operatører, samt 1-6.mai med alle operatører.`ingest.py` selv er oppdatert — **ikke drift mellom schema.ts, db_setup.py, ingest.py**. Problemet er bare at pipeline ikke har kjørt. | 🛈 Operasjonelt |
+| **Databasefriskhet** | Siste data: `daily_summary` = 2026-04-29, inkluderer også 04-28 med alle tilgjengelige operatører, samt 1-6.mai med alle operatører.
+Parquet: W18 og W19, manuelt oppdatert.
+`ingest.py` selv er oppdatert — **ikke drift mellom schema.ts, db_setup.py, ingest.py**. Problemet er bare at pipeline ikke har kjørt. | 🛈 Operasjonelt |
 | `routes.ts` (fiks gjort i dag) | Default `weeks=4` på alle journey_stop_weekly-endepunkter → tom respons når data >28 d gammel. Endret til default 13. | ✅ Fikset 2026-04-21 |
 | **Schema-gap** | `line_daily` har *ikke* `num_cancellations` (bare `daily_summary` og `worst_days` har det). Kan ikke sortere linjer på kanselleringer uten pipeline-endring. | 🛈 Info |
 | **Schema-gap** | `stop_daily` har `stddevDelayMin` allerede — UI bruker det bare ikke ennå. | 📋 Kvikk-fiks |
