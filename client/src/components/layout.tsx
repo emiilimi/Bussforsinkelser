@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check } from "lucide-react";
+import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRegion, REGION_LABEL, INDIVIDUAL_REGIONS, type Region } from "@/lib/RegionContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,6 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/worst", label: "Topplister", icon: BarChart3 },
     { href: "/journey", label: "Linjeanalyse", icon: Clock },
     { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
+    { href: "/avganger", label: "Avganger", icon: Timer },
   ];
 
   return (

@@ -706,6 +706,120 @@ export async function registerRoutes(
   });
 
   // -----------------------------------------------------------------------
+  // /api/departures — stopPlace estimatedCalls proxy (Sanntid-aktig visning)
+  // -----------------------------------------------------------------------
+
+  const DEP_CACHE_TTL_MS = 60 * 1000;  // 1 minute (mer aggressiv enn trip pga sanntid)
+  const DEP_CACHE_MAX = 200;
+  const depCache = new Map<string, { data: any; expiry: number }>();
+
+  /**
+   * GET /api/departures/:stopPlaceRef?minutes=90&limit=50
+   * Returnerer kommende avganger fra et stoppested via Entur stopPlace-query.
+   *
+   * stopPlaceRef: NSR:StopPlace:X
+   * minutes: tidsvindu i minutter (15–360, default 90)
+   * limit: maks antall avganger (5–100, default 50)
+   *
+   * Cachet 60 sek server-side. Klienten kan refresh med `refetchInterval`.
+   */
+  app.get("/api/departures/:stopPlaceRef", async (req, res) => {
+    const stopPlaceRef = req.params.stopPlaceRef;
+    if (!/^NSR:(StopPlace|Quay):\d+$/.test(stopPlaceRef)) {
+      return res.status(400).json({ error: "Invalid stopPlaceRef" });
+    }
+    const minutes = Math.min(Math.max(parseIntQuery(req.query.minutes, 90), 15), 360);
+    const limit = Math.min(Math.max(parseIntQuery(req.query.limit, 50), 5), 100);
+
+    const bucket = Math.floor(Date.now() / DEP_CACHE_TTL_MS);
+    const cacheKey = `${stopPlaceRef}|${minutes}|${limit}|${bucket}`;
+    const cached = depCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return res.json(cached.data);
+    }
+
+    const isQuay = stopPlaceRef.startsWith("NSR:Quay:");
+    const rootSelector = isQuay ? "quay" : "stopPlace";
+    const query = `
+      query StopDepartures($id: String!, $range: Int!, $n: Int!) {
+        ${rootSelector}(id: $id) {
+          id
+          name
+          estimatedCalls(timeRange: $range, numberOfDepartures: $n) {
+            aimedDepartureTime
+            expectedDepartureTime
+            realtime
+            cancellation
+            destinationDisplay { frontText }
+            quay { id name publicCode }
+            serviceJourney {
+              id
+              directionType
+              line { id publicCode name transportMode }
+            }
+          }
+        }
+      }`;
+
+    try {
+      const response = await fetch("https://api.entur.io/journey-planner/v3/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ET-Client-Name": "emiliemoldestad-bussprosjekt",
+        },
+        body: JSON.stringify({
+          query,
+          variables: { id: stopPlaceRef, range: minutes * 60, n: limit },
+        }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("[departures] Entur HTTP error:", response.status, text.slice(0, 300));
+        return res.status(502).json({ error: "Entur API error", detail: text.slice(0, 300) });
+      }
+      const data = await response.json();
+      if (data.errors) {
+        console.error("[departures] GraphQL errors:", JSON.stringify(data.errors).slice(0, 500));
+      }
+      const place = data?.data?.[rootSelector];
+      if (!place) {
+        return res.json({ stopName: null, departures: [] });
+      }
+
+      const calls = (place.estimatedCalls ?? []) as Array<any>;
+      const departures = calls.map((c) => ({
+        aimedTime: c.aimedDepartureTime,
+        expectedTime: c.expectedDepartureTime,
+        realtime: !!c.realtime,
+        cancelled: !!c.cancellation,
+        destination: c.destinationDisplay?.frontText ?? null,
+        quayRef: c.quay?.id ?? null,
+        quayName: c.quay?.name ?? null,
+        platform: c.quay?.publicCode ?? null,
+        lineRef: c.serviceJourney?.line?.id ?? null,
+        lineNumber: c.serviceJourney?.line?.publicCode ?? null,
+        lineName: c.serviceJourney?.line?.name ?? null,
+        transportMode: c.serviceJourney?.line?.transportMode ?? null,
+        serviceJourneyId: c.serviceJourney?.id ?? null,
+        directionRef: c.serviceJourney?.directionType ?? null,
+      }));
+
+      const result = { stopName: place.name, stopRef: place.id, departures };
+
+      // LRU evict
+      if (depCache.size >= DEP_CACHE_MAX) {
+        const oldest = depCache.keys().next().value;
+        if (oldest) depCache.delete(oldest);
+      }
+      depCache.set(cacheKey, { data: result, expiry: Date.now() + DEP_CACHE_TTL_MS });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(502).json({ error: "Entur API unreachable", detail: err.message });
+    }
+  });
+
+  // -----------------------------------------------------------------------
   // Parquet files for DuckDB-WASM (client-side percentile queries)
   // -----------------------------------------------------------------------
 
