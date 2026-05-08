@@ -17,6 +17,7 @@ import {
   Info, Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { computeDayType } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -127,20 +128,179 @@ type DuckDelayRow = {
   n: number;
 };
 
-/** Empirical transfer probability from DuckDB percentiles */
-function transferProbabilityFromDist(
-  p50: number | null, p80: number | null, p95: number | null,
-  bufferMinutes: number,
-): number {
-  if (p50 == null || p80 == null || p95 == null) return -1;
-  // Edge case: perfect punctuality (p50=p80=p95=0) means delay never exceeds 0.
-  // Any non-negative buffer is enough — return high success probability.
-  if (p95 <= 0 && bufferMinutes >= 0) return 0.97;
-  if (bufferMinutes > p95) return 0.97;
-  if (bufferMinutes > p80) return 0.80 + 0.17 * (bufferMinutes - p80) / (p95 - p80);
-  if (bufferMinutes > p50) return 0.50 + 0.30 * (bufferMinutes - p50) / (p80 - p50);
-  if (p50 > 0) return Math.max(0.05, 0.50 * bufferMinutes / p50);
-  return 0.10;
+// ---------------------------------------------------------------------------
+// Empirical transfer-success: per-day pairing (NOT pooled per (stop, line)).
+//
+// For each transfer we want one observation per historical day where BOTH
+// the arriving service journey AND the departing service journey ran:
+//
+//     gap_min = (actual_dep_time at depQuay) − (actual_arr_time at arrQuay)
+//
+// Then prob(margin) = #days where gap_min ≥ walk_time + margin / total #days.
+//
+// Primary path matches both serviceJourney IDs exactly (same scheduled trip
+// you'd take today). Fallback when the SJ pair has too few observations:
+// pool by (line, stop, day_type) but still pair per date — pick the row whose
+// aimed time is closest to the planned aimed time.
+//
+// Both paths filter day_type so weekday/saturday/sunday/may17/holiday queries
+// don't bleed into each other.
+// ---------------------------------------------------------------------------
+
+export type TransferGapResult = {
+  gaps: number[];                // gap (minutes) for each historical day
+  source: "specific" | "fallback" | "none";
+};
+
+export type TransferSpec = {
+  key: string;                   // unique id per transfer (used as cache key + map key)
+  arrSjId: string | null;        // serviceJourney.id of the arriving leg
+  arrQuayRef: string | null;     // toPlace.quay.id of the arriving leg
+  arrLineRef: string | null;     // line.id of the arriving leg (for fallback)
+  arrAimedMin: number | null;    // planned aimed_arrival in minutes-since-midnight (for fallback closest-match)
+  depSjId: string | null;        // serviceJourney.id of the departing leg
+  depQuayRef: string | null;     // fromPlace.quay.id of the departing leg
+  depLineRef: string | null;     // line.id of the departing leg (for fallback)
+  depAimedMin: number | null;    // planned aimed_departure in minutes-since-midnight
+  dayType: string;               // 'weekday'|'saturday'|'sunday'|'holiday'|'may17'
+};
+
+const SPECIFIC_MIN_DAYS = 5;     // below this, fall back to hour-of-day pooling
+
+/** Build the SQL for the primary (per-SJ) gap query. Returns null if we lack
+ *  the IDs needed. Day_type is filtered so e.g. a Wednesday trip doesn't
+ *  pick up Saturday observations. */
+function specificGapSql(s: TransferSpec): string | null {
+  if (!s.arrSjId || !s.arrQuayRef || !s.depSjId || !s.depQuayRef) return null;
+  return `
+    WITH arr AS (
+      SELECT date,
+        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) + delay_arrival_min AS actual_arr_min
+      FROM delays
+      WHERE service_journey_id = '${esc(s.arrSjId)}'
+        AND stop_ref = '${esc(s.arrQuayRef)}'
+        AND day_type = '${esc(s.dayType)}'
+        AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
+    ),
+    dep AS (
+      SELECT date,
+        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) + delay_departure_min AS actual_dep_min
+      FROM delays
+      WHERE service_journey_id = '${esc(s.depSjId)}'
+        AND stop_ref = '${esc(s.depQuayRef)}'
+        AND day_type = '${esc(s.dayType)}'
+        AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
+    )
+    SELECT (dep.actual_dep_min - arr.actual_arr_min) AS gap
+    FROM arr INNER JOIN dep ON arr.date = dep.date
+  `;
+}
+
+/** Fallback: pool by line + stop + day_type, then for each date pick the
+ *  arrival/departure whose aimed time is closest to the planned aimed time
+ *  (within a 60-min window so we stay in roughly the right service period). */
+function fallbackGapSql(s: TransferSpec): string | null {
+  if (!s.arrLineRef || !s.arrQuayRef || !s.depLineRef || !s.depQuayRef) return null;
+  if (s.arrAimedMin == null || s.depAimedMin == null) return null;
+  const HALF_WINDOW = 60; // minutes either side
+  const arrLo = s.arrAimedMin - HALF_WINDOW;
+  const arrHi = s.arrAimedMin + HALF_WINDOW;
+  const depLo = s.depAimedMin - HALF_WINDOW;
+  const depHi = s.depAimedMin + HALF_WINDOW;
+  return `
+    WITH arr_raw AS (
+      SELECT date,
+        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) AS aimed_min,
+        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) + delay_arrival_min AS actual_arr_min
+      FROM delays
+      WHERE line_ref = '${esc(s.arrLineRef)}'
+        AND stop_ref = '${esc(s.arrQuayRef)}'
+        AND day_type = '${esc(s.dayType)}'
+        AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
+    ),
+    arr AS (
+      SELECT date, actual_arr_min FROM arr_raw
+      WHERE aimed_min BETWEEN ${arrLo} AND ${arrHi}
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.arrAimedMin})) = 1
+    ),
+    dep_raw AS (
+      SELECT date,
+        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) AS aimed_min,
+        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
+         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) + delay_departure_min AS actual_dep_min
+      FROM delays
+      WHERE line_ref = '${esc(s.depLineRef)}'
+        AND stop_ref = '${esc(s.depQuayRef)}'
+        AND day_type = '${esc(s.dayType)}'
+        AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
+    ),
+    dep AS (
+      SELECT date, actual_dep_min FROM dep_raw
+      WHERE aimed_min BETWEEN ${depLo} AND ${depHi}
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.depAimedMin})) = 1
+    )
+    SELECT (dep.actual_dep_min - arr.actual_arr_min) AS gap
+    FROM arr INNER JOIN dep ON arr.date = dep.date
+  `;
+}
+
+/** Hook: empirical per-day gap distributions per transfer. */
+function useTransferGaps(
+  specs: TransferSpec[],
+  duckReady: boolean,
+  duckQuery: (sql: string) => Promise<any[]>,
+) {
+  return useQuery<Map<string, TransferGapResult>>({
+    queryKey: [
+      "transfer-gaps",
+      ...specs.map(s => `${s.key}|${s.arrSjId ?? ""}|${s.depSjId ?? ""}|${s.arrAimedMin ?? ""}|${s.depAimedMin ?? ""}|${s.dayType}`),
+    ],
+    enabled: duckReady && specs.length > 0,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const out = new Map<string, TransferGapResult>();
+      for (const s of specs) {
+        // Try primary (specific service journeys)
+        const primarySql = specificGapSql(s);
+        let gaps: number[] = [];
+        let source: TransferGapResult["source"] = "none";
+        if (primarySql) {
+          const rows = await duckQuery(primarySql) as Array<{ gap: number }>;
+          gaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
+          if (gaps.length >= SPECIFIC_MIN_DAYS) source = "specific";
+        }
+        if (source === "none") {
+          const fallbackSql = fallbackGapSql(s);
+          if (fallbackSql) {
+            const rows = await duckQuery(fallbackSql) as Array<{ gap: number }>;
+            const fallbackGaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
+            if (fallbackGaps.length > 0) {
+              gaps = fallbackGaps;
+              source = "fallback";
+            }
+          }
+        }
+        out.set(s.key, { gaps, source });
+      }
+      return out;
+    },
+  });
+}
+
+/** Empirical transfer probability: fraction of historical days where
+ *  the actual gap was at least the required buffer (walk + margin). */
+function probFromGaps(gaps: number[], requiredBuffer: number): number {
+  if (gaps.length === 0) return -1;
+  let made = 0;
+  for (const g of gaps) {
+    if (g >= requiredBuffer) made++;
+  }
+  return made / gaps.length;
 }
 
 /** Hook: fetch delay distributions from DuckDB for trip (stop, line) pairs */
@@ -227,33 +387,6 @@ function delayBadge(delay: number | null, hasData: boolean) {
   if (Math.abs(delay) < 1) return <Badge variant="outline" className="text-green-600 border-green-300 text-[10px]">i rute</Badge>;
   if (delay < 3) return <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">+{delay.toFixed(1)}m</Badge>;
   return <Badge variant="destructive" className="text-[10px]">+{delay.toFixed(1)}m</Badge>;
-}
-
-function transferProbability(arrivalDelay: number | null, bufferMinutes: number): number {
-  if (arrivalDelay == null) return -1; // unknown
-  const margin = bufferMinutes - arrivalDelay;
-  if (margin > 5) return 0.99;
-  if (margin > 3) return 0.90;
-  if (margin > 1) return 0.70;
-  if (margin > 0) return 0.40;
-  return 0.10;
-}
-
-function transferChance(arrivalDelay: number | null, bufferMinutes: number): string | null {
-  if (arrivalDelay == null) return null;
-  const margin = bufferMinutes - arrivalDelay;
-  if (margin > 3) return "Trygg overgang";
-  if (margin > 1) return "Sannsynlig";
-  if (margin > 0) return "Usikker";
-  return "Risikabel";
-}
-
-function transferColor(arrivalDelay: number | null, bufferMinutes: number): string {
-  if (arrivalDelay == null) return "text-muted-foreground";
-  const margin = bufferMinutes - arrivalDelay;
-  if (margin > 3) return "text-green-600";
-  if (margin > 1) return "text-amber-600";
-  return "text-destructive";
 }
 
 function probabilityBadge(prob: number) {
@@ -424,6 +557,8 @@ function TripCard({
   transferMarginMin,
   walkSpeedKmh,
   sprintSpeedKmh,
+  duckReady,
+  duckQuery,
 }: {
   pattern: TripPattern;
   index: number;
@@ -432,33 +567,80 @@ function TripCard({
   transferMarginMin: number;
   walkSpeedKmh: number;
   sprintSpeedKmh: number;
+  duckReady: boolean;
+  duckQuery: (sql: string) => Promise<any[]>;
 }) {
   const [expanded, setExpanded] = useState(index === 0);
 
+  // ---------- Build transfer specs (one per transit→transit handover) ----------
+  // Stable shape so the gap-fetching hook below has a stable cache key.
+  // The day_type comes from the trip's planned departure date so that e.g. a
+  // Wednesday trip pulls only weekday observations from Parquet.
+  const transferSpecs = useMemo<TransferSpec[]>(() => {
+    const tripDayType = computeDayType(pattern.expectedStartTime);
+
+    // Aimed (scheduled) HH:MM at a quay from a leg's serviceJourney.passingTimes.
+    // Returns minutes-since-midnight, or null when missing.
+    const aimedMinAtQuay = (leg: TripLeg, quayId: string | null, kind: "arrival" | "departure"): number | null => {
+      if (!quayId || !leg.serviceJourney) return null;
+      const pt = leg.serviceJourney.passingTimes.find(p => p.quay?.id === quayId);
+      const t = kind === "arrival" ? pt?.arrival?.time : pt?.departure?.time;
+      if (!t) return null;
+      const [hh, mm] = t.split(":").map(Number);
+      if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+      return hh * 60 + mm;
+    };
+
+    const transitIdxs: number[] = [];
+    for (let i = 0; i < pattern.legs.length; i++) {
+      if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
+    }
+    const out: TransferSpec[] = [];
+    for (let t = 0; t < transitIdxs.length - 1; t++) {
+      const legA = pattern.legs[transitIdxs[t]];
+      const legB = pattern.legs[transitIdxs[t + 1]];
+      const arrQuay = legA.toPlace.quay?.id ?? null;
+      const depQuay = legB.fromPlace.quay?.id ?? null;
+      out.push({
+        key: `t${t}`,
+        arrSjId: legA.serviceJourney?.id ?? null,
+        arrQuayRef: arrQuay,
+        arrLineRef: legA.line?.id ?? null,
+        arrAimedMin: aimedMinAtQuay(legA, arrQuay, "arrival"),
+        depSjId: legB.serviceJourney?.id ?? null,
+        depQuayRef: depQuay,
+        depLineRef: legB.line?.id ?? null,
+        depAimedMin: aimedMinAtQuay(legB, depQuay, "departure"),
+        dayType: tripDayType,
+      });
+    }
+    return out;
+  }, [pattern]);
+
+  const { data: gapMap } = useTransferGaps(transferSpecs, duckReady, duckQuery);
+
   // ---------- Compute transfer probabilities + overall probability ----------
-  // For each transit→transit transfer (with optional foot leg(s) in between) we
-  // compute three probabilities of catching the connection:
-  //   - default (gangtid + 2 min margin)   → headline shown in the collapsed card
-  //   - userMargin (gangtid + N min)       → uses the "Overgangsmargin"-filter
-  //   - sprint (raskere gangtid + 30 sek)  → uses the "Spurt-tempo"-filter
-  // The "effective buffer" for each scenario = totalGap − walkTime − margin, fed
-  // into transferProbabilityFromDist() against the arrival-delay distribution
-  // of the inbound transit leg at the transfer stop.
+  // Empirical per-day pairing: for each historical day where both the arriving
+  // and the departing service journey ran, we know the actual gap (in minutes)
+  // between them. Probability = #days where gap ≥ walk + margin / total #days.
+  // This handles "both buses stuck in same queue" naturally — both observations
+  // come from the same day. Falls back to hour-of-day pooling per (line, stop)
+  // when the specific SJ pair has too few historical observations.
   const transferAnalysis = useMemo(() => {
     type Probs = { default: number; user: number; sprint: number };
-    const transfers: Array<{
-      buffer: number;       // minutes — total gap between TransitA end and TransitB start
-      walkTime: number;     // minutes — sum of foot-leg durations between them
-      sprintWalkTime: number; // minutes — walkTime scaled by walkSpeed/sprintSpeed
-      probs: Probs;         // 3 probabilities; -1 = unknown
+    type TransferInfo = {
+      buffer: number;         // total gap (planned, minutes)
+      walkTime: number;       // walking minutes between A and B
+      sprintWalkTime: number; // walkTime scaled to sprint speed
+      probs: Probs;           // 3 empirical probabilities, -1 = unknown
+      daysObserved: number;   // # of historical days the gap was observed on
+      source: "specific" | "fallback" | "none";
       fromLine: string | null;
       toLine: string | null;
       assumingOnTime: boolean;
-    }> = [];
+    };
+    const transfers: TransferInfo[] = [];
 
-    // Indexes of transit (non-foot) legs and a lookup from "leg index" → transfer index
-    // (i.e. for an inbound transit leg legA, what position is its outgoing transfer in
-    // the transfers[] array). Lets the renderer attach badges without re-counting.
     const transitIdxs: number[] = [];
     const transferIdxByLeg: Map<number, number> = new Map();
     for (let i = 0; i < pattern.legs.length; i++) {
@@ -474,7 +656,6 @@ function TripCard({
       const legA = pattern.legs[aIdx];
       const legB = pattern.legs[bIdx];
 
-      // Sum walking time between A and B (any foot legs in between).
       let walkSec = 0;
       for (let k = aIdx + 1; k < bIdx; k++) {
         if (pattern.legs[k].mode === "foot") walkSec += pattern.legs[k].duration ?? 0;
@@ -486,29 +667,24 @@ function TripCard({
       const totalGap = (new Date(legB.expectedStartTime).getTime() - new Date(legA.expectedEndTime).getTime()) / 60000;
       if (totalGap <= 0) continue;
 
-      const lineRef = legA.line?.id ?? "";
-      const hasDelayData = MODES_WITH_DELAY_DATA.has(legA.mode) && !!lineRef;
-
-      const arrQuay = legA.toPlace.quay?.id ?? "";
-      const statKey = `${arrQuay}|${lineRef}`;
-      const arrStat = stats.get(statKey);
-      const duckStat = duckStats?.get(statKey);
-
-      const arrDelay: number | null = arrStat?.avgDelayArrivalMin ?? null;
+      const hasDelayData = MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id;
       const assumingOnTime = !hasDelayData;
 
-      const probFor = (effective: number): number => {
-        if (!hasDelayData) return -1;
-        if (duckStat && duckStat.p50_arr != null) {
-          return transferProbabilityFromDist(duckStat.p50_arr, duckStat.p80_arr, duckStat.p95_arr, effective);
-        }
-        return transferProbability(arrDelay, effective);
+      // Find the empirical gap distribution for this transfer.
+      const spec = transferSpecs[t];
+      const gapResult = spec ? gapMap?.get(spec.key) : undefined;
+      const gaps = gapResult?.gaps ?? [];
+      const source = gapResult?.source ?? "none";
+
+      const probFor = (requiredBuffer: number): number => {
+        if (!hasDelayData || gaps.length === 0) return -1;
+        return probFromGaps(gaps, requiredBuffer);
       };
 
       const probs: Probs = {
-        default: probFor(totalGap - walkTime - 2),
-        user: probFor(totalGap - walkTime - transferMarginMin),
-        sprint: probFor(totalGap - sprintWalkTime - 0.5),
+        default: probFor(walkTime + 2),
+        user: probFor(walkTime + transferMarginMin),
+        sprint: probFor(sprintWalkTime + 0.5),
       };
 
       transfers.push({
@@ -516,22 +692,22 @@ function TripCard({
         walkTime,
         sprintWalkTime,
         probs,
+        daysObserved: gaps.length,
+        source,
         fromLine: legA.line?.publicCode ?? null,
         toLine: legB.line?.publicCode ?? null,
         assumingOnTime,
       });
     }
 
-    // Headline overall probability uses the default (gangtid + 2 min) scenario.
     const knownProbs = transfers.filter((t) => t.probs.default >= 0).map((t) => t.probs.default);
     const overallProb = knownProbs.length > 0
       ? knownProbs.reduce((a, b) => a * b, 1)
       : -1;
-
     const hasTransfers = transfers.length > 0;
 
     return { transfers, overallProb, hasTransfers, transferIdxByLeg };
-  }, [pattern, stats, duckStats, transferMarginMin, walkSpeedKmh, sprintSpeedKmh]);
+  }, [pattern, transferSpecs, gapMap, transferMarginMin, walkSpeedKmh, sprintSpeedKmh]);
 
   // ---------- Compute estimated departure/arrival from delays ----------
   const estimatedTimes = useMemo(() => {
@@ -868,6 +1044,15 @@ function TripCard({
                           {transferInfo.probs.sprint >= 0
                             ? probabilityBadge(transferInfo.probs.sprint)
                             : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
+                        </div>
+                        {/* Sample size + datakilde — gir brukeren tillit i tallet */}
+                        <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
+                          {transferInfo.source === "specific"
+                            ? `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"} hvor begge avgangene har gått (samme avgangs-ID).`
+                            : transferInfo.source === "fallback"
+                              ? `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"} med tilsvarende avganger (samme linje + time + ${transferInfo.assumingOnTime ? "" : ""}dag­type) — for få data på akkurat denne avgangen.`
+                              : `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"}.`}
+                          {" "}Hver dag sammenliknes faktisk ankomst med faktisk avgang for samme dag.
                         </div>
                       </div>
                     ) : (
@@ -1415,6 +1600,8 @@ export default function TripPlanner() {
                 transferMarginMin={transferMarginMin}
                 walkSpeedKmh={walkSpeedKmh}
                 sprintSpeedKmh={sprintSpeedKmh ?? walkSpeedKmh}
+                duckReady={duckReady}
+                duckQuery={duckQuery}
               />
             ))}
           </div>
