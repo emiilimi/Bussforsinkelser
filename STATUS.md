@@ -3,7 +3,7 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-05-06
+**Sist oppdatert**: 2026-05-13
 
 ## Endringslogg — 2026-05-06: Bugrensing — multi-operator-overgang + diverse opprydding
 
@@ -318,7 +318,7 @@ data/
 | `stop-analysis.tsx:212` | Sender `direction=all` når "begge" er valgt, selv om serveren håndterer det. Ren støy i URL/cache-key. | ⚠️ Støy |
 | `dashboard.tsx:60-62` | `/api/summary/trend` har hardkodet 7/30/365 via period-tabs, men leaderboard under bruker `period=`-param. Inkonsistent mental modell. | ⚠️ UX |
 | `trip-planner.tsx` | Ingen "show raw data" / calculation breakdown-panel. P80-badge viser bare tallet, ikke hvor det kommer fra. | 📋 Manglende feature |
-| **Databasefriskhet** | Inneholder nå 18 april - 6. mai med alle tilgjengelige operatører.
+| **Databasefriskhet** | Inneholder nå 18 april - 6. mai med mange tilgjengelige operatører, samt 11. mai med enda flere tilgjengelige oppdateringer.
 
 
 `ingest.py` selv er oppdatert — **ikke drift mellom schema.ts, db_setup.py, ingest.py**. Problemet er bare at pipeline ikke har kjørt. | 🛈 Operasjonelt |

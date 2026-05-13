@@ -11,6 +11,7 @@ Usage:
     python pipeline/upload_to_r2.py                 # last opp nye/endrede filer
     python pipeline/upload_to_r2.py --all           # tving re-opplasting av alt
     python pipeline/upload_to_r2.py --dry-run       # vis hva som ville blitt lastet opp
+    python pipeline/upload_to_r2.py --prod-db       # last opp KUN prod-DB (hopp over parquet + manifest)
 
 Env-variabler (i r2.env eller i shell):
     R2_ACCOUNT_ID       f.eks. b274357997a1a1ccb8855267adec44b9
@@ -142,6 +143,11 @@ def main():
     parser = argparse.ArgumentParser(description="Last opp Parquet-filer til Cloudflare R2")
     parser.add_argument("--all", action="store_true", help="Tving re-opplasting av alle filer")
     parser.add_argument("--dry-run", action="store_true", help="Vis hva som ville blitt lastet opp")
+    parser.add_argument(
+        "--prod-db",
+        action="store_true",
+        help="Last opp KUN prod-DB (hopp over parquet + manifest)",
+    )
     args = parser.parse_args()
 
     bucket = os.environ.get("R2_BUCKET", "bussforsinkelser-parquet")
@@ -150,66 +156,79 @@ def main():
     if args.dry_run:
         log.info("=== DRY RUN — ingen filer lastes opp ===")
 
-    if not PARQUET_DIR.exists():
-        log.error("Parquet-mappe finnes ikke: %s", PARQUET_DIR)
-        log.error("Kjør først: python pipeline/export_parquet.py --all")
-        return 1
-
-    parquet_files = list(PARQUET_DIR.glob("*.parquet"))
-    if not parquet_files:
-        log.warning("Ingen .parquet-filer funnet i %s", PARQUET_DIR)
-        return 0
-
-    log.info("Kobler til R2 bucket '%s' …", bucket)
-    s3 = None if args.dry_run else get_s3_client()
-
     uploaded = 0
     skipped = 0
+    manifest: list[str] = []
+    prod_db = REPO_ROOT / "data" / "bussforsinkelser_prod.db"
 
-    log.info("Laster opp %d Parquet-fil(er) …", len(parquet_files))
-    for pf in sorted(parquet_files):
-        if args.dry_run:
-            log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)
-            uploaded += 1
-        else:
-            did_upload = upload_file(s3, bucket, pf, pf.name, force=args.all)
-            if did_upload:
+    if not args.prod_db:
+        # ---------- Parquet + manifest ----------
+        if not PARQUET_DIR.exists():
+            log.error("Parquet-mappe finnes ikke: %s", PARQUET_DIR)
+            log.error("Kjør først: python pipeline/export_parquet.py --all")
+            return 1
+
+        parquet_files = list(PARQUET_DIR.glob("*.parquet"))
+        if not parquet_files:
+            log.warning("Ingen .parquet-filer funnet i %s", PARQUET_DIR)
+            return 0
+
+        log.info("Kobler til R2 bucket '%s' …", bucket)
+        s3 = None if args.dry_run else get_s3_client()
+
+        log.info("Laster opp %d Parquet-fil(er) …", len(parquet_files))
+        for pf in sorted(parquet_files):
+            if args.dry_run:
+                log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)
                 uploaded += 1
             else:
-                skipped += 1
+                did_upload = upload_file(s3, bucket, pf, pf.name, force=args.all)
+                if did_upload:
+                    uploaded += 1
+                else:
+                    skipped += 1
 
-    # Generer og last opp manifest.json
-    manifest = generate_manifest(PARQUET_DIR)
-    manifest_path = PARQUET_DIR / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2))
+        # Generer og last opp manifest.json
+        manifest = generate_manifest(PARQUET_DIR)
+        manifest_path = PARQUET_DIR / "manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2))
 
-    if args.dry_run:
-        log.info("  [dry-run] Ville lastet opp: manifest.json (%d filer)", len(manifest))
+        if args.dry_run:
+            log.info("  [dry-run] Ville lastet opp: manifest.json (%d filer)", len(manifest))
+        else:
+            did_upload = upload_file(s3, bucket, manifest_path, "manifest.json", force=True)
+            if did_upload:
+                uploaded += 1
     else:
-        did_upload = upload_file(s3, bucket, manifest_path, "manifest.json", force=True)
-        if did_upload:
-            uploaded += 1
+        # ---------- Kun prod-DB-modus ----------
+        log.info("=== KUN PROD-DB — hopper over parquet + manifest ===")
+        log.info("Kobler til R2 bucket '%s' …", bucket)
+        s3 = None if args.dry_run else get_s3_client()
 
-    # Last opp strippet prod-DB hvis den finnes
-    prod_db = REPO_ROOT / "data" / "bussforsinkelser_prod.db"
+    # ---------- Prod-DB (alltid, både i full og --prod-db-modus) ----------
     if prod_db.exists():
         log.info("Laster opp prod-database …")
         if args.dry_run:
             log.info("  [dry-run] Ville lastet opp: bussforsinkelser_prod.db (%.0f MB)", prod_db.stat().st_size / 1024 / 1024)
         else:
-            did_upload = upload_file(s3, bucket, prod_db, "bussforsinkelser_prod.db", force=args.all)
+            # I --prod-db-modus tvinger vi alltid opp prod-DB siden det er hele poenget
+            force_prod = args.all or args.prod_db
+            did_upload = upload_file(s3, bucket, prod_db, "bussforsinkelser_prod.db", force=force_prod)
             if did_upload:
                 uploaded += 1
             else:
                 skipped += 1
     else:
         log.warning("Prod-DB ikke funnet (%s) — kjør strip_for_prod.py først", prod_db)
+        if args.prod_db:
+            return 1
 
     log.info("")
     log.info("Ferdig: %d lastet opp, %d uendret/hoppet over", uploaded, skipped)
     if public_url:
         log.info("Public URL: %s", public_url)
-        log.info("Parquet-eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
+        if not args.prod_db:
+            log.info("Parquet-eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
         if prod_db.exists():
             log.info("Prod-DB URL:      %s/bussforsinkelser_prod.db", public_url)
 

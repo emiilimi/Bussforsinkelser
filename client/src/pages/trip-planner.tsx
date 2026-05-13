@@ -128,6 +128,23 @@ type DuckDelayRow = {
   n: number;
 };
 
+type LegTimingSpec = {
+  key: string;
+  serviceJourneyId: string;
+  quayRef: string;
+  lineRef: string;
+  kind: "dep" | "arr";
+  aimedHour: number;
+  dayType: string;
+};
+
+type LegTimingResult = {
+  p50: number | null;
+  p80: number | null;
+  n: number;
+  method: "sj" | "hour1" | "hour2" | "none";
+};
+
 // ---------------------------------------------------------------------------
 // Empirical transfer-success: per-day pairing (NOT pooled per (stop, line)).
 //
@@ -292,6 +309,61 @@ function useTransferGaps(
   });
 }
 
+/** Build SQL for per-SJ (delta=undefined) or hour-window (delta=1|2) leg timing query.
+ *  aimed_departure / aimed_arrival columns in Parquet are "HH:MM:SS" time strings. */
+function legTimingSql(s: LegTimingSpec, delta?: number): string {
+  const col = s.kind === "dep" ? "delay_departure_min" : "delay_arrival_min";
+  const aimedCol = s.kind === "dep" ? "aimed_departure" : "aimed_arrival";
+  const where = delta != null
+    ? `line_ref = '${esc(s.lineRef)}' AND stop_ref = '${esc(s.quayRef)}'
+       AND day_type = '${esc(s.dayType)}'
+       AND CAST(SUBSTR(${aimedCol}, 1, 2) AS INTEGER) BETWEEN ${s.aimedHour - delta} AND ${s.aimedHour + delta}`
+    : `service_journey_id = '${esc(s.serviceJourneyId)}' AND stop_ref = '${esc(s.quayRef)}'
+       AND day_type = '${esc(s.dayType)}'`;
+  return `
+    SELECT
+      PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ${col}) AS p50,
+      PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY ${col}) AS p80,
+      COUNT(*) AS n
+    FROM delays WHERE ${where} AND ${col} IS NOT NULL
+  `;
+}
+
+/** Hook: per-SJ estimated departure/arrival delay with ±1h / ±2h fallback. */
+function useEstimatedLegTimes(
+  specs: LegTimingSpec[],
+  duckReady: boolean,
+  duckQuery: (sql: string) => Promise<any[]>,
+) {
+  return useQuery<Map<string, LegTimingResult>>({
+    queryKey: [
+      "duck-leg-timing",
+      ...specs.map(s => `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.dayType}`),
+    ],
+    enabled: duckReady && specs.length > 0,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const out = new Map<string, LegTimingResult>();
+      for (const s of specs) {
+        const r0 = await duckQuery(legTimingSql(s));
+        if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
+          out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj" });
+          continue;
+        }
+        const r1 = await duckQuery(legTimingSql(s, 1));
+        if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
+          out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1" });
+          continue;
+        }
+        const r2 = await duckQuery(legTimingSql(s, 2));
+        const n2 = r2[0]?.n ?? 0;
+        out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none" });
+      }
+      return out;
+    },
+  });
+}
+
 /** Empirical transfer probability: fraction of historical days where
  *  the actual gap was at least the required buffer (walk + margin). */
 function probFromGaps(gaps: number[], requiredBuffer: number): number {
@@ -404,6 +476,13 @@ function addMinutesToIso(iso: string, minutes: number): string {
   const d = new Date(iso);
   d.setMinutes(d.getMinutes() + Math.round(minutes));
   return d.toISOString();
+}
+
+function legTimingTooltip(r: LegTimingResult): string {
+  if (r.method === "sj") return `Median av ${r.n} avganger med samme rute-ID`;
+  if (r.method === "hour1") return `Median av ${r.n} avganger ±1 time (for få treff på eksakt avgang)`;
+  if (r.method === "hour2") return `Median av ${r.n} avganger ±2 timer (utvidet søk)`;
+  return "Ingen historisk data";
 }
 
 function estimateP80(avgDelay: number | null, realP80?: number | null): string | null {
@@ -619,6 +698,32 @@ function TripCard({
 
   const { data: gapMap } = useTransferGaps(transferSpecs, duckReady, duckQuery);
 
+  // ---------- Per-SJ estimated departure/arrival times ----------
+  const legTimingSpecs = useMemo<LegTimingSpec[]>(() => {
+    const dayType = computeDayType(pattern.expectedStartTime);
+    const aimedHour = new Date(pattern.expectedStartTime).getHours();
+    const specs: LegTimingSpec[] = [];
+    let firstTransit = true;
+    for (let i = 0; i < pattern.legs.length; i++) {
+      const leg = pattern.legs[i];
+      if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      if (firstTransit) {
+        const fromQuay = leg.fromPlace.quay?.id;
+        if (fromQuay) {
+          specs.push({ key: "dep", serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: fromQuay, lineRef: leg.line.id, kind: "dep", aimedHour, dayType });
+        }
+        firstTransit = false;
+      }
+      const toQuay = leg.toPlace.quay?.id;
+      if (toQuay) {
+        specs.push({ key: `arr_${i}`, serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: toQuay, lineRef: leg.line.id, kind: "arr", aimedHour, dayType });
+      }
+    }
+    return specs;
+  }, [pattern]);
+
+  const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, duckReady, duckQuery);
+
   // ---------- Compute transfer probabilities + overall probability ----------
   // Empirical per-day pairing: for each historical day where both the arriving
   // and the departing service journey ran, we know the actual gap (in minutes)
@@ -709,85 +814,69 @@ function TripCard({
     return { transfers, overallProb, hasTransfers, transferIdxByLeg };
   }, [pattern, transferSpecs, gapMap, transferMarginMin, walkSpeedKmh, sprintSpeedKmh]);
 
-  // ---------- Compute estimated departure/arrival from delays ----------
+  // ---------- Compute estimated departure/arrival and P80 from per-SJ DuckDB data ----------
   const estimatedTimes = useMemo(() => {
-    // Find first bus leg's first stop delay
-    let estDeparture: string | null = null;
-    let estArrival: string | null = null;
-    let firstBusDelayDep: number | null = null;
-    let lastBusDelayArr: number | null = null;
+    const depResult = legTimes?.get("dep");
 
-    for (const leg of pattern.legs) {
-      if (leg.mode === "foot" || !leg.line?.id) continue;
-      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-      const fromQuay = leg.fromPlace.quay?.id;
-      if (!fromQuay) continue;
-      const statKey = `${fromQuay}|${leg.line.id}`;
-      const duckStat = duckStats?.get(statKey);
-      const stat = stats.get(statKey);
-      // Prefer DuckDB P50, fall back to server avg
-      if (duckStat?.p50_dep != null) {
-        firstBusDelayDep = duckStat.p50_dep;
-      } else if (stat?.avgDelayDepartureMin != null) {
-        firstBusDelayDep = stat.avgDelayDepartureMin;
-      } else if (stat?.avgDelayMin != null) {
-        firstBusDelayDep = stat.avgDelayMin;
-      }
-      break;
-    }
-
+    // Find last transit leg index to locate its arr result
+    let lastArrResult: LegTimingResult | undefined;
     for (let i = pattern.legs.length - 1; i >= 0; i--) {
       const leg = pattern.legs[i];
-      if (leg.mode === "foot" || !leg.line?.id) continue;
-      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-      const toQuay = leg.toPlace.quay?.id;
-      if (!toQuay) continue;
-      const statKey = `${toQuay}|${leg.line.id}`;
-      const duckStat = duckStats?.get(statKey);
-      const stat = stats.get(statKey);
-      // Prefer DuckDB P50, fall back to server avg
-      if (duckStat?.p50_arr != null) {
-        lastBusDelayArr = duckStat.p50_arr;
-      } else if (stat?.avgDelayArrivalMin != null) {
-        lastBusDelayArr = stat.avgDelayArrivalMin;
-      } else if (stat?.avgDelayMin != null) {
-        lastBusDelayArr = stat.avgDelayMin;
-      }
+      if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      lastArrResult = legTimes?.get(`arr_${i}`);
       break;
     }
 
-    if (firstBusDelayDep != null) {
-      estDeparture = formatTime(addMinutesToIso(pattern.expectedStartTime, firstBusDelayDep));
-    }
-    if (lastBusDelayArr != null) {
-      estArrival = formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr));
-    }
-
-    // P80 estimate from the worst delay across all legs (prefer real DuckDB P80)
-    let worstAvgDelay: number | null = null;
-    let worstRealP80: number | null = null;
-    for (const leg of pattern.legs) {
-      if (leg.mode === "foot" || !leg.line?.id) continue;
-      if (!MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-      const toQuay = leg.toPlace.quay?.id;
-      if (!toQuay) continue;
-      const statKey = `${toQuay}|${leg.line.id}`;
-      const duckStat = duckStats?.get(statKey);
-      const stat = stats.get(statKey);
-      if (duckStat?.p80_arr != null) {
-        if (worstRealP80 == null || duckStat.p80_arr > worstRealP80) {
-          worstRealP80 = duckStat.p80_arr;
-        }
+    const firstBusDelayDep = depResult?.p50 ?? (() => {
+      for (const leg of pattern.legs) {
+        if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+        const fromQuay = leg.fromPlace.quay?.id;
+        if (!fromQuay) continue;
+        const stat = stats.get(`${fromQuay}|${leg.line.id}`);
+        return stat?.avgDelayDepartureMin ?? stat?.avgDelayMin ?? null;
       }
-      const d = stat?.avgDelayMin ?? null;
-      if (d != null && (worstAvgDelay == null || d > worstAvgDelay)) {
-        worstAvgDelay = d;
+      return null;
+    })();
+
+    const lastBusDelayArr = lastArrResult?.p50 ?? (() => {
+      for (let i = pattern.legs.length - 1; i >= 0; i--) {
+        const leg = pattern.legs[i];
+        if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+        const toQuay = leg.toPlace.quay?.id;
+        if (!toQuay) continue;
+        const stat = stats.get(`${toQuay}|${leg.line.id}`);
+        return stat?.avgDelayArrivalMin ?? stat?.avgDelayMin ?? null;
+      }
+      return null;
+    })();
+
+    const estDeparture = firstBusDelayDep != null
+      ? formatTime(addMinutesToIso(pattern.expectedStartTime, firstBusDelayDep))
+      : null;
+    const estArrival = lastBusDelayArr != null
+      ? formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr))
+      : null;
+
+    // P80: worst across all transit legs — from per-SJ data, fallback to server avg
+    let worstRealP80: number | null = null;
+    let worstAvgDelay: number | null = null;
+    for (let i = 0; i < pattern.legs.length; i++) {
+      const leg = pattern.legs[i];
+      if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      const arrRes = legTimes?.get(`arr_${i}`);
+      if (arrRes?.p80 != null && (worstRealP80 == null || arrRes.p80 > worstRealP80)) {
+        worstRealP80 = arrRes.p80;
+      }
+      const toQuay = leg.toPlace.quay?.id;
+      if (toQuay) {
+        const d = stats.get(`${toQuay}|${leg.line.id}`)?.avgDelayMin ?? null;
+        if (d != null && (worstAvgDelay == null || d > worstAvgDelay)) worstAvgDelay = d;
       }
     }
     const p80 = estimateP80(worstAvgDelay, worstRealP80);
 
-    return { estDeparture, estArrival, p80, firstBusDelayDep, lastBusDelayArr };
-  }, [pattern, stats, duckStats]);
+    return { estDeparture, estArrival, p80, depResult, arrResult: lastArrResult };
+  }, [pattern, stats, legTimes]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
@@ -803,8 +892,13 @@ function TripCard({
                 {formatTime(pattern.expectedStartTime)}
               </span>
               {estimatedTimes.estDeparture && (
-                <span className="text-xs font-mono text-amber-500">
-                  ~{estimatedTimes.estDeparture}
+                <span className="flex items-center gap-0.5">
+                  <span className="text-xs font-mono text-amber-500">~{estimatedTimes.estDeparture}</span>
+                  {estimatedTimes.depResult && (
+                    <span title={legTimingTooltip(estimatedTimes.depResult)} className="cursor-help">
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </span>
+                  )}
                 </span>
               )}
             </div>
@@ -814,8 +908,13 @@ function TripCard({
                 {formatTime(pattern.expectedEndTime)}
               </span>
               {estimatedTimes.estArrival && (
-                <span className="text-xs font-mono text-amber-500">
-                  ~{estimatedTimes.estArrival}
+                <span className="flex items-center gap-0.5">
+                  <span className="text-xs font-mono text-amber-500">~{estimatedTimes.estArrival}</span>
+                  {estimatedTimes.arrResult && (
+                    <span title={legTimingTooltip(estimatedTimes.arrResult)} className="cursor-help">
+                      <Info className="w-3 h-3 text-muted-foreground/60" />
+                    </span>
+                  )}
                 </span>
               )}
             </div>

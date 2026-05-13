@@ -54,9 +54,11 @@ function BoundsTracker({ onBoundsChange }: { onBoundsChange: (b: LatLngBounds) =
 }
 
 const getColor = (delay: number) => {
-  if (delay < 1) return "#10b981";
-  if (delay < 3) return "#fbbf24";
-  return "#ef4444";
+  if (delay < 1)  return "#10b981";
+  if (delay < 3)  return "#fbbf24";
+  if (delay < 5)  return "#f97316";
+  if (delay < 10) return "#ef4444";
+  return "#991b1b";
 };
 
 const getRadius = (numDepartures: number | null): number => {
@@ -295,7 +297,9 @@ export default function DelayMap() {
             <div className="space-y-1.5 mb-2">
               <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" /><span className="text-[10px]">&lt; 1 min</span></div>
               <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#fbbf24]" /><span className="text-[10px]">1 – 3 min</span></div>
-              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" /><span className="text-[10px]">&gt; 3 min</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" /><span className="text-[10px]">3 – 5 min</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" /><span className="text-[10px]">5 – 10 min</span></div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#991b1b]" /><span className="text-[10px]">&gt; 10 min</span></div>
             </div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Størrelse</p>
             <div className="space-y-1.5">

@@ -17,4 +17,12 @@ export const REGION_MAP_CENTER: Record<Region, { lat: number; lng: number; zoom:
   bra:   { lat: 59.7440, lng: 10.2045, zoom: 11 }, // Drammen (Brakar)
   fin:   { lat: 70.0663, lng: 23.2714, zoom: 10 }, // Alta/Hammerfest-området
   nor:   { lat: 67.2804, lng: 14.4049, zoom: 10 }, // Bodø
+  akt:   { lat: 58.1467, lng:  7.9956, zoom: 11 }, // Kristiansand (Agder)
+  atb:   { lat: 63.4305, lng: 10.3951, zoom: 11 }, // Trondheim (AtB)
+  bnr:   { lat: 65.0,    lng: 13.5,    zoom:  5 }, // Bane NOR (landsdekkende jernbane)
+  nbu:   { lat: 65.0,    lng: 13.5,    zoom:  5 }, // Connect Bus Flybuss (landsdekkende)
+  fli:   { lat: 65.0,    lng: 13.5,    zoom:  5 }, // Flixbus (langdistanse)
+  flt:   { lat: 60.0,    lng: 11.1,    zoom: 10 }, // Oslo–Gardermoen (Flytoget)
+  goa:   { lat: 58.5,    lng:  8.5,    zoom:  7 }, // Sør-Norge tog (Go Ahead)
+  vot:   { lat: 59.2674, lng: 10.4076, zoom: 10 }, // Tønsberg (Vestfold og Telemark)
 };

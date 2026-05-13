@@ -56,7 +56,10 @@ DB_PATH = os.environ.get(
 
 # Comma-separated operator codes; can be overridden via --operator CLI flag or BQ_OPERATOR env var.
 # Default: all known operators.
-_ALL_OPERATORS = "SKY,MOR,INN,OST,RUT,KOL,VYG,TRO,BRA,FIN,NOR"
+_ALL_OPERATORS = (
+    "SKY,MOR,INN,OST,RUT,KOL,VYG,TRO,BRA,FIN,NOR,"
+    "AKT,ATB,BNR,NBU,FLI,FLT,GOA,VOT"
+)
 OPERATORS: list[str] = [
     op.strip() for op in os.environ.get("BQ_OPERATOR", _ALL_OPERATORS).split(",") if op.strip()
 ]

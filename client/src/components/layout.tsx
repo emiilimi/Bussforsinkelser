@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   function labelForSelection() {
-    if (isAll) return "Alle regioner";
+    if (isAll) return "Alle operatører";
     if (regions.length === 1) return REGION_LABEL[regions[0]];
     if (regions.length === 2) return `${REGION_LABEL[regions[0]]}, ${REGION_LABEL[regions[1]]}`;
     return `${REGION_LABEL[regions[0]]} +${regions.length - 1}`;
@@ -56,7 +56,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="px-2 space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Region</label>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Operatør</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -67,7 +67,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <ChevronDown className="w-4 h-4 flex-shrink-0 opacity-50 ml-1" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-1" align="start">
+            <PopoverContent className="w-56 p-1 max-h-[70vh] overflow-y-auto" align="start">
               {/* Alle-option */}
               <button
                 onClick={() => setRegions([])}
@@ -79,7 +79,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <span className={cn("flex h-4 w-4 items-center justify-center rounded border border-primary", isAll ? "bg-primary" : "bg-transparent")}>
                   {isAll && <Check className="w-3 h-3 text-primary-foreground" />}
                 </span>
-                Alle regioner
+                Alle operatører
               </button>
 
               <div className="my-1 border-t border-border" />

@@ -12,7 +12,15 @@ export type Region =
   | "tro"
   | "bra"
   | "fin"
-  | "nor";
+  | "nor"
+  | "akt"
+  | "atb"
+  | "bnr"
+  | "nbu"
+  | "fli"
+  | "flt"
+  | "goa"
+  | "vot";
 
 // Maps each region key to its NeTEx operator code (used to filter lineRef / API calls).
 // Empty string = no filter (alle).
@@ -29,10 +37,18 @@ export const REGION_OPERATOR: Record<Region, string> = {
   bra: "BRA",
   fin: "FIN",
   nor: "NOR",
+  akt: "AKT",
+  atb: "ATB",
+  bnr: "BNR",
+  nbu: "NBU",
+  fli: "FLI",
+  flt: "FLT",
+  goa: "GOA",
+  vot: "VOT",
 };
 
 export const REGION_LABEL: Record<Region, string> = {
-  alle: "Alle regioner",
+  alle: "Alle operatører",
   sky: "Skyss (Vestland)",
   mor: "Møre og Romsdal",
   inn: "Innlandet",
@@ -44,6 +60,14 @@ export const REGION_LABEL: Record<Region, string> = {
   bra: "Brakar (Viken)",
   fin: "Finnmark",
   nor: "Nordland",
+  akt: "Agder kollektivtrafikk",
+  atb: "AtB (Trøndelag)",
+  bnr: "Bane NOR",
+  nbu: "Connect Bus Flybuss",
+  fli: "Flixbus",
+  flt: "Flytoget",
+  goa: "Go Ahead",
+  vot: "Vestfold og Telemark",
 };
 
 // All individual region keys (excluding "alle" sentinel)
