@@ -50,16 +50,32 @@ function parseDate(raw: unknown, fallback: string): string {
 }
 
 function parseOperator(raw: unknown, fallback = "SKY"): string {
-  return typeof raw === "string" && raw.length > 0 ? raw : fallback;
+  if (typeof raw !== "string" || raw.length === 0) return fallback;
+  const upper = raw.toUpperCase();
+  return VALID_OPERATORS.has(upper) ? upper : fallback;
 }
+
+/**
+ * Whitelist av kjente operatørkoder. Matcher `_ALL_OPERATORS` i
+ * pipeline/ingest.py. Defense-in-depth mot at uventede strenger havner
+ * i SQL eller upstream-kall, selv om alle queries bruker parameterbinding.
+ */
+const VALID_OPERATORS = new Set([
+  "SKY", "MOR", "INN", "OST", "RUT", "KOL", "VYG", "TRO", "BRA", "FIN",
+  "NOR", "AKT", "ATB", "BNR", "NBU", "FLI", "FLT", "GOA", "VOT",
+]);
 
 /**
  * Parses ?operator=SKY,RUT,MOR → ["SKY","RUT","MOR"]
  * Empty string or missing → [] (means "all operators, no filter").
+ * Ukjente koder filtreres bort.
  */
 function parseOperators(raw: unknown): string[] {
   if (typeof raw !== "string" || !raw) return [];
-  return raw.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  return raw
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter((s) => s && VALID_OPERATORS.has(s));
 }
 
 /** Parse ?mode=bus|tram|metro|water|all (default "all"). */
@@ -131,6 +147,58 @@ function parseWeeksWindow(query: any, defaultWeeks = 13): string {
 }
 
 // ---------------------------------------------------------------------------
+// Rate limiting (in-memory, per-IP sliding window)
+// ---------------------------------------------------------------------------
+
+/**
+ * Tiny in-memory rate limiter. Protects upstream Entur API (~30 req/min limit
+ * unregistered) and our own DB from bursts. Keys per IP; sliding window via
+ * timestamp list. Process-local — if you run multiple replicas, replace with
+ * a shared store. For a single Railway instance this is sufficient.
+ */
+function makeRateLimiter(opts: { windowMs: number; max: number; name: string }) {
+  const hits = new Map<string, number[]>();
+
+  return function rateLimit(
+    req: import("express").Request,
+    res: import("express").Response,
+    next: import("express").NextFunction,
+  ) {
+    // Prefer X-Forwarded-For first entry when behind Railway/proxy; else req.ip.
+    const xff = req.headers["x-forwarded-for"];
+    const ip =
+      (typeof xff === "string" ? xff.split(",")[0]!.trim() : undefined) ||
+      req.ip ||
+      "unknown";
+
+    const now = Date.now();
+    const cutoff = now - opts.windowMs;
+    const list = (hits.get(ip) ?? []).filter((t) => t > cutoff);
+    if (list.length >= opts.max) {
+      const retryAfter = Math.ceil((list[0]! + opts.windowMs - now) / 1000);
+      res.setHeader("Retry-After", String(Math.max(1, retryAfter)));
+      return res.status(429).json({
+        error: "For mange forespørsler — prøv igjen om litt.",
+      });
+    }
+    list.push(now);
+    hits.set(ip, list);
+
+    // Occasional cleanup of stale keys (every ~500 requests)
+    if (hits.size > 500 && Math.random() < 0.01) {
+      for (const [key, arr] of hits) {
+        if (arr.every((t) => t <= cutoff)) hits.delete(key);
+      }
+    }
+    next();
+  };
+}
+
+const tripLimiter = makeRateLimiter({ windowMs: 60_000, max: 20, name: "trip" });
+const geocoderLimiter = makeRateLimiter({ windowMs: 60_000, max: 60, name: "geocoder" });
+const departuresLimiter = makeRateLimiter({ windowMs: 60_000, max: 30, name: "departures" });
+
+// ---------------------------------------------------------------------------
 // Route registration
 // ---------------------------------------------------------------------------
 
@@ -138,6 +206,28 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express,
 ): Promise<Server> {
+  // -----------------------------------------------------------------------
+  // GET /api/health
+  // Returns server liveness + data freshness. Used by frontend
+  // freshness-badge and external uptime probes.
+  // -----------------------------------------------------------------------
+  app.get("/api/health", async (_req, res) => {
+    try {
+      const lastDate = await getLatestStopDate();
+      if (!lastDate) {
+        return res.json({ status: "no_data", lastIngestDate: null, staleDays: null });
+      }
+      const today = new Date();
+      const last = new Date(lastDate + "T00:00:00Z");
+      const staleDays = Math.floor(
+        (today.getTime() - last.getTime()) / 86_400_000,
+      );
+      const status = staleDays > 2 ? "stale" : "ok";
+      return res.json({ status, lastIngestDate: lastDate, staleDays });
+    } catch {
+      return res.status(500).json({ status: "error" });
+    }
+  });
   /**
    * GET /api/summary?date=2025-03-07&operator=SKY
    * Daily overview: avg delay, % on time, % >10 min late, journeys, cancellations.
@@ -288,7 +378,7 @@ export async function registerRoutes(
    * Typeahead stop search.
    */
   app.get("/api/stops/search", async (req, res) => {
-    const q = String(req.query.q ?? "").trim();
+    const q = String(req.query.q ?? "").trim().slice(0, 100);
     if (q.length < 2) return res.json([]);
     const rows = await searchStops(q, 20);
     return res.json(rows.map((r) => ({
@@ -448,8 +538,8 @@ export async function registerRoutes(
    * GET /api/geocoder/autocomplete?text=Bryggen+Bergen&size=8
    * Proxy to Entur Geocoder — returns stops AND addresses.
    */
-  app.get("/api/geocoder/autocomplete", async (req, res) => {
-    const text = String(req.query.text || "").trim();
+  app.get("/api/geocoder/autocomplete", geocoderLimiter, async (req, res) => {
+    const text = String(req.query.text || "").trim().slice(0, 200);
     if (text.length < 2) return res.json([]);
     const size = Math.min(Math.max(1, parseIntQuery(req.query.size, 8)), 20);
     try {
@@ -534,7 +624,7 @@ export async function registerRoutes(
    * Proxies to Entur Journey Planner v3 GraphQL API.
    * Results cached 5 min per (from, to, time-bucket).
    */
-  app.post("/api/trip", async (req, res) => {
+  app.post("/api/trip", tripLimiter, async (req, res) => {
     const {
       from, to, when,
       arriveBy,
@@ -688,7 +778,7 @@ export async function registerRoutes(
       if (!response.ok) {
         const text = await response.text();
         console.error("[trip] Entur HTTP error:", response.status, text.slice(0, 500));
-        return res.status(502).json({ error: "Entur API error", detail: text });
+        return res.status(502).json({ error: "Reisetjenesten er ikke tilgjengelig akkurat nå." });
       }
 
       const data = await response.json();
@@ -701,7 +791,8 @@ export async function registerRoutes(
       tripCacheSet(cacheKey, data);
       return res.json(data);
     } catch (err: any) {
-      return res.status(502).json({ error: "Entur API unreachable", detail: err.message });
+      console.error("[trip] Entur unreachable:", err?.message);
+      return res.status(502).json({ error: "Reisetjenesten er ikke tilgjengelig akkurat nå." });
     }
   });
 
@@ -723,7 +814,7 @@ export async function registerRoutes(
    *
    * Cachet 60 sek server-side. Klienten kan refresh med `refetchInterval`.
    */
-  app.get("/api/departures/:stopPlaceRef", async (req, res) => {
+  app.get("/api/departures/:stopPlaceRef", departuresLimiter, async (req, res) => {
     const stopPlaceRef = req.params.stopPlaceRef;
     if (!/^NSR:(StopPlace|Quay):\d+$/.test(stopPlaceRef)) {
       return res.status(400).json({ error: "Invalid stopPlaceRef" });
@@ -776,7 +867,7 @@ export async function registerRoutes(
       if (!response.ok) {
         const text = await response.text();
         console.error("[departures] Entur HTTP error:", response.status, text.slice(0, 300));
-        return res.status(502).json({ error: "Entur API error", detail: text.slice(0, 300) });
+        return res.status(502).json({ error: "Avgangstjenesten er ikke tilgjengelig akkurat nå." });
       }
       const data = await response.json();
       if (data.errors) {
@@ -815,7 +906,8 @@ export async function registerRoutes(
       depCache.set(cacheKey, { data: result, expiry: Date.now() + DEP_CACHE_TTL_MS });
       return res.json(result);
     } catch (err: any) {
-      return res.status(502).json({ error: "Entur API unreachable", detail: err.message });
+      console.error("[departures] Entur unreachable:", err?.message);
+      return res.status(502).json({ error: "Avgangstjenesten er ikke tilgjengelig akkurat nå." });
     }
   });
 

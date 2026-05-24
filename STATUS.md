@@ -3,7 +3,82 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-05-13
+**Sist oppdatert**: 2026-05-21
+
+## Endringslogg — 2026-05-21: Fase 1 — blockers før offentlig promotering
+
+**Mål**: gjøre nettsiden klar til å deles med bussselskaper og publikum. Tre Explore-agenter gikk gjennom hele kodebasen og identifiserte blockers — denne iterasjonen dekker dokumentasjon, data-freshness, backend-sikkerhet og pipeline-rapportering. Plan i `C:\Users\emili\.claude\plans\hi-i-have-recently-async-panda.md`.
+
+**Dokumentasjon — ny `/metode`-side**:
+- `client/src/pages/methodology.tsx` (ny): tre-nivå dokumentasjon — "Hva viser nettsiden?" (alle), "Hvordan beregnes tallene?" (lett teknisk: P50/P80/P95, dwell time, dagtype, empirisk overgang, punktlighet), "Detaljert metodikk" (datakjede, aggregeringsnivåer, kvalitetssikring, DuckDB-WASM), pluss en "Begrensninger"-seksjon for kjente svakheter. Ankerseksjoner: `#hva-vises`, `#persentiler`, `#dwell-time`, `#day-type`, `#overgang`, `#punktlighet`.
+- `client/src/App.tsx`: ny `/metode`-rute.
+- `client/src/components/layout.tsx`: ny "Metode"-lenke i navigasjonen.
+
+**Info-ikoner som lenker til /metode**:
+- `client/src/components/info-tip.tsx` (ny): delt `<InfoTip>` med valgfri `learnMoreHref` for "Les mer →"-lenke.
+- `client/src/pages/dashboard.tsx`: info-ikoner på "Snitt forsinkelse" og "Andel i rute" → /metode-anker.
+- `client/src/pages/journey-details.tsx`: info-ikon på stopprofile-toggle (forklarer Forsinkelse / Forsinkelsesendring / Stopptid) → `#dwell-time`.
+- `client/src/pages/departures.tsx`: info-ikon på avgangsliste-headeren forklarer Sanntid-badge og P80-badge → `#persentiler`. P80-badge har nå title-attributt.
+- `client/src/pages/worst-lists.tsx`: lokal `<InfoTip>` erstattet med delt komponent. Sentrale tooltips fikk `learnMoreHref`.
+- `client/src/pages/trip-planner.tsx`: info-ikon ved overgangs-indikatoren → `#overgang`.
+
+**Data-freshness-indikator**:
+- `client/src/components/freshness-badge.tsx` (ny): viser "Sist oppdatert: DD. mmm" i sidebar; hvis data >2 dager gammelt vises oransje varsel "Data ikke oppdatert siden ...".
+- `server/routes.ts`: nytt `GET /api/health` returnerer `{ status: "ok"|"stale"|"no_data"|"error", lastIngestDate, staleDays }`. Bruker `getLatestStopDate()` fra storage.
+
+**Backend-sikkerhet og robusthet** (`server/routes.ts`):
+- In-memory sliding-window rate limiter (per IP, X-Forwarded-For-aware): `/api/trip` (20/min), `/api/geocoder/autocomplete` (60/min), `/api/departures/:ref` (30/min). Returnerer 429 + `Retry-After`.
+- Input-grenser: `text` på geocoder kuttes til 200 tegn, `q` på `/api/stops/search` til 100.
+- Operator-whitelist: ny `VALID_OPERATORS` (Set av 19 kjente koder); `parseOperator()` og `parseOperators()` filtrerer mot dette (defense-in-depth selv om alle SQL-queries bruker parameterbinding).
+- Sanitering av Entur-feilrespons: erstattet `detail: err.message` / `detail: text` med generiske norske meldinger. Originalfeil logges fortsatt server-side via `console.error`.
+
+**Pipeline — per-operatør coverage-rapport** (`pipeline/ingest.py`):
+- Ny `write_ingest_diagnostics()` skriver `data/diagnostics/YYYY-MM-DD-ingest.json` med rader-per-operatør, runtime og advarsler. Logger en synlig WARNING per operatør med 0 rader, slik at Railway-cron-loggen avslører silent partial failures.
+
+**Polish**:
+- `client/src/pages/not-found.tsx`: oversatt til norsk ("404 — Siden finnes ikke") + lenke tilbake til forsiden.
+- `client/src/pages/trip-planner.tsx`: to `console.warn` gates bak `import.meta.env.DEV`.
+- `.env.example`: lagt til R2-vars (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`) og `VITE_PARQUET_BASE_URL` for frontend-konfig.
+
+**Bevisst utelatt**:
+- R2-cron-integrasjon (krever Railway-konfig + bekreftelse på hvor cron er definert).
+- Loading skeletons på journey-details profile-chart (lav prio, kan gjøres i ny økt).
+- Strukturelle skaleringstiltak (Railway volume, drop av mellomdata-tabeller) — håndteres i fase 2.
+
+## Endringslogg — 2026-05-13: Frontend-tilpasninger for nye datakilder
+
+- `client/src/lib/RegionContext.tsx`: utvidet med støtte for flere nye operatører og regioner.
+- `client/src/lib/regionCoords.ts`: lagt til kartsentrum + zoom for nye regioner.
+- `client/src/components/layout.tsx`: oppdatert nav og regionvelger for nye datakilder.
+- `client/src/pages/delay-map.tsx`: mindre justeringer for multi-operator-visning.
+- `client/src/pages/trip-planner.tsx`: videre forbedringer av overgangsanalyse og UI.
+- `pipeline/ingest.py`: mindre justering.
+- `pipeline/upload_to_r2.py`: refaktorert opplasting til Cloudflare R2.
+
+## Endringslogg — 2026-05-08: Empirisk dag-for-dag overgangssannsynlighet i reiseplanleggeren
+
+Erstatter pooled (stopp, linje) percentil-baserte estimater med per-dag historisk paring:
+
+- **Primær**: matcher BÅDE arriving + departing `service_journey_id` eksakt pluss riktig `day_type`. Gir én observert "gap" per historisk dag der begge avgangene gikk.
+- **Fallback**: pooler per `(line, stop, day_type)` når SJ-paret har under 5 observasjoner. Velger rad med aimed-tid nærmest planlagt tid (±60 min).
+- Sannsynlighet er nå empirisk: andel historiske dager der faktisk avstand >= gangtid + margin.
+- `client/src/lib/day-type.ts` (ny): klient-side `day_type`-beregning (matcher `pipeline/day_type.py`), inkl. hardkodet liste over norske helligdager 2024–2028.
+- `client/src/pages/trip-planner.tsx`: UI viser "Snitt over X dager" + kilde. Fjernet utdaterte pooled-helpere (`transferProbabilityFromDist`, `transferProbability`, `transferChance`, `transferColor`).
+
+## Endringslogg — 2026-05-07: Ny avgangsvisning (/avganger)
+
+Ny side: sanntidsavganger fra et valgfritt stoppested, med historisk delay-overlay.
+
+**Backend**:
+- `server/routes.ts`: ny `GET /api/departures/:stopPlaceRef?minutes=90&limit=50`. Proxer Entur `stopPlace(id:){estimatedCalls}` GraphQL-query. Støtter både `NSR:StopPlace:` og `NSR:Quay:`-refs. 60s server-cache (LRU, max 200 entries).
+
+**Frontend** (`client/src/pages/departures.tsx`, ny):
+- Stopp-søk med 300ms debounce (gjenbruker `/api/stops/search`).
+- Tidsvindu-velger (30/60/90/180 min, default 90 min).
+- 4 stat-kort fra `/api/stop/:ref` (snitt, σ, % >2 min, totale avganger).
+- Avgangsliste: planlagt tid, linjeikon + nummer + destinasjon, sanntid-badge (grønn/gul/rød), P80-badge fra DuckDB-WASM, klikkbar → `/journey`.
+- Auto-refresh hvert 60. sekund.
+- `client/src/App.tsx`: ny `/avganger`-rute. `client/src/components/layout.tsx`: ny nav-lenke.
 
 ## Endringslogg — 2026-05-06: Bugrensing — multi-operator-overgang + diverse opprydding
 

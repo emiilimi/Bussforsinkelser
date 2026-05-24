@@ -3,7 +3,7 @@ import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, MapPin, MapPinOff, Trophy, Activity, Zap, Info } from "lucide-react";
+import { CalendarDays, MapPin, MapPinOff, Trophy, Activity, Zap } from "lucide-react";
 import { formatStopName } from "@/lib/utils";
 import { formatDateNO, formatWeekdayShortNO, lineNumber } from "@/lib/date-utils";
 import { useState } from "react";
@@ -14,7 +14,8 @@ import {
   type TimeWindow,
   windowToQuery,
 } from "@/components/time-window-picker";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoTip } from "@/components/info-tip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type DaySummary = {
   date: string;
@@ -43,24 +44,6 @@ type LeaderboardLine = {
   totalDepartures: number | null;
   totalCancellations: number | null;
 };
-
-// Defined at module level so React doesn't see a new component type on every render.
-// (Defining a component inside another component breaks tooltip hover — the open state
-// resets on each re-render because React unmounts/remounts the inner component.)
-function InfoTip({ children }: { children: React.ReactNode }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button type="button" aria-label="Info" className="inline-flex items-center text-muted-foreground hover:text-foreground">
-          <Info className="h-3.5 w-3.5" />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs text-xs leading-snug">
-        {children}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 export default function WorstLists() {
   const [, navigate] = useLocation();
@@ -142,7 +125,7 @@ export default function WorstLists() {
               <TabsTrigger value="cancellations" className="text-xs">Kanselleringer</TabsTrigger>
             </TabsList>
           </Tabs>
-          <InfoTip>Snitt = vektet gjennomsnittlig forsinkelse over dagens avganger. Kanselleringer = totalt antall avlyste avganger den dagen.</InfoTip>
+          <InfoTip learnMoreHref="/metode#hva-vises">Snitt = vektet gjennomsnittlig forsinkelse over dagens avganger. Kanselleringer = totalt antall avlyste avganger den dagen.</InfoTip>
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -378,7 +361,7 @@ export default function WorstLists() {
                 <TabsTrigger value="cancellations" className="text-xs">Kanselleringer</TabsTrigger>
               </TabsList>
             </Tabs>
-            <InfoTip>"σ" sorterer etter spredning i forsinkelse. "% i rute" sorterer etter andel avganger ≤2 min over rutetid. Kanselleringer kommer når pipeline-endring er deployed.</InfoTip>
+            <InfoTip learnMoreHref="/metode#punktlighet">"σ" sorterer etter spredning i forsinkelse. "% i rute" sorterer etter andel avganger ≤2 min over rutetid. Kanselleringer kommer når pipeline-endring er deployed.</InfoTip>
           </div>
         </div>
 

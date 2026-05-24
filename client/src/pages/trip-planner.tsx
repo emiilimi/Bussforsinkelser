@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
+import { InfoTip } from "@/components/info-tip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1106,8 +1107,13 @@ function TripCard({
                   <div className="py-2 px-3 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <ArrowDown className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
                         Overgang: {transferInfo.buffer.toFixed(0)} min total
+                        <InfoTip learnMoreHref="/metode#overgang">
+                          Sannsynligheten for å rekke overgangen beregnes empirisk fra historiske
+                          dager der begge avgangene faktisk gikk. Ikke en simulering eller
+                          gjennomsnittsberegning.
+                        </InfoTip>
                       </span>
                       {transferInfo.walkTime > 0 && (
                         <span className="text-xs text-muted-foreground">
@@ -1303,7 +1309,9 @@ export default function TripPlanner() {
       // Surface errors from Entur (e.g. invalid parameters, no routes)
       if (tripData?.errors?.length) {
         const msg = tripData.errors.map((e: { message: string }) => e.message).join("; ");
-        console.warn("[trip] Entur GraphQL errors:", tripData.errors);
+        if (import.meta.env.DEV) {
+          console.warn("[trip] Entur GraphQL errors:", tripData.errors);
+        }
         throw new Error(`Entur: ${msg}`);
       }
       if (tripData?.error) {
@@ -1362,7 +1370,9 @@ export default function TripPlanner() {
             GROUP BY stop_ref, line_ref`);
           statsMap = new Map(statsData.map((s) => [`${s.stopRef}|${s.lineRef}`, s]));
         } catch (err) {
-          console.warn("[trip] DuckDB forsinkelsesdata feilet, viser reise uten statistikk:", err);
+          if (import.meta.env.DEV) {
+            console.warn("[trip] DuckDB forsinkelsesdata feilet, viser reise uten statistikk:", err);
+          }
         }
       }
 
