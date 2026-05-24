@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
+import { InfoTip } from "@/components/info-tip";
 import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
 
 type DailySummary = {
@@ -124,7 +125,12 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Snitt forsinkelse</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                Snitt forsinkelse
+                <InfoTip learnMoreHref="/metode#hva-vises">
+                  Gjennomsnittlig differanse (i minutter) mellom faktisk og planlagt avgangstid for siste tilgjengelige dag.
+                </InfoTip>
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -137,7 +143,12 @@ export default function Dashboard() {
 
           <Card className="border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Andel i rute</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                Andel i rute
+                <InfoTip learnMoreHref="/metode#punktlighet">
+                  Andel avganger med forsinkelse under 2 minutter. Punktlighetsdefinisjonen varierer noe mellom operatører — vi bruker en relativt streng grense.
+                </InfoTip>
+              </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>

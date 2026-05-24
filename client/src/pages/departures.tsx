@@ -12,6 +12,7 @@ import { ModeIcon } from "@/components/mode-icon";
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { useParquetQuery } from "@/hooks/use-parquet-query";
+import { InfoTip } from "@/components/info-tip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -342,11 +343,17 @@ export default function Departures() {
                 <span>{depResp?.stopName ?? selectedStop?.name ?? "Avganger"}</span>
                 {depLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
               </CardTitle>
-              <CardDescription>
-                Neste {minutes} minutter • Oppdateres hvert minutt
-                {duckReady && delayMap && (
-                  <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>
-                )}
+              <CardDescription className="flex items-center gap-1.5">
+                <span>
+                  Neste {minutes} minutter • Oppdateres hvert minutt
+                  {duckReady && delayMap && (
+                    <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>
+                  )}
+                </span>
+                <InfoTip learnMoreHref="/metode#persentiler">
+                  Tallene til høyre: <strong>Sanntid</strong> (faktisk forsinkelse nå) og
+                  <strong> P80</strong> (historisk — 4 av 5 ganger har avgangen vært bedre enn dette).
+                </InfoTip>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -412,7 +419,7 @@ export default function Departures() {
 
                       {/* Historical P80 badge */}
                       {hist && hist.p80_dep != null ? (
-                        <Badge variant="outline" className="font-mono text-xs whitespace-nowrap">
+                        <Badge variant="outline" className="font-mono text-xs whitespace-nowrap" title="Historisk 80-persentil — 4 av 5 avganger er bedre enn dette">
                           P80 {hist.p80_dep > 0 ? "+" : ""}{hist.p80_dep.toFixed(1)}m
                         </Badge>
                       ) : (

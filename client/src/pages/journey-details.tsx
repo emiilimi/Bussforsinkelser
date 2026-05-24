@@ -22,6 +22,7 @@ import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Area, ComposedChart, Line, ReferenceLine } from "recharts";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
+import { InfoTip } from "@/components/info-tip";
 import { ScrollableChart, useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatDateNO } from "@/lib/date-utils";
 import {
@@ -989,8 +990,13 @@ export default function JourneyDetails() {
                   {stopProfileData.length > 0 && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                           {stopProfileData.length} stopp · {stopProfileData.reduce((s, r) => s + (r.numSamples ?? 0), 0).toLocaleString("nb-NO")} stoppbesøk ({Math.max(...stopProfileData.map(r => r.numSamples ?? 0), 0).toLocaleString("nb-NO")} avganger)
+                          <InfoTip learnMoreHref="/metode#dwell-time">
+                            <strong>Forsinkelse</strong>: snitt-forsinkelse ved hvert stopp.<br />
+                            <strong>Forsinkelsesendring</strong>: hvor mye forsinkelse bygges opp eller tas igjen mellom stopp.<br />
+                            <strong>Stopptid</strong>: hvor lenge bussen står stille ved stoppet (dwell time, sekunder).
+                          </InfoTip>
                         </div>
                         <div className="flex gap-1">
                           {(["cumulative", "derivative", "dwell"] as const).map((mode) => (

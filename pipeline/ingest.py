@@ -889,6 +889,51 @@ def log_realtime_coverage(date_str: str, df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Operator coverage report
+# ---------------------------------------------------------------------------
+
+def write_ingest_diagnostics(
+    date_str: str,
+    df: pd.DataFrame,
+    expected_operators: list[str],
+    runtime_seconds: float,
+) -> list[str]:
+    """Write per-operator row counts + warnings to data/diagnostics/.
+
+    Returns a list of warning messages (also logged) so the cron-jobb-log
+    viser tydelig hvis en forventet operatør hadde 0 rader.
+    """
+    out_dir = Path(__file__).parent.parent / "data" / "diagnostics"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{date_str}-ingest.json"
+
+    if "dataSource" in df.columns:
+        counts_series = df["dataSource"].value_counts()
+        per_op: dict[str, int] = {str(k): int(v) for k, v in counts_series.items()}
+    else:
+        per_op = {}
+
+    warnings: list[str] = []
+    for op in expected_operators:
+        if per_op.get(op, 0) == 0:
+            msg = f"Operatør {op} hadde 0 rader fra BigQuery — sjekk feed."
+            warnings.append(msg)
+            log.warning("  ! %s", msg)
+
+    report = {
+        "date": date_str,
+        "expectedOperators": expected_operators,
+        "rowsPerOperator": per_op,
+        "totalRows": int(len(df)),
+        "runtimeSeconds": round(runtime_seconds, 1),
+        "warnings": warnings,
+    }
+    out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False))
+    log.info("  Ingest diagnostics → %s", out_path)
+    return warnings
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -897,11 +942,18 @@ def run(target_date: date, operators: list[str] | None = None) -> None:
         operators = OPERATORS
     log.info("=== Nightly ingest: %s (operators: %s) ===", target_date, operators)
 
+    import time
+    started = time.time()
+
     client = bigquery.Client()
     df = fetch_day(client, target_date, operators)
 
     if df.empty:
         log.warning("No rows returned for %s – nothing to commit", target_date)
+        # Skriv diagnostikk-fil for synlig sporing
+        write_ingest_diagnostics(
+            target_date.isoformat(), df, operators, time.time() - started,
+        )
         return
 
     df = compute_delays(df)
@@ -929,6 +981,9 @@ def run(target_date: date, operators: list[str] | None = None) -> None:
         log.info("=== Done: %s committed ===", date_str)
     finally:
         conn.close()
+
+    # Skriv per-operatør diagnostikk etter commit (etter at warnings er logget)
+    write_ingest_diagnostics(date_str, df, operators, time.time() - started)
 
 
 if __name__ == "__main__":

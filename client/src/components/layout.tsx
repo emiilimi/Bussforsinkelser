@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check, Timer } from "lucide-react";
+import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check, Timer, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRegion, REGION_LABEL, INDIVIDUAL_REGIONS, type Region } from "@/lib/RegionContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { FreshnessBadge } from "@/components/freshness-badge";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -40,6 +41,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/journey", label: "Linjeanalyse", icon: Clock },
     { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
     { href: "/avganger", label: "Avganger", icon: Timer },
+    { href: "/metode", label: "Metode", icon: BookOpen },
   ];
 
   return (
@@ -125,6 +127,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="mt-auto hidden md:block px-2 space-y-3">
+          <FreshnessBadge />
+
           <div className="p-4 rounded-lg bg-muted/50 border border-border text-[10px] text-muted-foreground space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />

@@ -86,12 +86,28 @@ del data\bussforsinkelser.db
 python pipeline/db_setup.py
 python pipeline/populate_stops.py                # leser fra cache (ingen BQ)
 python pipeline/populate_stop_places.py          # leser GTFS → stop_place_ref/platform_code
-foreach ($d in @("2026-03-07","2026-03-08",...)) {
-    Write-Host "Ingesting $d..."; python pipeline/ingest.py $d
+# Eksplisitt liste av dager:
+foreach ($d in @("2026-03-07","2026-03-08","2026-03-09")) {
+    Write-Host "=== $d ===" -ForegroundColor Cyan
+    python pipeline/ingest.py $d
 }
 python pipeline/populate_line_names.py --operator SKY --apply   # NeTEx-basert
 python pipeline/populate_line_names.py --apply                  # DB-derivert for resten
 ```
+
+### Ingest flere dager (datointervall)
+```powershell
+# Backfill et intervall (fra→til, inklusiv). Stopper ved første feil.
+$from = [datetime]"2026-05-15"
+$to   = [datetime]"2026-05-21"
+for ($d = $from; $d -le $to; $d = $d.AddDays(1)) {
+    $s = $d.ToString("yyyy-MM-dd")
+    Write-Host "=== $s ===" -ForegroundColor Cyan
+    python pipeline/ingest.py $s
+    if ($LASTEXITCODE -ne 0) { Write-Host "FEIL på $s" -ForegroundColor Red; break }
+}
+```
+For lange perioder (>2 uker), bruk heller `pipeline/backfill.py` som batcher mot BigQuery måned-for-måned (billigere BQ-scan).
 
 ### Daglig nightly-jobb
 ```powershell
