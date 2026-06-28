@@ -137,8 +137,12 @@ def generate_manifest(parquet_dir: Path) -> list[str]:
 
 
 def main():
-    # Last credentials fra r2.env
-    load_env_file(REPO_ROOT / "r2.env")
+    # Last credentials. Default: r2.env. For reise-siten: sett R2_ENV_FILE=r2.reise.env
+    # slik at den nye bøtta brukes uten å røre den gamle demoens r2.env.
+    # NB: env-variabler satt i shellet vinner alltid over fil-verdiene
+    # (load_env_file overskriver ikke eksisterende os.environ-nøkler).
+    env_file = os.environ.get("R2_ENV_FILE", "r2.env")
+    load_env_file(REPO_ROOT / env_file)
 
     parser = argparse.ArgumentParser(description="Last opp Parquet-filer til Cloudflare R2")
     parser.add_argument("--all", action="store_true", help="Tving re-opplasting av alle filer")
@@ -205,8 +209,12 @@ def main():
         log.info("Kobler til R2 bucket '%s' …", bucket)
         s3 = None if args.dry_run else get_s3_client()
 
-    # ---------- Prod-DB (alltid, både i full og --prod-db-modus) ----------
-    if prod_db.exists():
+    # ---------- Prod-DB (hopp over når vi kjører med reise-env) ----------
+    # Reise-bøtta trenger bare parquet + manifest, ikke den tunge prod-DBen.
+    skip_prod_db = (env_file != "r2.env") and not args.prod_db
+    if skip_prod_db:
+        log.info("Hopper over prod-DB (bruker %s, ikke r2.env)", env_file)
+    elif prod_db.exists():
         log.info("Laster opp prod-database …")
         if args.dry_run:
             log.info("  [dry-run] Ville lastet opp: bussforsinkelser_prod.db (%.0f MB)", prod_db.stat().st_size / 1024 / 1024)
@@ -218,7 +226,7 @@ def main():
                 uploaded += 1
             else:
                 skipped += 1
-    else:
+    elif not skip_prod_db:
         log.warning("Prod-DB ikke funnet (%s) — kjør strip_for_prod.py først", prod_db)
         if args.prod_db:
             return 1
@@ -229,7 +237,7 @@ def main():
         log.info("Public URL: %s", public_url)
         if not args.prod_db:
             log.info("Parquet-eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
-        if prod_db.exists():
+        if prod_db.exists() and not skip_prod_db:
             log.info("Prod-DB URL:      %s/bussforsinkelser_prod.db", public_url)
 
 

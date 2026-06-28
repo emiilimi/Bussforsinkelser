@@ -34,7 +34,9 @@ gtfs-legacy/sky/trips.txt
 
 # Generated data files (not source code)
 data/parquet/
+data/reise-parquet/
 data/diagnostics/
 
 # Stray directories that don't belong in the repo
 emiliesBussprosjekt/
+data/stop_coordsNullNames.json

@@ -37,12 +37,23 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    // VITE_APP=reise → eget output (dist/reise) for den frittstående
+    // reiseplanlegger-siten. Default-bygget (dist/public) er uendret.
+    outDir: path.resolve(
+      import.meta.dirname,
+      process.env.VITE_APP === "reise" ? "dist/reise" : "dist/public",
+    ),
     emptyOutDir: true,
   },
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
+    // `npm run dev:reise` kjører vite alene (VITE_APP=reise). Proxy /api til
+    // Express-dev-serveren (kjør `npm run dev` i et annet vindu) så trip/
+    // departures/geocoder/parquet virker lokalt før Cloudflare-deploy.
+    ...(process.env.VITE_APP === "reise"
+      ? { proxy: { "/api": "http://localhost:5000" } }
+      : {}),
     fs: {
       strict: true,
       deny: ["**/.*"],

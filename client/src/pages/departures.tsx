@@ -13,6 +13,7 @@ import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { useParquetQuery } from "@/hooks/use-parquet-query";
 import { InfoTip } from "@/components/info-tip";
+import { IS_REISE } from "@/lib/app-mode";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -136,10 +137,26 @@ export default function Departures() {
     return () => clearTimeout(t);
   }, [query]);
 
-  const { data: searchResults = [] } = useQuery<SearchResult[]>({
-    queryKey: [`/api/stops/search?q=${encodeURIComponent(debouncedQuery)}`],
+  // Reise-bygget har ingen SQLite-backend → bruk Entur Geocoder (samme som
+  // reiseplanleggeren). Det fulle nettstedet bruker DB-søket som før.
+  const searchUrl = IS_REISE
+    ? `/api/geocoder/autocomplete?text=${encodeURIComponent(debouncedQuery)}&size=8`
+    : `/api/stops/search?q=${encodeURIComponent(debouncedQuery)}`;
+
+  const { data: rawSearch = [] } = useQuery<any[]>({
+    queryKey: [searchUrl],
     enabled: debouncedQuery.length >= 2,
   });
+
+  // Normaliser begge kildene til SearchResult[]. Geocoder returnerer både
+  // stoppesteder (layer "venue", NSR-id) og adresser — bare stoppesteder kan
+  // gi avganger, så adresser filtreres bort.
+  const searchResults: SearchResult[] = useMemo(() => {
+    if (!IS_REISE) return rawSearch as SearchResult[];
+    return (rawSearch as Array<{ id: string; name: string; layer: string }>)
+      .filter((r) => r.layer === "venue" && typeof r.id === "string" && r.id.startsWith("NSR:"))
+      .map((r) => ({ stopRef: r.id, stopName: r.name, platformCodes: null, quays: [] }));
+  }, [rawSearch]);
 
   const stopRef = selectedStop?.ref ?? null;
 
@@ -154,10 +171,11 @@ export default function Departures() {
 
   const departures = depResp?.departures ?? [];
 
-  // Stop stat cards (last 30 days)
+  // Stop stat cards (last 30 days) — SQLite-backend. Skrus av i reise-bygget
+  // (ingen DB). Fase 5 erstatter disse med en Parquet-basert oppsummering.
   const { data: stats } = useQuery<StopStatsResponse>({
     queryKey: [`/api/stop/${encodeURIComponent(stopRef ?? "")}?days=30${opStr ? `&${opStr}` : ""}`],
-    enabled: stopRef != null,
+    enabled: stopRef != null && !IS_REISE,
     placeholderData: keepPreviousData,
   });
 

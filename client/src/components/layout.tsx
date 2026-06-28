@@ -5,6 +5,7 @@ import { useRegion, REGION_LABEL, INDIVIDUAL_REGIONS, type Region } from "@/lib/
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { FreshnessBadge } from "@/components/freshness-badge";
+import { IS_REISE } from "@/lib/app-mode";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -33,16 +34,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return `${REGION_LABEL[regions[0]]} +${regions.length - 1}`;
   }
 
-  const navItems = [
-    { href: "/", label: "Dashboard", icon: BarChart3 },
-    { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
-    { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
-    { href: "/worst", label: "Topplister", icon: BarChart3 },
-    { href: "/journey", label: "Linjeanalyse", icon: Clock },
-    { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
-    { href: "/avganger", label: "Avganger", icon: Timer },
-    { href: "/metode", label: "Metode", icon: BookOpen },
-  ];
+  // Reise-bygget viser bare sidene som ikke trenger SQLite-backenden.
+  const navItems = IS_REISE
+    ? [
+        { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
+        { href: "/avganger", label: "Avganger", icon: Timer },
+        { href: "/metode", label: "Metode", icon: BookOpen },
+      ]
+    : [
+        { href: "/", label: "Dashboard", icon: BarChart3 },
+        { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
+        { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
+        { href: "/worst", label: "Topplister", icon: BarChart3 },
+        { href: "/journey", label: "Linjeanalyse", icon: Clock },
+        { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
+        { href: "/avganger", label: "Avganger", icon: Timer },
+        { href: "/metode", label: "Metode", icon: BookOpen },
+      ];
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground flex flex-col md:flex-row">
@@ -52,11 +60,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Bus className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight leading-none text-primary">bussforsinkelser</h1>
-            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">Historisk statistikk</p>
+            <h1 className="font-bold text-lg tracking-tight leading-none text-primary">
+              {IS_REISE ? "reise" : "bussforsinkelser"}
+            </h1>
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">
+              {IS_REISE ? "Reiseplanlegger" : "Historisk statistikk"}
+            </p>
           </div>
         </div>
 
+        {/* Operatørvelger styrer bare SQLite-baserte analysesider — skjult i reise-bygget. */}
+        {!IS_REISE && (
         <div className="px-2 space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Operatør</label>
           <Popover>
@@ -104,6 +118,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </PopoverContent>
           </Popover>
         </div>
+        )}
 
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
           {navItems.map((item) => {
@@ -127,7 +142,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="mt-auto hidden md:block px-2 space-y-3">
-          <FreshnessBadge />
+          {/* Freshness gjelder analyse-DB-en — irrelevant for live reise-siten. */}
+          {!IS_REISE && <FreshnessBadge />}
 
           <div className="p-4 rounded-lg bg-muted/50 border border-border text-[10px] text-muted-foreground space-y-2">
             <div className="flex items-center gap-2">

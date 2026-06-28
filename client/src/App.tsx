@@ -1,9 +1,11 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RegionProvider } from "./lib/RegionContext";
+import { IS_REISE } from "./lib/app-mode";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import StopAnalysis from "@/pages/stop-analysis";
@@ -15,7 +17,8 @@ import Departures from "@/pages/departures";
 import Methodology from "@/pages/methodology";
 import generatedImage from '@assets/generated_images/minimalist_abstract_transit_map_texture.png';
 
-function Router() {
+// Full analysenettsted (default build) — alle sider, SQLite-backend.
+function FullRouter() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
@@ -31,7 +34,26 @@ function Router() {
   );
 }
 
+// Frittstående reise-side (VITE_APP=reise) — kun sider uten SQLite-avhengighet.
+// /journey + /stops + linjeanalyse legges til i Fase 5 når de er portet til Parquet.
+function ReiseRouter() {
+  return (
+    <Switch>
+      <Route path="/"><Redirect to="/reise" /></Route>
+      <Route path="/reise" component={TripPlanner} />
+      <Route path="/avganger" component={Departures} />
+      <Route path="/metode" component={Methodology} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+const Router = IS_REISE ? ReiseRouter : FullRouter;
+
 function App() {
+  useEffect(() => {
+    if (IS_REISE) document.title = "Reiseplanlegger — emoldestad.no";
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <RegionProvider>
