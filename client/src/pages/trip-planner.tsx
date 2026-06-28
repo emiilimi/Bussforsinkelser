@@ -1787,7 +1787,7 @@ export default function TripPlanner() {
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-start gap-2">
                 <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
-                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid - planlagt tid. Kun buss (Skyss/Vestland) har forsinkelsesdata per na. Andre transportmidler vises uten statistikk.</p>
+                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid - planlagt tid. Buss og flybuss fra alle operatorer med SIRI ET-feed har forsinkelsesdata. Andre transportmidler vises uten statistikk.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
