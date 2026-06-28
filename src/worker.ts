@@ -30,7 +30,7 @@ export default {
     // GET /api/departures/:stopPlaceRef
     const depMatch = path.match(/^\/api\/departures\/(.+)$/);
     if (depMatch) {
-      context.params = { stopPlaceRef: depMatch[1] };
+      context.params = { stopPlaceRef: decodeURIComponent(depMatch[1]) };
       if (request.method === "OPTIONS") return departuresOptions();
       if (request.method === "GET") return departuresGet(context);
     }
