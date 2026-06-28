@@ -1,0 +1,41 @@
+import { onRequestPost as tripPost, onRequestOptions as tripOptions } from "../functions/api/trip";
+import { onRequestGet as geocoderGet, onRequestOptions as geocoderOptions } from "../functions/api/geocoder/autocomplete";
+import { onRequestGet as departuresGet, onRequestOptions as departuresOptions } from "../functions/api/departures/[stopPlaceRef]";
+import type { PagesContext } from "../functions/api/_entur";
+
+export default {
+  async fetch(request: Request, env: Record<string, string | undefined>, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    const context: PagesContext = {
+      request,
+      env,
+      params: {},
+      waitUntil: (p) => ctx.waitUntil(p),
+    };
+
+    // POST /api/trip
+    if (path === "/api/trip") {
+      if (request.method === "OPTIONS") return tripOptions();
+      if (request.method === "POST") return tripPost(context);
+    }
+
+    // GET /api/geocoder/autocomplete
+    if (path === "/api/geocoder/autocomplete") {
+      if (request.method === "OPTIONS") return geocoderOptions();
+      if (request.method === "GET") return geocoderGet(context);
+    }
+
+    // GET /api/departures/:stopPlaceRef
+    const depMatch = path.match(/^\/api\/departures\/(.+)$/);
+    if (depMatch) {
+      context.params = { stopPlaceRef: depMatch[1] };
+      if (request.method === "OPTIONS") return departuresOptions();
+      if (request.method === "GET") return departuresGet(context);
+    }
+
+    // Not an API route — fall through to static assets (SPA)
+    return (env as any).ASSETS.fetch(request);
+  },
+};
