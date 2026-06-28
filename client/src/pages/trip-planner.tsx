@@ -1128,6 +1128,12 @@ function TripCard({
                     </div>
                     {transferInfo.probs.default >= 0 ? (
                       <div className="flex flex-col gap-0.5 ml-5 text-xs">
+                        {transferInfo.daysObserved < 5 && (
+                          <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">
+                            <AlertTriangle className="h-3 w-3 inline mr-1" />
+                            Kun {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground w-44">
                             Med 2 min margin:
@@ -1150,14 +1156,14 @@ function TripCard({
                             ? probabilityBadge(transferInfo.probs.sprint)
                             : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
                         </div>
-                        {/* Sample size + datakilde — gir brukeren tillit i tallet */}
                         <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
+                          Basert på {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"}
                           {transferInfo.source === "specific"
-                            ? `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"} hvor begge avgangene har gått (samme avgangs-ID).`
+                            ? " hvor begge avgangene har gått (samme avgangs-ID)."
                             : transferInfo.source === "fallback"
-                              ? `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"} med tilsvarende avganger (samme linje + time + ${transferInfo.assumingOnTime ? "" : ""}dag­type) — for få data på akkurat denne avgangen.`
-                              : `Snitt over ${transferInfo.daysObserved} ${transferInfo.daysObserved === 1 ? "dag" : "dager"}.`}
-                          {" "}Hver dag sammenliknes faktisk ankomst med faktisk avgang for samme dag.
+                              ? " med tilsvarende avganger (samme linje + time + dagtype)."
+                              : "."}
+                          {" "}Hver dag sammenliknes faktisk ankomst med faktisk avgang.
                         </div>
                       </div>
                     ) : (

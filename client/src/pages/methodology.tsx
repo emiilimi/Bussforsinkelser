@@ -169,6 +169,23 @@ export default function Methodology() {
               Eksempel: Hvis vi viser "P80 = 7 min" for en avgang, betyr det at det er
               omtrent 80 % sjanse for at neste avgang er mindre enn 7 minutter sen.
             </p>
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200 space-y-2">
+              <p className="font-semibold flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Viktig: persentiler med lite data
+              </p>
+              <p>
+                Persentiler beregnes med <code>PERCENTILE_CONT</code> (kontinuerlig interpolasjon).
+                Med kun 2 observasjoner betyr det at P50 er gjennomsnittet av de to verdiene,
+                P80 er 80 % av veien fra den beste til den verste dagen, og P95 er nesten
+                identisk med verste dag. Tallene ser presise ut, men er statistisk meningsløse
+                med under ~10 datapunkter.
+              </p>
+              <p>
+                Vi viser alltid antall observasjoner tallene er basert på. Tommelfingerregel:
+                under 5 dager = upålitelig, 10–30 dager = brukbart, 30+ dager = solid.
+              </p>
+            </div>
           </div>
 
           <div id="dwell-time" className="scroll-mt-8 space-y-3 pt-2">
@@ -232,6 +249,14 @@ export default function Methodology() {
             <p className="text-sm text-muted-foreground">
               Hvis vi ikke har nok data på akkurat din avgangs-ID, faller vi tilbake til
               statistikk per (linje, stopp, dagtype) — uthevet i hvor tallene kommer fra.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Med få observasjoner (f.eks. 1–2 dager) blir sannsynligheten enten 0 % eller
+              100 % — det finnes ingen mellomting når du teller binært over én dag. Dette
+              kan se motstridende ut (f.eks. 0 % med margin, men 100 % med spurt), men er
+              logisk korrekt: den ene dagen var gapet akkurat stort nok til å rekke ved
+              spurt, men ikke stort nok med gangfart + margin. Antall dager vises alltid
+              slik at du kan vurdere påliteligheten selv.
             </p>
           </div>
 
@@ -379,10 +404,13 @@ export default function Methodology() {
               enn 2 dager.
             </Limitation>
 
-            <Limitation title="Persentiler trenger nok observasjoner">
+            <Limitation title="Persentiler og sannsynligheter trenger nok observasjoner">
               For sjeldne kombinasjoner (avgang om natten, sjelden linje, lite trafikkert
-              stopp) kan persentilene være basert på få observasjoner og bli upålitelige. Vi
-              krever vanligvis minst 5 observasjoner før vi viser persentilstatistikk.
+              stopp) kan persentiler og overgangssannsynligheter være basert på få
+              observasjoner. Vi skjuler ikke tallene, men viser alltid antall observasjoner
+              de er basert på, og en advarsel når det er under 5. Se{" "}
+              <a href="#persentiler" className="text-primary hover:underline">seksjonen om persentiler</a>{" "}
+              for en forklaring på hvorfor tallene kan se merkelige ut med lite data.
             </Limitation>
           </div>
         </section>
