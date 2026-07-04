@@ -861,6 +861,8 @@ export async function registerRoutes(
           estimatedCalls(${startArg}timeRange: $range, numberOfDepartures: $n) {
             aimedDepartureTime
             expectedDepartureTime
+            aimedArrivalTime
+            expectedArrivalTime
             realtime
             cancellation
             destinationDisplay { frontText }
@@ -909,6 +911,8 @@ export async function registerRoutes(
       const departures = calls.map((c) => ({
         aimedTime: c.aimedDepartureTime,
         expectedTime: c.expectedDepartureTime,
+        aimedArrivalTime: c.aimedArrivalTime ?? null,
+        expectedArrivalTime: c.expectedArrivalTime ?? null,
         realtime: !!c.realtime,
         cancelled: !!c.cancellation,
         destination: c.destinationDisplay?.frontText ?? null,

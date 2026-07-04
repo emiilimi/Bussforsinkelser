@@ -30,6 +30,8 @@ type SearchResult = {
 type Departure = {
   aimedTime: string;
   expectedTime: string | null;
+  aimedArrivalTime: string | null;
+  expectedArrivalTime: string | null;
   realtime: boolean;
   cancelled: boolean;
   destination: string | null;
@@ -85,10 +87,18 @@ function fmtHM(iso: string | null): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-/** Minutes between expected and aimed (positive = late). Null if no realtime. */
-function realtimeDelayMin(d: Departure): number | null {
-  if (!d.realtime || !d.expectedTime || !d.aimedTime) return null;
-  return Math.round((new Date(d.expectedTime).getTime() - new Date(d.aimedTime).getTime()) / 60000);
+/** Minutes between expected and aimed (positive = late). Null if no realtime.
+ *  I ankomstmodus brukes ankomsttidene (fallback til avgang for første stopp). */
+function realtimeDelayMin(d: Departure, mode: "departure" | "arrival"): number | null {
+  const aimed = mode === "arrival" ? (d.aimedArrivalTime ?? d.aimedTime) : d.aimedTime;
+  const expected = mode === "arrival" ? (d.expectedArrivalTime ?? d.expectedTime) : d.expectedTime;
+  if (!d.realtime || !expected || !aimed) return null;
+  return Math.round((new Date(expected).getTime() - new Date(aimed).getTime()) / 60000);
+}
+
+/** Tidspunktet som vises/sorteres på, avhengig av avgang/ankomst-modus. */
+function displayTime(d: Departure, mode: "departure" | "arrival"): string {
+  return mode === "arrival" ? (d.aimedArrivalTime ?? d.aimedTime) : d.aimedTime;
 }
 
 function delayBadgeClass(delayMin: number | null): string {
@@ -119,6 +129,25 @@ export default function Departures() {
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [minutes, setMinutes] = useState(90);
+  // Avgang (når bussen forlater stoppet) vs ankomst (når den kommer inn)
+  const [mode, setMode] = useState<"departure" | "arrival">("departure");
+  // Valgt tidspunkt. Tomt = "nå" (live-visning med auto-refresh hvert minutt).
+  // Satt = fast vindu fra valgt tid — Entur støtter også tidspunkt bakover i
+  // tid (startTime), men sanntidsdata for passerte avganger finnes bare i en
+  // kort periode; lenger tilbake vises kun rutetider.
+  const [customDate, setCustomDate] = useState("");
+  const [customTime, setCustomTime] = useState("");
+  const startIso = useMemo(() => {
+    if (!customDate || !customTime) return null;
+    const d = new Date(`${customDate}T${customTime}:00`);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }, [customDate, customTime]);
+
+  const nowDate = () => new Date().toISOString().slice(0, 10);
+  const nowTime = () => {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2, "0")}:${String(n.getMinutes()).padStart(2, "0")}`;
+  };
 
   // Auto-select stop from URL params (?stop=NSR:StopPlace:X&name=…)
   useEffect(() => {
@@ -160,16 +189,26 @@ export default function Departures() {
 
   const stopRef = selectedStop?.ref ?? null;
 
-  // Departures from Entur (1-minute server cache + 60s client refresh)
+  // Departures from Entur (1-minute server cache + 60s client refresh).
+  // Ved valgt tidspunkt (startIso) er vinduet fast — ingen auto-refresh.
   const { data: depResp, isLoading: depLoading, isError: depError, error: depErr } =
     useQuery<DeparturesResponse>({
-      queryKey: [`/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}`],
+      queryKey: [
+        `/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}${startIso ? `&startTime=${encodeURIComponent(startIso)}` : ""}`,
+      ],
       enabled: stopRef != null,
-      refetchInterval: 60_000,
+      refetchInterval: startIso ? false : 60_000,
       placeholderData: keepPreviousData,
     });
 
-  const departures = depResp?.departures ?? [];
+  // Sorter på visningstiden (avgang eller ankomst)
+  const departures = useMemo(() => {
+    const list = [...(depResp?.departures ?? [])];
+    list.sort(
+      (a, b) => new Date(displayTime(a, mode)).getTime() - new Date(displayTime(b, mode)).getTime(),
+    );
+    return list;
+  }, [depResp, mode]);
 
   // Stop stat cards (last 30 days) — SQLite-backend. Skrus av i reise-bygget
   // (ingen DB). Fase 5 erstatter disse med en Parquet-basert oppsummering.
@@ -297,7 +336,7 @@ export default function Departures() {
             </div>
 
             {/* Time window picker */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-muted-foreground">Vis neste:</span>
               <Tabs value={String(minutes)} onValueChange={(v) => setMinutes(Number(v))}>
                 <TabsList>
@@ -307,6 +346,52 @@ export default function Departures() {
                   <TabsTrigger value="180">3 t</TabsTrigger>
                 </TabsList>
               </Tabs>
+              <Tabs value={mode} onValueChange={(v) => setMode(v as "departure" | "arrival")}>
+                <TabsList>
+                  <TabsTrigger value="departure">Avganger</TabsTrigger>
+                  <TabsTrigger value="arrival">Ankomster</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Tidspunkt-velger: tomt = nå (live). Kan settes frem eller tilbake i tid. */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-muted-foreground">Fra tidspunkt:</span>
+              <Input
+                type="date"
+                className="h-9 w-auto text-sm"
+                value={customDate}
+                onChange={(e) => {
+                  setCustomDate(e.target.value);
+                  if (e.target.value && !customTime) setCustomTime(nowTime());
+                }}
+              />
+              <Input
+                type="time"
+                className="h-9 w-auto text-sm"
+                value={customTime}
+                onChange={(e) => {
+                  setCustomTime(e.target.value);
+                  if (e.target.value && !customDate) setCustomDate(nowDate());
+                }}
+              />
+              <Button
+                variant={startIso ? "outline" : "secondary"}
+                size="sm"
+                className="h-9"
+                disabled={!startIso}
+                onClick={() => {
+                  setCustomDate("");
+                  setCustomTime("");
+                }}
+              >
+                Nå
+              </Button>
+              {startIso && new Date(startIso).getTime() < Date.now() - 5 * 60_000 && (
+                <span className="text-xs text-muted-foreground italic">
+                  Tilbake i tid: sanntid finnes bare kort tid etter avgang — eldre visninger er rutetider.
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -363,7 +448,10 @@ export default function Departures() {
               </CardTitle>
               <CardDescription className="flex items-center gap-1.5">
                 <span>
-                  Neste {minutes} minutter • Oppdateres hvert minutt
+                  {mode === "arrival" ? "Ankomster" : "Avganger"}{" "}
+                  {startIso
+                    ? `${minutes} min fra ${fmtHM(startIso)} (${customDate})`
+                    : `neste ${minutes} minutter • Oppdateres hvert minutt`}
                   {duckReady && delayMap && (
                     <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>
                   )}
@@ -390,7 +478,7 @@ export default function Departures() {
 
               <div className="divide-y divide-border">
                 {departures.map((d, i) => {
-                  const rt = realtimeDelayMin(d);
+                  const rt = realtimeDelayMin(d, mode);
                   const histKey = d.quayRef && d.lineRef ? `${d.quayRef}|${d.lineRef}` : null;
                   const hist = histKey ? delayMap?.get(histKey) : null;
                   const lineNum = d.lineNumber ?? (d.lineRef ? d.lineRef.split(":").pop() : "?");
@@ -411,7 +499,7 @@ export default function Departures() {
                       )}
                     >
                       <div className="font-mono font-bold text-base w-12 tabular-nums">
-                        {fmtHM(d.aimedTime)}
+                        {fmtHM(displayTime(d, mode))}
                       </div>
 
                       <div className="flex items-center gap-1.5 text-muted-foreground">
