@@ -15,37 +15,72 @@ const PARQUET_BASE =
 // Track which Parquet files have been registered in DuckDB
 // ---------------------------------------------------------------------------
 
-const registeredFiles = new Set<string>();
+// Manifest entries: plain filename (local Express) or { name, md5 } (R2).
+// md5 brukes som cache-buster: ukefiler overskrives daglig med samme navn,
+// så uten ?v=md5 kan nettleseren servere gårsdagens bytes fra HTTP-cache.
+type ManifestEntry = string | { name: string; md5?: string };
+
+// name → versioned URL currently registered in DuckDB
+const registeredFiles = new Map<string, string>();
+
+// Throttle manifest re-checks: ensureFilesRegistered kalles per query, men
+// manifestet trenger bare sjekkes med jevne mellomrom.
+const MANIFEST_CHECK_INTERVAL_MS = 60_000;
+let lastManifestCheck = 0;
 
 async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
+  if (
+    registeredFiles.size > 0 &&
+    Date.now() - lastManifestCheck < MANIFEST_CHECK_INTERVAL_MS
+  ) {
+    return;
+  }
+  lastManifestCheck = Date.now();
   // Fetch manifest — from R2 (manifest.json) or from local server
   const manifestUrl = PARQUET_BASE.includes("/api/parquet")
     ? `${PARQUET_BASE}/manifest`      // local Express endpoint returns JSON array
     : `${PARQUET_BASE}/manifest.json`; // R2 serves a static JSON file
 
-  const res = await fetch(manifestUrl);
+  // no-store: manifestet er lite og MÅ alltid være ferskt — det er nøkkelen
+  // som forteller oss om parquet-innholdet har endret seg.
+  const res = await fetch(manifestUrl, { cache: "no-store" });
   if (!res.ok) return;
 
-  const files: string[] = await res.json();
-  if (!files || files.length === 0) return;
+  const entries: ManifestEntry[] = await res.json();
+  if (!entries || entries.length === 0) return;
 
-  for (const file of files) {
-    if (registeredFiles.has(file)) continue;
+  let changed = false;
+  for (const entry of entries) {
+    const name = typeof entry === "string" ? entry : entry.name;
+    const md5 = typeof entry === "string" ? undefined : entry.md5;
+    const url = md5
+      ? `${PARQUET_BASE}/${name}?v=${md5}`
+      : `${PARQUET_BASE}/${name}`;
 
+    if (registeredFiles.get(name) === url) continue;
+
+    // Re-register if the file content changed mid-session (new md5)
+    if (registeredFiles.has(name)) {
+      try {
+        await db.dropFile(name);
+      } catch {
+        // ignore — file may not have been buffered
+      }
+    }
     // Full absolute URL — DuckDB worker runs from a blob: origin and
     // cannot resolve relative paths.
-    const url = `${PARQUET_BASE}/${file}`;
-    await db.registerFileURL(file, url, 4 /* DuckDBDataProtocol.HTTP */, false);
-    registeredFiles.add(file);
+    await db.registerFileURL(name, url, 4 /* DuckDBDataProtocol.HTTP */, false);
+    registeredFiles.set(name, url);
+    changed = true;
   }
 
   // Create or replace a view that unions all registered Parquet files.
   // This lets queries use a single table name "delays".
-  if (registeredFiles.size > 0) {
+  if (changed && registeredFiles.size > 0) {
     const conn = await db.connect();
     try {
-      const fileList = Array.from(registeredFiles)
-        .map((f) => `'${PARQUET_BASE}/${f}'`)
+      const fileList = Array.from(registeredFiles.values())
+        .map((u) => `'${u}'`)
         .join(", ");
       await conn.query(
         `CREATE OR REPLACE VIEW delays AS SELECT * FROM read_parquet([${fileList}])`,

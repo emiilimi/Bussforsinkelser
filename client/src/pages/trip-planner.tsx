@@ -367,6 +367,106 @@ function useEstimatedLegTimes(
 
 /** Empirical transfer probability: fraction of historical days where
  *  the actual gap was at least the required buffer (walk + margin). */
+/** Stabil nøkkel for et reiseforslag — brukes til dedup ved paginering og som React key. */
+function patternKey(p: TripPattern): string {
+  return `${p.expectedStartTime}|${p.expectedEndTime}|${p.legs
+    .map((l) => l.line?.id ?? l.mode)
+    .join(",")}`;
+}
+
+/** Fjern duplikater (Entur-sider kan overlappe), bevarer rekkefølge. */
+function dedupePatterns(patterns: TripPattern[]): TripPattern[] {
+  const seen = new Set<string>();
+  const out: TripPattern[] = [];
+  for (const p of patterns) {
+    const key = patternKey(p);
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(p);
+    }
+  }
+  return out;
+}
+
+/** Skyv en "HH:MM:SS"-tid (med dayOffset) deltaMin minutter, håndterer midnatt. */
+function shiftTimePart(
+  time: string,
+  dayOffset: number | null,
+  deltaMin: number,
+): { time: string; dayOffset: number } {
+  const [h, m, s] = time.split(":").map((x) => parseInt(x, 10));
+  let total = (h || 0) * 3600 + (m || 0) * 60 + (s || 0) + Math.round(deltaMin * 60);
+  let off = dayOffset ?? 0;
+  while (total < 0) {
+    total += 86400;
+    off -= 1;
+  }
+  while (total >= 86400) {
+    total -= 86400;
+    off += 1;
+  }
+  const hh = String(Math.floor(total / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+  const ss = String(total % 60).padStart(2, "0");
+  return { time: `${hh}:${mm}:${ss}`, dayOffset: off };
+}
+
+/**
+ * Lag en ny TripPattern der transit-leg `legIdx` er byttet til en annen avgang
+ * av samme linje (newStartIso + newSjId). Kjøretiden antas lik, så hele legget
+ * (inkl. passingTimes) skyves med samme delta. Reisens start/slutt flyttes bare
+ * hvis det er første/siste transit-legg som byttes.
+ */
+function shiftPatternLeg(
+  pattern: TripPattern,
+  legIdx: number,
+  newStartIso: string,
+  newSjId: string | null,
+): TripPattern {
+  const leg = pattern.legs[legIdx];
+  const deltaMin =
+    (new Date(newStartIso).getTime() - new Date(leg.expectedStartTime).getTime()) / 60000;
+  if (deltaMin === 0 && (!newSjId || newSjId === leg.serviceJourney?.id)) return pattern;
+
+  const newLeg: TripLeg = {
+    ...leg,
+    expectedStartTime: addMinutesToIso(leg.expectedStartTime, deltaMin),
+    expectedEndTime: addMinutesToIso(leg.expectedEndTime, deltaMin),
+    serviceJourney: leg.serviceJourney
+      ? {
+          id: newSjId ?? leg.serviceJourney.id,
+          passingTimes: leg.serviceJourney.passingTimes.map((pt) => ({
+            quay: pt.quay,
+            departure: pt.departure
+              ? { ...pt.departure, ...shiftTimePart(pt.departure.time, pt.departure.dayOffset, deltaMin) }
+              : null,
+            arrival: pt.arrival
+              ? { ...pt.arrival, ...shiftTimePart(pt.arrival.time, pt.arrival.dayOffset, deltaMin) }
+              : null,
+          })),
+        }
+      : null,
+  };
+
+  const legs = pattern.legs.map((l, i) => (i === legIdx ? newLeg : l));
+
+  const transitIdxs = pattern.legs
+    .map((l, i) => (l.mode !== "foot" ? i : -1))
+    .filter((i) => i >= 0);
+  const isFirstTransit = transitIdxs[0] === legIdx;
+  const isLastTransit = transitIdxs[transitIdxs.length - 1] === legIdx;
+  const expectedStartTime = isFirstTransit
+    ? addMinutesToIso(pattern.expectedStartTime, deltaMin)
+    : pattern.expectedStartTime;
+  const expectedEndTime = isLastTransit
+    ? addMinutesToIso(pattern.expectedEndTime, deltaMin)
+    : pattern.expectedEndTime;
+  const duration =
+    (new Date(expectedEndTime).getTime() - new Date(expectedStartTime).getTime()) / 1000;
+
+  return { ...pattern, legs, expectedStartTime, expectedEndTime, duration };
+}
+
 function probFromGaps(gaps: number[], requiredBuffer: number): number {
   if (gaps.length === 0) return -1;
   let made = 0;
@@ -374,6 +474,197 @@ function probFromGaps(gaps: number[], requiredBuffer: number): number {
     if (g >= requiredBuffer) made++;
   }
   return made / gaps.length;
+}
+
+/**
+ * Bygg TransferSpec-liste for et reiseforslag (én per transit→transit-bytte).
+ * day_type tas fra reisens planlagte avreisedato slik at f.eks. en onsdagsreise
+ * bare henter hverdagsobservasjoner fra Parquet.
+ */
+function buildTransferSpecsForPattern(pattern: TripPattern): TransferSpec[] {
+  const tripDayType = computeDayType(pattern.expectedStartTime);
+
+  // Aimed (scheduled) HH:MM at a quay from a leg's serviceJourney.passingTimes.
+  // Returns minutes-since-midnight, or null when missing.
+  const aimedMinAtQuay = (leg: TripLeg, quayId: string | null, kind: "arrival" | "departure"): number | null => {
+    if (!quayId || !leg.serviceJourney) return null;
+    const pt = leg.serviceJourney.passingTimes.find(p => p.quay?.id === quayId);
+    const t = kind === "arrival" ? pt?.arrival?.time : pt?.departure?.time;
+    if (!t) return null;
+    const [hh, mm] = t.split(":").map(Number);
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+    return hh * 60 + mm;
+  };
+
+  const transitIdxs: number[] = [];
+  for (let i = 0; i < pattern.legs.length; i++) {
+    if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
+  }
+  const out: TransferSpec[] = [];
+  for (let t = 0; t < transitIdxs.length - 1; t++) {
+    const legA = pattern.legs[transitIdxs[t]];
+    const legB = pattern.legs[transitIdxs[t + 1]];
+    const arrQuay = legA.toPlace.quay?.id ?? null;
+    const depQuay = legB.fromPlace.quay?.id ?? null;
+    out.push({
+      key: `t${t}`,
+      arrSjId: legA.serviceJourney?.id ?? null,
+      arrQuayRef: arrQuay,
+      arrLineRef: legA.line?.id ?? null,
+      arrAimedMin: aimedMinAtQuay(legA, arrQuay, "arrival"),
+      depSjId: legB.serviceJourney?.id ?? null,
+      depQuayRef: depQuay,
+      depLineRef: legB.line?.id ?? null,
+      depAimedMin: aimedMinAtQuay(legB, depQuay, "departure"),
+      dayType: tripDayType,
+    });
+  }
+  return out;
+}
+
+/** Gangtid (minutter) mellom hvert transit→transit-bytte i et reiseforslag. */
+function transferWalkTimes(pattern: TripPattern): number[] {
+  const transitIdxs: number[] = [];
+  for (let i = 0; i < pattern.legs.length; i++) {
+    if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
+  }
+  const out: number[] = [];
+  for (let t = 0; t < transitIdxs.length - 1; t++) {
+    let sec = 0;
+    for (let k = transitIdxs[t] + 1; k < transitIdxs[t + 1]; k++) {
+      if (pattern.legs[k].mode === "foot") sec += pattern.legs[k].duration ?? 0;
+    }
+    out.push(sec / 60);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Plan B/C/D — fallback-kjede når en overgang kan ryke
+//
+// Hvis P(miste overgang) ≥ 5 %: søk en ny reise fra overgangsstoppet til
+// destinasjonen, med avreise = realistisk ankomst hvis du mister bussen
+// (planlagt ankomst + P80-forsinkelse + gangtid). Hver fallback-plan får sin
+// egen empiriske overgangssannsynlighet, og kjeden fortsetter (plan C, D...)
+// til sannsynligheten for å trenge neste plan er under 5 %.
+//
+// Forenkling (dokumentert i /metode): plan C søkes fra samme overgangsstopp
+// som plan B (første avgang etter plan B), ikke fra plan Bs eventuelle egne
+// overgangsstopp. Dette dekker det vanlige tilfellet der fallback = neste
+// avgang(er) fra stoppet du står på.
+// ---------------------------------------------------------------------------
+
+const FALLBACK_PROB_FLOOR = 0.05; // stopp kjeden når P(trenger neste plan) < 5 %
+const FALLBACK_MAX_DEPTH = 4;
+
+type FallbackStep = {
+  pattern: TripPattern;
+  needProb: number;             // P(du trenger denne planen)
+  makeProb: number;             // P(planens egne overganger går) — 1 hvis direkte
+  daysObservedMin: number | null; // minste datagrunnlag blant planens overganger
+};
+
+function useFallbackChain(opts: {
+  enabled: boolean;
+  transferQuayId: string | null;
+  destination: Record<string, unknown> | null;
+  missProb: number;
+  missArrivalIso: string | null;
+  selectedModes: string[];
+  walkSpeedKmh: number;
+  transferMarginMin: number;
+  duckReady: boolean;
+  duckQuery: (sql: string) => Promise<any[]>;
+}) {
+  const {
+    enabled, transferQuayId, destination, missProb, missArrivalIso,
+    selectedModes, walkSpeedKmh, transferMarginMin, duckReady, duckQuery,
+  } = opts;
+
+  return useQuery<FallbackStep[]>({
+    queryKey: [
+      "fallback-chain",
+      transferQuayId,
+      JSON.stringify(destination),
+      missArrivalIso,
+      missProb.toFixed(3),
+      transferMarginMin,
+      selectedModes.join(","),
+    ],
+    enabled:
+      enabled &&
+      !!transferQuayId &&
+      !!destination &&
+      !!missArrivalIso &&
+      missProb >= FALLBACK_PROB_FLOOR,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const steps: FallbackStep[] = [];
+      let needProb = missProb;
+      let searchFrom = missArrivalIso!;
+
+      for (let depth = 0; depth < FALLBACK_MAX_DEPTH && needProb >= FALLBACK_PROB_FLOOR; depth++) {
+        const res = await apiRequest("POST", "/api/trip", {
+          from: { place: transferQuayId },
+          to: destination,
+          when: searchFrom,
+          transportModes: selectedModes.length > 0 ? selectedModes : undefined,
+          walkSpeed: walkSpeedKmh / 3.6,
+          numTripPatterns: 3,
+        });
+        const data = await res.json();
+        const patterns: TripPattern[] = data?.data?.trip?.tripPatterns ?? [];
+        // Første forslag som faktisk starter etter søketidspunktet
+        const pattern =
+          patterns.find(
+            (p) => new Date(p.expectedStartTime).getTime() >= new Date(searchFrom).getTime(),
+          ) ?? patterns[0];
+        if (!pattern) break;
+
+        // Planens egen overgangsrisiko — samme empiriske metode som hovedplanen
+        let makeProb = 1;
+        let daysMin: number | null = null;
+        if (duckReady) {
+          const specs = buildTransferSpecsForPattern(pattern);
+          const walks = transferWalkTimes(pattern);
+          for (let t = 0; t < specs.length; t++) {
+            let gaps: number[] = [];
+            const sql = specificGapSql(specs[t]);
+            if (sql) {
+              try {
+                gaps = (await duckQuery(sql))
+                  .map((r: any) => Number(r.gap))
+                  .filter((g: number) => Number.isFinite(g));
+              } catch { /* ignorér — behandles som manglende data */ }
+            }
+            if (gaps.length < SPECIFIC_MIN_DAYS) {
+              const fsql = fallbackGapSql(specs[t]);
+              if (fsql) {
+                try {
+                  const g2 = (await duckQuery(fsql))
+                    .map((r: any) => Number(r.gap))
+                    .filter((g: number) => Number.isFinite(g));
+                  if (g2.length > 0) gaps = g2;
+                } catch { /* ignorér */ }
+              }
+            }
+            if (gaps.length > 0) {
+              const p = probFromGaps(gaps, (walks[t] ?? 0) + transferMarginMin);
+              makeProb *= Math.max(0, p);
+              daysMin = daysMin == null ? gaps.length : Math.min(daysMin, gaps.length);
+            }
+            // Uten data antar vi at overgangen går (makeProb uendret) — vises i UI
+          }
+        }
+
+        steps.push({ pattern, needProb, makeProb, daysObservedMin: daysMin });
+        needProb = needProb * (1 - makeProb);
+        // Neste plan: første avgang etter denne planens avgang fra samme stopp
+        searchFrom = addMinutesToIso(pattern.expectedStartTime, 1);
+      }
+      return steps;
+    },
+  });
 }
 
 /** Hook: fetch delay distributions from DuckDB for trip (stop, line) pairs */
@@ -626,6 +917,336 @@ function StopSearch({
 }
 
 // ---------------------------------------------------------------------------
+// Per-leg alternative departures ("Bytt avgang" — som på entur.no)
+// ---------------------------------------------------------------------------
+
+type AltDepartureRaw = {
+  aimedTime: string | null;
+  expectedTime: string | null;
+  cancelled: boolean;
+  destination: string | null;
+  lineRef: string | null;
+  serviceJourneyId: string | null;
+};
+
+function LegAlternatives({
+  pattern,
+  legIdx,
+  onSelect,
+}: {
+  pattern: TripPattern;
+  legIdx: number;
+  onSelect: (newStartIso: string, sjId: string | null) => void;
+}) {
+  const leg = pattern.legs[legIdx];
+  const quayId = leg.fromPlace.quay?.id ?? null;
+  const lineRef = leg.line?.id ?? null;
+
+  // Hent avganger i et vindu rundt nåværende avgang: 90 min før → 210 min etter.
+  const windowStartIso = useMemo(
+    () => new Date(new Date(leg.expectedStartTime).getTime() - 90 * 60000).toISOString(),
+    [leg.expectedStartTime],
+  );
+  const url = quayId
+    ? `/api/departures/${encodeURIComponent(quayId)}?startTime=${encodeURIComponent(windowStartIso)}&minutes=300&limit=100`
+    : null;
+  const { data, isLoading, isError } = useQuery<{ departures: AltDepartureRaw[] }>({
+    queryKey: [url ?? "alt-dep-disabled"],
+    enabled: !!url,
+  });
+
+  // Gjennomførbarhet mot nabo-leggene (gangtid mellom transit-legg er foot-legg).
+  const constraints = useMemo(() => {
+    const transitIdxs: number[] = [];
+    for (let i = 0; i < pattern.legs.length; i++) {
+      if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
+    }
+    const pos = transitIdxs.indexOf(legIdx);
+    const walkSecBetween = (a: number, b: number) => {
+      let s = 0;
+      for (let k = a + 1; k < b; k++) {
+        if (pattern.legs[k].mode === "foot") s += pattern.legs[k].duration ?? 0;
+      }
+      return s;
+    };
+    const prevIdx = pos > 0 ? transitIdxs[pos - 1] : null;
+    const nextIdx = pos >= 0 && pos < transitIdxs.length - 1 ? transitIdxs[pos + 1] : null;
+    return {
+      // Tidligste mulige avgang: forrige buss' ankomst + gangtid
+      earliestStartMs:
+        prevIdx != null
+          ? new Date(pattern.legs[prevIdx].expectedEndTime).getTime() +
+            walkSecBetween(prevIdx, legIdx) * 1000
+          : null,
+      // Seneste mulige ankomst: neste buss' avgang − gangtid
+      latestEndMs:
+        nextIdx != null
+          ? new Date(pattern.legs[nextIdx].expectedStartTime).getTime() -
+            walkSecBetween(legIdx, nextIdx) * 1000
+          : null,
+    };
+  }, [pattern, legIdx]);
+
+  const candidates = useMemo(() => {
+    const curStartMs = new Date(leg.expectedStartTime).getTime();
+    const seen = new Set<string>();
+    const out: Array<
+      AltDepartureRaw & {
+        timeMs: number;
+        deltaMin: number;
+        isCurrent: boolean;
+        tooEarly: boolean;
+        missesNext: boolean;
+      }
+    > = [];
+    for (const d of data?.departures ?? []) {
+      if (d.lineRef !== lineRef || d.cancelled || !d.aimedTime) continue;
+      const key = d.serviceJourneyId ?? d.aimedTime;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const timeMs = new Date(d.aimedTime).getTime();
+      const endMs = timeMs + (leg.duration ?? 0) * 1000;
+      out.push({
+        ...d,
+        timeMs,
+        deltaMin: Math.round((timeMs - curStartMs) / 60000),
+        isCurrent:
+          Math.abs(timeMs - curStartMs) < 30_000 ||
+          d.serviceJourneyId === leg.serviceJourney?.id,
+        tooEarly: constraints.earliestStartMs != null && timeMs < constraints.earliestStartMs,
+        missesNext: constraints.latestEndMs != null && endMs > constraints.latestEndMs,
+      });
+    }
+    out.sort((a, b) => a.timeMs - b.timeMs);
+    // Vis maks 5 før + 5 etter valgt avgang
+    const curPos = out.findIndex((c) => c.isCurrent);
+    const anchor = curPos < 0 ? 0 : curPos;
+    return out.slice(Math.max(0, anchor - 5), Math.min(out.length, anchor + 6));
+  }, [data, lineRef, leg, constraints]);
+
+  if (!quayId || !lineRef) return null;
+
+  return (
+    <div className="mt-2 ml-2 border-l-2 border-primary/20 pl-3 space-y-1">
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+        Andre avganger — linje {leg.line?.publicCode} fra {leg.fromPlace.quay?.name ?? leg.fromPlace.name}
+      </p>
+      {isLoading && <p className="text-xs text-muted-foreground">Henter avganger...</p>}
+      {isError && <p className="text-xs text-destructive">Kunne ikke hente avganger.</p>}
+      {!isLoading && !isError && candidates.length === 0 && (
+        <p className="text-xs text-muted-foreground">Fant ingen andre avganger i tidsvinduet (±1,5–3,5 t).</p>
+      )}
+      {candidates.map((c) => (
+        <button
+          key={c.serviceJourneyId ?? c.aimedTime!}
+          disabled={c.isCurrent || c.tooEarly}
+          onClick={() => onSelect(new Date(c.timeMs).toISOString(), c.serviceJourneyId)}
+          className={cn(
+            "w-full flex items-center gap-2 text-xs rounded px-2 py-1 text-left transition-colors",
+            c.isCurrent
+              ? "bg-primary/10 font-medium cursor-default"
+              : c.tooEarly
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-muted cursor-pointer",
+          )}
+        >
+          <span className="font-mono tabular-nums">{formatTime(c.aimedTime!)}</span>
+          <span className="text-muted-foreground font-mono text-[10px] w-14">
+            {c.deltaMin === 0 ? "" : c.deltaMin > 0 ? `+${c.deltaMin} min` : `${c.deltaMin} min`}
+          </span>
+          <span className="text-muted-foreground truncate flex-1">{c.destination}</span>
+          {c.isCurrent && (
+            <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">valgt</Badge>
+          )}
+          {c.tooEarly && !c.isCurrent && (
+            <span className="text-[9px] text-muted-foreground italic">rekker ikke fra forrige buss</span>
+          )}
+          {c.missesNext && !c.tooEarly && !c.isCurrent && (
+            <span className="text-[9px] text-red-500 flex items-center gap-0.5">
+              <AlertTriangle className="h-2.5 w-2.5" />
+              rekker ikke neste buss
+            </span>
+          )}
+        </button>
+      ))}
+      <p className="text-[9px] text-muted-foreground/60 italic">
+        Ankomsttid antas lik kjøretid som opprinnelig avgang. Bytte av midtre legg kan
+        bryte overganger — dette flagges i rødt.
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Plan B/C/D-visning under en risikabel overgang
+// ---------------------------------------------------------------------------
+
+const PLAN_LETTERS = ["B", "C", "D", "E"];
+
+function TransferFallbacks({
+  pattern,
+  legAIdx,
+  missProb,
+  duckStats,
+  destination,
+  selectedModes,
+  walkSpeedKmh,
+  transferMarginMin,
+  duckReady,
+  duckQuery,
+}: {
+  pattern: TripPattern;
+  legAIdx: number;
+  missProb: number; // P(miste overgangen), 0–1
+  duckStats?: Map<string, DuckDelayRow>;
+  destination: Record<string, unknown>;
+  selectedModes: string[];
+  walkSpeedKmh: number;
+  transferMarginMin: number;
+  duckReady: boolean;
+  duckQuery: (sql: string) => Promise<any[]>;
+}) {
+  const legA = pattern.legs[legAIdx];
+
+  // Neste transit-legg (= det du kan miste) + gangtid dit
+  const { legB, walkMin } = useMemo(() => {
+    let walkSec = 0;
+    for (let i = legAIdx + 1; i < pattern.legs.length; i++) {
+      const l = pattern.legs[i];
+      if (l.mode === "foot") {
+        walkSec += l.duration ?? 0;
+      } else {
+        return { legB: l, walkMin: walkSec / 60 };
+      }
+    }
+    return { legB: null as TripLeg | null, walkMin: walkSec / 60 };
+  }, [pattern, legAIdx]);
+
+  // Realistisk tidspunkt du står klar på overgangsstoppet hvis du mister bussen:
+  // planlagt ankomst + P80-ankomstforsinkelse (fallback 5 min) + gangtid.
+  const p80ArrDelay = useMemo(() => {
+    const quay = legA.toPlace.quay?.id;
+    const line = legA.line?.id;
+    if (!quay || !line) return null;
+    return duckStats?.get(`${quay}|${line}`)?.p80_arr ?? null;
+  }, [legA, duckStats]);
+
+  const delayAssumptionMin = Math.max(p80ArrDelay ?? 5, 0);
+  const missArrivalIso = useMemo(
+    () => addMinutesToIso(legA.expectedEndTime, delayAssumptionMin + walkMin),
+    [legA.expectedEndTime, delayAssumptionMin, walkMin],
+  );
+
+  const { data: steps, isLoading, isError } = useFallbackChain({
+    enabled: !!legB,
+    transferQuayId: legB?.fromPlace.quay?.id ?? null,
+    destination,
+    missProb,
+    missArrivalIso,
+    selectedModes,
+    walkSpeedKmh,
+    transferMarginMin,
+    duckReady,
+    duckQuery,
+  });
+
+  // Forventet ankomst: p(A) × ankomst_A + Σ p(bruk plan k) × ankomst_k.
+  // Siste plan i kjeden får all gjenværende sannsynlighet (kjeden er kuttet <5 %).
+  const expectation = useMemo(() => {
+    if (!steps || steps.length === 0) return null;
+    const terms: Array<{ label: string; prob: number; arrIso: string }> = [
+      { label: "plan A", prob: 1 - missProb, arrIso: pattern.expectedEndTime },
+    ];
+    for (let i = 0; i < steps.length; i++) {
+      const isLast = i === steps.length - 1;
+      const useProb = isLast ? steps[i].needProb : steps[i].needProb * steps[i].makeProb;
+      terms.push({
+        label: `plan ${PLAN_LETTERS[i]}`,
+        prob: useProb,
+        arrIso: steps[i].pattern.expectedEndTime,
+      });
+    }
+    const totalProb = terms.reduce((a, t) => a + t.prob, 0);
+    if (totalProb <= 0) return null;
+    const expMs = terms.reduce((a, t) => a + (t.prob / totalProb) * new Date(t.arrIso).getTime(), 0);
+    return { terms, expectedIso: new Date(expMs).toISOString() };
+  }, [steps, missProb, pattern.expectedEndTime]);
+
+  if (!legB || missProb < FALLBACK_PROB_FLOOR) return null;
+
+  const origArrMs = new Date(pattern.expectedEndTime).getTime();
+
+  return (
+    <div className="ml-5 mt-2 border-l-2 border-amber-300/50 pl-3 space-y-1.5">
+      <p className="text-[10px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+        Hvis du mister overgangen ({Math.round(missProb * 100)} % sjanse)
+      </p>
+      {isLoading && <p className="text-xs text-muted-foreground">Beregner plan B...</p>}
+      {isError && <p className="text-xs text-muted-foreground italic">Kunne ikke hente alternativ reise.</p>}
+      {steps?.map((step, i) => {
+        const deltaMin = Math.round(
+          (new Date(step.pattern.expectedEndTime).getTime() - origArrMs) / 60000,
+        );
+        const transitLegs = step.pattern.legs.filter((l) => l.mode !== "foot");
+        return (
+          <div key={i} className="text-xs space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[9px] border-amber-400/60 text-amber-700 dark:text-amber-400">
+                Plan {PLAN_LETTERS[i]}
+              </Badge>
+              <span className="font-mono">{formatTime(step.pattern.expectedStartTime)}</span>
+              {transitLegs.map((l, j) => (
+                <Badge key={j} variant="secondary" className="text-[9px] gap-0.5">
+                  <ModeIcon mode={l.mode} className="h-2.5 w-2.5" />
+                  {l.line?.publicCode ?? modeLabel(l.mode)}
+                </Badge>
+              ))}
+              <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              <span className="font-mono">{formatTime(step.pattern.expectedEndTime)}</span>
+              <span className={cn("font-mono text-[10px]", deltaMin > 0 ? "text-red-500" : "text-green-600")}>
+                ({deltaMin >= 0 ? "+" : ""}{deltaMin} min)
+              </span>
+            </div>
+            <div className="text-[10px] text-muted-foreground ml-1">
+              Trengs med {Math.round(step.needProb * 100)} % sannsynlighet
+              {step.makeProb < 1 && (
+                <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
+                  {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      {expectation && (
+        <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+          <span className="font-medium">Forventet ankomst: </span>
+          {expectation.terms
+            .filter((t) => t.prob >= 0.005)
+            .map((t, i) => (
+              <span key={i}>
+                {i > 0 && " + "}
+                {Math.round(t.prob * 100)} % × {formatTime(t.arrIso)}
+              </span>
+            ))}
+          {" ≈ "}
+          <span className="font-mono font-medium text-foreground">
+            {formatTime(expectation.expectedIso)}
+          </span>
+        </div>
+      )}
+      <p className="text-[9px] text-muted-foreground/60 italic">
+        Plan {PLAN_LETTERS.slice(0, Math.max(steps?.length ?? 1, 1)).join("/")} er søkt fra{" "}
+        {legB.fromPlace.quay?.name ?? legB.fromPlace.name} med avreise{" "}
+        {formatTime(missArrivalIso)} (planlagt ankomst + P80-forsinkelse
+        {p80ArrDelay == null && " [antatt 5 min — mangler data]"} + gangtid).
+        Kjeden stopper når sannsynligheten for å trenge neste plan er under 5 %.
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Trip result card
 // ---------------------------------------------------------------------------
 
@@ -639,6 +1260,11 @@ function TripCard({
   sprintSpeedKmh,
   duckReady,
   duckQuery,
+  expanded,
+  onToggleExpanded,
+  onPatternChange,
+  destination,
+  selectedModes,
 }: {
   pattern: TripPattern;
   index: number;
@@ -649,53 +1275,21 @@ function TripCard({
   sprintSpeedKmh: number;
   duckReady: boolean;
   duckQuery: (sql: string) => Promise<any[]>;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  onPatternChange: (newPattern: TripPattern) => void;
+  destination: Record<string, unknown> | null;
+  selectedModes: string[];
 }) {
-  const [expanded, setExpanded] = useState(index === 0);
+  // Hvilket legg som viser "andre avganger"-panelet
+  const [altOpenLeg, setAltOpenLeg] = useState<number | null>(null);
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Stable shape so the gap-fetching hook below has a stable cache key.
-  // The day_type comes from the trip's planned departure date so that e.g. a
-  // Wednesday trip pulls only weekday observations from Parquet.
-  const transferSpecs = useMemo<TransferSpec[]>(() => {
-    const tripDayType = computeDayType(pattern.expectedStartTime);
-
-    // Aimed (scheduled) HH:MM at a quay from a leg's serviceJourney.passingTimes.
-    // Returns minutes-since-midnight, or null when missing.
-    const aimedMinAtQuay = (leg: TripLeg, quayId: string | null, kind: "arrival" | "departure"): number | null => {
-      if (!quayId || !leg.serviceJourney) return null;
-      const pt = leg.serviceJourney.passingTimes.find(p => p.quay?.id === quayId);
-      const t = kind === "arrival" ? pt?.arrival?.time : pt?.departure?.time;
-      if (!t) return null;
-      const [hh, mm] = t.split(":").map(Number);
-      if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-      return hh * 60 + mm;
-    };
-
-    const transitIdxs: number[] = [];
-    for (let i = 0; i < pattern.legs.length; i++) {
-      if (pattern.legs[i].mode !== "foot") transitIdxs.push(i);
-    }
-    const out: TransferSpec[] = [];
-    for (let t = 0; t < transitIdxs.length - 1; t++) {
-      const legA = pattern.legs[transitIdxs[t]];
-      const legB = pattern.legs[transitIdxs[t + 1]];
-      const arrQuay = legA.toPlace.quay?.id ?? null;
-      const depQuay = legB.fromPlace.quay?.id ?? null;
-      out.push({
-        key: `t${t}`,
-        arrSjId: legA.serviceJourney?.id ?? null,
-        arrQuayRef: arrQuay,
-        arrLineRef: legA.line?.id ?? null,
-        arrAimedMin: aimedMinAtQuay(legA, arrQuay, "arrival"),
-        depSjId: legB.serviceJourney?.id ?? null,
-        depQuayRef: depQuay,
-        depLineRef: legB.line?.id ?? null,
-        depAimedMin: aimedMinAtQuay(legB, depQuay, "departure"),
-        dayType: tripDayType,
-      });
-    }
-    return out;
-  }, [pattern]);
+  const transferSpecs = useMemo<TransferSpec[]>(
+    () => buildTransferSpecsForPattern(pattern),
+    [pattern],
+  );
 
   const { data: gapMap } = useTransferGaps(transferSpecs, duckReady, duckQuery);
 
@@ -744,6 +1338,9 @@ function TripCard({
       fromLine: string | null;
       toLine: string | null;
       assumingOnTime: boolean;
+      // true når planlagt gap < gangtid — overgangen er umulig selv uten
+      // forsinkelse (oppstår typisk etter manuelt bytte av avgang på et legg)
+      broken: boolean;
     };
     const transfers: TransferInfo[] = [];
 
@@ -771,7 +1368,24 @@ function TripCard({
       const sprintWalkTime = walkTime * sprintRatio;
 
       const totalGap = (new Date(legB.expectedStartTime).getTime() - new Date(legA.expectedEndTime).getTime()) / 60000;
-      if (totalGap <= 0) continue;
+
+      // Umulig overgang (gap mindre enn ren gangtid) — flagges eksplisitt i
+      // stedet for å skjules, slik at manuelt byttede avganger vises som brutte.
+      if (totalGap < walkTime) {
+        transfers.push({
+          buffer: totalGap,
+          walkTime,
+          sprintWalkTime,
+          probs: { default: -1, user: -1, sprint: -1 },
+          daysObserved: 0,
+          source: "none",
+          fromLine: legA.line?.publicCode ?? null,
+          toLine: legB.line?.publicCode ?? null,
+          assumingOnTime: false,
+          broken: true,
+        });
+        continue;
+      }
 
       const hasDelayData = MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id;
       const assumingOnTime = !hasDelayData;
@@ -803,10 +1417,14 @@ function TripCard({
         fromLine: legA.line?.publicCode ?? null,
         toLine: legB.line?.publicCode ?? null,
         assumingOnTime,
+        broken: false,
       });
     }
 
-    const knownProbs = transfers.filter((t) => t.probs.default >= 0).map((t) => t.probs.default);
+    // Brutte overganger teller som 0 % i totalen
+    const knownProbs = transfers
+      .map((t) => (t.broken ? 0 : t.probs.default))
+      .filter((p) => p >= 0);
     const overallProb = knownProbs.length > 0
       ? knownProbs.reduce((a, b) => a * b, 1)
       : -1;
@@ -883,7 +1501,7 @@ function TripCard({
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
       <div
         className="cursor-pointer p-4 pb-3"
-        onClick={() => setExpanded(!expanded)}
+        onClick={onToggleExpanded}
       >
         {/* --- Collapsed summary row --- */}
         <div className="flex items-center justify-between">
@@ -1038,9 +1656,22 @@ function TripCard({
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {formatTime(leg.expectedStartTime)} - {formatTime(leg.expectedEndTime)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {formatTime(leg.expectedStartTime)} - {formatTime(leg.expectedEndTime)}
+                      </span>
+                      {leg.fromPlace.quay?.id && leg.line?.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] text-muted-foreground"
+                          onClick={() => setAltOpenLeg(altOpenLeg === legIdx ? null : legIdx)}
+                        >
+                          <ArrowDownUp className="h-3 w-3 mr-1" />
+                          Bytt avgang
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Stops along leg */}
@@ -1100,6 +1731,18 @@ function TripCard({
                       );
                     })}
                   </div>
+
+                  {/* Andre avganger for dette legget */}
+                  {altOpenLeg === legIdx && (
+                    <LegAlternatives
+                      pattern={pattern}
+                      legIdx={legIdx}
+                      onSelect={(newStartIso, sjId) => {
+                        onPatternChange(shiftPatternLeg(pattern, legIdx, newStartIso, sjId));
+                        setAltOpenLeg(null);
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Transfer indicator with three probabilities */}
@@ -1126,7 +1769,14 @@ function TripCard({
                         </span>
                       )}
                     </div>
-                    {transferInfo.probs.default >= 0 ? (
+                    {transferInfo.broken ? (
+                      <div className="ml-5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1.5 font-medium">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        Rekker ikke neste buss — gapet ({transferInfo.buffer.toFixed(0)} min) er
+                        mindre enn gangtiden ({transferInfo.walkTime.toFixed(1)} min). Bytt til en
+                        senere avgang på neste legg, eller en tidligere på dette.
+                      </div>
+                    ) : transferInfo.probs.default >= 0 ? (
                       <div className="flex flex-col gap-0.5 ml-5 text-xs">
                         {transferInfo.daysObserved < 5 && (
                           <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">
@@ -1171,6 +1821,23 @@ function TripCard({
                         mangler forsinkelsesdata for vurdering
                       </div>
                     )}
+                    {/* Plan B/C/D når overgangen kan ryke (>5 % sjanse) */}
+                    {destination &&
+                      (transferInfo.broken ||
+                        (transferInfo.probs.default >= 0 && transferInfo.probs.default < 0.95)) && (
+                        <TransferFallbacks
+                          pattern={pattern}
+                          legAIdx={legIdx}
+                          missProb={transferInfo.broken ? 1 : 1 - transferInfo.probs.default}
+                          duckStats={duckStats}
+                          destination={destination}
+                          selectedModes={selectedModes}
+                          walkSpeedKmh={walkSpeedKmh}
+                          transferMarginMin={transferMarginMin}
+                          duckReady={duckReady}
+                          duckQuery={duckQuery}
+                        />
+                      )}
                   </div>
                 )}
               </div>
@@ -1194,6 +1861,14 @@ export default function TripPlanner() {
   const [tripPatterns, setTripPatterns] = useState<TripPattern[]>([]);
   const [delayStats, setDelayStats] = useState<Map<string, TripStopStat>>(new Map());
   const [showFilters, setShowFilters] = useState(false);
+  // Entur-paginering: cursors for "tidligere avganger" / "senere avganger".
+  const [pageCursors, setPageCursors] = useState<{ prev: string | null; next: string | null }>({
+    prev: null,
+    next: null,
+  });
+  // Hvilke reiseforslag som er utvidet (nøkkel = patternKey). Ligger her (ikke i
+  // TripCard) slik at tilstanden overlever bytte av avgang på et legg.
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
   // Filter state
   const [departDate, setDepartDate] = useState(todayISO());
@@ -1280,7 +1955,7 @@ export default function TripPlanner() {
   }
 
   const tripMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (opts?: { cursor: string; dir: "earlier" | "later" }) => {
       if (!fromStop || !toStop) throw new Error("Velg fra og til");
 
       // Build dateTime ISO string from date + time, with local timezone offset
@@ -1309,6 +1984,8 @@ export default function TripPlanner() {
         transferSlack: transferSlack !== "default" ? parseInt(transferSlack) : undefined,
         wheelchairAccessible: wheelchairAccessible || undefined,
         numTripPatterns: 12, // hoytt tall -> Entur beregner dynamisk searchWindow riktig
+        // Ved paginering overstyrer cursoren dateTime/searchWindow hos Entur
+        pageCursor: opts?.cursor,
       });
       const tripData = await tripRes.json();
 
@@ -1324,10 +2001,15 @@ export default function TripPlanner() {
         throw new Error(tripData.error + (tripData.detail ? ` — ${tripData.detail}` : ""));
       }
 
-      const patterns: TripPattern[] = tripData?.data?.trip?.tripPatterns ?? [];
+      const trip = tripData?.data?.trip;
+      const patterns: TripPattern[] = trip?.tripPatterns ?? [];
+      const cursors = {
+        prev: (trip?.previousPageCursor as string | undefined) ?? null,
+        next: (trip?.nextPageCursor as string | undefined) ?? null,
+      };
 
       if (patterns.length === 0) {
-        return { patterns: [], stats: new Map<string, TripStopStat>() };
+        return { patterns: [], stats: new Map<string, TripStopStat>(), cursors };
       }
 
       // 2. Collect (stopRef, lineRef) pairs — only for modes where we have data
@@ -1382,13 +2064,54 @@ export default function TripPlanner() {
         }
       }
 
-      return { patterns, stats: statsMap };
+      return { patterns, stats: statsMap, cursors };
     },
-    onSuccess: (data) => {
-      setTripPatterns(data.patterns);
-      setDelayStats(data.stats);
+    onSuccess: (data, variables) => {
+      const dir = variables?.dir;
+      if (dir === "earlier") {
+        // Prepend nye (tidligere) forslag; behold vår "senere"-cursor
+        setTripPatterns((prev) => dedupePatterns([...data.patterns, ...prev]));
+        setPageCursors((pc) => ({ prev: data.cursors.prev, next: pc.next }));
+        setDelayStats((prev) => new Map([...Array.from(prev), ...Array.from(data.stats)]));
+      } else if (dir === "later") {
+        setTripPatterns((prev) => dedupePatterns([...prev, ...data.patterns]));
+        setPageCursors((pc) => ({ prev: pc.prev, next: data.cursors.next }));
+        setDelayStats((prev) => new Map([...Array.from(prev), ...Array.from(data.stats)]));
+      } else {
+        setTripPatterns(data.patterns);
+        setPageCursors(data.cursors);
+        setDelayStats(data.stats);
+        setExpandedKeys(
+          new Set(data.patterns.length > 0 ? [patternKey(data.patterns[0])] : []),
+        );
+      }
     },
   });
+
+  // Destinasjon som Entur Location-objekt — brukes av plan B/C/D-søk fra
+  // overgangsstopp. Samme logikk som locationRef() i tripMutation.
+  const destinationLocation = useMemo<Record<string, unknown> | null>(() => {
+    if (!toStop) return null;
+    if (toStop.stopPlaceRef) return { place: toStop.stopPlaceRef };
+    if (toStop.lat != null && toStop.lng != null) {
+      return { coordinates: { latitude: toStop.lat, longitude: toStop.lng }, name: toStop.stopName };
+    }
+    return { place: toStop.stopRef };
+  }, [toStop]);
+
+  // Bytt ut ett reiseforslag (etter "bytt avgang" på et legg), behold utvidet-status
+  function handlePatternChange(idx: number, newPattern: TripPattern) {
+    const oldKey = patternKey(tripPatterns[idx]);
+    const newKey = patternKey(newPattern);
+    setTripPatterns((prev) => prev.map((p, i) => (i === idx ? newPattern : p)));
+    setExpandedKeys((prev) => {
+      if (!prev.has(oldKey)) return prev;
+      const s = new Set(prev);
+      s.delete(oldKey);
+      s.add(newKey);
+      return s;
+    });
+  }
 
   const canSearch = fromStop != null && toStop != null && selectedModes.length > 0;
 
@@ -1422,7 +2145,7 @@ export default function TripPlanner() {
               <StopSearch label="Til" value={toStop} onSelect={(s) => { setToStop(s); setToQuery(s.stopName); }} externalQuery={toQuery} />
               <div className="flex items-end">
                 <Button
-                  onClick={() => tripMutation.mutate()}
+                  onClick={() => tripMutation.mutate(undefined)}
                   disabled={!canSearch || tripMutation.isPending}
                   className="w-full md:w-auto"
                 >
@@ -1705,9 +2428,21 @@ export default function TripPlanner() {
                 </span>
               )}
             </h3>
+            {pageCursors.prev && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={tripMutation.isPending}
+                onClick={() => tripMutation.mutate({ cursor: pageCursors.prev!, dir: "earlier" })}
+              >
+                <ChevronUp className="h-4 w-4 mr-1.5" />
+                {tripMutation.isPending ? "Leter..." : "Tidligere avganger"}
+              </Button>
+            )}
             {tripPatterns.map((pattern, i) => (
               <TripCard
-                key={i}
+                key={patternKey(pattern)}
                 pattern={pattern}
                 index={i}
                 stats={delayStats}
@@ -1717,8 +2452,33 @@ export default function TripPlanner() {
                 sprintSpeedKmh={sprintSpeedKmh ?? walkSpeedKmh}
                 duckReady={duckReady}
                 duckQuery={duckQuery}
+                expanded={expandedKeys.has(patternKey(pattern))}
+                onToggleExpanded={() => {
+                  const k = patternKey(pattern);
+                  setExpandedKeys((prev) => {
+                    const s = new Set(prev);
+                    if (s.has(k)) s.delete(k);
+                    else s.add(k);
+                    return s;
+                  });
+                }}
+                onPatternChange={(newPattern) => handlePatternChange(i, newPattern)}
+                destination={destinationLocation}
+                selectedModes={selectedModes}
               />
             ))}
+            {pageCursors.next && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={tripMutation.isPending}
+                onClick={() => tripMutation.mutate({ cursor: pageCursors.next!, dir: "later" })}
+              >
+                <ChevronDown className="h-4 w-4 mr-1.5" />
+                {tripMutation.isPending ? "Leter..." : "Senere avganger"}
+              </Button>
+            )}
           </div>
         )}
 

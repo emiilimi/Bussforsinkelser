@@ -98,6 +98,7 @@ def upload_file(
     key: str,
     force: bool = False,
     dry_run: bool = False,
+    cache_control: str | None = None,
 ) -> bool:
     """Last opp én fil. Returner True hvis filen ble lastet opp."""
     content_type = "application/json" if key.endswith(".json") else "application/octet-stream"
@@ -121,19 +122,29 @@ def upload_file(
         return True
 
     log.info("  ↑ %s (%.0f KB)", key, size_kb)
+    extra_args: dict = {"ContentType": content_type}
+    if cache_control:
+        extra_args["CacheControl"] = cache_control
     s3.upload_file(
         str(local_path),
         bucket,
         key,
-        ExtraArgs={"ContentType": content_type},
+        ExtraArgs=extra_args,
     )
     return True
 
 
-def generate_manifest(parquet_dir: Path) -> list[str]:
-    """Returner sortert liste over .parquet-filnavn (kun basename)."""
-    files = sorted(f.name for f in parquet_dir.glob("*.parquet") if f.is_file())
-    return files
+def generate_manifest(parquet_dir: Path) -> list[dict]:
+    """Returner sortert liste over {name, md5} for .parquet-filer.
+
+    md5 brukes av klienten som cache-buster (?v=md5) slik at nettleseren
+    henter fersk fil når innholdet endres, selv om filnavnet er det samme
+    (ukefiler overskrives daglig med nye dager)."""
+    entries = []
+    for f in sorted(parquet_dir.glob("*.parquet")):
+        if f.is_file():
+            entries.append({"name": f.name, "md5": md5_of_file(f)})
+    return entries
 
 
 def main():
@@ -162,8 +173,13 @@ def main():
 
     uploaded = 0
     skipped = 0
-    manifest: list[str] = []
+    manifest: list[dict] = []
     prod_db = REPO_ROOT / "data" / "bussforsinkelser_prod.db"
+
+    # Parquet-URLer versjoneres med ?v=md5 av klienten → innholdet på en gitt
+    # URL endres aldri → trygt med lang cache. Manifestet må alltid revalideres.
+    PARQUET_CACHE = "public, max-age=31536000, immutable"
+    MANIFEST_CACHE = "no-cache"
 
     if not args.prod_db:
         # ---------- Parquet + manifest ----------
@@ -186,7 +202,9 @@ def main():
                 log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)
                 uploaded += 1
             else:
-                did_upload = upload_file(s3, bucket, pf, pf.name, force=args.all)
+                did_upload = upload_file(
+                    s3, bucket, pf, pf.name, force=args.all, cache_control=PARQUET_CACHE
+                )
                 if did_upload:
                     uploaded += 1
                 else:
@@ -200,7 +218,10 @@ def main():
         if args.dry_run:
             log.info("  [dry-run] Ville lastet opp: manifest.json (%d filer)", len(manifest))
         else:
-            did_upload = upload_file(s3, bucket, manifest_path, "manifest.json", force=True)
+            did_upload = upload_file(
+                s3, bucket, manifest_path, "manifest.json",
+                force=True, cache_control=MANIFEST_CACHE,
+            )
             if did_upload:
                 uploaded += 1
     else:
@@ -236,7 +257,11 @@ def main():
     if public_url:
         log.info("Public URL: %s", public_url)
         if not args.prod_db:
-            log.info("Parquet-eksempel: %s/%s", public_url, manifest[0] if manifest else "<ingen filer>")
+            log.info(
+                "Parquet-eksempel: %s/%s",
+                public_url,
+                manifest[0]["name"] if manifest else "<ingen filer>",
+            )
         if prod_db.exists() and not skip_prod_db:
             log.info("Prod-DB URL:      %s/bussforsinkelser_prod.db", public_url)
 

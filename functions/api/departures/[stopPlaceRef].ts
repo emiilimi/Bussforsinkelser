@@ -23,10 +23,17 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const url = new URL(context.request.url);
   const minutes = Math.min(Math.max(parseIntParam(url.searchParams.get("minutes"), 90), 15), 360);
   const limit = Math.min(Math.max(parseIntParam(url.searchParams.get("limit"), 50), 5), 100);
+  // startTime: ISO-datetime for å liste avganger rundt et annet tidspunkt enn nå
+  // (brukes av reiseplanleggerens "andre avganger" for planlagte reiser).
+  const startTimeRaw = url.searchParams.get("startTime");
+  const startTime =
+    startTimeRaw && !Number.isNaN(Date.parse(startTimeRaw))
+      ? new Date(startTimeRaw).toISOString()
+      : null;
 
   const cache = defaultCache();
   const cacheKey = new Request(
-    `https://cache.internal/departures/${encodeURIComponent(stopPlaceRef)}?minutes=${minutes}&limit=${limit}`,
+    `https://cache.internal/departures/${encodeURIComponent(stopPlaceRef)}?minutes=${minutes}&limit=${limit}&start=${startTime ?? ""}`,
     { method: "GET" },
   );
   const hit = await cache.match(cacheKey);
@@ -34,12 +41,14 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
 
   const isQuay = stopPlaceRef.startsWith("NSR:Quay:");
   const rootSelector = isQuay ? "quay" : "stopPlace";
+  const startDecl = startTime ? ", $start: DateTime!" : "";
+  const startArg = startTime ? "startTime: $start, " : "";
   const query = `
-    query StopDepartures($id: String!, $range: Int!, $n: Int!) {
+    query StopDepartures($id: String!, $range: Int!, $n: Int!${startDecl}) {
       ${rootSelector}(id: $id) {
         id
         name
-        estimatedCalls(timeRange: $range, numberOfDepartures: $n) {
+        estimatedCalls(${startArg}timeRange: $range, numberOfDepartures: $n) {
           aimedDepartureTime
           expectedDepartureTime
           realtime
@@ -64,7 +73,12 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       },
       body: JSON.stringify({
         query,
-        variables: { id: stopPlaceRef, range: minutes * 60, n: limit },
+        variables: {
+          id: stopPlaceRef,
+          range: minutes * 60,
+          n: limit,
+          ...(startTime ? { start: startTime } : {}),
+        },
       }),
     });
     if (!response.ok) {

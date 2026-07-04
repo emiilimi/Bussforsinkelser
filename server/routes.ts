@@ -638,6 +638,7 @@ export async function registerRoutes(
       numTripPatterns,
       wheelchairAccessible,
       searchWindow,
+      pageCursor,
     } = req.body ?? {};
 
     if (!from || !to) {
@@ -649,6 +650,12 @@ export async function registerRoutes(
     const toLocation = typeof to === "string" ? { place: to } : to;
 
     const dateTime = when || new Date().toISOString();
+    // pageCursor: ugjennomsiktig Entur-token for tidligere/senere-paginering.
+    // Konservativt tegnsett så den ikke kan injiseres som GraphQL.
+    const safePageCursor =
+      typeof pageCursor === "string" && /^[A-Za-z0-9+/=_-]{1,512}$/.test(pageCursor)
+        ? pageCursor
+        : null;
     // Cache key includes all parameters that affect the query result.
     // Normalize undefined → null so JSON.stringify produces stable, distinguishable
     // keys (without normalization, `{ dm: undefined }` serializes to `{}`, colliding
@@ -666,6 +673,7 @@ export async function registerRoutes(
       am: accessMode ?? null,
       em: egressMode ?? null,
       dm: directMode ?? null,
+      pc: safePageCursor,
     });
     const cacheKey = tripCacheKey(
       JSON.stringify(fromLocation), JSON.stringify(toLocation), dateTime
@@ -704,11 +712,13 @@ export async function registerRoutes(
     if (typeof maximumTransfers === "number") optionals.push(`maximumTransfers: ${maximumTransfers}`);
     if (wheelchairAccessible === true) optionals.push("wheelchairAccessible: true");
     if (typeof searchWindow === "number") optionals.push(`searchWindow: ${searchWindow}`);
-    const numPatterns = Math.min(Number(numTripPatterns) || 5, 10);
+    const numPatterns = Math.min(Number(numTripPatterns) || 5, 12);
     optionals.push(`numTripPatterns: ${numPatterns}`);
+    if (safePageCursor) optionals.push("pageCursor: $pageCursor");
 
+    const cursorDecl = safePageCursor ? ", $pageCursor: String" : "";
     const query = `
-      query trip($from: Location!, $to: Location!, $dateTime: DateTime!) {
+      query trip($from: Location!, $to: Location!, $dateTime: DateTime!${cursorDecl}) {
         trip(
           from: $from
           to: $to
@@ -716,6 +726,8 @@ export async function registerRoutes(
           modes: { ${modesBlock} }
           ${optionals.join("\n          ")}
         ) {
+          nextPageCursor
+          previousPageCursor
           tripPatterns {
             expectedStartTime
             expectedEndTime
@@ -740,6 +752,7 @@ export async function registerRoutes(
               expectedEndTime
               duration
               distance
+              pointsOnLink { points }
               intermediateQuays {
                 id
                 name
@@ -759,11 +772,12 @@ export async function registerRoutes(
     `;
 
     try {
-      const variables = {
+      const variables: Record<string, unknown> = {
         from: fromLocation,
         to: toLocation,
         dateTime,
       };
+      if (safePageCursor) variables.pageCursor = safePageCursor;
       console.log("[trip] Query:", JSON.stringify({ from: fromLocation, to: toLocation, dateTime, modes: modes.join(","), optionals }));
 
       const response = await fetch("https://api.entur.io/journey-planner/v3/graphql", {
@@ -821,9 +835,15 @@ export async function registerRoutes(
     }
     const minutes = Math.min(Math.max(parseIntQuery(req.query.minutes, 90), 15), 360);
     const limit = Math.min(Math.max(parseIntQuery(req.query.limit, 50), 5), 100);
+    // startTime: ISO-datetime for avganger rundt et annet tidspunkt enn nå
+    const startTimeRaw = typeof req.query.startTime === "string" ? req.query.startTime : null;
+    const startTime =
+      startTimeRaw && !Number.isNaN(Date.parse(startTimeRaw))
+        ? new Date(startTimeRaw).toISOString()
+        : null;
 
     const bucket = Math.floor(Date.now() / DEP_CACHE_TTL_MS);
-    const cacheKey = `${stopPlaceRef}|${minutes}|${limit}|${bucket}`;
+    const cacheKey = `${stopPlaceRef}|${minutes}|${limit}|${startTime ?? ""}|${bucket}`;
     const cached = depCache.get(cacheKey);
     if (cached && Date.now() < cached.expiry) {
       return res.json(cached.data);
@@ -831,12 +851,14 @@ export async function registerRoutes(
 
     const isQuay = stopPlaceRef.startsWith("NSR:Quay:");
     const rootSelector = isQuay ? "quay" : "stopPlace";
+    const startDecl = startTime ? ", $start: DateTime!" : "";
+    const startArg = startTime ? "startTime: $start, " : "";
     const query = `
-      query StopDepartures($id: String!, $range: Int!, $n: Int!) {
+      query StopDepartures($id: String!, $range: Int!, $n: Int!${startDecl}) {
         ${rootSelector}(id: $id) {
           id
           name
-          estimatedCalls(timeRange: $range, numberOfDepartures: $n) {
+          estimatedCalls(${startArg}timeRange: $range, numberOfDepartures: $n) {
             aimedDepartureTime
             expectedDepartureTime
             realtime
@@ -861,7 +883,12 @@ export async function registerRoutes(
         },
         body: JSON.stringify({
           query,
-          variables: { id: stopPlaceRef, range: minutes * 60, n: limit },
+          variables: {
+            id: stopPlaceRef,
+            range: minutes * 60,
+            n: limit,
+            ...(startTime ? { start: startTime } : {}),
+          },
         }),
       });
       if (!response.ok) {

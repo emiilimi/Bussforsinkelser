@@ -1,5 +1,6 @@
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
+import { IS_REISE } from "@/lib/app-mode";
 import {
   BookOpen,
   Calculator,
@@ -71,10 +72,23 @@ export default function Methodology() {
           </div>
 
           <p className="text-muted-foreground leading-relaxed">
-            Denne siden viser <strong>historisk forsinkelsesstatistikk</strong> for offentlig
-            transport i Norge. Når en buss eller annet kollektivkjøretøy rapporterer sin
-            faktiske posisjon og tid via sanntidssystemet, sammenlikner vi det med ruteplanen.
-            Differansen kalles <strong>forsinkelse</strong> (i minutter).
+            {IS_REISE ? (
+              <>
+                Dette er en <strong>reiseplanlegger med historisk forsinkelsesstatistikk</strong>.
+                Reisesøket henter forslag fra Entur, og beriker dem med hva som faktisk har
+                skjedd med de samme avgangene tidligere: Når en buss rapporterer sin faktiske
+                tid via sanntidssystemet, sammenlikner vi det med ruteplanen. Differansen
+                kalles <strong>forsinkelse</strong> (i minutter), og danner grunnlaget for
+                estimerte tider, overgangssannsynligheter og plan B-forslag.
+              </>
+            ) : (
+              <>
+                Denne siden viser <strong>historisk forsinkelsesstatistikk</strong> for offentlig
+                transport i Norge. Når en buss eller annet kollektivkjøretøy rapporterer sin
+                faktiske posisjon og tid via sanntidssystemet, sammenlikner vi det med ruteplanen.
+                Differansen kalles <strong>forsinkelse</strong> (i minutter).
+              </>
+            )}
           </p>
 
           <div className="grid sm:grid-cols-2 gap-3">
@@ -94,14 +108,17 @@ export default function Methodology() {
             <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-1">
               <div className="text-xs font-semibold uppercase text-muted-foreground">Operatører</div>
               <p className="text-sm">
-                19 operatører over hele Norge (Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg
-                i sidemenyen.
+                {IS_REISE
+                  ? "Forsinkelsesstatistikken dekker foreløpig Skyss (Vestland) — buss og flybuss. Reisesøket dekker hele Norge via Entur."
+                  : "19 operatører over hele Norge (Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg i sidemenyen."}
               </p>
             </div>
             <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-1">
               <div className="text-xs font-semibold uppercase text-muted-foreground">Tidsvindu</div>
               <p className="text-sm">
-                Standard er siste 30 dager. Noen visninger har egne tidsvelgere.
+                {IS_REISE
+                  ? "Rullende vindu på inntil 90 dager med rå observasjoner. Statistikken vokser etter hvert som flere dager samles inn — antall dager vises alltid."
+                  : "Standard er siste 30 dager. Noen visninger har egne tidsvelgere."}
               </p>
             </div>
           </div>
@@ -175,11 +192,24 @@ export default function Methodology() {
                 Viktig: persentiler med lite data
               </p>
               <p>
-                Persentiler beregnes med <code>PERCENTILE_CONT</code> (kontinuerlig interpolasjon).
-                Med kun 2 observasjoner betyr det at P50 er gjennomsnittet av de to verdiene,
-                P80 er 80 % av veien fra den beste til den verste dagen, og P95 er nesten
-                identisk med verste dag. Tallene ser presise ut, men er statistisk meningsløse
-                med under ~10 datapunkter.
+                Persentiler beregnes med <code>PERCENTILE_CONT</code> (kontinuerlig
+                interpolasjon): observasjonene sorteres, og persentilen leses av på posisjon{" "}
+                <code>p × (n − 1)</code> i den sorterte listen. Havner posisjonen mellom to
+                observasjoner, interpoleres det <em>lineært</em> mellom dem. Persentilen er
+                altså ikke nødvendigvis en verdi som faktisk er observert.
+              </p>
+              <div className="p-2.5 rounded bg-amber-100/60 dark:bg-amber-900/30 font-mono text-xs space-y-1">
+                <p className="font-sans font-semibold">Regneeksempel med bare 2 dager (1,0 min og 5,0 min forsinkelse):</p>
+                <p>P50 = 1,0 + 0,50 × (5,0 − 1,0) = <strong>3,0 min</strong> — midtpunktet</p>
+                <p>P80 = 1,0 + 0,80 × (5,0 − 1,0) = <strong>4,2 min</strong> — 80 % av veien mot verste dag</p>
+                <p>P95 = 1,0 + 0,95 × (5,0 − 1,0) = <strong>4,8 min</strong> — nesten lik verste dag</p>
+              </div>
+              <p>
+                Med 2 datapunkter er "P80" altså bare et punkt på linjen mellom beste og verste
+                dag — ikke et statistisk estimat på noe som helst. Tallene ser presise ut
+                (4,2 min!), men presisjonen er en illusjon: en tredje dag kan flytte alt.
+                Først med flere titalls dager begynner persentilene å beskrive en faktisk
+                fordeling.
               </p>
               <p>
                 Vi viser alltid antall observasjoner tallene er basert på. Tommelfingerregel:
@@ -260,6 +290,55 @@ export default function Methodology() {
             </p>
           </div>
 
+          {IS_REISE && (
+            <div id="plan-b" className="scroll-mt-8 space-y-3 pt-2">
+              <h3 className="text-lg font-semibold">Plan B/C/D: hva skjer hvis du mister overgangen?</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Når sannsynligheten for å miste en overgang er over 5 %, viser reiseplanleggeren
+                automatisk hva alternativet ditt er. Slik beregnes det:
+              </p>
+              <ol className="text-sm text-muted-foreground space-y-2 ml-4 list-decimal">
+                <li>
+                  Vi anslår når du realistisk står på overgangsstoppet hvis bussen er sen:{" "}
+                  <em>planlagt ankomst + P80-ankomstforsinkelse + gangtid</em>. Mangler vi
+                  P80-data antas 5 minutter (dette merkes i visningen).
+                </li>
+                <li>
+                  Fra det tidspunktet søker vi en ny reise fra overgangsstoppet til
+                  destinasjonen via Entur. Første forslag blir <strong>plan B</strong>.
+                </li>
+                <li>
+                  Plan B får sin egen empiriske overgangssannsynlighet (samme metode som
+                  hovedreisen). Er sjansen for at du trenger enda et alternativ fortsatt over
+                  5 % — dvs. P(miste opprinnelig) × P(miste plan B) ≥ 5 % — henter vi{" "}
+                  <strong>plan C</strong> (første avgang etter plan B), og så videre.
+                </li>
+                <li>
+                  <strong>Forventet ankomst</strong> beregnes som et vektet snitt:{" "}
+                  <code className="text-xs bg-muted px-1 rounded">
+                    P(plan A) × ankomst_A + P(plan B) × ankomst_B + …
+                  </code>{" "}
+                  Hele regnestykket vises i visningen, ledd for ledd.
+                </li>
+              </ol>
+              <p className="text-sm text-muted-foreground">
+                <strong>Forenkling du bør kjenne til:</strong> plan C søkes fra <em>samme</em>{" "}
+                overgangsstopp som plan B (neste avgang derfra) — ikke fra plan Bs eventuelle
+                egne overgangsstopp. Det dekker det vanlige tilfellet der alternativene er
+                påfølgende avganger fra stoppet du står på, men er ikke en full sannsynlighetsmodell
+                over alle mulige forgreninger.
+              </p>
+              <h4 className="text-base font-semibold pt-1">Bytte av avgang på et enkelt legg</h4>
+              <p className="text-sm text-muted-foreground">
+                Du kan bytte en enkelt del av reisen til en tidligere eller senere avgang av
+                samme linje ("Bytt avgang"). Da antar vi at kjøretiden er identisk med den
+                opprinnelige avgangen, og skyver hele legget tilsvarende. Bytter du et legg
+                midt i reisen slik at gapet til neste buss blir mindre enn gangtiden, flagges
+                overgangen som brutt i rødt — vi skjuler den ikke.
+              </p>
+            </div>
+          )}
+
           <div id="punktlighet" className="scroll-mt-8 space-y-3 pt-2">
             <h3 className="text-lg font-semibold">Definisjonen av "punktlig"</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -280,20 +359,35 @@ export default function Methodology() {
 
           <div className="space-y-3">
             <h3 className="text-lg font-semibold">Datakjede</h3>
-            <p className="text-muted-foreground leading-relaxed text-sm">
-              Hver natt henter vi forrige dags rådata fra Enturs BigQuery-tabell{" "}
-              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                realtime_siri_et.realtime_siri_et_last_recorded
-              </code>{" "}
-              (SIRI ET = Service Interface for Real time Information / Estimated Timetable).
-              Vi sammenlikner faktisk avgangs-/ankomsttid med planlagt tid, kvalitetssikrer
-              dataene, og lagrer i en SQLite-database. Aggregerte data eksporteres til
-              Parquet-filer for klient-side persentilberegning via DuckDB-WASM i nettleseren.
-            </p>
+            {IS_REISE ? (
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Hver natt henter vi forrige dags rådata fra Enturs BigQuery-tabell{" "}
+                <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                  realtime_siri_et.realtime_siri_et_last_recorded
+                </code>{" "}
+                (SIRI ET = Service Interface for Real time Information / Estimated Timetable).
+                Vi sammenlikner faktisk avgangs-/ankomsttid med planlagt tid, kvalitetssikrer
+                dataene, og lagrer rå observasjoner per (avgang, stopp, dag) i et rullende
+                90-dagers vindu. Disse eksporteres som ukentlige Parquet-filer til Cloudflare
+                R2. <strong>All statistikk beregnes i nettleseren din</strong> med DuckDB-WASM
+                direkte mot Parquet-filene — det finnes ingen statistikk-server.
+              </p>
+            ) : (
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Hver natt henter vi forrige dags rådata fra Enturs BigQuery-tabell{" "}
+                <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                  realtime_siri_et.realtime_siri_et_last_recorded
+                </code>{" "}
+                (SIRI ET = Service Interface for Real time Information / Estimated Timetable).
+                Vi sammenlikner faktisk avgangs-/ankomsttid med planlagt tid, kvalitetssikrer
+                dataene, og lagrer i en SQLite-database. Aggregerte data eksporteres til
+                Parquet-filer for klient-side persentilberegning via DuckDB-WASM i nettleseren.
+              </p>
+            )}
           </div>
 
           <div className="space-y-3 pt-2">
-            <h3 className="text-lg font-semibold">Aggregeringsnivåer</h3>
+            <h3 className="text-lg font-semibold">{IS_REISE ? "Datagrunnlag" : "Aggregeringsnivåer"}</h3>
             <div className="space-y-2 text-sm">
               <div className="p-3 rounded bg-muted/40 border border-border">
                 <div className="font-mono text-xs text-primary">journey_stop_daily</div>
@@ -302,27 +396,38 @@ export default function Methodology() {
                   ukentlige Parquet-filer for klient-side persentilberegning.
                 </p>
               </div>
-              <div className="p-3 rounded bg-muted/40 border border-border">
-                <div className="font-mono text-xs text-primary">journey_stop_weekly</div>
-                <p className="text-muted-foreground mt-1">
-                  13-ukers rullende vindu, vektet snitt per (avgang, stopp). Brukes til
-                  reiseprofil og dagsvise grafer.
+              {!IS_REISE && (
+                <>
+                  <div className="p-3 rounded bg-muted/40 border border-border">
+                    <div className="font-mono text-xs text-primary">journey_stop_weekly</div>
+                    <p className="text-muted-foreground mt-1">
+                      13-ukers rullende vindu, vektet snitt per (avgang, stopp). Brukes til
+                      reiseprofil og dagsvise grafer.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded bg-muted/40 border border-border">
+                    <div className="font-mono text-xs text-primary">line_hourly_profile, stop_hourly_profile</div>
+                    <p className="text-muted-foreground mt-1">
+                      30-dagers rullende snitt per time. Brukes til timesgrafene på linje- og
+                      stoppanalysesidene.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded bg-muted/40 border border-border">
+                    <div className="font-mono text-xs text-primary">line_daily, stop_daily, daily_summary</div>
+                    <p className="text-muted-foreground mt-1">
+                      Per-dag aggregat. Ubegrenset historikk. Brukes til topplister, kart og
+                      trendgrafer.
+                    </p>
+                  </div>
+                </>
+              )}
+              {IS_REISE && (
+                <p className="text-muted-foreground text-xs">
+                  Dette er det eneste datagrunnlaget for reise-siden — alle persentiler,
+                  overgangssannsynligheter og plan B-beregninger går tilbake til disse rå
+                  observasjonene. Ingen forhåndsaggregerte tabeller brukes.
                 </p>
-              </div>
-              <div className="p-3 rounded bg-muted/40 border border-border">
-                <div className="font-mono text-xs text-primary">line_hourly_profile, stop_hourly_profile</div>
-                <p className="text-muted-foreground mt-1">
-                  30-dagers rullende snitt per time. Brukes til timesgrafene på linje- og
-                  stoppanalysesidene.
-                </p>
-              </div>
-              <div className="p-3 rounded bg-muted/40 border border-border">
-                <div className="font-mono text-xs text-primary">line_daily, stop_daily, daily_summary</div>
-                <p className="text-muted-foreground mt-1">
-                  Per-dag aggregat. Ubegrenset historikk. Brukes til topplister, kart og
-                  trendgrafer.
-                </p>
-              </div>
+              )}
             </div>
           </div>
 
@@ -399,10 +504,20 @@ export default function Methodology() {
             </Limitation>
 
             <Limitation title="Datatilgjengelighet kan variere">
-              Pipelinen kjøres hver natt, men kan feile pga. nettverk eller endringer i
-              Enturs API. Hvis du ser en oransje varselbjelke i sidemenyen, er data eldre
-              enn 2 dager.
+              {IS_REISE
+                ? "Pipelinen kjøres hver natt, men kan feile pga. nettverk eller endringer i Enturs API. Da mangler de nyeste dagene i statistikken til den kjøres igjen — reisesøket påvirkes ikke (det går direkte mot Entur)."
+                : "Pipelinen kjøres hver natt, men kan feile pga. nettverk eller endringer i Enturs API. Hvis du ser en oransje varselbjelke i sidemenyen, er data eldre enn 2 dager."}
             </Limitation>
+
+            {IS_REISE && (
+              <Limitation title="Plan B-kjeden er en forenklet modell">
+                Fallback-alternativene (plan B/C/D) antar at du står på det opprinnelige
+                overgangsstoppet, og at alternativene er påfølgende avganger derfra. Kjeden
+                modellerer ikke forgreninger der plan B har sitt eget overgangsstopp et annet
+                sted. Forventet ankomst er derfor et estimat med kjente forenklinger — hele
+                regnestykket vises åpent slik at du kan vurdere det selv.
+              </Limitation>
+            )}
 
             <Limitation title="Persentiler og sannsynligheter trenger nok observasjoner">
               For sjeldne kombinasjoner (avgang om natten, sjelden linje, lite trafikkert

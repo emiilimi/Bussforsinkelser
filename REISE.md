@@ -326,12 +326,49 @@ Disse er de eneste tingene Claude **ikke** kan gjøre selv — kodebiten er klar
 
 ---
 
+## Fase 4 — Entur-features + Plan B/C/D (FERDIG 4. juli 2026)
+
+Implementert i denne runden:
+
+1. **Cache-fix (ingen mer force-refresh)**: `manifest.json` inneholder nå
+   `{name, md5}` per fil. Klienten henter manifestet med `cache: "no-store"` og
+   legger `?v=<md5>` på parquet-URLene — nettleseren henter automatisk ferske
+   bytes når filinnholdet endres. Opplasting setter `Cache-Control`:
+   parquet = `immutable` (trygt pga. versjonert URL), manifest = `no-cache`.
+   **Engangs-tiltak**: kjør neste opplasting med `--all` slik at alle
+   eksisterende filer i R2 får riktige headere:
+   ```powershell
+   $env:PARQUET_DIR = "data/reise-parquet"; $env:R2_ENV_FILE = "r2.reise.env"
+   python pipeline/upload_to_r2.py --all
+   ```
+2. **Tidligere/senere avganger** (hele søket): knapper over/under resultatlisten,
+   koblet til `nextPageCursor`/`previousPageCursor`. Nye forslag legges til i
+   listen (dedup på tid+linjer).
+3. **Bytt avgang per legg**: hvert transit-legg har «Bytt avgang»-knapp som viser
+   andre avganger av samme linje fra samme stopp (±5 rundt valgt, via
+   `startTime`-parameter på departures-endepunktet — lagt til i både Functions
+   og Express). Tidligere avganger som ikke rekkes fra forrige buss er deaktivert;
+   senere avganger som bryter neste overgang flagges «rekker ikke neste buss» men
+   kan velges — da vises overgangen som **brutt** i rødt og total-sannsynlighet
+   blir 0 %. Kjøretid antas lik originalavgangen (hele legget skyves).
+4. **Plan B/C/D**: når P(miste overgang) ≥ 5 % søkes en ny reise fra
+   overgangsstoppet (avreise = planlagt ankomst + P80-forsinkelse [fallback 5 min]
+   + gangtid). Kjeden fortsetter (plan C, D…) til P(trenger neste) < 5 % eller
+   maks 4 nivåer. Hver plan viser: trengs-sannsynlighet, egen empirisk
+   overgangssannsynlighet, ankomstdelta, og et åpent «Forventet ankomst»-regnestykke
+   (vektet snitt). Kjent forenkling (dokumentert i /metode): plan C søkes fra samme
+   overgangsstopp som plan B, ikke fra plan Bs egne overganger.
+5. **Metode-siden**: reise-modus har nå egne tekster (Skyss-dekning, 90-dagers
+   vindu, ren parquet-datakjede uten SQLite-server), eksplisitt regneeksempel for
+   `PERCENTILE_CONT`-interpolasjon med 2 datapunkter, full dokumentasjon av
+   plan B-matematikken og bytt-avgang-antakelsene, og ny begrensning om
+   forenklingene i fallback-kjeden.
+
 ## Gjenværende faser (kort)
 
-- **Fase 4** — Tidligere/senere-knapper koblet til trip-cursors (proxyen returnerer
-  allerede `nextPageCursor`/`previousPageCursor`); Leaflet-kart per reiseforslag
-  som tegner gangstrekk + bussrute (dekod polyline fra `pointsOnLink` som proxyen
-  allerede henter). Design basert på entur.no sin kartvisning.
+- **Fase 4b** — Leaflet-kart per reiseforslag som tegner gangstrekk + bussrute
+  (dekod polyline fra `pointsOnLink` som proxyen allerede henter). Design basert
+  på entur.no sin kartvisning. Avgangssiden: tidspunkt-velger + avgang/ankomst-toggle.
 - **Fase 5** — Port `/api/line/:ref`- og `/api/stop/:ref`-logikken fra `storage.ts`
   til DuckDB-WASM-hooks (slik `use-journey-queries.ts` allerede gjorde for journey).
   Linje-/stopp-velgere henter alternativer fra `DISTINCT line_ref`/`stop_ref` i Parquet.
