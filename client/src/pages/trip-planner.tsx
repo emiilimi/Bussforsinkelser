@@ -564,12 +564,21 @@ type FallbackStep = {
   daysObservedMin: number | null; // minste datagrunnlag blant planens overganger
 };
 
+/** Første transit-leggs serviceJourney-id i et reiseforslag. */
+function firstTransitSjId(p: TripPattern): string | null {
+  const leg = p.legs.find((l) => l.mode !== "foot");
+  return leg?.serviceJourney?.id ?? null;
+}
+
 function useFallbackChain(opts: {
   enabled: boolean;
   transferQuayId: string | null;
   destination: Record<string, unknown> | null;
   missProb: number;
   missArrivalIso: string | null;
+  /** Avgangen du kan miste: plan B må gå ETTER denne (ellers er den plan A). */
+  missedDepartureIso: string | null;
+  missedSjId: string | null;
   selectedModes: string[];
   walkSpeedKmh: number;
   transferMarginMin: number;
@@ -578,6 +587,7 @@ function useFallbackChain(opts: {
 }) {
   const {
     enabled, transferQuayId, destination, missProb, missArrivalIso,
+    missedDepartureIso, missedSjId,
     selectedModes, walkSpeedKmh, transferMarginMin, duckReady, duckQuery,
   } = opts;
 
@@ -587,6 +597,8 @@ function useFallbackChain(opts: {
       transferQuayId,
       JSON.stringify(destination),
       missArrivalIso,
+      missedDepartureIso,
+      missedSjId,
       missProb.toFixed(3),
       transferMarginMin,
       selectedModes.join(","),
@@ -601,7 +613,15 @@ function useFallbackChain(opts: {
     queryFn: async () => {
       const steps: FallbackStep[] = [];
       let needProb = missProb;
-      let searchFrom = missArrivalIso!;
+      // "Du mistet bussen" betyr at den gikk før du rakk den — plan B må derfor
+      // gå strengt etter den mistede avgangen, uansett hvor tidlig P80-anslaget
+      // sier at du står på stoppet. Ellers finner Entur samme buss som plan A.
+      const missedDepMs = missedDepartureIso ? new Date(missedDepartureIso).getTime() : 0;
+      let searchFrom = new Date(
+        Math.max(new Date(missArrivalIso!).getTime(), missedDepMs + 60_000),
+      ).toISOString();
+      // SJ-ider som allerede er brukt (planen du mister + tidligere fallbacks)
+      const usedSjIds = new Set<string>(missedSjId ? [missedSjId] : []);
 
       for (let depth = 0; depth < FALLBACK_MAX_DEPTH && needProb >= FALLBACK_PROB_FLOOR; depth++) {
         const res = await apiRequest("POST", "/api/trip", {
@@ -610,16 +630,23 @@ function useFallbackChain(opts: {
           when: searchFrom,
           transportModes: selectedModes.length > 0 ? selectedModes : undefined,
           walkSpeed: walkSpeedKmh / 3.6,
-          numTripPatterns: 3,
+          numTripPatterns: 5,
         });
         const data = await res.json();
         const patterns: TripPattern[] = data?.data?.trip?.tripPatterns ?? [];
-        // Første forslag som faktisk starter etter søketidspunktet
+        // Første forslag som starter etter søketidspunktet OG ikke er en avgang
+        // vi allerede har regnet med (samme serviceJourney = samme buss).
+        const searchFromMs = new Date(searchFrom).getTime();
+        const usable = patterns.filter((p) => {
+          const sj = firstTransitSjId(p);
+          return sj == null || !usedSjIds.has(sj);
+        });
         const pattern =
-          patterns.find(
-            (p) => new Date(p.expectedStartTime).getTime() >= new Date(searchFrom).getTime(),
-          ) ?? patterns[0];
+          usable.find((p) => new Date(p.expectedStartTime).getTime() >= searchFromMs) ??
+          usable[0];
         if (!pattern) break;
+        const usedSj = firstTransitSjId(pattern);
+        if (usedSj) usedSjIds.add(usedSj);
 
         // Planens egen overgangsrisiko — samme empiriske metode som hovedplanen
         let makeProb = 1;
@@ -1083,6 +1110,96 @@ function LegAlternatives({
 
 const PLAN_LETTERS = ["B", "C", "D", "E"];
 
+/** "Vis mer" for en fallback-plan: legg-for-legg med avgangs-/ankomsttider og
+ *  DuckDB-estimerte tider (~P50 i oransje, P80 i rødt) der vi har data. */
+function FallbackStepDetails({
+  pattern,
+  duckReady,
+  duckQuery,
+}: {
+  pattern: TripPattern;
+  duckReady: boolean;
+  duckQuery: (sql: string) => Promise<any[]>;
+}) {
+  const pairs = useMemo(() => {
+    const out: Array<{ stopRef: string; lineRef: string }> = [];
+    const seen = new Set<string>();
+    for (const leg of pattern.legs) {
+      if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+      for (const q of [leg.fromPlace.quay?.id, leg.toPlace.quay?.id]) {
+        if (!q) continue;
+        const k = `${q}|${leg.line.id}`;
+        if (!seen.has(k)) {
+          seen.add(k);
+          out.push({ stopRef: q, lineRef: leg.line.id });
+        }
+      }
+    }
+    return out;
+  }, [pattern]);
+
+  const { data: stats } = useTripDelayDistribution(pairs, duckReady, duckQuery);
+
+  return (
+    <div className="ml-2 mt-1 mb-1 border-l border-border pl-2 space-y-1">
+      {pattern.legs.map((leg, i) => {
+        if (leg.mode === "foot") {
+          const min = Math.round((leg.duration ?? 0) / 60);
+          if (min <= 0) return null;
+          return (
+            <div key={i} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <Footprints className="h-2.5 w-2.5" />
+              Gå {min} min til {leg.toPlace.name}
+            </div>
+          );
+        }
+        const depStat = leg.line?.id ? stats?.get(`${leg.fromPlace.quay?.id}|${leg.line.id}`) : null;
+        const arrStat = leg.line?.id ? stats?.get(`${leg.toPlace.quay?.id}|${leg.line.id}`) : null;
+        const estDep = depStat?.p50_dep != null
+          ? formatTime(addMinutesToIso(leg.expectedStartTime, depStat.p50_dep))
+          : null;
+        const estArr = arrStat?.p50_arr != null
+          ? formatTime(addMinutesToIso(leg.expectedEndTime, arrStat.p50_arr))
+          : null;
+        const p80Arr = arrStat?.p80_arr != null
+          ? formatTime(addMinutesToIso(leg.expectedEndTime, arrStat.p80_arr))
+          : null;
+        const hasData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!leg.line?.id;
+        return (
+          <div key={i} className="text-[10px] space-y-0.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Badge variant="secondary" className="text-[9px] gap-0.5">
+                <ModeIcon mode={leg.mode} className="h-2.5 w-2.5" />
+                {leg.line?.publicCode ?? modeLabel(leg.mode)}
+              </Badge>
+              <span className="font-mono tabular-nums">{formatTime(leg.expectedStartTime)}</span>
+              {estDep && <span className="font-mono text-amber-500">~{estDep}</span>}
+              <span className="text-muted-foreground truncate max-w-32">{leg.fromPlace.name}</span>
+              <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+              <span className="font-mono tabular-nums">{formatTime(leg.expectedEndTime)}</span>
+              {estArr && <span className="font-mono text-amber-500">~{estArr}</span>}
+              {p80Arr && <span className="font-mono text-red-500/70">P80 {p80Arr}</span>}
+              <span className="text-muted-foreground truncate max-w-32">{leg.toPlace.name}</span>
+            </div>
+            {!hasData && (
+              <div className="text-muted-foreground/60 italic ml-1">mangler forsinkelsesdata</div>
+            )}
+            {hasData && !estDep && !estArr && (
+              <div className="text-muted-foreground/60 italic ml-1">
+                ingen observasjoner for denne linjen ved disse stoppene ennå
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <p className="text-[9px] text-muted-foreground/60 italic">
+        ~tid = rutetid + median historisk forsinkelse (P50). P80 = tiden 4 av 5
+        avganger er innenfor.
+      </p>
+    </div>
+  );
+}
+
 function TransferFallbacks({
   pattern,
   legAIdx,
@@ -1143,12 +1260,17 @@ function TransferFallbacks({
     destination,
     missProb,
     missArrivalIso,
+    missedDepartureIso: legB?.expectedStartTime ?? null,
+    missedSjId: legB?.serviceJourney?.id ?? null,
     selectedModes,
     walkSpeedKmh,
     transferMarginMin,
     duckReady,
     duckQuery,
   });
+
+  // Hvilken plan som viser detaljer ("Vis mer")
+  const [openStep, setOpenStep] = useState<number | null>(null);
 
   // Forventet ankomst: p(A) × ankomst_A + Σ p(bruk plan k) × ankomst_k.
   // Siste plan i kjeden får all gjenværende sannsynlighet (kjeden er kuttet <5 %).
@@ -1207,14 +1329,33 @@ function TransferFallbacks({
                 ({deltaMin >= 0 ? "+" : ""}{deltaMin} min)
               </span>
             </div>
-            <div className="text-[10px] text-muted-foreground ml-1">
-              Trengs med {Math.round(step.needProb * 100)} % sannsynlighet
-              {step.makeProb < 1 && (
-                <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
-                  {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
-                </>
-              )}
+            <div className="text-[10px] text-muted-foreground ml-1 flex items-center gap-2">
+              <span>
+                Trengs med {Math.round(step.needProb * 100)} % sannsynlighet
+                {step.makeProb < 1 && (
+                  <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
+                    {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
+                  </>
+                )}
+              </span>
+              <button
+                className="text-primary hover:underline flex items-center gap-0.5"
+                onClick={() => setOpenStep(openStep === i ? null : i)}
+              >
+                {openStep === i ? (
+                  <>Vis mindre <ChevronUp className="h-2.5 w-2.5" /></>
+                ) : (
+                  <>Vis mer <ChevronDown className="h-2.5 w-2.5" /></>
+                )}
+              </button>
             </div>
+            {openStep === i && (
+              <FallbackStepDetails
+                pattern={step.pattern}
+                duckReady={duckReady}
+                duckQuery={duckQuery}
+              />
+            )}
           </div>
         );
       })}

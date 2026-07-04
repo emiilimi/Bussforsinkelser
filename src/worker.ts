@@ -1,6 +1,7 @@
 import { onRequestPost as tripPost, onRequestOptions as tripOptions } from "../functions/api/trip";
 import { onRequestGet as geocoderGet, onRequestOptions as geocoderOptions } from "../functions/api/geocoder/autocomplete";
 import { onRequestGet as departuresGet, onRequestOptions as departuresOptions } from "../functions/api/departures/[stopPlaceRef]";
+import { onRequestGet as serviceJourneyGet, onRequestOptions as serviceJourneyOptions } from "../functions/api/servicejourney/[id]";
 import type { PagesContext } from "../functions/api/_entur";
 
 export default {
@@ -33,6 +34,14 @@ export default {
       context.params = { stopPlaceRef: decodeURIComponent(depMatch[1]) };
       if (request.method === "OPTIONS") return departuresOptions();
       if (request.method === "GET") return departuresGet(context);
+    }
+
+    // GET /api/servicejourney/:id
+    const sjMatch = path.match(/^\/api\/servicejourney\/(.+)$/);
+    if (sjMatch) {
+      context.params = { id: decodeURIComponent(sjMatch[1]) };
+      if (request.method === "OPTIONS") return serviceJourneyOptions();
+      if (request.method === "GET") return serviceJourneyGet(context);
     }
 
     // Not an API route — fall through to static assets (SPA)

@@ -52,6 +52,26 @@ type DeparturesResponse = {
   departures: Departure[];
 };
 
+type SjCall = {
+  quayRef: string | null;
+  quayName: string | null;
+  platform: string | null;
+  aimedArrival: string | null;
+  expectedArrival: string | null;
+  aimedDeparture: string | null;
+  expectedDeparture: string | null;
+  realtime: boolean;
+  cancelled: boolean;
+  destination: string | null;
+};
+
+type SjResponse = {
+  serviceJourneyId: string;
+  line: { lineRef: string; publicCode: string | null; name: string | null; transportMode: string | null } | null;
+  date: string;
+  calls: SjCall[];
+};
+
 type StopStatsResponse = {
   stopRef: string;
   stopName: string | null;
@@ -114,6 +134,170 @@ function fmtDeltaMin(m: number): string {
   return m > 0 ? `+${m}m` : `${m}m`;
 }
 
+function addMinToIso(iso: string, minutes: number): string {
+  const d = new Date(iso);
+  d.setMinutes(d.getMinutes() + Math.round(minutes));
+  return d.toISOString();
+}
+
+// ---------------------------------------------------------------------------
+// Utvidet visning: hele reisen for én avgang (klikk på en rad)
+// ---------------------------------------------------------------------------
+
+type SjStopStat = {
+  stop_ref: string;
+  p50_dep: number | null;
+  p80_dep: number | null;
+  p50_arr: number | null;
+  p80_arr: number | null;
+  n: number;
+  source: "sj" | "line";
+};
+
+function JourneyDetail({
+  sjId,
+  dateIso,
+  lineRef,
+  highlightQuay,
+  duckReady,
+  duckQuery,
+}: {
+  sjId: string;
+  dateIso: string; // aimedTime for den klikkede avgangen
+  lineRef: string | null;
+  highlightQuay: string | null;
+  duckReady: boolean;
+  duckQuery: (sql: string) => Promise<any[]>;
+}) {
+  const date = dateIso.slice(0, 10);
+  const { data: sj, isLoading, isError } = useQuery<SjResponse>({
+    queryKey: [`/api/servicejourney/${encodeURIComponent(sjId)}?date=${date}`],
+    refetchInterval: 60_000,
+  });
+
+  // Per-stopp P50/P80 fra DuckDB: helst for akkurat denne avgangen
+  // (service_journey_id), ellers for linjen ved stoppet.
+  const { data: statMap } = useQuery<Map<string, SjStopStat>>({
+    queryKey: ["duck-sj-stops", sjId, lineRef ?? ""],
+    enabled: duckReady,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const map = new Map<string, SjStopStat>();
+      const cols = `
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_departure_min) AS p50_dep,
+        PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_departure_min) AS p80_dep,
+        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p50_arr,
+        PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p80_arr,
+        COUNT(*) AS n`;
+      // Linjenivå først (bredest), deretter overskriv med SJ-nivå der vi har
+      // nok observasjoner på akkurat denne avgangen.
+      if (lineRef) {
+        const lineRows = await duckQuery(`
+          SELECT stop_ref, ${cols} FROM delays
+          WHERE line_ref = '${esc(lineRef)}'
+          GROUP BY stop_ref`) as Array<Omit<SjStopStat, "source">>;
+        for (const r of lineRows) map.set(r.stop_ref, { ...r, source: "line" });
+      }
+      const sjRows = await duckQuery(`
+        SELECT stop_ref, ${cols} FROM delays
+        WHERE service_journey_id = '${esc(sjId)}'
+        GROUP BY stop_ref`) as Array<Omit<SjStopStat, "source">>;
+      for (const r of sjRows) {
+        if (r.n >= 3) map.set(r.stop_ref, { ...r, source: "sj" });
+      }
+      return map;
+    },
+  });
+
+  if (isLoading) {
+    return <div className="py-3 pl-14 text-xs text-muted-foreground">Henter hele reisen…</div>;
+  }
+  if (isError || !sj || sj.calls.length === 0) {
+    return <div className="py-3 pl-14 text-xs text-muted-foreground">Fant ikke stopplisten for denne avgangen.</div>;
+  }
+
+  const anySj = Array.from(statMap?.values() ?? []).some((s) => s.source === "sj");
+
+  return (
+    <div className="py-2 pl-8 pr-2 bg-muted/20 rounded-md mb-2">
+      <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-2 flex-wrap">
+        <span className="font-medium">
+          Linje {sj.line?.publicCode ?? "?"} · hele reisen ({sj.calls.length} stopp)
+        </span>
+        <span>Rutetid</span>
+        <span className="text-emerald-600">sanntid</span>
+        <span className="text-amber-500">~P50</span>
+        <span className="text-red-500/80">P80</span>
+        {statMap && statMap.size > 0 && (
+          <span className="italic">
+            {anySj ? "statistikk for akkurat denne avgangen" : "statistikk for linjen ved hvert stopp"}
+          </span>
+        )}
+      </div>
+      <div className="space-y-0.5">
+        {sj.calls.map((c, i) => {
+          const isLast = i === sj.calls.length - 1;
+          const aimed = isLast ? (c.aimedArrival ?? c.aimedDeparture) : (c.aimedDeparture ?? c.aimedArrival);
+          const expected = isLast ? (c.expectedArrival ?? c.expectedDeparture) : (c.expectedDeparture ?? c.expectedArrival);
+          const rtDelta = c.realtime && aimed && expected
+            ? Math.round((new Date(expected).getTime() - new Date(aimed).getTime()) / 60000)
+            : null;
+          const stat = c.quayRef ? statMap?.get(c.quayRef) : null;
+          const p50 = isLast ? stat?.p50_arr : stat?.p50_dep;
+          const p80 = isLast ? stat?.p80_arr : stat?.p80_dep;
+          const isHighlight = c.quayRef != null && c.quayRef === highlightQuay;
+          return (
+            <div
+              key={`${c.quayRef ?? "q"}-${i}`}
+              className={cn(
+                "flex items-center gap-2 text-xs py-0.5 px-1 rounded",
+                isHighlight && "bg-primary/10 font-medium",
+                c.cancelled && "opacity-60 line-through",
+              )}
+            >
+              <div className={cn(
+                "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                i === 0 || isLast ? "bg-primary" : "bg-muted-foreground/40",
+              )} />
+              <span className="flex-1 truncate">
+                {c.quayName ?? "—"}
+                {c.platform && <span className="text-[10px] text-muted-foreground ml-1">Plt. {c.platform}</span>}
+              </span>
+              <span className="font-mono text-[11px] tabular-nums">{fmtHM(aimed)}</span>
+              {rtDelta != null ? (
+                <Badge variant="outline" className={cn("font-mono text-[9px] px-1 py-0", delayBadgeClass(rtDelta))}>
+                  {fmtDeltaMin(rtDelta)}
+                </Badge>
+              ) : (
+                <span className="w-8 text-center text-[9px] text-muted-foreground/40">—</span>
+              )}
+              <span className="font-mono text-[10px] tabular-nums text-amber-500 w-12 text-right">
+                {aimed && p50 != null ? `~${fmtHM(addMinToIso(aimed, p50))}` : ""}
+              </span>
+              <span className="font-mono text-[10px] tabular-nums text-red-500/80 w-11 text-right">
+                {aimed && p80 != null ? fmtHM(addMinToIso(aimed, p80)) : ""}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {(!statMap || statMap.size === 0) && (
+        <p className="text-[10px] text-muted-foreground/60 italic mt-1.5">
+          Ingen historiske observasjoner for denne linjen ennå — kun rutetider og sanntid vises.
+        </p>
+      )}
+      {!IS_REISE && lineRef && (
+        <a
+          href={`/journey?line=${encodeURIComponent(lineRef)}`}
+          className="text-[10px] text-primary hover:underline inline-block mt-1.5"
+        >
+          Full linjeanalyse →
+        </a>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
@@ -137,6 +321,8 @@ export default function Departures() {
   // kort periode; lenger tilbake vises kun rutetider.
   const [customDate, setCustomDate] = useState("");
   const [customTime, setCustomTime] = useState("");
+  // Utvidet avgang (viser hele reisen). Nøkkel = sjId + aimedTime.
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const startIso = useMemo(() => {
     if (!customDate || !customTime) return null;
     const d = new Date(`${customDate}T${customTime}:00`);
@@ -482,19 +668,23 @@ export default function Departures() {
                   const histKey = d.quayRef && d.lineRef ? `${d.quayRef}|${d.lineRef}` : null;
                   const hist = histKey ? delayMap?.get(histKey) : null;
                   const lineNum = d.lineNumber ?? (d.lineRef ? d.lineRef.split(":").pop() : "?");
+                  const rowKey = `${d.serviceJourneyId ?? i}-${d.aimedTime}`;
+                  const isExpanded = expandedKey === rowKey;
 
                   return (
+                    <div key={rowKey}>
                     <button
-                      key={`${d.serviceJourneyId ?? i}-${d.aimedTime}`}
                       onClick={() => {
-                        if (d.lineRef) {
-                          navigate(`/journey?line=${encodeURIComponent(d.lineRef)}${d.directionRef ? `&direction=${encodeURIComponent(d.directionRef)}` : ""}`);
+                        if (d.serviceJourneyId) {
+                          setExpandedKey(isExpanded ? null : rowKey);
                         }
                       }}
-                      disabled={!d.lineRef}
+                      disabled={!d.serviceJourneyId}
+                      title="Vis hele reisen med rutetider, sanntid og historiske estimater"
                       className={cn(
                         "w-full grid grid-cols-[auto_auto_1fr_auto_auto] gap-3 items-center py-3 px-1 text-left",
                         "hover:bg-muted/40 transition-colors disabled:cursor-default",
+                        isExpanded && "bg-muted/30",
                         d.cancelled && "opacity-60 line-through",
                       )}
                     >
@@ -532,6 +722,17 @@ export default function Departures() {
                         <span className="text-xs text-muted-foreground/60 italic">—</span>
                       )}
                     </button>
+                    {isExpanded && d.serviceJourneyId && (
+                      <JourneyDetail
+                        sjId={d.serviceJourneyId}
+                        dateIso={d.aimedTime}
+                        lineRef={d.lineRef}
+                        highlightQuay={d.quayRef}
+                        duckReady={duckReady}
+                        duckQuery={duckQuery}
+                      />
+                    )}
+                    </div>
                   );
                 })}
               </div>

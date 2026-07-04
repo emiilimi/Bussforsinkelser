@@ -942,6 +942,108 @@ export async function registerRoutes(
     }
   });
 
+  /**
+   * GET /api/servicejourney/:id?date=YYYY-MM-DD
+   * Full stoppliste for én avgang med planlagte tider + sanntid per stopp.
+   * Speiler functions/api/servicejourney/[id].ts (Cloudflare-versjonen).
+   */
+  app.get("/api/servicejourney/:id", departuresLimiter, async (req, res) => {
+    const id = req.params.id;
+    if (!/^[A-Za-z0-9:_\-.]{1,128}$/.test(id)) {
+      return res.status(400).json({ error: "Invalid serviceJourneyId" });
+    }
+    const dateRaw = typeof req.query.date === "string" ? req.query.date : null;
+    const date = dateRaw && /^\d{4}-\d{2}-\d{2}$/.test(dateRaw)
+      ? dateRaw
+      : new Date().toISOString().slice(0, 10);
+
+    const bucket = Math.floor(Date.now() / DEP_CACHE_TTL_MS);
+    const cacheKey = `sj|${id}|${date}|${bucket}`;
+    const cached = depCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return res.json(cached.data);
+    }
+
+    const query = `
+      query SJ($id: String!, $date: Date!) {
+        serviceJourney(id: $id) {
+          id
+          line { id publicCode name transportMode }
+          estimatedCalls(date: $date) {
+            quay { id name publicCode }
+            aimedArrivalTime
+            expectedArrivalTime
+            aimedDepartureTime
+            expectedDepartureTime
+            realtime
+            cancellation
+            destinationDisplay { frontText }
+          }
+        }
+      }`;
+
+    try {
+      const response = await fetch("https://api.entur.io/journey-planner/v3/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ET-Client-Name": "emiliemoldestad-bussprosjekt",
+        },
+        body: JSON.stringify({ query, variables: { id, date } }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("[servicejourney] Entur HTTP error:", response.status, text.slice(0, 300));
+        return res.status(502).json({ error: "Tjenesten er ikke tilgjengelig akkurat nå." });
+      }
+      const data = await response.json();
+      if (data.errors) {
+        console.error("[servicejourney] GraphQL errors:", JSON.stringify(data.errors).slice(0, 500));
+      }
+      const sj = data?.data?.serviceJourney;
+      if (!sj) {
+        return res.json({ serviceJourneyId: id, line: null, calls: [] });
+      }
+
+      const calls = (sj.estimatedCalls ?? []).map((c: any) => ({
+        quayRef: c.quay?.id ?? null,
+        quayName: c.quay?.name ?? null,
+        platform: c.quay?.publicCode ?? null,
+        aimedArrival: c.aimedArrivalTime ?? null,
+        expectedArrival: c.expectedArrivalTime ?? null,
+        aimedDeparture: c.aimedDepartureTime ?? null,
+        expectedDeparture: c.expectedDepartureTime ?? null,
+        realtime: !!c.realtime,
+        cancelled: !!c.cancellation,
+        destination: c.destinationDisplay?.frontText ?? null,
+      }));
+
+      const result = {
+        serviceJourneyId: sj.id,
+        line: sj.line
+          ? {
+              lineRef: sj.line.id,
+              publicCode: sj.line.publicCode,
+              name: sj.line.name,
+              transportMode: sj.line.transportMode,
+            }
+          : null,
+        date,
+        calls,
+      };
+
+      if (depCache.size >= DEP_CACHE_MAX) {
+        const oldest = depCache.keys().next().value;
+        if (oldest) depCache.delete(oldest);
+      }
+      depCache.set(cacheKey, { data: result, expiry: Date.now() + DEP_CACHE_TTL_MS });
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[servicejourney] Entur unreachable:", err?.message);
+      return res.status(502).json({ error: "Tjenesten er ikke tilgjengelig akkurat nå." });
+    }
+  });
+
   // -----------------------------------------------------------------------
   // Parquet files for DuckDB-WASM (client-side percentile queries)
   // -----------------------------------------------------------------------

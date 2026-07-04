@@ -364,6 +364,19 @@ Implementert i denne runden:
    plan B-matematikken og bytt-avgang-antakelsene, og ny begrensning om
    forenklingene i fallback-kjeden.
 
+### Oppfølging (4. juli 2026, kveld)
+
+- **Plan B ≠ plan A**: fallback-søket starter nå alltid etter den mistede
+  avgangen (`max(realistisk ankomst, mistet avgang + 1 min)`) og ekskluderer
+  serviceJourney-id-er som allerede er i bruk — plan B kan aldri bli samme buss.
+- **«Vis mer» per plan**: hver fallback-plan kan utvides til legg-for-legg-visning
+  med avgangs-/ankomsttider og DuckDB-estimater (~P50 / P80) der det finnes data.
+- **Klikk på avgang i /avganger**: utvider hele reisen (alle stopp) med rutetid,
+  sanntid per stopp, og ~P50/P80 per stopp. Statistikk hentes helst for akkurat
+  den avgangen (`service_journey_id`, min. 3 observasjoner), ellers for linjen
+  ved stoppet. Nytt endepunkt `GET /api/servicejourney/:id?date=` (Functions +
+  worker-rute + Express).
+
 ## Gjenværende faser (kort)
 
 - **Fase 4b** — Leaflet-kart per reiseforslag som tegner gangstrekk + bussrute
