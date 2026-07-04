@@ -279,6 +279,15 @@ export default function Methodology() {
             <p className="text-sm text-muted-foreground">
               Hvis vi ikke har nok data på akkurat din avgangs-ID, faller vi tilbake til
               statistikk per (linje, stopp, dagtype) — uthevet i hvor tallene kommer fra.
+              I fallback-modusen sammenlikner vi <strong>forsinkelser</strong>, ikke absolutte
+              klokkeslett: for hver historisk dag finner vi en sammenliknbar ankomst og avgang
+              (nærmest i rutetid), og regner{" "}
+              <code className="text-xs bg-muted px-1 rounded">
+                gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
+              </code>
+              . Dette er viktig for sjeldne linjer: sammenliknet man klokkeslett direkte,
+              kunne dagens nærmeste registrerte avgang være en <em>tidligere</em> rute enn
+              den du skal rekke — og en romslig overgang ville feilaktig vist 0 %.
             </p>
             <p className="text-sm text-muted-foreground">
               Med få observasjoner (f.eks. 1–2 dager) blir sannsynligheten enten 0 % eller
@@ -305,7 +314,18 @@ export default function Methodology() {
                 </li>
                 <li>
                   Fra det tidspunktet søker vi en ny reise fra overgangsstoppet til
-                  destinasjonen via Entur. Første forslag blir <strong>plan B</strong>.
+                  destinasjonen via Entur — tidligst 1 minutt etter avgangen du mistet,
+                  og aldri samme avgang (serviceJourney) som en plan vi allerede har
+                  regnet med. Første brukbare forslag blir <strong>plan B</strong>.
+                </li>
+                <li>
+                  <strong>Ren gange vurderes alltid</strong>: er det raskere å gå til
+                  destinasjonen enn å vente på neste buss, blir gange planen (gange
+                  påvirkes ikke av forsinkelser, så kjeden slutter der). Neste buss vises
+                  likevel som alternativ for de som heller vil vente — men den teller
+                  ikke med i forventet ankomst. Merk: gangealternativet kommer fra Entur,
+                  som normalt bare foreslår gange opp til rundt en halvtimes gåtur —
+                  lengre gåturer vises ikke.
                 </li>
                 <li>
                   Plan B får sin egen empiriske overgangssannsynlighet (samme metode som

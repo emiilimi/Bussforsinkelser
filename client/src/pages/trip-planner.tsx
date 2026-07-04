@@ -216,9 +216,17 @@ function specificGapSql(s: TransferSpec): string | null {
   `;
 }
 
-/** Fallback: pool by line + stop + day_type, then for each date pick the
- *  arrival/departure whose aimed time is closest to the planned aimed time
- *  (within a 60-min window so we stay in roughly the right service period). */
+/** Fallback: pool by line + stop + day_type. For hver dato velges den
+ *  ankomsten/avgangen hvis rutetid ligger nærmest planens rutetid (±60 min),
+ *  og forsinkelsene deres brukes som PROXY for planens avganger:
+ *
+ *      gap_dag = planlagt_gap + (avgangsforsinkelse − ankomstforsinkelse)
+ *
+ *  VIKTIG: vi sammenlikner IKKE absolutte klokkeslett på tvers av avganger.
+ *  Gjør man det, kan en sjelden linje (f.eks. halvtimesfrekvens der bare noen
+ *  avganger har data) matche en avgang som går FØR ankomsten — og en romslig
+ *  27-minutters overgang vises som 0 %. Delay-proxy-formuleringen er immun
+ *  mot dette: ruteforskjellen kanselleres, bare forsinkelsene teller. */
 function fallbackGapSql(s: TransferSpec): string | null {
   if (!s.arrLineRef || !s.arrQuayRef || !s.depLineRef || !s.depQuayRef) return null;
   if (s.arrAimedMin == null || s.depAimedMin == null) return null;
@@ -227,13 +235,14 @@ function fallbackGapSql(s: TransferSpec): string | null {
   const arrHi = s.arrAimedMin + HALF_WINDOW;
   const depLo = s.depAimedMin - HALF_WINDOW;
   const depHi = s.depAimedMin + HALF_WINDOW;
+  // Planlagt gap i minutter; overganger over midnatt gir negativ diff → +24t
+  let plannedGap = s.depAimedMin - s.arrAimedMin;
+  if (plannedGap < -720) plannedGap += 1440;
   return `
     WITH arr_raw AS (
-      SELECT date,
+      SELECT date, delay_arrival_min AS arr_delay,
         (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) AS aimed_min,
-        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) + delay_arrival_min AS actual_arr_min
+         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) AS aimed_min
       FROM delays
       WHERE line_ref = '${esc(s.arrLineRef)}'
         AND stop_ref = '${esc(s.arrQuayRef)}'
@@ -241,16 +250,14 @@ function fallbackGapSql(s: TransferSpec): string | null {
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
     ),
     arr AS (
-      SELECT date, actual_arr_min FROM arr_raw
+      SELECT date, arr_delay FROM arr_raw
       WHERE aimed_min BETWEEN ${arrLo} AND ${arrHi}
       QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.arrAimedMin})) = 1
     ),
     dep_raw AS (
-      SELECT date,
+      SELECT date, delay_departure_min AS dep_delay,
         (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) AS aimed_min,
-        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) + delay_departure_min AS actual_dep_min
+         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) AS aimed_min
       FROM delays
       WHERE line_ref = '${esc(s.depLineRef)}'
         AND stop_ref = '${esc(s.depQuayRef)}'
@@ -258,11 +265,11 @@ function fallbackGapSql(s: TransferSpec): string | null {
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
     ),
     dep AS (
-      SELECT date, actual_dep_min FROM dep_raw
+      SELECT date, dep_delay FROM dep_raw
       WHERE aimed_min BETWEEN ${depLo} AND ${depHi}
       QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.depAimedMin})) = 1
     )
-    SELECT (dep.actual_dep_min - arr.actual_arr_min) AS gap
+    SELECT (${plannedGap} + dep.dep_delay - arr.arr_delay) AS gap
     FROM arr INNER JOIN dep ON arr.date = dep.date
   `;
 }
@@ -562,7 +569,16 @@ type FallbackStep = {
   needProb: number;             // P(du trenger denne planen)
   makeProb: number;             // P(planens egne overganger går) — 1 hvis direkte
   daysObservedMin: number | null; // minste datagrunnlag blant planens overganger
+  isWalk: boolean;              // ren gange (deterministisk — avslutter kjeden)
+  // Vises kun som alternativ (f.eks. buss når gange er raskest) —
+  // teller IKKE med i forventet ankomst.
+  altOnly: boolean;
 };
+
+/** Er reiseforslaget ren gange (ingen transit-legg)? */
+function isWalkOnlyPattern(p: TripPattern): boolean {
+  return p.legs.length > 0 && p.legs.every((l) => l.mode === "foot");
+}
 
 /** Første transit-leggs serviceJourney-id i et reiseforslag. */
 function firstTransitSjId(p: TripPattern): string | null {
@@ -623,6 +639,46 @@ function useFallbackChain(opts: {
       // SJ-ider som allerede er brukt (planen du mister + tidligere fallbacks)
       const usedSjIds = new Set<string>(missedSjId ? [missedSjId] : []);
 
+      // Planens egen overgangsrisiko — samme empiriske metode som hovedplanen
+      const analyzePattern = async (
+        pattern: TripPattern,
+      ): Promise<{ makeProb: number; daysMin: number | null }> => {
+        let makeProb = 1;
+        let daysMin: number | null = null;
+        if (!duckReady) return { makeProb, daysMin };
+        const specs = buildTransferSpecsForPattern(pattern);
+        const walks = transferWalkTimes(pattern);
+        for (let t = 0; t < specs.length; t++) {
+          let gaps: number[] = [];
+          const sql = specificGapSql(specs[t]);
+          if (sql) {
+            try {
+              gaps = (await duckQuery(sql))
+                .map((r: any) => Number(r.gap))
+                .filter((g: number) => Number.isFinite(g));
+            } catch { /* ignorér — behandles som manglende data */ }
+          }
+          if (gaps.length < SPECIFIC_MIN_DAYS) {
+            const fsql = fallbackGapSql(specs[t]);
+            if (fsql) {
+              try {
+                const g2 = (await duckQuery(fsql))
+                  .map((r: any) => Number(r.gap))
+                  .filter((g: number) => Number.isFinite(g));
+                if (g2.length > 0) gaps = g2;
+              } catch { /* ignorér */ }
+            }
+          }
+          if (gaps.length > 0) {
+            const p = probFromGaps(gaps, (walks[t] ?? 0) + transferMarginMin);
+            makeProb *= Math.max(0, p);
+            daysMin = daysMin == null ? gaps.length : Math.min(daysMin, gaps.length);
+          }
+          // Uten data antar vi at overgangen går (makeProb uendret) — vises i UI
+        }
+        return { makeProb, daysMin };
+      };
+
       for (let depth = 0; depth < FALLBACK_MAX_DEPTH && needProb >= FALLBACK_PROB_FLOOR; depth++) {
         const res = await apiRequest("POST", "/api/trip", {
           from: { place: transferQuayId },
@@ -630,64 +686,73 @@ function useFallbackChain(opts: {
           when: searchFrom,
           transportModes: selectedModes.length > 0 ? selectedModes : undefined,
           walkSpeed: walkSpeedKmh / 3.6,
+          // directMode: foot → Entur returnerer også ren gange som alternativ
+          directMode: "foot",
           numTripPatterns: 5,
         });
         const data = await res.json();
         const patterns: TripPattern[] = data?.data?.trip?.tripPatterns ?? [];
-        // Første forslag som starter etter søketidspunktet OG ikke er en avgang
-        // vi allerede har regnet med (samme serviceJourney = samme buss).
+        // Kandidater: ikke en avgang vi allerede har regnet med (samme
+        // serviceJourney = samme buss), helst med start etter søketidspunktet.
         const searchFromMs = new Date(searchFrom).getTime();
         const usable = patterns.filter((p) => {
           const sj = firstTransitSjId(p);
           return sj == null || !usedSjIds.has(sj);
         });
-        const pattern =
-          usable.find((p) => new Date(p.expectedStartTime).getTime() >= searchFromMs) ??
-          usable[0];
-        if (!pattern) break;
-        const usedSj = firstTransitSjId(pattern);
-        if (usedSj) usedSjIds.add(usedSj);
+        const walkPattern = usable.find(isWalkOnlyPattern) ?? null;
+        const busCandidates = usable.filter((p) => !isWalkOnlyPattern(p));
+        const busPattern =
+          busCandidates.find((p) => new Date(p.expectedStartTime).getTime() >= searchFromMs) ??
+          busCandidates[0] ??
+          null;
 
-        // Planens egen overgangsrisiko — samme empiriske metode som hovedplanen
-        let makeProb = 1;
-        let daysMin: number | null = null;
-        if (duckReady) {
-          const specs = buildTransferSpecsForPattern(pattern);
-          const walks = transferWalkTimes(pattern);
-          for (let t = 0; t < specs.length; t++) {
-            let gaps: number[] = [];
-            const sql = specificGapSql(specs[t]);
-            if (sql) {
-              try {
-                gaps = (await duckQuery(sql))
-                  .map((r: any) => Number(r.gap))
-                  .filter((g: number) => Number.isFinite(g));
-              } catch { /* ignorér — behandles som manglende data */ }
-            }
-            if (gaps.length < SPECIFIC_MIN_DAYS) {
-              const fsql = fallbackGapSql(specs[t]);
-              if (fsql) {
-                try {
-                  const g2 = (await duckQuery(fsql))
-                    .map((r: any) => Number(r.gap))
-                    .filter((g: number) => Number.isFinite(g));
-                  if (g2.length > 0) gaps = g2;
-                } catch { /* ignorér */ }
-              }
-            }
-            if (gaps.length > 0) {
-              const p = probFromGaps(gaps, (walks[t] ?? 0) + transferMarginMin);
-              makeProb *= Math.max(0, p);
-              daysMin = daysMin == null ? gaps.length : Math.min(daysMin, gaps.length);
-            }
-            // Uten data antar vi at overgangen går (makeProb uendret) — vises i UI
+        // Er ren gange raskest? Da er den planen (deterministisk — ingen
+        // videre kjede), men bussen vises fortsatt som alternativ for de som
+        // heller vil vente enn å gå.
+        if (
+          walkPattern &&
+          (!busPattern ||
+            new Date(walkPattern.expectedEndTime).getTime() <=
+              new Date(busPattern.expectedEndTime).getTime())
+        ) {
+          steps.push({
+            pattern: walkPattern,
+            needProb,
+            makeProb: 1,
+            daysObservedMin: null,
+            isWalk: true,
+            altOnly: false,
+          });
+          if (busPattern) {
+            const { makeProb, daysMin } = await analyzePattern(busPattern);
+            steps.push({
+              pattern: busPattern,
+              needProb,
+              makeProb,
+              daysObservedMin: daysMin,
+              isWalk: false,
+              altOnly: true,
+            });
           }
+          break;
         }
 
-        steps.push({ pattern, needProb, makeProb, daysObservedMin: daysMin });
+        if (!busPattern) break;
+        const usedSj = firstTransitSjId(busPattern);
+        if (usedSj) usedSjIds.add(usedSj);
+
+        const { makeProb, daysMin } = await analyzePattern(busPattern);
+        steps.push({
+          pattern: busPattern,
+          needProb,
+          makeProb,
+          daysObservedMin: daysMin,
+          isWalk: false,
+          altOnly: false,
+        });
         needProb = needProb * (1 - makeProb);
         // Neste plan: første avgang etter denne planens avgang fra samme stopp
-        searchFrom = addMinutesToIso(pattern.expectedStartTime, 1);
+        searchFrom = addMinutesToIso(busPattern.expectedStartTime, 1);
       }
       return steps;
     },
@@ -1110,6 +1175,9 @@ function LegAlternatives({
 
 const PLAN_LETTERS = ["B", "C", "D", "E"];
 
+// Legg med flere stopp enn dette kollapses til første + siste stopp
+const STOP_COLLAPSE_THRESHOLD = 8;
+
 /** "Vis mer" for en fallback-plan: legg-for-legg med avgangs-/ankomsttider og
  *  DuckDB-estimerte tider (~P50 i oransje, P80 i rødt) der vi har data. */
 function FallbackStepDetails({
@@ -1274,18 +1342,20 @@ function TransferFallbacks({
 
   // Forventet ankomst: p(A) × ankomst_A + Σ p(bruk plan k) × ankomst_k.
   // Siste plan i kjeden får all gjenværende sannsynlighet (kjeden er kuttet <5 %).
+  // Rene alternativer (altOnly, f.eks. buss når gange er raskest) telles ikke med.
   const expectation = useMemo(() => {
-    if (!steps || steps.length === 0) return null;
+    const effSteps = (steps ?? []).filter((s) => !s.altOnly);
+    if (effSteps.length === 0) return null;
     const terms: Array<{ label: string; prob: number; arrIso: string }> = [
       { label: "plan A", prob: 1 - missProb, arrIso: pattern.expectedEndTime },
     ];
-    for (let i = 0; i < steps.length; i++) {
-      const isLast = i === steps.length - 1;
-      const useProb = isLast ? steps[i].needProb : steps[i].needProb * steps[i].makeProb;
+    for (let i = 0; i < effSteps.length; i++) {
+      const isLast = i === effSteps.length - 1;
+      const useProb = isLast ? effSteps[i].needProb : effSteps[i].needProb * effSteps[i].makeProb;
       terms.push({
         label: `plan ${PLAN_LETTERS[i]}`,
         prob: useProb,
-        arrIso: steps[i].pattern.expectedEndTime,
+        arrIso: effSteps[i].pattern.expectedEndTime,
       });
     }
     const totalProb = terms.reduce((a, t) => a + t.prob, 0);
@@ -1310,19 +1380,31 @@ function TransferFallbacks({
           (new Date(step.pattern.expectedEndTime).getTime() - origArrMs) / 60000,
         );
         const transitLegs = step.pattern.legs.filter((l) => l.mode !== "foot");
+        // Plan-bokstav telles bare for planer som inngår i estimatet
+        const planIdx = steps.slice(0, i + 1).filter((s) => !s.altOnly).length - 1;
+        const walkMinutes = Math.round(
+          step.pattern.legs.reduce((a, l) => a + (l.mode === "foot" ? l.duration ?? 0 : 0), 0) / 60,
+        );
         return (
           <div key={i} className="text-xs space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="text-[9px] border-amber-400/60 text-amber-700 dark:text-amber-400">
-                Plan {PLAN_LETTERS[i]}
+                {step.altOnly ? "Alternativ buss" : `Plan ${PLAN_LETTERS[planIdx]}${step.isWalk ? " — gå" : ""}`}
               </Badge>
               <span className="font-mono">{formatTime(step.pattern.expectedStartTime)}</span>
-              {transitLegs.map((l, j) => (
-                <Badge key={j} variant="secondary" className="text-[9px] gap-0.5">
-                  <ModeIcon mode={l.mode} className="h-2.5 w-2.5" />
-                  {l.line?.publicCode ?? modeLabel(l.mode)}
+              {step.isWalk ? (
+                <Badge variant="secondary" className="text-[9px] gap-0.5">
+                  <Footprints className="h-2.5 w-2.5" />
+                  {walkMinutes} min gange
                 </Badge>
-              ))}
+              ) : (
+                transitLegs.map((l, j) => (
+                  <Badge key={j} variant="secondary" className="text-[9px] gap-0.5">
+                    <ModeIcon mode={l.mode} className="h-2.5 w-2.5" />
+                    {l.line?.publicCode ?? modeLabel(l.mode)}
+                  </Badge>
+                ))
+              )}
               <ArrowRight className="h-3 w-3 text-muted-foreground" />
               <span className="font-mono">{formatTime(step.pattern.expectedEndTime)}</span>
               <span className={cn("font-mono text-[10px]", deltaMin > 0 ? "text-red-500" : "text-green-600")}>
@@ -1331,7 +1413,12 @@ function TransferFallbacks({
             </div>
             <div className="text-[10px] text-muted-foreground ml-1 flex items-center gap-2">
               <span>
-                Trengs med {Math.round(step.needProb * 100)} % sannsynlighet
+                {step.altOnly ? (
+                  <>Hvis du heller vil vente på buss enn å gå — ikke med i tidsestimatet</>
+                ) : (
+                  <>Trengs med {Math.round(step.needProb * 100)} % sannsynlighet</>
+                )}
+                {step.isWalk && <> · gange påvirkes ikke av forsinkelser</>}
                 {step.makeProb < 1 && (
                   <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
                     {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
@@ -1377,11 +1464,13 @@ function TransferFallbacks({
         </div>
       )}
       <p className="text-[9px] text-muted-foreground/60 italic">
-        Plan {PLAN_LETTERS.slice(0, Math.max(steps?.length ?? 1, 1)).join("/")} er søkt fra{" "}
+        Plan {PLAN_LETTERS.slice(0, Math.max((steps ?? []).filter((s) => !s.altOnly).length, 1)).join("/")} er søkt fra{" "}
         {legB.fromPlace.quay?.name ?? legB.fromPlace.name} med avreise{" "}
         {formatTime(missArrivalIso)} (planlagt ankomst + P80-forsinkelse
-        {p80ArrDelay == null && " [antatt 5 min — mangler data]"} + gangtid).
-        Kjeden stopper når sannsynligheten for å trenge neste plan er under 5 %.
+        {p80ArrDelay == null && " [antatt 5 min — mangler data]"} + gangtid), tidligst
+        1 min etter den mistede avgangen. Ren gange vurderes alltid og velges som plan
+        hvis den gir tidligere ankomst enn neste buss. Kjeden stopper når
+        sannsynligheten for å trenge neste plan er under 5 %.
       </p>
     </div>
   );
@@ -1424,6 +1513,8 @@ function TripCard({
 }) {
   // Hvilket legg som viser "andre avganger"-panelet
   const [altOpenLeg, setAltOpenLeg] = useState<number | null>(null);
+  // Legg der brukeren har utvidet den kollapsede stopplisten
+  const [stopsExpandedLegs, setStopsExpandedLegs] = useState<Set<number>>(new Set());
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Stable shape so the gap-fetching hook below has a stable cache key.
@@ -1815,9 +1906,9 @@ function TripCard({
                     </div>
                   </div>
 
-                  {/* Stops along leg */}
-                  <div className="space-y-1 ml-2">
-                    {allStops.map((stop, stopIdx) => {
+                  {/* Stops along leg — lange legg kollapses til første + siste stopp */}
+                  {(() => {
+                    const renderStopRow = (stop: StopEntry, stopIdx: number) => {
                       const statKey = `${stop.id}|${lineRef}`;
                       const duckStop = duckStats?.get(statKey);
                       const isFirst = stopIdx === 0;
@@ -1870,8 +1961,51 @@ function TripCard({
                           )}
                         </div>
                       );
-                    })}
-                  </div>
+                    };
+
+                    const collapsed =
+                      allStops.length > STOP_COLLAPSE_THRESHOLD &&
+                      !stopsExpandedLegs.has(legIdx);
+
+                    return (
+                      <div className="space-y-1 ml-2">
+                        {collapsed ? (
+                          <>
+                            {renderStopRow(allStops[0], 0)}
+                            <button
+                              className="flex items-center gap-1 text-[11px] text-primary hover:underline py-0.5 ml-3.5"
+                              onClick={() =>
+                                setStopsExpandedLegs((prev) => new Set(prev).add(legIdx))
+                              }
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                              Vis {allStops.length - 2} mellomliggende stopp
+                            </button>
+                            {renderStopRow(allStops[allStops.length - 1], allStops.length - 1)}
+                          </>
+                        ) : (
+                          <>
+                            {allStops.map(renderStopRow)}
+                            {allStops.length > STOP_COLLAPSE_THRESHOLD && (
+                              <button
+                                className="flex items-center gap-1 text-[11px] text-primary hover:underline py-0.5 ml-3.5"
+                                onClick={() =>
+                                  setStopsExpandedLegs((prev) => {
+                                    const s = new Set(prev);
+                                    s.delete(legIdx);
+                                    return s;
+                                  })
+                                }
+                              >
+                                <ChevronUp className="h-3 w-3" />
+                                Skjul mellomliggende stopp
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Andre avganger for dette legget */}
                   {altOpenLeg === legIdx && (
