@@ -157,6 +157,11 @@ def main():
 
     parser = argparse.ArgumentParser(description="Last opp Parquet-filer til Cloudflare R2")
     parser.add_argument("--all", action="store_true", help="Tving re-opplasting av alle filer")
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="Slett .parquet-filer i bucketen som ikke finnes lokalt (fjerner gamle uker)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Vis hva som ville blitt lastet opp")
     parser.add_argument(
         "--prod-db",
@@ -224,6 +229,29 @@ def main():
             )
             if did_upload:
                 uploaded += 1
+
+        # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
+        # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende
+        # og kan plukkes opp av klienter med gammelt manifest i cache.
+        if args.prune:
+            local_names = {e["name"] for e in manifest}
+            stale_keys: list[str] = []
+            if not args.dry_run:
+                paginator = s3.get_paginator("list_objects_v2")
+                for page in paginator.paginate(Bucket=bucket):
+                    for obj in page.get("Contents", []):
+                        key = obj["Key"]
+                        if key.endswith(".parquet") and key not in local_names:
+                            stale_keys.append(key)
+                for key in stale_keys:
+                    log.info("  ✂ Sletter fra bucket: %s", key)
+                    s3.delete_object(Bucket=bucket, Key=key)
+            else:
+                log.info("  [dry-run] Ville slettet parquet-filer som ikke finnes lokalt")
+            if stale_keys:
+                log.info("Prune: %d gamle filer slettet", len(stale_keys))
+            elif not args.dry_run:
+                log.info("Prune: ingen gamle filer å slette")
     else:
         # ---------- Kun prod-DB-modus ----------
         log.info("=== KUN PROD-DB — hopper over parquet + manifest ===")

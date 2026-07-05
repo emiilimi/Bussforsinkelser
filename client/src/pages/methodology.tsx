@@ -292,6 +292,13 @@ export default function Methodology() {
               den du skal rekke — og en romslig overgang ville feilaktig vist 0 %.
             </p>
             <p className="text-sm text-muted-foreground">
+              <strong>Kjent begrensning:</strong> sammenlikningen skjer per <em>plattform</em>{" "}
+              (NSR-quay). Går samme linje i samme retning fra en annen plattform enkelte
+              dager (typisk sporendringer for tog), faller de dagene ut av grunnlaget —
+              det gir færre dager med data, men aldri feil tall. Busser har normalt fast
+              plattform, så dette rammer i praksis mest skinnegående transport.
+            </p>
+            <p className="text-sm text-muted-foreground">
               Med få observasjoner (f.eks. 1–2 dager) blir sannsynligheten enten 0 % eller
               100 % — det finnes ingen mellomting når du teller binært over én dag. Dette
               kan se motstridende ut (f.eks. 0 % med margin, men 100 % med spurt), men er
