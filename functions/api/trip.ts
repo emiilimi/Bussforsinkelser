@@ -93,9 +93,15 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
-  // Bygg transport-modes (default: alle vanlige kollektivmoduser)
-  const modes = (Array.isArray(transportModes) && transportModes.length > 0)
-    ? transportModes
+  // Bygg transport-modes (default: alle vanlige kollektivmoduser).
+  // Whitelist-valider — verdiene interpoleres direkte i GraphQL-dokumentet.
+  const safeModes = Array.isArray(transportModes)
+    ? transportModes.filter(
+        (m: unknown): m is string => typeof m === "string" && TRANSPORT_MODES.has(m),
+      )
+    : [];
+  const modes = safeModes.length > 0
+    ? safeModes
     : ["bus", "tram", "rail", "metro", "water", "coach"];
   const transportModesGql = modes.map((m: string) => `{ transportMode: ${m} }`).join(", ");
 

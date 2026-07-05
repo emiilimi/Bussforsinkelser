@@ -278,10 +278,12 @@ export default function Methodology() {
             </ol>
             <p className="text-sm text-muted-foreground">
               Hvis vi ikke har nok data på akkurat din avgangs-ID, faller vi tilbake til
-              statistikk per (linje, stopp, dagtype) — uthevet i hvor tallene kommer fra.
+              statistikk per (linje, stopp, retning, dagtype) — uthevet i hvor tallene kommer
+              fra. Retningen leses fra hvordan den planlagte avgangen selv er registrert i
+              dataene, siden noen plattformer trafikkeres i begge retninger av samme linje.
               I fallback-modusen sammenlikner vi <strong>forsinkelser</strong>, ikke absolutte
               klokkeslett: for hver historisk dag finner vi en sammenliknbar ankomst og avgang
-              (nærmest i rutetid), og regner{" "}
+              (nærmest i rutetid, samme retning), og regner{" "}
               <code className="text-xs bg-muted px-1 rounded">
                 gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
               </code>
@@ -323,9 +325,9 @@ export default function Methodology() {
                   destinasjonen enn å vente på neste buss, blir gange planen (gange
                   påvirkes ikke av forsinkelser, så kjeden slutter der). Neste buss vises
                   likevel som alternativ for de som heller vil vente — men den teller
-                  ikke med i forventet ankomst. Merk: gangealternativet kommer fra Entur,
-                  som normalt bare foreslår gange opp til rundt en halvtimes gåtur —
-                  lengre gåturer vises ikke.
+                  ikke med i forventet ankomst. Gåtiden beregnes av Entur langs faktisk
+                  gangnett med ganghastigheten du selv har valgt i filtrene; tilbyr ikke
+                  hovedsøket gange, gjør vi et eget rent gangesøk.
                 </li>
                 <li>
                   Plan B får sin egen empiriske overgangssannsynlighet (samme metode som

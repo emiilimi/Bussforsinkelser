@@ -238,6 +238,18 @@ function fallbackGapSql(s: TransferSpec): string | null {
   // Planlagt gap i minutter; overganger over midnatt gir negativ diff → +24t
   let plannedGap = s.depAimedMin - s.arrAimedMin;
   if (plannedGap < -720) plannedGap += 1440;
+  // Samme retning: ~7 % av (linje, stopp)-kombinasjoner har trafikk i begge
+  // retninger på samme plattform. direction_ref-verdiene varierer per operatør
+  // ('1'/'2', 'Outbound'/'Inbound', ...), så i stedet for å mappe Enturs
+  // directionType slår vi opp retningen den PLANLAGTE avgangen selv er
+  // registrert med i dataene. Ukjent SJ → COALESCE gjør vilkåret til no-op.
+  const dirClause = (sjId: string | null) =>
+    sjId
+      ? `AND direction_ref IS NOT DISTINCT FROM COALESCE(
+           (SELECT ANY_VALUE(direction_ref) FROM delays
+            WHERE service_journey_id = '${esc(sjId)}'),
+           direction_ref)`
+      : "";
   return `
     WITH arr_raw AS (
       SELECT date, delay_arrival_min AS arr_delay,
@@ -248,6 +260,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${esc(s.arrQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
+        ${dirClause(s.arrSjId)}
     ),
     arr AS (
       SELECT date, arr_delay FROM arr_raw
@@ -263,6 +276,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${esc(s.depQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
+        ${dirClause(s.depSjId)}
     ),
     dep AS (
       SELECT date, dep_delay FROM dep_raw
@@ -679,6 +693,51 @@ function useFallbackChain(opts: {
         return { makeProb, daysMin };
       };
 
+      // Gange hentes separat hvis hovedsøket ikke tilbyr det: Entur filtrerer
+      // bort gåturer over ca. en halvtime når det finnes buss — men brukeren
+      // skal alltid få gange vurdert (med sin egen ganghastighet). Et søk uten
+      // tilgjengelige transportmidler (air) + directMode: foot gir ren gange
+      // med reell gåruteberegning. Gange er tidsuavhengig, så vi henter én
+      // gang og skyver tidene til hvert søketidspunkt.
+      let walkTemplate: TripPattern | null = null;
+      let walkFetched = false;
+      const getWalkPattern = async (fromIso: string): Promise<TripPattern | null> => {
+        if (!walkFetched) {
+          walkFetched = true;
+          try {
+            const res = await apiRequest("POST", "/api/trip", {
+              from: { place: transferQuayId },
+              to: destination,
+              when: fromIso,
+              transportModes: ["air"],
+              directMode: "foot",
+              walkSpeed: walkSpeedKmh / 3.6,
+              numTripPatterns: 1,
+            });
+            const d = await res.json();
+            const pats: TripPattern[] = d?.data?.trip?.tripPatterns ?? [];
+            walkTemplate = pats.find(isWalkOnlyPattern) ?? null;
+          } catch {
+            walkTemplate = null;
+          }
+        }
+        if (!walkTemplate) return null;
+        const delta =
+          (new Date(fromIso).getTime() - new Date(walkTemplate.expectedStartTime).getTime()) /
+          60000;
+        if (Math.abs(delta) < 0.5) return walkTemplate;
+        return {
+          ...walkTemplate,
+          expectedStartTime: addMinutesToIso(walkTemplate.expectedStartTime, delta),
+          expectedEndTime: addMinutesToIso(walkTemplate.expectedEndTime, delta),
+          legs: walkTemplate.legs.map((l) => ({
+            ...l,
+            expectedStartTime: addMinutesToIso(l.expectedStartTime, delta),
+            expectedEndTime: addMinutesToIso(l.expectedEndTime, delta),
+          })),
+        };
+      };
+
       for (let depth = 0; depth < FALLBACK_MAX_DEPTH && needProb >= FALLBACK_PROB_FLOOR; depth++) {
         const res = await apiRequest("POST", "/api/trip", {
           from: { place: transferQuayId },
@@ -699,7 +758,8 @@ function useFallbackChain(opts: {
           const sj = firstTransitSjId(p);
           return sj == null || !usedSjIds.has(sj);
         });
-        const walkPattern = usable.find(isWalkOnlyPattern) ?? null;
+        const walkPattern =
+          (usable.find(isWalkOnlyPattern) ?? null) || (await getWalkPattern(searchFrom));
         const busCandidates = usable.filter((p) => !isWalkOnlyPattern(p));
         const busPattern =
           busCandidates.find((p) => new Date(p.expectedStartTime).getTime() >= searchFromMs) ??
@@ -2082,13 +2142,16 @@ function TripCard({
                             : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
                         </div>
                         <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
-                          Basert på {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"}
+                          Basert på {transferInfo.daysObserved}{" "}
+                          {transferInfo.daysObserved === 1 ? "dag" : "dager"}
                           {transferInfo.source === "specific"
                             ? " hvor begge avgangene har gått (samme avgangs-ID)."
                             : transferInfo.source === "fallback"
-                              ? " med tilsvarende avganger (samme linje + time + dagtype)."
+                              ? " med sammenlignbare avganger (samme linje, stopp, retning, time og dagtype). Én sammenligning per dag: planlagt gap + forskjellen i forsinkelse den dagen."
                               : "."}
-                          {" "}Hver dag sammenliknes faktisk ankomst med faktisk avgang.
+                          {transferInfo.source === "specific" && (
+                            <> Hver dag sammenliknes faktisk ankomst med faktisk avgang.</>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -2212,6 +2275,23 @@ export default function TripPlanner() {
     }
     return total;
   }, [duckData]);
+
+  // Datagrunnlagets omfang — vises i metodeboksen slik at "N dager" i
+  // statistikken alltid kan sjekkes mot hva som faktisk er lastet.
+  const { data: dataRange } = useQuery<{ days: number; min: string; max: string } | null>({
+    queryKey: ["duck-data-range"],
+    enabled: duckReady,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const rows = await duckQuery(
+        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays`,
+      );
+      const r = rows[0] as { days: number; mind: string; maxd: string } | undefined;
+      return r && Number(r.days) > 0
+        ? { days: Number(r.days), min: String(r.mind), max: String(r.maxd) }
+        : null;
+    },
+  });
 
   function toggleMode(mode: string) {
     setSelectedModes((prev) =>
@@ -2788,6 +2868,18 @@ export default function TripPlanner() {
                 {duckObservationCount > 0 && (
                   <span className="text-[10px] text-muted-foreground/70">
                     {duckObservationCount.toLocaleString("nb-NO")} obs.
+                  </span>
+                )}
+                {dataRange && (
+                  <span
+                    className="text-[10px] text-muted-foreground/70"
+                    title="Antall dager med rådata som er lastet i nettleseren — alle 'N dager'-tall i statistikken er begrenset av dette"
+                  >
+                    Datagrunnlag: {dataRange.days} dager (
+                    {new Date(dataRange.min).toLocaleDateString("nb-NO", { day: "numeric", month: "short" })}
+                    –
+                    {new Date(dataRange.max).toLocaleDateString("nb-NO", { day: "numeric", month: "short" })}
+                    )
                   </span>
                 )}
               </div>

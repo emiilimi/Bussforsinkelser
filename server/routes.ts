@@ -685,18 +685,32 @@ export async function registerRoutes(
       return res.json(cached);
     }
 
-    // Build transport modes array — default: all common transit modes
-    const modes = (transportModes && Array.isArray(transportModes) && transportModes.length > 0)
-      ? transportModes
+    // Build transport modes array — default: all common transit modes.
+    // Whitelist-valider — verdiene interpoleres direkte i GraphQL-dokumentet.
+    const VALID_TRANSPORT_MODES = new Set([
+      "bus", "tram", "rail", "metro", "water", "coach",
+      "air", "cableway", "funicular", "lift", "trolleybus", "monorail",
+    ]);
+    const safeModes = Array.isArray(transportModes)
+      ? transportModes.filter((m: unknown): m is string => typeof m === "string" && VALID_TRANSPORT_MODES.has(m))
+      : [];
+    const modes = safeModes.length > 0
+      ? safeModes
       : ["bus", "tram", "rail", "metro", "water", "coach"];
     const transportModesGql = modes.map((m: string) => `{ transportMode: ${m} }`).join(", ");
 
-    // Build modes block — accessMode/egressMode default to "foot" (required for coordinate-based locations)
-    const accessModeGql = `accessMode: ${accessMode || "foot"}`;
-    const egressModeGql = `egressMode: ${egressMode || "foot"}`;
-    const directModeGql = directMode !== undefined
-      ? (directMode ? `directMode: ${directMode}` : "")
-      : "";
+    // Build modes block — accessMode/egressMode default to "foot" (required for coordinate-based locations).
+    // Whitelist-valider — interpoleres direkte i GraphQL-dokumentet.
+    const VALID_STREET_MODES = new Set([
+      "foot", "bicycle", "bike_park", "bike_rental", "scooter_rental",
+      "car", "car_park", "car_pickup", "car_rental", "carpool", "flexible",
+    ]);
+    const safeStreet = (v: unknown, fallback: string | null): string | null =>
+      typeof v === "string" && VALID_STREET_MODES.has(v) ? v : fallback;
+    const accessModeGql = `accessMode: ${safeStreet(accessMode, "foot")}`;
+    const egressModeGql = `egressMode: ${safeStreet(egressMode, "foot")}`;
+    const safeDirect = safeStreet(directMode, null);
+    const directModeGql = safeDirect ? `directMode: ${safeDirect}` : "";
     const modesBlock = [
       `transportModes: [${transportModesGql}]`,
       accessModeGql,
