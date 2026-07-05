@@ -40,3 +40,4 @@ data/diagnostics/
 # Stray directories that don't belong in the repo
 emiliesBussprosjekt/
 data/stop_coordsNullNames.json
+logs/
