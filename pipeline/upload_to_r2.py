@@ -38,6 +38,12 @@ from botocore.exceptions import ClientError
 REPO_ROOT = Path(__file__).parent.parent
 PARQUET_DIR = Path(os.environ.get("PARQUET_DIR", str(REPO_ROOT / "data" / "parquet")))
 
+# Hvor mange ukefiler som beholdes i manifest/bucket (nyeste først).
+# 14 uker ≈ 98 dager — dekker nettleserens 90-dagersvindu med margin.
+# 0 = ubegrenset. Eldre filer utelates fra manifestet og slettes fra
+# bucketen når --prune brukes.
+KEEP_WEEKS = int(os.environ.get("PARQUET_KEEP_WEEKS", "14"))
+
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
     format="%(asctime)s %(levelname)s %(message)s",
@@ -134,17 +140,24 @@ def upload_file(
     return True
 
 
+def newest_parquet_files(parquet_dir: Path) -> list[Path]:
+    """Ukefiler som skal være i manifest/bucket: nyeste KEEP_WEEKS.
+
+    Navnene er ISO-uker ('2026-W27.parquet') og sorterer riktig leksikalsk,
+    også over årsskifter."""
+    files = sorted(f for f in parquet_dir.glob("*.parquet") if f.is_file())
+    if KEEP_WEEKS > 0:
+        files = files[-KEEP_WEEKS:]
+    return files
+
+
 def generate_manifest(parquet_dir: Path) -> list[dict]:
-    """Returner sortert liste over {name, md5} for .parquet-filer.
+    """Returner sortert liste over {name, md5} for .parquet-filer (nyeste KEEP_WEEKS).
 
     md5 brukes av klienten som cache-buster (?v=md5) slik at nettleseren
     henter fersk fil når innholdet endres, selv om filnavnet er det samme
     (ukefiler overskrives daglig med nye dager)."""
-    entries = []
-    for f in sorted(parquet_dir.glob("*.parquet")):
-        if f.is_file():
-            entries.append({"name": f.name, "md5": md5_of_file(f)})
-    return entries
+    return [{"name": f.name, "md5": md5_of_file(f)} for f in newest_parquet_files(parquet_dir)]
 
 
 def main():
@@ -193,7 +206,7 @@ def main():
             log.error("Kjør først: python pipeline/export_parquet.py --all")
             return 1
 
-        parquet_files = list(PARQUET_DIR.glob("*.parquet"))
+        parquet_files = newest_parquet_files(PARQUET_DIR)
         if not parquet_files:
             log.warning("Ingen .parquet-filer funnet i %s", PARQUET_DIR)
             return 0
@@ -201,7 +214,11 @@ def main():
         log.info("Kobler til R2 bucket '%s' …", bucket)
         s3 = None if args.dry_run else get_s3_client()
 
-        log.info("Laster opp %d Parquet-fil(er) …", len(parquet_files))
+        log.info(
+            "Laster opp %d Parquet-fil(er) (nyeste %s uker) …",
+            len(parquet_files),
+            KEEP_WEEKS if KEEP_WEEKS > 0 else "alle",
+        )
         for pf in sorted(parquet_files):
             if args.dry_run:
                 log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)

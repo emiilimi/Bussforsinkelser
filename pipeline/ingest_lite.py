@@ -66,12 +66,15 @@ DB_PATH = os.environ.get(
     str(Path(__file__).parent.parent / "data" / "reise.db"),
 )
 
-# Hvor lenge rådata beholdes lokalt. 90 = samme vindu som nettleseren viser.
-# Du kan sette dette lavere (f.eks. 21) for å spare ytterligere diskplass —
-# eldre uker ligger allerede som Parquet på R2, så nettleseren mister ikke
-# historikk. Eneste konsekvens: du kan ikke re-generere en Parquet-fil eldre
-# enn vinduet uten å hente dataene fra BigQuery på nytt.
-RETENTION_DAYS = int(os.environ.get("JSD_RETENTION_DAYS", "90"))
+# Hvor lenge rådata beholdes lokalt. SQLite-basen er bare et mellomlager:
+# ferdige uker ligger uforanderlige som Parquet på R2, og nettleseren leser
+# 90-dagersvinduet derfra — IKKE fra denne basen. Det eneste basen må dekke
+# er ukene som fortsatt kan endres (inneværende uke + gårsdagens uke ved
+# ukeskifte), dvs. maks ~8 dager. 14 gir god margin og holder basen på
+# ~8 GB i stedet for ~50 GB (alle operatører ≈ 600 MB/dag).
+# Eneste konsekvens av et lavt vindu: en Parquet-fil eldre enn vinduet kan
+# ikke re-genereres uten å hente dagene fra BigQuery på nytt (backfill).
+RETENTION_DAYS = int(os.environ.get("JSD_RETENTION_DAYS", "14"))
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -169,11 +172,28 @@ def run(target_date: date, operators: list[str] | None = None) -> None:
     conn = sqlite3.connect(DB_PATH)
     try:
         init_lite_db(conn)
+        # Backfill-modus: når vi ingester en dag som selv er utenfor retention-
+        # vinduet, må pruning hoppe over — ellers slettes dagen (og tidligere
+        # backfillede dager) FØR export_parquet har fått laget ukefilene.
+        # Nattkjøringen (target = i går) rydder som normalt; da er gamle uker
+        # allerede eksportert og lastet opp.
+        backfill_mode = (date.today() - target_date).days > RETENTION_DAYS
         with conn:
             upsert_journey_stop_daily(conn, date_str, df, day_type)
-            prune_old_rows(conn, RETENTION_DAYS)
+            if backfill_mode:
+                log.info(
+                    "  Backfill-modus (%s er utenfor %d-dagersvinduet) — "
+                    "hopper over pruning. Kjør export + upload før neste "
+                    "nattlige ingest, som rydder som normalt.",
+                    date_str, RETENTION_DAYS,
+                )
+            else:
+                prune_old_rows(conn, RETENTION_DAYS)
         # Hold filen kompakt — ellers vokser den selv om vi sletter rader.
-        conn.execute("VACUUM")
+        # (Hoppes over i backfill-modus: ingenting er slettet, og VACUUM på
+        # en stor base tar minutter per kjøring i en backfill-løkke.)
+        if not backfill_mode:
+            conn.execute("VACUUM")
         log.info("=== Ferdig: %s skrevet til %s (%.1fs) ===",
                  date_str, DB_PATH, time.time() - started)
     finally:

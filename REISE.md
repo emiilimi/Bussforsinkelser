@@ -145,14 +145,34 @@ $env:PARQUET_DIR   = "data/reise-parquet"   # EGEN mappe (ikke data/parquet/)
 $env:R2_ENV_FILE   = "r2.reise.env"         # EGEN bøtte
 
 # 1) Hent gårsdagen fra BigQuery → journey_stop_daily
+#    (pruner samtidig rader eldre enn JSD_RETENTION_DAYS, default 14, + VACUUM)
 python pipeline/ingest_lite.py
 
 # 2) Eksporter nye/ufullstendige uker til data/reise-parquet/*.parquet
+#    (re-eksporterer alltid inneværende + gårsdagens uke; overskriver aldri
+#    en fil med færre dager enn den allerede har)
 python pipeline/export_parquet.py
 
-# 3) Last opp parquet + manifest.json til den NYE bøtta
-python pipeline/upload_to_r2.py
+# 3) Last opp parquet + manifest.json til den NYE bøtta.
+#    --prune sletter uker eldre enn PARQUET_KEEP_WEEKS (default 14) fra bucketen.
+python pipeline/upload_to_r2.py --prune
 ```
+
+### Diskbudsjett (hvorfor basen holder seg liten)
+
+SQLite-basen er bare et **mellomlager**: ferdige uker ligger uforanderlige som
+Parquet på R2, og nettleseren leser hele 90-dagersvinduet derfra. Basen trenger
+kun ukene som fortsatt kan endres (inneværende + gårsdagens uke ved ukeskifte).
+
+| Lag | Vindu | Størrelse (alle operatører) |
+|---|---|---|
+| `data/reise.db` (SQLite) | 14 dager (`JSD_RETENTION_DAYS`) | ~8 GB steady state |
+| `data/reise-parquet/` (lokalt) | 14 uker (`PARQUET_KEEP_WEEKS` i manifest) | ~700 MB |
+| R2-bucket | 14 uker (med `--prune`) | ~700 MB |
+
+Uten retention-endringen ville 90 dager i SQLite blitt ~50 GB (~600 MB/dag).
+Konsekvensen av det korte vinduet: en Parquet-fil eldre enn 14 dager kan bare
+re-genereres via backfill fra BigQuery.
 > **VIKTIG:** `upload_to_r2.py` skriver `manifest.json` til bøtte-roten. Bruker du
 > den gamle bøtta overskriver du filene `bussforsinkelser.no`-demoen leser — derfor
 > egen bøtte + `R2_ENV_FILE=r2.reise.env`. Shell-variabler vinner alltid over
@@ -167,9 +187,9 @@ $env:DATABASE_PATH = "data/reise.db"
 python pipeline/populate_stops.py
 
 # Backfill EN UKE av gangen (BigQuery-grenser). Kjør blokka én gang per dag til
-# du har dekket ~90 dager. Sett høy retention så pruning ikke sletter eldste dag
-# mens ekte dager tikker forbi underveis:
-$env:JSD_RETENTION_DAYS = "120"
+# du har dekket ~90 dager. Pruning hoppes automatisk over for dager utenfor
+# retention-vinduet (backfill-modus) — men kjør ALLTID export + upload rett
+# etter løkka: neste nattlige ingest rydder alt utenfor vinduet.
 $from = [datetime]"2026-06-20"; $to = [datetime]"2026-06-26"   # flytt vinduet bakover hver dag
 for ($d = $from; $d -le $to; $d = $d.AddDays(1)) {
     python pipeline/ingest_lite.py $d.ToString("yyyy-MM-dd")

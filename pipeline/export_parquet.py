@@ -87,15 +87,6 @@ def monday_of_week(week_str: str) -> date:
 
 def get_weeks_in_db(conn: sqlite3.Connection) -> list[str]:
     """Return sorted list of ISO week strings that have data in journey_stop_daily."""
-    rows = conn.execute("""
-        SELECT DISTINCT strftime('%G-W', date,  'weekday 0', '-6 days')
-                     || printf('%02d', CAST(strftime('%W', date, 'weekday 0', '-6 days') AS INT) +
-                        CASE WHEN strftime('%w', date(strftime('%Y', date, 'weekday 0', '-6 days') || '-01-01')) <= '4'
-                             THEN 1 ELSE 0 END)
-        FROM journey_stop_daily
-        ORDER BY 1
-    """).fetchall()
-    # Simpler approach: compute in Python from distinct dates
     date_rows = conn.execute("SELECT DISTINCT date FROM journey_stop_daily ORDER BY date").fetchall()
     weeks = sorted({iso_week_str(date.fromisoformat(r[0])) for r in date_rows})
     return weeks
@@ -110,9 +101,39 @@ def get_existing_parquet_weeks(parquet_dir: str) -> set[str]:
 
 
 def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> int:
-    """Export one ISO week of journey_stop_daily to a Parquet file. Returns row count."""
+    """Export one ISO week of journey_stop_daily to a Parquet file. Returns row count.
+
+    Vern: en eksisterende ukefil overskrives ALDRI med en versjon som dekker
+    færre dager. Det kan skje når retention-vinduet (JSD_RETENTION_DAYS) har
+    kastet gamle dager, eller når bare deler av en uke er backfillet. Da
+    beholdes den eksisterende (mer komplette) filen. Slett filen manuelt hvis
+    du faktisk vil re-eksportere med færre dager."""
     mon = monday_of_week(week_str)
     sun = mon + timedelta(days=6)
+
+    out_path_check = Path(parquet_dir) / f"{week_str}.parquet"
+    if out_path_check.exists():
+        db_dates = {
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT date FROM journey_stop_daily WHERE date >= ? AND date <= ?",
+                (mon.isoformat(), sun.isoformat()),
+            ).fetchall()
+        }
+        try:
+            file_dates = set(
+                pq.read_table(out_path_check, columns=["date"])
+                .column("date").to_pylist()
+            )
+        except Exception:
+            file_dates = set()
+        missing = file_dates - db_dates
+        if missing:
+            log.warning(
+                "  %s: basen mangler %d dag(er) som finnes i eksisterende fil (%s) — "
+                "beholder filen i stedet for å skrive en mindre komplett versjon",
+                week_str, len(missing), ", ".join(sorted(missing)),
+            )
+            return 0
 
     rows = conn.execute(
         """
@@ -191,12 +212,22 @@ def main():
 
         existing = set() if args.all else get_existing_parquet_weeks(PARQUET_DIR)
 
-        # Current (incomplete) week — always re-export since new days may have been added
-        current_week = iso_week_str(date.today())
+        # Uker som fortsatt kan få nye dager, re-eksporteres alltid:
+        #  - inneværende uke (åpenbart ufullstendig)
+        #  - GÅRSDAGENS uke: nattlig kjøring ingester gårsdagen, så mandag
+        #    morgen tilhører de nye dataene (søndag) FORRIGE uke. Uten dette
+        #    ville søndagen aldri komme med i ukens fil.
+        refresh_weeks = {
+            iso_week_str(date.today()),
+            iso_week_str(date.today() - timedelta(days=1)),
+        }
 
+        # (export_week verner selv mot å overskrive en eksisterende fil med
+        # en versjon som dekker færre dager — trygt både etter retention-
+        # pruning og ved delvis backfill.)
         to_export = []
         for w in db_weeks:
-            if w not in existing or w == current_week:
+            if w not in existing or w in refresh_weeks:
                 to_export.append(w)
 
         if not to_export:
