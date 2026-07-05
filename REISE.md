@@ -397,6 +397,37 @@ Implementert i denne runden:
   ved stoppet. Nytt endepunkt `GET /api/servicejourney/:id?date=` (Functions +
   worker-rute + Express).
 
+## Fase 5a — Full offload (FERDIG 5. juli 2026)
+
+Analysesidene serveres nå uten server og uten SQLite, direkte fra R2:
+
+```
+nightly_reise.ps1:
+  ingest_lite → export_parquet → aggregate_stats (NY) → upload_to_r2 --prune
+                                      │
+                                      ├→ stats_summary.json    (daily per operatør +
+                                      │   linje-topplister per vindu 7/30/90, ~2 MB)
+                                      └→ stats_stops_map.json  (per stopp+operatør med
+                                          koordinater per vindu, ~6.5 MB, CF gzipper)
+```
+
+- **Klient**: `lib/stats-adapter.ts` fanger opp de gamle API-URLene i queryClient
+  (kun reise-bygget) og svarer fra artefaktene — sidene er uendret. Tyngre
+  drill-downs (`/api/line/:ref`, kartfiltre for dagtype/time) kjøres som
+  DuckDB-WASM-spørringer rett mot parquet (`standaloneDuckQuery`).
+- **Nye sider i reise-bygget**: /oversikt (dashboard), /journey, /worst, /map.
+  Operatørvelgeren er synlig igjen (artefaktene har alle operatører).
+  «År»-perioden heter «90 dager» (datagrunnlagets tak).
+- **Sanntidsdekning**: måles ved ingest i ny tabell `coverage_daily` i reise.db
+  (kan ikke utledes fra parquet — den har kun sanntidsrader). Vises på
+  dashboardet per (dato, operatør). Dager ingestet før 5. juli har ingen måling.
+- **Kjente hull**: totalCancellations = null (ikke i rådata), lineName = null
+  (viser «Linje 20»), stopp-topplistenes mode-filter ignoreres, /stops gjenstår.
+- **Prod**: artefaktene må ligge i R2 før sidene virker live — kjør
+  nightly-kjeden (eller bare `aggregate_stats.py` + `upload_to_r2.py`) én gang.
+- `strip_for_prod.py`/prod-DB-mekanismen er nå kun for den gamle
+  Railway-demoen; reise-siten trenger den ikke.
+
 ## Gjenværende faser (kort)
 
 - **Fase 4b** — Leaflet-kart per reiseforslag som tegner gangstrekk + bussrute

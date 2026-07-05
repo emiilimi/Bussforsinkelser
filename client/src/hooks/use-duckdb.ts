@@ -8,7 +8,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 let dbInstance: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<duckdb.AsyncDuckDB> | null = null;
 
-async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
+export async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   if (dbInstance) return dbInstance;
   if (initPromise) return initPromise;
 

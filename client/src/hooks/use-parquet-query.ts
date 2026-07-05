@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { AsyncDuckDB, AsyncDuckDBConnection } from "@duckdb/duckdb-wasm";
-import { useDuckDB } from "./use-duckdb";
+import { useDuckDB, initDuckDB } from "./use-duckdb";
 
 // ---------------------------------------------------------------------------
 // Base URL for Parquet files — falls back to local server during development.
 // In production, point VITE_PARQUET_BASE_URL at Cloudflare R2 public URL.
+// Eksportert: stats-adapteren henter artefaktene (stats_*.json) fra samme base.
 // ---------------------------------------------------------------------------
 
-const PARQUET_BASE =
+export const PARQUET_BASE =
   (import.meta as any).env?.VITE_PARQUET_BASE_URL?.replace(/\/$/, "") ??
   `${typeof window !== "undefined" ? window.location.origin : ""}/api/parquet`;
 
@@ -89,6 +90,57 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
       await conn.close();
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Delt spørringskjøring: SQL → rader som plain JS-objekter
+// ---------------------------------------------------------------------------
+
+async function runDuckQuery<T = Record<string, unknown>>(
+  db: AsyncDuckDB,
+  sql: string,
+): Promise<T[]> {
+  let conn: AsyncDuckDBConnection | null = null;
+  try {
+    conn = await db.connect();
+    const result = await conn.query(sql);
+
+    // Convert Arrow table to plain JS objects
+    const rows: T[] = [];
+    const numRows = result.numRows;
+    const schema = result.schema.fields;
+
+    for (let i = 0; i < numRows; i++) {
+      const row: Record<string, unknown> = {};
+      for (const field of schema) {
+        const col = result.getChild(field.name);
+        const val = col?.get(i) ?? null;
+        // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
+        row[field.name] = typeof val === "bigint" ? Number(val) : val;
+      }
+      rows.push(row as T);
+    }
+
+    return rows;
+  } finally {
+    if (conn) await conn.close();
+  }
+}
+
+/**
+ * Kjør en DuckDB-spørring utenfor React (brukes av stats-adapteren i
+ * queryClient). Initialiserer DuckDB-singletonen og registrerer parquet-filene
+ * ved behov — samme instans og `delays`-view som hooken bruker.
+ */
+export async function standaloneDuckQuery<T = Record<string, unknown>>(
+  sql: string,
+): Promise<T[]> {
+  const db = await initDuckDB();
+  await ensureFilesRegistered(db);
+  if (registeredFiles.size === 0) {
+    throw new Error("Ingen parquet-filer tilgjengelig");
+  }
+  return runDuckQuery<T>(db, sql);
 }
 
 // ---------------------------------------------------------------------------
@@ -181,31 +233,7 @@ export function useParquetQuery(): ParquetQueryState {
         });
       }
 
-      let conn: AsyncDuckDBConnection | null = null;
-      try {
-        conn = await db.connect();
-        const result = await conn.query(finalSql);
-
-        // Convert Arrow table to plain JS objects
-        const rows: T[] = [];
-        const numRows = result.numRows;
-        const schema = result.schema.fields;
-
-        for (let i = 0; i < numRows; i++) {
-          const row: Record<string, unknown> = {};
-          for (const field of schema) {
-            const col = result.getChild(field.name);
-            const val = col?.get(i) ?? null;
-            // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
-            row[field.name] = typeof val === "bigint" ? Number(val) : val;
-          }
-          rows.push(row as T);
-        }
-
-        return rows;
-      } finally {
-        if (conn) await conn.close();
-      }
+      return runDuckQuery<T>(db, finalSql);
     },
     [db],
   );

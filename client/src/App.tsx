@@ -34,14 +34,19 @@ function FullRouter() {
   );
 }
 
-// Frittstående reise-side (VITE_APP=reise) — kun sider uten SQLite-avhengighet.
-// /journey + /stops + linjeanalyse legges til i Fase 5 når de er portet til Parquet.
+// Frittstående reise-side (VITE_APP=reise). Analysesidene (full offload)
+// serveres fra R2-artefakter + DuckDB-WASM via stats-adapteren — ingen
+// SQLite-backend. /stops gjenstår (trenger stoppesøk/retnings-adaptere).
 function ReiseRouter() {
   return (
     <Switch>
       <Route path="/"><Redirect to="/reise" /></Route>
       <Route path="/reise" component={TripPlanner} />
       <Route path="/avganger" component={Departures} />
+      <Route path="/oversikt" component={Dashboard} />
+      <Route path="/journey" component={JourneyDetails} />
+      <Route path="/worst" component={WorstLists} />
+      <Route path="/map" component={DelayMap} />
       <Route path="/metode" component={Methodology} />
       <Route component={NotFound} />
     </Switch>

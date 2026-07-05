@@ -34,11 +34,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return `${REGION_LABEL[regions[0]]} +${regions.length - 1}`;
   }
 
-  // Reise-bygget viser bare sidene som ikke trenger SQLite-backenden.
+  // Reise-bygget: analysesidene serveres fra R2-artefakter + DuckDB-WASM
+  // (full offload) — /stops gjenstår og er derfor ikke med ennå.
   const navItems = IS_REISE
     ? [
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
         { href: "/avganger", label: "Avganger", icon: Timer },
+        { href: "/oversikt", label: "Oversikt", icon: BarChart3 },
+        { href: "/journey", label: "Linjeanalyse", icon: Clock },
+        { href: "/worst", label: "Topplister", icon: Map },
+        { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         { href: "/metode", label: "Metode", icon: BookOpen },
       ]
     : [
@@ -69,8 +74,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Operatørvelger styrer bare SQLite-baserte analysesider — skjult i reise-bygget. */}
-        {!IS_REISE && (
+        {/* Operatørvelger — filtrerer analysesidene (artefaktene har alle operatører). */}
         <div className="px-2 space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Operatør</label>
           <Popover>
@@ -118,7 +122,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </PopoverContent>
           </Popover>
         </div>
-        )}
 
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
           {navItems.map((item) => {

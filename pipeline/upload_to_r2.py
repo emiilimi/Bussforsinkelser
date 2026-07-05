@@ -247,6 +247,24 @@ def main():
             if did_upload:
                 uploaded += 1
 
+        # ---------- Statistikk-artefakter (full offload) ----------
+        # Genereres av pipeline/aggregate_stats.py. Alltid no-cache: klienten
+        # henter dem med no-store, og innholdet endres hver natt.
+        for stats_name in ("stats_summary.json", "stats_stops_map.json"):
+            stats_path = PARQUET_DIR / stats_name
+            if not stats_path.exists():
+                continue
+            if args.dry_run:
+                log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)",
+                         stats_name, stats_path.stat().st_size / 1024)
+            else:
+                did_upload = upload_file(
+                    s3, bucket, stats_path, stats_name,
+                    force=True, cache_control=MANIFEST_CACHE,
+                )
+                if did_upload:
+                    uploaded += 1
+
         # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
         # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende
         # og kan plukkes opp av klienter med gammelt manifest i cache.

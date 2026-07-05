@@ -10,6 +10,7 @@ import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
 import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
+import { IS_REISE } from "@/lib/app-mode";
 
 type DailySummary = {
   date: string;
@@ -18,6 +19,9 @@ type DailySummary = {
   pctDelayed10plus: number | null;
   totalJourneys: number | null;
   totalCancellations: number | null;
+  // Andel av planlagte stopp-passeringer med sanntid (0–100). Måles ved
+  // ingest fra og med juli 2026 — null for eldre dager.
+  pctRealtimeCoverage?: number | null;
 };
 
 type LeaderboardLine = {
@@ -29,7 +33,10 @@ type LeaderboardLine = {
   totalDepartures: number | null;
 };
 
-const PERIOD_DAYS: Record<string, number> = { week: 7, month: 30, year: 365 };
+// Reise-bygget har 90 dagers datagrunnlag (14 uker parquet) — «År» finnes ikke.
+const PERIOD_DAYS: Record<string, number> = IS_REISE
+  ? { week: 7, month: 30, year: 90 }
+  : { week: 7, month: 30, year: 365 };
 
 /** Display name for bar chart: "60 — Fanahammeren - Lagunen" or just "Linje 60" */
 function lineLabel(l: LeaderboardLine): string {
@@ -110,6 +117,14 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-1">
               Forsinkelsesstatistikk for siste {days} dager
               {summary?.date && <span className="text-xs ml-2 opacity-70">· Sist oppdatert: {formatDateShortNO(summary.date)}</span>}
+              {summary?.pctRealtimeCoverage != null && (
+                <span
+                  className="text-xs ml-2 opacity-70"
+                  title="Andel av planlagte stopp-passeringer som rapporterte sanntid siste dag"
+                >
+                  · Sanntidsdekning: {summary.pctRealtimeCoverage.toFixed(1)} %
+                </span>
+              )}
             </p>
           </div>
 
@@ -117,7 +132,7 @@ export default function Dashboard() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="week">Uke</TabsTrigger>
               <TabsTrigger value="month">Måned</TabsTrigger>
-              <TabsTrigger value="year">År</TabsTrigger>
+              <TabsTrigger value="year">{IS_REISE ? "90 dager" : "År"}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

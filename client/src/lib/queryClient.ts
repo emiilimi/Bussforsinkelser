@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { IS_REISE } from "./app-mode";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -29,7 +30,18 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = queryKey.join("/") as string;
+
+    // Full offload (reise-bygget): analyse-endepunktene serveres fra
+    // R2-artefakter + DuckDB-WASM i stedet for Express/SQLite.
+    // `undefined` = adapteren håndterer ikke URL-en → vanlig fetch.
+    if (IS_REISE) {
+      const { statsAdapterFetch } = await import("./stats-adapter");
+      const adapted = await statsAdapterFetch(url);
+      if (adapted !== undefined) return adapted;
+    }
+
+    const res = await fetch(url, {
       credentials: "include",
     });
 

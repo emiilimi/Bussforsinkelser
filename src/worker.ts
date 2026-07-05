@@ -44,6 +44,15 @@ export default {
       if (request.method === "GET") return serviceJourneyGet(context);
     }
 
+    // Ukjente /api/-stier skal IKKE få SPA-en (200 + HTML forvirrer klienter
+    // som forventer JSON) — svar 404 eksplisitt.
+    if (path.startsWith("/api/")) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Not an API route — fall through to static assets (SPA)
     return (env as any).ASSETS.fetch(request);
   },

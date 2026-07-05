@@ -34,6 +34,10 @@ Write-Host "=== Eksporterer parquet ===" -ForegroundColor Cyan
 python pipeline/export_parquet.py
 if ($LASTEXITCODE -ne 0) { throw "export_parquet.py feilet (exit $LASTEXITCODE)" }
 
+Write-Host "=== Beregner statistikk-artefakter ===" -ForegroundColor Cyan
+python pipeline/aggregate_stats.py
+if ($LASTEXITCODE -ne 0) { throw "aggregate_stats.py feilet (exit $LASTEXITCODE)" }
+
 Write-Host "=== Laster opp til R2 ===" -ForegroundColor Cyan
 python pipeline/upload_to_r2.py
 if ($LASTEXITCODE -ne 0) { throw "upload_to_r2.py feilet (exit $LASTEXITCODE)" }

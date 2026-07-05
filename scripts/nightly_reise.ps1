@@ -32,6 +32,9 @@ try {
     python pipeline/export_parquet.py
     if ($LASTEXITCODE -ne 0) { throw "export_parquet.py feilet (exit $LASTEXITCODE)" }
 
+    python pipeline/aggregate_stats.py
+    if ($LASTEXITCODE -ne 0) { throw "aggregate_stats.py feilet (exit $LASTEXITCODE)" }
+
     python pipeline/upload_to_r2.py --prune
     if ($LASTEXITCODE -ne 0) { throw "upload_to_r2.py feilet (exit $LASTEXITCODE)" }
 
