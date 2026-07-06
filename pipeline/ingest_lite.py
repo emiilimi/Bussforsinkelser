@@ -142,6 +142,10 @@ CREATE TABLE IF NOT EXISTS coverage_daily (
     n_total     INTEGER NOT NULL,
     n_realtime  INTEGER NOT NULL,
     n_cancelled INTEGER NOT NULL DEFAULT 0,
+    -- Avgangsnivå: antall unike (ikke-avlyste) avganger i feeden, og hvor
+    -- mange av dem som IKKE rapporterte sanntid på noe stopp i det hele tatt.
+    n_journeys           INTEGER NOT NULL DEFAULT 0,
+    n_journeys_norealtime INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (date, line_ref)
 );
 """
@@ -152,11 +156,17 @@ def init_lite_db(conn: sqlite3.Connection) -> None:
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
     conn.executescript(LITE_SCHEMA)
-    # Migrering: n_cancelled kom 6. juli 2026 — legg til i eksisterende baser.
-    try:
-        conn.execute("ALTER TABLE coverage_daily ADD COLUMN n_cancelled INTEGER NOT NULL DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass  # kolonnen finnes allerede
+    # Migrering: kolonner lagt til etter at tabellen først ble opprettet
+    # (5. juli 2026) — legg til i eksisterende baser.
+    for col in (
+        "n_cancelled INTEGER NOT NULL DEFAULT 0",
+        "n_journeys INTEGER NOT NULL DEFAULT 0",
+        "n_journeys_norealtime INTEGER NOT NULL DEFAULT 0",
+    ):
+        try:
+            conn.execute(f"ALTER TABLE coverage_daily ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass  # kolonnen finnes allerede
 
 
 def upsert_coverage(conn: sqlite3.Connection, date_str: str, df) -> None:
@@ -181,42 +191,66 @@ def upsert_coverage(conn: sqlite3.Connection, date_str: str, df) -> None:
         else None
     )
 
-    # Dekning: kun ikke-avlyste passeringer
+    # Dekning: kun ikke-avlyste passeringer. Måles på to nivåer:
+    #  - rader (stopp-passeringer): n_total / n_realtime
+    #  - avganger: n_journeys totalt, n_journeys_norealtime = avganger som
+    #    ikke rapporterte sanntid på NOE stopp (helt tause i feeden)
     active = nsr[~cancelled_mask]
     per_line: dict[str, list[int]] = {}
     if not active.empty:
         has_rt = active["departureTime"].notna() | active["arrivalTime"].notna()
-        grouped = active.assign(_rt=has_rt).groupby("lineRef")["_rt"].agg(["count", "sum"])
+        act = active.assign(_rt=has_rt)
+        grouped = act.groupby("lineRef")["_rt"].agg(["count", "sum"])
         for line_ref, (total, rt) in grouped.iterrows():
-            per_line[str(line_ref)] = [int(total), int(rt), 0]
+            per_line[str(line_ref)] = [int(total), int(rt), 0, 0, 0]
+        # Avgangsnivå: har avgangen sanntid på minst ett stopp?
+        jr = (
+            act[act["serviceJourneyId"].notna()]
+            .groupby(["lineRef", "serviceJourneyId"])["_rt"]
+            .any()
+            .groupby("lineRef")
+            .agg(["count", "sum"])
+        )
+        for line_ref, (n_j, n_j_rt) in jr.iterrows():
+            entry = per_line.setdefault(str(line_ref), [0, 0, 0, 0, 0])
+            entry[3] = int(n_j)
+            entry[4] = int(n_j) - int(n_j_rt)
     if cancelled_journeys is not None:
         for line_ref, n_canc in cancelled_journeys.items():
-            entry = per_line.setdefault(str(line_ref), [0, 0, 0])
+            entry = per_line.setdefault(str(line_ref), [0, 0, 0, 0, 0])
             entry[2] = int(n_canc)
 
     if not per_line:
         return
     rows = [
-        (date_str, line_ref, v[0], v[1], v[2])
+        (date_str, line_ref, v[0], v[1], v[2], v[3], v[4])
         for line_ref, v in per_line.items()
     ]
     conn.executemany(
         """
-        INSERT INTO coverage_daily (date, line_ref, n_total, n_realtime, n_cancelled)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO coverage_daily
+            (date, line_ref, n_total, n_realtime, n_cancelled,
+             n_journeys, n_journeys_norealtime)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (date, line_ref) DO UPDATE SET
             n_total = excluded.n_total,
             n_realtime = excluded.n_realtime,
-            n_cancelled = excluded.n_cancelled
+            n_cancelled = excluded.n_cancelled,
+            n_journeys = excluded.n_journeys,
+            n_journeys_norealtime = excluded.n_journeys_norealtime
         """,
         rows,
     )
     total = sum(r[2] for r in rows)
     rt = sum(r[3] for r in rows)
     canc = sum(r[4] for r in rows)
+    no_rt_j = sum(r[6] for r in rows)
     pct = 100.0 * rt / total if total else 0.0
-    log.info("  Sanntidsdekning %s: %.1f %% (%s av %s ikke-avlyste rader, %d linjer, %d avlyste avganger)",
-             date_str, pct, f"{rt:,}", f"{total:,}", len(rows), canc)
+    log.info(
+        "  Sanntidsdekning %s: %.1f %% (%s av %s ikke-avlyste rader, %d linjer, "
+        "%d avlyste avganger, %d avganger helt uten sanntid)",
+        date_str, pct, f"{rt:,}", f"{total:,}", len(rows), canc, no_rt_j,
+    )
 
 
 def prune_old_rows(conn: sqlite3.Connection, retention_days: int) -> None:

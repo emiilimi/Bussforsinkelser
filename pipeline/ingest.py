@@ -24,7 +24,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
-import pytz
+from zoneinfo import ZoneInfo
 from google.cloud import bigquery
 
 try:
@@ -63,7 +63,10 @@ _ALL_OPERATORS = (
 OPERATORS: list[str] = [
     op.strip() for op in os.environ.get("BQ_OPERATOR", _ALL_OPERATORS).split(",") if op.strip()
 ]
-OSLO_TZ = pytz.timezone("Europe/Oslo")
+# stdlib zoneinfo i stedet for pytz: pytz åpner ~600 sonefiler ved import
+# (hang pipelinen 6. juli 2026 da noe skannet/låste site-packages);
+# zoneinfo laster kun sonen vi ber om. pandas tz_convert/astimezone tåler begge.
+OSLO_TZ = ZoneInfo("Europe/Oslo")
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),

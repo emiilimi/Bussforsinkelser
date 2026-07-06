@@ -88,6 +88,7 @@ def main() -> int:
     # ------------------------------------------------------------------
     coverage: dict[tuple, float] = {}
     cancellations: dict[tuple, int] = {}
+    silent_journeys: dict[tuple, int] = {}
     if Path(DB_PATH).exists():
         sq = sqlite3.connect(DB_PATH)
         try:
@@ -97,10 +98,13 @@ def main() -> int:
             if has_table:
                 cols = {r[1] for r in sq.execute("PRAGMA table_info(coverage_daily)")}
                 canc_expr = "SUM(n_cancelled)" if "n_cancelled" in cols else "NULL"
-                for d, op, total, rt, canc in sq.execute(f"""
+                silent_expr = (
+                    "SUM(n_journeys_norealtime)" if "n_journeys_norealtime" in cols else "NULL"
+                )
+                for d, op, total, rt, canc, silent in sq.execute(f"""
                     SELECT date,
                            substr(line_ref, 1, instr(line_ref, ':') - 1) AS operator,
-                           SUM(n_total), SUM(n_realtime), {canc_expr}
+                           SUM(n_total), SUM(n_realtime), {canc_expr}, {silent_expr}
                     FROM coverage_daily
                     GROUP BY 1, 2
                 """):
@@ -108,6 +112,8 @@ def main() -> int:
                         coverage[(d, op)] = round(100.0 * rt / total, 1)
                     if canc is not None:
                         cancellations[(d, op)] = int(canc)
+                    if silent is not None:
+                        silent_journeys[(d, op)] = int(silent)
         finally:
             sq.close()
         log.info("coverage_daily: %d (dato, operatør)-rader", len(coverage))
@@ -120,7 +126,7 @@ def main() -> int:
             date,
             split_part(line_ref, ':', 1)                    AS operator,
             ROUND(AVG({D}), 2)                              AS avg_delay,
-            ROUND(100.0 * AVG(CASE WHEN {D} BETWEEN -1 AND 3 THEN 1 ELSE 0 END), 1) AS pct_on_time,
+            ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
             ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
             COUNT(DISTINCT service_journey_id)              AS journeys,
             COUNT(*)                                        AS n
@@ -138,6 +144,8 @@ def main() -> int:
             "pctRealtimeCoverage": coverage.get((row[0], row[1])),
             # Avlyste avganger (unike) fra coverage_daily — null før 6. juli 2026
             "totalCancellations": cancellations.get((row[0], row[1])),
+            # Avganger i feeden HELT uten sanntid (ikke avlyst) — null før 6. juli 2026
+            "journeysMissingRealtime": silent_journeys.get((row[0], row[1])),
         }
         for row in daily_rows
     ]
@@ -156,7 +164,7 @@ def main() -> int:
                     {mode_expr}                              AS mode,
                     ROUND(AVG({D}), 2)                       AS avg_delay,
                     ROUND(STDDEV_SAMP({D}), 2)               AS stddev,
-                    ROUND(100.0 * AVG(CASE WHEN {D} BETWEEN -1 AND 3 THEN 1 ELSE 0 END), 1) AS pct_on_time,
+                    ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
                     ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
                     COUNT(DISTINCT service_journey_id || date) AS departures
                 FROM delays

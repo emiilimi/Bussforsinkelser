@@ -28,6 +28,8 @@ type DailyRow = {
   pctRealtimeCoverage: number | null;
   // Avlyste avganger (unike per dag/operatør) — null for dager før målingen startet
   totalCancellations?: number | null;
+  // Avganger i feeden helt uten sanntid (ikke avlyst) — null før målingen startet
+  journeysMissingRealtime?: number | null;
 };
 
 type LineRow = {
@@ -129,6 +131,7 @@ function combineDaily(rows: DailyRow[]): {
   totalJourneys: number;
   totalCancellations: number | null;
   pctRealtimeCoverage: number | null;
+  journeysMissingRealtime: number | null;
 } {
   const n = rows.reduce((a, r) => a + r.n, 0);
   const w = (pick: (r: DailyRow) => number | null): number | null => {
@@ -143,23 +146,28 @@ function combineDaily(rows: DailyRow[]): {
     }
     return wsum > 0 ? +(sum / wsum).toFixed(2) : null;
   };
-  // Avlysninger summeres der de er målt; null hvis ingen rader har måling
-  let cancSum = 0;
-  let cancSeen = false;
-  for (const r of rows) {
-    if (r.totalCancellations != null) {
-      cancSum += r.totalCancellations;
-      cancSeen = true;
+  // Tellinger summeres der de er målt; null hvis ingen rader har måling
+  const sumMeasured = (pick: (r: DailyRow) => number | null | undefined): number | null => {
+    let sum = 0;
+    let seen = false;
+    for (const r of rows) {
+      const v = pick(r);
+      if (v != null) {
+        sum += v;
+        seen = true;
+      }
     }
-  }
+    return seen ? sum : null;
+  };
   return {
     date: rows[0]?.date ?? "",
     avgDelayMin: w((r) => r.avgDelayMin),
     pctOnTime: w((r) => r.pctOnTime),
     pctDelayed10plus: w((r) => r.pctDelayed10plus),
     totalJourneys: rows.reduce((a, r) => a + r.totalJourneys, 0),
-    totalCancellations: cancSeen ? cancSum : null,
+    totalCancellations: sumMeasured((r) => r.totalCancellations),
     pctRealtimeCoverage: n > 0 ? w((r) => r.pctRealtimeCoverage) : null,
+    journeysMissingRealtime: sumMeasured((r) => r.journeysMissingRealtime),
   };
 }
 
@@ -456,7 +464,7 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
         ROUND(AVG(${D}), 2)  AS avgDelayMin,
         ROUND(MAX(${D}), 1)  AS maxDelayMin,
         ROUND(MIN(${D}), 1)  AS minDelayMin,
-        ROUND(100.0 * AVG(CASE WHEN ${D} BETWEEN -1 AND 3 THEN 1 ELSE 0 END), 1) AS pctOnTime,
+        ROUND(100.0 * AVG(CASE WHEN ${D} <= 2 THEN 1 ELSE 0 END), 1) AS pctOnTime,
         ROUND(100.0 * AVG(CASE WHEN ${D} > 10 THEN 1 ELSE 0 END), 1)             AS pctDelayed10plus,
         COUNT(DISTINCT service_journey_id) AS numDepartures,
         ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin

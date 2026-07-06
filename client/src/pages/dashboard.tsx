@@ -22,6 +22,8 @@ type DailySummary = {
   // Andel av planlagte stopp-passeringer med sanntid (0–100). Måles ved
   // ingest fra og med juli 2026 — null for eldre dager.
   pctRealtimeCoverage?: number | null;
+  // Avganger i feeden helt uten sanntid (ikke avlyst) — null før målingen startet
+  journeysMissingRealtime?: number | null;
 };
 
 type LeaderboardLine = {
@@ -120,9 +122,17 @@ export default function Dashboard() {
               {summary?.pctRealtimeCoverage != null && (
                 <span
                   className="text-xs ml-2 opacity-70"
-                  title="Andel av planlagte stopp-passeringer som rapporterte sanntid siste dag"
+                  title="Andel av ikke-avlyste stopp-passeringer i sanntids-feeden som rapporterte tid siste dag. Avlysninger telles separat."
                 >
                   · Sanntidsdekning: {summary.pctRealtimeCoverage.toFixed(1)} %
+                </span>
+              )}
+              {summary?.journeysMissingRealtime != null && (
+                <span
+                  className="text-xs ml-2 opacity-70"
+                  title="Avganger i feeden som ikke rapporterte sanntid på noe stopp (avlyste holdt utenfor)"
+                >
+                  · {summary.journeysMissingRealtime.toLocaleString("nb-NO")} avganger uten sanntid
                 </span>
               )}
             </p>

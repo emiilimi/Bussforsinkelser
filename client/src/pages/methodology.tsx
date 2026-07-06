@@ -109,7 +109,7 @@ export default function Methodology() {
               <div className="text-xs font-semibold uppercase text-muted-foreground">Operatører</div>
               <p className="text-sm">
                 {IS_REISE
-                  ? "Forsinkelsesstatistikken dekker foreløpig Skyss (Vestland) — buss og flybuss. Reisesøket dekker hele Norge via Entur."
+                  ? "Forsinkelsesstatistikken dekker de aller fleste norske operatører med sanntid i SIRI ET-feeden (19 stk — Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg operatør i sidemenyen. Reisesøket dekker hele Norge via Entur."
                   : "19 operatører over hele Norge (Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg i sidemenyen."}
               </p>
             </div>
@@ -137,8 +137,10 @@ export default function Methodology() {
             </Term>
 
             <Term name="Andel i rute (%)">
-              Andel avganger som var mellom <em>1 minutt tidlig</em> og <em>3 minutter sen</em>.
-              Dette er en vanlig definisjon i kollektivbransjen for "punktlig".
+              Andel stopp-passeringer med <em>høyst 2 minutter forsinkelse</em>. Tidlige
+              passeringer regnes også som i rute i dette målet. Beregnes per
+              stopp-passering (ikke per avgang) — en avgang som er sen på 3 av 30 stopp
+              bidrar med 90 % i rute.
             </Term>
 
             <Term name="Andel mer enn 2/5/10 min sen">
@@ -225,9 +227,10 @@ export default function Methodology() {
             </h3>
             <p className="text-muted-foreground leading-relaxed">
               <strong>Dwell time</strong> er hvor lenge bussen står stille på et stoppested —
-              fra den åpner dørene til den kjører videre. Vi måler dette i sekunder. Et høyt
-              dwell time på et bestemt stopp kan tyde på mange påstigninger (rushtid, populært
-              knutepunkt) eller infrastruktur som bremser flyten (smal vei, billettering).
+              fra den ankommer til den kjører videre. Vi måler dette i sekunder. Et høyt
+              dwell time kan bety to ganske ulike ting: mange på- og avstigninger (rushtid,
+              populært knutepunkt), eller at bussen ligger <em>foran</em> ruten sin og venter
+              på planlagt avgangstid (regulering). Tallet skiller ikke mellom de to.
             </p>
           </div>
 
@@ -243,7 +246,6 @@ export default function Methodology() {
               <li><strong>Lørdag</strong></li>
               <li><strong>Søndag</strong></li>
               <li><strong>Helligdag</strong> — norske offentlige helligdager (1. mai, 17. mai, jul, påske, m.fl.)</li>
-              <li><strong>17. mai</strong> — egen kategori pga. parade og kraftig avvikende rutemønster</li>
             </ul>
             <p className="text-sm text-muted-foreground">
               Når du ser statistikk på en avgang, beregnes den fra historiske dager med samme
@@ -371,10 +373,12 @@ export default function Methodology() {
           <div id="punktlighet" className="scroll-mt-8 space-y-3 pt-2">
             <h3 className="text-lg font-semibold">Definisjonen av "punktlig"</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Vi regner en avgang som <strong>punktlig</strong> hvis den er mellom 1 minutt
-              tidlig (-1) og 3 minutter sen (+3). Dette er den vanligste definisjonen i
-              kollektivbransjen, men ikke universell — noen operatører bruker andre vinduer
-              (f.eks. -1 til +5).
+              Vi regner en stopp-passering som <strong>punktlig</strong> når forsinkelsen er{" "}
+              <strong>høyst 2 minutter</strong> (avgangstid der den finnes, ellers ankomsttid).
+              Tidlige passeringer regnes som i rute i dette målet. Bransjen har ingen
+              universell definisjon — mange operatører bruker vinduer som -1 til +3 eller
+              -1 til +5 minutter og teller per avgang; våre tall er derfor ikke direkte
+              sammenliknbare med operatørenes egne punktlighetsrapporter.
             </p>
           </div>
         </section>
@@ -518,8 +522,16 @@ export default function Methodology() {
             <h3 className="text-lg font-semibold">Kildekode og kontakt</h3>
             <p className="text-muted-foreground leading-relaxed text-sm">
               Dette er et personlig prosjekt under aktiv utvikling. Spørsmål, tilbakemeldinger
-              eller forslag mottas gjerne — kontakt prosjekteier via Entur-data-fellesskapet
-              eller direkte hvis du kjenner til personen bak.
+              eller forslag mottas gjerne — kontakt:{" "}
+              <a
+                href="https://emoldestad.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                emoldestad.no
+              </a>
+              .
             </p>
           </div>
         </section>
@@ -532,10 +544,12 @@ export default function Methodology() {
           </div>
 
           <div className="space-y-3 text-sm text-muted-foreground">
-            <Limitation title="Kun buss og flybuss har forsinkelsesdata">
-              Skyss' SIRI ET-feed dekker buss og flybuss (coach). Trikk, T-bane, tog og båt er
-              forberedt i databasen, men inneholder per dags dato ingen sanntidsobservasjoner.
-              Dette kan endre seg etter hvert som flere operatører deler sanntidsdata.
+            <Limitation title="Dekningen varierer per operatør og transportmiddel">
+              Vi har sanntidsdata fra de aller fleste norske operatører i SIRI ET-feeden,
+              men hvor komplett rapporteringen er varierer — per operatør, transportmiddel
+              og linje. Sanntidsdekningen på oversikten viser dette per dag. Statistikk for
+              kombinasjoner med tynn rapportering bygger på færre observasjoner (antall
+              vises alltid).
             </Limitation>
 
             <Limitation title="Ikke alle avganger rapporteres">
