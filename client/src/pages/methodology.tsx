@@ -482,6 +482,23 @@ export default function Methodology() {
             </ul>
           </div>
 
+          {IS_REISE && (
+            <div className="space-y-3 pt-2">
+              <h3 className="text-lg font-semibold">Sanntidsdekning</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Dekningsprosenten på oversikten måles ved innhenting: av alle
+                (avgang, stopp)-passeringer i Enturs SIRI ET-feed for dagen, hvor stor andel
+                hadde faktisk rapportert tid. <strong>Viktig forbehold:</strong> nevneren er
+                passeringer som finnes i sanntids-feeden — en buss som aldri sender noe som
+                helst, er usynlig også i nevneren. Tallet er dermed et{" "}
+                <em>øvre estimat</em>: «av det som ble rapportert inn, hvor mye hadde
+                tidsdata». Full dekning mot ruteplanen ville krevd sammenlikning med
+                planlagte rutetider (NeTEx), som ikke gjøres i dag. Målingen startet
+                5. juli 2026 — eldre dager har ingen dekningsverdi.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-3 pt-2">
             <h3 className="text-lg font-semibold">Klient-side persentiler (DuckDB-WASM)</h3>
             <p className="text-muted-foreground leading-relaxed text-sm">
