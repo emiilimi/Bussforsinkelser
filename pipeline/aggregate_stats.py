@@ -87,6 +87,7 @@ def main() -> int:
     # målt ved ingest (kan ikke utledes fra parquet, som kun har sanntidsrader).
     # ------------------------------------------------------------------
     coverage: dict[tuple, float] = {}
+    cancellations: dict[tuple, int] = {}
     if Path(DB_PATH).exists():
         sq = sqlite3.connect(DB_PATH)
         try:
@@ -94,15 +95,19 @@ def main() -> int:
                 "SELECT 1 FROM sqlite_master WHERE type='table' AND name='coverage_daily'"
             ).fetchone()
             if has_table:
-                for d, op, total, rt in sq.execute("""
+                cols = {r[1] for r in sq.execute("PRAGMA table_info(coverage_daily)")}
+                canc_expr = "SUM(n_cancelled)" if "n_cancelled" in cols else "NULL"
+                for d, op, total, rt, canc in sq.execute(f"""
                     SELECT date,
                            substr(line_ref, 1, instr(line_ref, ':') - 1) AS operator,
-                           SUM(n_total), SUM(n_realtime)
+                           SUM(n_total), SUM(n_realtime), {canc_expr}
                     FROM coverage_daily
                     GROUP BY 1, 2
                 """):
                     if total:
                         coverage[(d, op)] = round(100.0 * rt / total, 1)
+                    if canc is not None:
+                        cancellations[(d, op)] = int(canc)
         finally:
             sq.close()
         log.info("coverage_daily: %d (dato, operatør)-rader", len(coverage))
@@ -131,6 +136,8 @@ def main() -> int:
             "pctDelayed10plus": r(row[4], 1),
             "totalJourneys": int(row[5]), "n": int(row[6]),
             "pctRealtimeCoverage": coverage.get((row[0], row[1])),
+            # Avlyste avganger (unike) fra coverage_daily — null før 6. juli 2026
+            "totalCancellations": cancellations.get((row[0], row[1])),
         }
         for row in daily_rows
     ]

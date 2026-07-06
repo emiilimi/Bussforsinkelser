@@ -488,13 +488,16 @@ export default function Methodology() {
               <p className="text-muted-foreground leading-relaxed text-sm">
                 Dekningsprosenten på oversikten måles ved innhenting: av alle
                 (avgang, stopp)-passeringer i Enturs SIRI ET-feed for dagen, hvor stor andel
-                hadde faktisk rapportert tid. <strong>Viktig forbehold:</strong> nevneren er
+                hadde faktisk rapportert tid. <strong>Avlyste avganger holdes utenfor</strong>{" "}
+                dekningsmålet — en avlyst buss har naturlig nok ingen sanntid, og det er ikke
+                «manglende data». Avlysninger telles i stedet separat (som unike avganger)
+                og vises i egne kolonner. <strong>Viktig forbehold:</strong> nevneren er
                 passeringer som finnes i sanntids-feeden — en buss som aldri sender noe som
                 helst, er usynlig også i nevneren. Tallet er dermed et{" "}
                 <em>øvre estimat</em>: «av det som ble rapportert inn, hvor mye hadde
                 tidsdata». Full dekning mot ruteplanen ville krevd sammenlikning med
-                planlagte rutetider (NeTEx), som ikke gjøres i dag. Målingen startet
-                5. juli 2026 — eldre dager har ingen dekningsverdi.
+                planlagte rutetider (NeTEx), som ikke gjøres i dag. Dekning måles fra
+                5. juli 2026 og avlysninger fra 6. juli 2026 — eldre dager har ingen verdi.
               </p>
             </div>
           )}

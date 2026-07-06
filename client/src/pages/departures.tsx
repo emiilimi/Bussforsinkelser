@@ -377,10 +377,12 @@ export default function Departures() {
 
   // Departures from Entur (1-minute server cache + 60s client refresh).
   // Ved valgt tidspunkt (startIso) er vinduet fast — ingen auto-refresh.
+  // view=arrivals gir også avganger som KUN ankommer stoppet (endeholdeplass) —
+  // uten den er «Ankomster» bare avgangslisten med ankomsttider.
   const { data: depResp, isLoading: depLoading, isError: depError, error: depErr } =
     useQuery<DeparturesResponse>({
       queryKey: [
-        `/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}${startIso ? `&startTime=${encodeURIComponent(startIso)}` : ""}`,
+        `/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}${startIso ? `&startTime=${encodeURIComponent(startIso)}` : ""}${mode === "arrival" ? "&view=arrivals" : ""}`,
       ],
       enabled: stopRef != null,
       refetchInterval: startIso ? false : 60_000,

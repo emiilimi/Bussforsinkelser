@@ -855,9 +855,13 @@ export async function registerRoutes(
       startTimeRaw && !Number.isNaN(Date.parse(startTimeRaw))
         ? new Date(startTimeRaw).toISOString()
         : null;
+    // view=arrivals inkluderer avganger som KUN ankommer (endeholdeplass).
+    // Whitelist — interpoleres i GraphQL-dokumentet.
+    const viewRaw = typeof req.query.view === "string" ? req.query.view : null;
+    const view = viewRaw === "arrivals" || viewRaw === "both" ? viewRaw : "departures";
 
     const bucket = Math.floor(Date.now() / DEP_CACHE_TTL_MS);
-    const cacheKey = `${stopPlaceRef}|${minutes}|${limit}|${startTime ?? ""}|${bucket}`;
+    const cacheKey = `${stopPlaceRef}|${minutes}|${limit}|${startTime ?? ""}|${view}|${bucket}`;
     const cached = depCache.get(cacheKey);
     if (cached && Date.now() < cached.expiry) {
       return res.json(cached.data);
@@ -872,7 +876,7 @@ export async function registerRoutes(
         ${rootSelector}(id: $id) {
           id
           name
-          estimatedCalls(${startArg}timeRange: $range, numberOfDepartures: $n) {
+          estimatedCalls(${startArg}arrivalDeparture: ${view}, timeRange: $range, numberOfDepartures: $n) {
             aimedDepartureTime
             expectedDepartureTime
             aimedArrivalTime

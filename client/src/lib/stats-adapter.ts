@@ -26,6 +26,8 @@ type DailyRow = {
   totalJourneys: number;
   n: number;
   pctRealtimeCoverage: number | null;
+  // Avlyste avganger (unike per dag/operatør) — null for dager før målingen startet
+  totalCancellations?: number | null;
 };
 
 type LineRow = {
@@ -125,7 +127,7 @@ function combineDaily(rows: DailyRow[]): {
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
   totalJourneys: number;
-  totalCancellations: null;
+  totalCancellations: number | null;
   pctRealtimeCoverage: number | null;
 } {
   const n = rows.reduce((a, r) => a + r.n, 0);
@@ -141,13 +143,22 @@ function combineDaily(rows: DailyRow[]): {
     }
     return wsum > 0 ? +(sum / wsum).toFixed(2) : null;
   };
+  // Avlysninger summeres der de er målt; null hvis ingen rader har måling
+  let cancSum = 0;
+  let cancSeen = false;
+  for (const r of rows) {
+    if (r.totalCancellations != null) {
+      cancSum += r.totalCancellations;
+      cancSeen = true;
+    }
+  }
   return {
     date: rows[0]?.date ?? "",
     avgDelayMin: w((r) => r.avgDelayMin),
     pctOnTime: w((r) => r.pctOnTime),
     pctDelayed10plus: w((r) => r.pctDelayed10plus),
     totalJourneys: rows.reduce((a, r) => a + r.totalJourneys, 0),
-    totalCancellations: null,
+    totalCancellations: cancSeen ? cancSum : null,
     pctRealtimeCoverage: n > 0 ? w((r) => r.pctRealtimeCoverage) : null,
   };
 }

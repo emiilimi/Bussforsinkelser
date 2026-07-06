@@ -132,11 +132,16 @@ CREATE TABLE IF NOT EXISTS stop_coords (
 -- inneholder KUN sanntidsobserverte rader, så dekningen MÅ måles her ved
 -- ingest — den kan ikke utledes i etterkant. Tabellen er bitteliten
 -- (~1500 rader/dag) og prunes IKKE.
+--
+-- VIKTIG skille: avlyste avganger er IKKE «manglende sanntid» — de gikk aldri.
+-- n_total/n_realtime gjelder kun ikke-avlyste passeringer; avlysninger telles
+-- separat som antall unike avganger (n_cancelled).
 CREATE TABLE IF NOT EXISTS coverage_daily (
     date        TEXT NOT NULL,
     line_ref    TEXT NOT NULL,
     n_total     INTEGER NOT NULL,
     n_realtime  INTEGER NOT NULL,
+    n_cancelled INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (date, line_ref)
 );
 """
@@ -147,37 +152,71 @@ def init_lite_db(conn: sqlite3.Connection) -> None:
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
     conn.executescript(LITE_SCHEMA)
+    # Migrering: n_cancelled kom 6. juli 2026 — legg til i eksisterende baser.
+    try:
+        conn.execute("ALTER TABLE coverage_daily ADD COLUMN n_cancelled INTEGER NOT NULL DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # kolonnen finnes allerede
 
 
 def upsert_coverage(conn: sqlite3.Connection, date_str: str, df) -> None:
     """Mål sanntidsdekning per linje FØR filtrering, og upsert til coverage_daily.
 
     Basis: rader med NSR-stopp (samme populasjon som lagres videre).
+    Avlyste avganger holdes UTENFOR dekningsmålet (de gikk aldri, så manglende
+    sanntid er forventet) og telles i stedet separat som unike avganger.
     Sanntid = departureTime eller arrivalTime satt."""
     nsr = df[df["stopPointRef"].astype(str).str.startswith("NSR:", na=False)]
     if nsr.empty:
         return
-    has_rt = nsr["departureTime"].notna() | nsr["arrivalTime"].notna()
-    grouped = nsr.assign(_rt=has_rt).groupby("lineRef")["_rt"].agg(["count", "sum"])
+
+    cancelled_mask = nsr["journeyCancellation"].fillna(False).astype(bool)
+
+    # Avlysninger: unike avganger per linje
+    cancelled_journeys = (
+        nsr[cancelled_mask]
+        .groupby("lineRef")["serviceJourneyId"]
+        .nunique()
+        if cancelled_mask.any()
+        else None
+    )
+
+    # Dekning: kun ikke-avlyste passeringer
+    active = nsr[~cancelled_mask]
+    per_line: dict[str, list[int]] = {}
+    if not active.empty:
+        has_rt = active["departureTime"].notna() | active["arrivalTime"].notna()
+        grouped = active.assign(_rt=has_rt).groupby("lineRef")["_rt"].agg(["count", "sum"])
+        for line_ref, (total, rt) in grouped.iterrows():
+            per_line[str(line_ref)] = [int(total), int(rt), 0]
+    if cancelled_journeys is not None:
+        for line_ref, n_canc in cancelled_journeys.items():
+            entry = per_line.setdefault(str(line_ref), [0, 0, 0])
+            entry[2] = int(n_canc)
+
+    if not per_line:
+        return
     rows = [
-        (date_str, str(line_ref), int(total), int(rt))
-        for line_ref, (total, rt) in grouped.iterrows()
+        (date_str, line_ref, v[0], v[1], v[2])
+        for line_ref, v in per_line.items()
     ]
     conn.executemany(
         """
-        INSERT INTO coverage_daily (date, line_ref, n_total, n_realtime)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO coverage_daily (date, line_ref, n_total, n_realtime, n_cancelled)
+        VALUES (?, ?, ?, ?, ?)
         ON CONFLICT (date, line_ref) DO UPDATE SET
             n_total = excluded.n_total,
-            n_realtime = excluded.n_realtime
+            n_realtime = excluded.n_realtime,
+            n_cancelled = excluded.n_cancelled
         """,
         rows,
     )
     total = sum(r[2] for r in rows)
     rt = sum(r[3] for r in rows)
+    canc = sum(r[4] for r in rows)
     pct = 100.0 * rt / total if total else 0.0
-    log.info("  Sanntidsdekning %s: %.1f %% (%s av %s rader, %d linjer)",
-             date_str, pct, f"{rt:,}", f"{total:,}", len(rows))
+    log.info("  Sanntidsdekning %s: %.1f %% (%s av %s ikke-avlyste rader, %d linjer, %d avlyste avganger)",
+             date_str, pct, f"{rt:,}", f"{total:,}", len(rows), canc)
 
 
 def prune_old_rows(conn: sqlite3.Connection, retention_days: int) -> None:

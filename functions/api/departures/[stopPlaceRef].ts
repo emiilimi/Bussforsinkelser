@@ -30,10 +30,16 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
     startTimeRaw && !Number.isNaN(Date.parse(startTimeRaw))
       ? new Date(startTimeRaw).toISOString()
       : null;
+  // view: avganger (default) eller ankomster. Uten arrivalDeparture: arrivals
+  // utelater Entur avganger som KUN ankommer stoppet (endeholdeplass) — da
+  // ville «Ankomster» bare vært avgangslisten med andre tidsstempler.
+  // Whitelist — verdien interpoleres i GraphQL-dokumentet.
+  const viewRaw = url.searchParams.get("view");
+  const view = viewRaw === "arrivals" || viewRaw === "both" ? viewRaw : "departures";
 
   const cache = defaultCache();
   const cacheKey = new Request(
-    `https://cache.internal/departures/${encodeURIComponent(stopPlaceRef)}?minutes=${minutes}&limit=${limit}&start=${startTime ?? ""}`,
+    `https://cache.internal/departures/${encodeURIComponent(stopPlaceRef)}?minutes=${minutes}&limit=${limit}&start=${startTime ?? ""}&view=${view}`,
     { method: "GET" },
   );
   const hit = await cache.match(cacheKey);
@@ -48,7 +54,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       ${rootSelector}(id: $id) {
         id
         name
-        estimatedCalls(${startArg}timeRange: $range, numberOfDepartures: $n) {
+        estimatedCalls(${startArg}arrivalDeparture: ${view}, timeRange: $range, numberOfDepartures: $n) {
           aimedDepartureTime
           expectedDepartureTime
           aimedArrivalTime
