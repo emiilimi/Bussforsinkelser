@@ -11,15 +11,20 @@
 #
 # Logger til logs/reise-YYYY-MM-DD.log
 #
-# Hvert steg har en hard tidsgrense (se Invoke-PythonStep): hvis noe henger
-# uoppdaget (skjedde 6.-7. juli 2026 - to separate hendelser, en etter at PC-en
-# sov midt i kjoringen og en uten kjent arsak), feiler jobben tydelig innen
-# fristen i stedet for a sta stille i timevis. Bruker en manuell poll-lokke
-# (HasExited + Get-Date) i stedet for $proc.WaitForExit(timeout) - sistnevnte
-# viste seg upalitelig i praksis (fristen pa 90 min ble ikke respektert 7. juli).
-# Output fra det kjorende steget strommes til transcript-loggen underveis
-# (ikke bare ved slutt), sa et fremtidig heng viser SISTE linje steget
-# rakk a skrive, ikke bare stillhet.
+# Hvert steg har en hard tidsgrense (se Invoke-PythonStep). Bakgrunn (6.-7.
+# juli 2026, tre separate hendelser samme uke):
+#  1. PC-en sov midt i en kjoring -> prosessen hang uoppdaget i 16+ timer.
+#  2. Et forsok pa a legge til en enkel watchdog (Start-Process -PassThru +
+#     $proc.WaitForExit(millisekunder)) viste seg upalitelig - fristen ble
+#     ikke respektert i praksis.
+#  3. En pol-lokke-variant fungerte for a drepe hengte prosesser, MEN brukte
+#     en parameter kalt "$Args" (kolliderer med PowerShells reserverte
+#     automatiske $args-variabel -> et eksplisitt datoargument ble stille
+#     droppet), OG leste $proc.ExitCode rett etter HasExited ble true, som
+#     kan vaere usynkronisert (ekte suksess ble rapportert som feil).
+# Losningen na bruker System.Diagnostics.Process direkte (ikke Start-Process-
+# cmdleten) - bade argument-videreforing og ExitCode er verifisert palitelige
+# med denne fremgangsmaten (se commit-historikk for testene som bekreftet det).
 # =============================================================================
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -33,43 +38,46 @@ $env:R2_ENV_FILE   = "r2.reise.env"
 function Invoke-PythonStep {
     param(
         [string]$ScriptPath,
-        [string[]]$Args = @(),
+        [string[]]$ExtraArgs = @(),
         [int]$TimeoutMinutes
     )
-    $stdout = [System.IO.Path]::GetTempFileName()
-    $stderr = [System.IO.Path]::GetTempFileName()
-    $linesShown = 0
-    try {
-        $proc = Start-Process -FilePath "python" -ArgumentList (@($ScriptPath) + $Args) `
-            -NoNewWindow -PassThru `
-            -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+    $allArgs = @($ScriptPath) + $ExtraArgs
+    # Manuell quoting: ProcessStartInfo.Arguments er en enkel streng (ikke en
+    # liste) i .NET Framework/Windows PowerShell 5.1 - ArgumentList-samlingen
+    # er ikke initialisert der.
+    $quoted = ($allArgs | ForEach-Object { '"' + ($_ -replace '"', '\"') + '"' }) -join ' '
 
-        $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
-        while (-not $proc.HasExited) {
-            # Strøm nye linjer fortløpende (ikke bare ved slutt) slik at et
-            # fremtidig heng viser hvor langt steget kom, ikke bare stillhet.
-            $all = @(Get-Content $stdout, $stderr -ErrorAction SilentlyContinue)
-            if ($all.Count -gt $linesShown) {
-                $all[$linesShown..($all.Count - 1)] | Write-Host
-                $linesShown = $all.Count
-            }
-            if ((Get-Date) -gt $deadline) {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                throw "$ScriptPath hang lenger enn $TimeoutMinutes min (drept). Sjekk siste linje over og om PC-en sov/ble avbrutt midt i kjoringen."
-            }
-            Start-Sleep -Seconds 15
-        }
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = "python"
+    $psi.Arguments = $quoted
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
 
-        $all = @(Get-Content $stdout, $stderr -ErrorAction SilentlyContinue)
-        if ($all.Count -gt $linesShown) {
-            $all[$linesShown..($all.Count - 1)] | Write-Host
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
+    $killed = $false
+    while (-not $proc.HasExited) {
+        if ((Get-Date) -gt $deadline) {
+            $proc.Kill()
+            $killed = $true
+            break
         }
-        if ($proc.ExitCode -ne 0) {
-            throw "$ScriptPath feilet (exit $($proc.ExitCode))"
-        }
+        Start-Sleep -Seconds 15
     }
-    finally {
-        Remove-Item $stdout, $stderr -ErrorAction SilentlyContinue
+
+    # ReadToEnd() blokkerer til strømmen er lukket (dvs. til prosessen er
+    # avsluttet/drept) - trygt å kalle her i begge tilfeller.
+    $stdout = $proc.StandardOutput.ReadToEnd()
+    $stderr = $proc.StandardError.ReadToEnd()
+    if ($stdout) { Write-Host $stdout }
+    if ($stderr) { Write-Host $stderr }
+
+    if ($killed) {
+        throw "$ScriptPath hang lenger enn $TimeoutMinutes min (drept). Sjekk output over og om PC-en sov/ble avbrutt midt i kjøringen."
+    }
+    if ($proc.ExitCode -ne 0) {
+        throw "$ScriptPath feilet (exit $($proc.ExitCode))"
     }
 }
 
@@ -84,7 +92,7 @@ try {
     Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90
     Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30
     Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 15
-    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -Args @("--prune") -TimeoutMinutes 20
+    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20
 
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }
