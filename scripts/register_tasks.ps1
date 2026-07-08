@@ -8,6 +8,14 @@
 # Jobbene kjorer som deg, kun nar du er logget inn. Var PC-en av/i dvale
 # kl. 06:30, kjores jobben sa snart den far sjansen (StartWhenAvailable).
 #
+# VIKTIG (8. juli 2026): Windows' DEFAULT-innstillinger
+# DisallowStartIfOnBatteries/StopIfGoingOnBatteries er True med mindre man
+# eksplisitt overstyrer dem - forste versjon av dette skriptet gjorde ikke
+# det, sa 06:30-triggeren 8. juli ble stille hoppet over fordi PC-en gikk
+# pa batteri (NumberOfMissedRuns viste 1, ingen loggfil ble skrevet).
+# StartWhenAvailable fanger KUN opp trigre som ble misset fordi PC-en var
+# av/i dvale - ikke trigre som ble hoppet over pga. batteri-betingelsen.
+#
 # Endre tidspunkt:   Task Scheduler-appen -> oppgaven -> Triggers -> Edit
 # Slett:             Unregister-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'
 # Aktiver full-jobb: Enable-ScheduledTask -TaskName 'Bussforsinkelser Full nightly'
@@ -19,7 +27,9 @@ $repo = Split-Path $PSScriptRoot -Parent
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Hours 3) `
-    -MultipleInstances IgnoreNew
+    -MultipleInstances IgnoreNew `
+    -DontStopIfGoingOnBatteries `
+    -AllowStartIfOnBatteries
 
 function Register-PipelineTask {
     param([string]$Name, [string]$Script, [string]$At, [bool]$Enabled)
