@@ -494,6 +494,15 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
 
     Rolling 90-day window: rows older than 90 days are pruned automatically.
     Zero extra BQ cost: all values already computed by compute_delays().
+
+    VEKTORISERT (8. juli 2026): brukte tidligere en Python for-loop over
+    groupby-objektet med per-gruppe astimezone()/strftime()/mean()-kall.
+    For store hverdagsdatasett (1,2–1,3 mill. rader — langt flere unike
+    (avgang, linje, retning, stopp, modus)-grupper enn i helgedata) tok
+    dette over 90 minutter og hang uten fremgang (se logs/reise-2026-07-08.log:
+    ingest for 2026-07-07 kom aldri forbi dette steget). Pandas'
+    groupby().agg() gjør nøyaktig samme aggregering vektorisert i C i stedet
+    for i en Python-løkke, og skalerer riktig med datamengden.
     """
     act = active_rows(df)
     if act.empty:
@@ -507,50 +516,52 @@ def upsert_journey_stop_daily(conn: sqlite3.Connection, date_str: str, df: pd.Da
     if act.empty:
         return
 
-    rows = []
-    for (journey_id, line_ref, direction_ref, stop_ref, vehicle_mode), grp in act.groupby(
-        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef", "vehicleMode"]
-    ):
-        stop_seq = int(grp["sequenceNr"].iloc[0])
+    # Forhåndsberegn per-rad-kolonner (vektorisert) slik at selve
+    # groupby().agg()-kallet under blir en ren C-operasjon uten Python-løkke.
+    act["_aimed_arrival_str"] = act["aimed_arr_ts"].dt.tz_convert(OSLO_TZ).dt.strftime("%H:%M")
+    act["_aimed_departure_str"] = act["aimed_dep_ts"].dt.tz_convert(OSLO_TZ).dt.strftime("%H:%M")
+    dwell = act["dwell_time_sec"]
+    act["_dwell_bounded"] = dwell.where((dwell >= 0) & (dwell <= 600))
 
-        aimed_arr_ts = grp["aimed_arr_ts"].dropna()
-        aimed_arrival = (
-            aimed_arr_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
-            if not aimed_arr_ts.empty else None
-        )
+    grouped = act.groupby(
+        ["serviceJourneyId", "lineRef", "directionRef", "stopPointRef", "vehicleMode"],
+        sort=False,
+    ).agg(
+        stop_sequence=("sequenceNr", "first"),
+        # .first()/.mean() hopper naturlig over NaN/None — samme oppførsel
+        # som de manuelle .dropna()-kallene i den gamle løkken.
+        aimed_arrival=("_aimed_arrival_str", "first"),
+        aimed_departure=("_aimed_departure_str", "first"),
+        delay_arrival_min=("delay_arrival_min", "mean"),
+        delay_departure_min=("delay_departure_min", "mean"),
+        dwell_time_sec=("_dwell_bounded", "mean"),
+    ).reset_index()
 
-        aimed_dep_ts = grp["aimed_dep_ts"].dropna()
-        aimed_departure = (
-            aimed_dep_ts.iloc[0].astimezone(OSLO_TZ).strftime("%H:%M")
-            if not aimed_dep_ts.empty else None
-        )
+    grouped["delay_arrival_min"] = grouped["delay_arrival_min"].round(2)
+    grouped["delay_departure_min"] = grouped["delay_departure_min"].round(2)
+    grouped["dwell_time_sec"] = grouped["dwell_time_sec"].round(1)
 
-        # Mean across multiple observations for the same journey+stop in one day
-        arr_delays = grp["delay_arrival_min"].dropna()
-        delay_arrival = round(float(arr_delays.mean()), 2) if not arr_delays.empty else None
+    # NaN -> None (sqlite3 setter ikke NULL for NaN-flyttall automatisk)
+    grouped = grouped.astype(object).where(pd.notnull(grouped), None)
 
-        dep_delays = grp["delay_departure_min"].dropna()
-        delay_departure = round(float(dep_delays.mean()), 2) if not dep_delays.empty else None
-
-        dwell = grp["dwell_time_sec"].dropna()
-        dwell = dwell[(dwell >= 0) & (dwell <= 600)]
-        dwell_sec = round(float(dwell.mean()), 1) if not dwell.empty else None
-
-        rows.append((
+    rows = [
+        (
             date_str,
-            str(journey_id),
-            str(line_ref),
-            str(direction_ref),
-            str(stop_ref),
-            stop_seq,
-            aimed_arrival,
-            aimed_departure,
-            str(vehicle_mode),
+            str(r.serviceJourneyId),
+            str(r.lineRef),
+            str(r.directionRef),
+            str(r.stopPointRef),
+            int(r.stop_sequence),
+            r.aimed_arrival,
+            r.aimed_departure,
+            str(r.vehicleMode),
             day_type,
-            delay_arrival,
-            delay_departure,
-            dwell_sec,
-        ))
+            r.delay_arrival_min,
+            r.delay_departure_min,
+            r.dwell_time_sec,
+        )
+        for r in grouped.itertuples(index=False)
+    ]
 
     conn.executemany(
         """
