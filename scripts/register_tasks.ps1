@@ -8,13 +8,25 @@
 # Jobbene kjorer som deg, kun nar du er logget inn. Var PC-en av/i dvale
 # kl. 06:30, kjores jobben sa snart den far sjansen (StartWhenAvailable).
 #
-# VIKTIG (8. juli 2026): Windows' DEFAULT-innstillinger
-# DisallowStartIfOnBatteries/StopIfGoingOnBatteries er True med mindre man
-# eksplisitt overstyrer dem - forste versjon av dette skriptet gjorde ikke
-# det, sa 06:30-triggeren 8. juli ble stille hoppet over fordi PC-en gikk
-# pa batteri (NumberOfMissedRuns viste 1, ingen loggfil ble skrevet).
-# StartWhenAvailable fanger KUN opp trigre som ble misset fordi PC-en var
-# av/i dvale - ikke trigre som ble hoppet over pga. batteri-betingelsen.
+# VIKTIG (8.-9. juli 2026): to separate feil funnet i denne oppgaven etter
+# at 06:30-triggeren ble stille hoppet over flere dager pa rad (ingen
+# loggfil skrevet, ingen feilmelding a se noe sted):
+#
+# 1. Windows' DEFAULT-innstillinger DisallowStartIfOnBatteries/
+#    StopIfGoingOnBatteries er True med mindre man eksplisitt overstyrer
+#    dem - forste versjon av dette skriptet gjorde ikke det. Rettet med
+#    -DontStopIfGoingOnBatteries + -AllowStartIfOnBatteries under.
+#
+# 2. Selv etter fiks 1 fortsatte triggeren a bli misset. Prinsipalen var
+#    satt til LogonType=Interactive (default nar man registrerer en
+#    oppgave uten a spesifisere annet) - en slik oppgave kjorer KUN nar
+#    brukeren har en aktiv, interaktiv skrivebordsokt. Er PC-en last
+#    (ikke nodvendigvis av/i dvale - bare last skjerm) eller ved
+#    innloggingsskjermen kl. 06:30, telles ikke det som "tilgjengelig"
+#    for StartWhenAvailable pa samme mate som av/dvale gjor.
+#    Rettet ved a bruke LogonType=S4U (kjorer i bakgrunnen uten lagret
+#    passord og uten a kreve en aktiv interaktiv okt - Microsofts
+#    anbefalte fremgangsmate for nettopp denne typen ubevoktede jobber).
 #
 # Endre tidspunkt:   Task Scheduler-appen -> oppgaven -> Triggers -> Edit
 # Slett:             Unregister-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'
@@ -31,6 +43,8 @@ $settings = New-ScheduledTaskSettingsSet `
     -DontStopIfGoingOnBatteries `
     -AllowStartIfOnBatteries
 
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType S4U -RunLevel Limited
+
 function Register-PipelineTask {
     param([string]$Name, [string]$Script, [string]$At, [bool]$Enabled)
     $action = New-ScheduledTaskAction -Execute "powershell.exe" `
@@ -38,7 +52,7 @@ function Register-PipelineTask {
         -WorkingDirectory $repo
     $trigger = New-ScheduledTaskTrigger -Daily -At $At
     Register-ScheduledTask -TaskName $Name -Action $action -Trigger $trigger `
-        -Settings $settings -Force | Out-Null
+        -Settings $settings -Principal $principal -Force | Out-Null
     if (-not $Enabled) { Disable-ScheduledTask -TaskName $Name | Out-Null }
     $state = if ($Enabled) { "AKTIV" } else { "deaktivert" }
     Write-Host ("  [OK] {0}  ({1} daglig, {2})" -f $Name, $At, $state)
