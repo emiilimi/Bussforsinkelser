@@ -121,18 +121,32 @@ export default function DelayMap() {
     [stops],
   );
 
+  // Ved lav zoom kan viewporten inneholde titusenvis av stopp — hver markør
+  // er en React-komponent med event handlers, og det knekker mobiler. Cap:
+  // vis de N travleste (flest avganger); zoom inn for å se resten.
+  const MAX_MARKERS = 1500;
+
   // Filter to only stops in the current viewport (with a small padding)
-  const visibleStops = useMemo(() => {
-    if (!bounds) return mappableStops;
-    const padLat = (bounds.getNorth() - bounds.getSouth()) * 0.1;
-    const padLng = (bounds.getEast() - bounds.getWest()) * 0.1;
-    const south = bounds.getSouth() - padLat;
-    const north = bounds.getNorth() + padLat;
-    const west = bounds.getWest() - padLng;
-    const east = bounds.getEast() + padLng;
-    return mappableStops.filter(
-      (s) => s.lat! >= south && s.lat! <= north && s.lng! >= west && s.lng! <= east,
-    );
+  const { visibleStops, capped } = useMemo(() => {
+    let inView = mappableStops;
+    if (bounds) {
+      const padLat = (bounds.getNorth() - bounds.getSouth()) * 0.1;
+      const padLng = (bounds.getEast() - bounds.getWest()) * 0.1;
+      const south = bounds.getSouth() - padLat;
+      const north = bounds.getNorth() + padLat;
+      const west = bounds.getWest() - padLng;
+      const east = bounds.getEast() + padLng;
+      inView = mappableStops.filter(
+        (s) => s.lat! >= south && s.lat! <= north && s.lng! >= west && s.lng! <= east,
+      );
+    }
+    if (inView.length <= MAX_MARKERS) {
+      return { visibleStops: inView, capped: false };
+    }
+    const top = [...inView]
+      .sort((a, b) => (b.numDepartures ?? 0) - (a.numDepartures ?? 0))
+      .slice(0, MAX_MARKERS);
+    return { visibleStops: top, capped: true };
   }, [mappableStops, bounds]);
 
   const handleBoundsChange = useCallback((b: LatLngBounds) => setBounds(b), []);
@@ -153,7 +167,9 @@ export default function DelayMap() {
               </span>
             )}
             {!isLoading && mappableStops.length > 0 && (
-              <> {visibleStops.length.toLocaleString("nb-NO")} av {mappableStops.length.toLocaleString("nb-NO")} stopp synlige.</>
+              <> {visibleStops.length.toLocaleString("nb-NO")} av {mappableStops.length.toLocaleString("nb-NO")} stopp synlige.
+                {capped && <span className="text-amber-600"> Viser de {visibleStops.length.toLocaleString("nb-NO")} travleste — zoom inn for å se alle.</span>}
+              </>
             )}
           </p>
         </div>
@@ -221,6 +237,9 @@ export default function DelayMap() {
             zoom={mapConfig.zoom}
             className="w-full h-full z-0"
             zoomControl={false}
+            // Canvas-renderer: CircleMarkers tegnes på ett canvas i stedet
+            // for tusenvis av individuelle SVG-DOM-noder — stor mobilgevinst.
+            preferCanvas
           >
             <RegionRecenter region={region} />
             <BoundsTracker onBoundsChange={handleBoundsChange} />

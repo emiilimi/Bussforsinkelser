@@ -12,6 +12,7 @@ import { ModeIcon } from "@/components/mode-icon";
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { useParquetQuery } from "@/hooks/use-parquet-query";
+import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { InfoTip } from "@/components/info-tip";
 import { IS_REISE } from "@/lib/app-mode";
 
@@ -374,6 +375,12 @@ export default function Departures() {
   }, [rawSearch]);
 
   const stopRef = selectedStop?.ref ?? null;
+
+  // Lat DuckDB-init: start WASM-nedlastingen først når et stopp er valgt —
+  // det er da P80-kolonnen og reisedetaljene faktisk trenger den.
+  useEffect(() => {
+    if (stopRef) warmupDuckDB();
+  }, [stopRef]);
 
   // Departures from Entur (1-minute server cache + 60s client refresh).
   // Ved valgt tidspunkt (startIso) er vinduet fast — ingen auto-refresh.

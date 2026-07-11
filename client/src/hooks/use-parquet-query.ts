@@ -42,9 +42,10 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
     ? `${PARQUET_BASE}/manifest`      // local Express endpoint returns JSON array
     : `${PARQUET_BASE}/manifest.json`; // R2 serves a static JSON file
 
-  // no-store: manifestet er lite og MÅ alltid være ferskt — det er nøkkelen
+  // no-cache: alltid revalider (ETag/304), men gjenbruk cachet svar når
+  // uendret. Manifestet er nøkkelen
   // som forteller oss om parquet-innholdet har endret seg.
-  const res = await fetch(manifestUrl, { cache: "no-store" });
+  const res = await fetch(manifestUrl, { cache: "no-cache" });
   if (!res.ok) return;
 
   const entries: ManifestEntry[] = await res.json();
@@ -150,6 +151,9 @@ export async function standaloneDuckQuery<T = Record<string, unknown>>(
 export interface ParquetQueryState {
   /** Whether Parquet files are being loaded / DuckDB is initializing */
   loading: boolean;
+  /** DuckDB er ikke startet ennå — kall warmupDuckDB() når brukeren gjør
+   *  noe som kommer til å trenge den (velger stopp, starter søk). */
+  idle: boolean;
   /** Error message if something went wrong */
   error: string | null;
   /** Whether any Parquet files are available */
@@ -163,8 +167,9 @@ export interface ParquetQueryState {
 }
 
 export function useParquetQuery(): ParquetQueryState {
-  const { db, loading: dbLoading, error: dbError } = useDuckDB();
-  const [loading, setLoading] = useState(true);
+  const { db, loading: dbLoading, idle: dbIdle, error: dbError } = useDuckDB();
+  // Registrering pågår fra db er klar til filene er registrert
+  const [registering, setRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const initDone = useRef(false);
@@ -174,20 +179,21 @@ export function useParquetQuery(): ParquetQueryState {
     if (!db || initDone.current) return;
 
     let cancelled = false;
+    setRegistering(true);
 
     (async () => {
       try {
         await ensureFilesRegistered(db);
         if (!cancelled) {
           setReady(registeredFiles.size > 0);
-          setLoading(false);
+          setRegistering(false);
         }
       } catch (err: unknown) {
         if (!cancelled) {
           const msg =
             err instanceof Error ? err.message : "Failed to load Parquet files";
           setError(msg);
-          setLoading(false);
+          setRegistering(false);
         }
       }
       initDone.current = true;
@@ -202,7 +208,7 @@ export function useParquetQuery(): ParquetQueryState {
   useEffect(() => {
     if (dbError) {
       setError(dbError);
-      setLoading(false);
+      setRegistering(false);
     }
   }, [dbError]);
 
@@ -239,7 +245,8 @@ export function useParquetQuery(): ParquetQueryState {
   );
 
   return {
-    loading: dbLoading || loading,
+    loading: dbLoading || registering,
+    idle: dbIdle,
     error,
     ready,
     query: queryFn,

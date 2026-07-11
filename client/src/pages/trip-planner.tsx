@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useParquetQuery } from "@/hooks/use-parquet-query";
+import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1583,7 +1584,14 @@ function TripCard({
     [pattern],
   );
 
-  const { data: gapMap } = useTransferGaps(transferSpecs, duckReady, duckQuery);
+  // Kjør bare overgangs-/tidsspørringene for UTVIDEDE kort. Tidligere fyrte
+  // alle 10-17 reiseforslag sine spørringer samtidig i det duckReady slo til —
+  // 40+ spørringer i kø på én DuckDB-worker, så selv det øverste (utvidede)
+  // kortet måtte vente på alle de andre. Nå regnes kun kortene brukeren ser
+  // detaljene til; resten beregnes i det de utvides (~1-2 sek).
+  const duckActive = duckReady && expanded;
+
+  const { data: gapMap } = useTransferGaps(transferSpecs, duckActive, duckQuery);
 
   // ---------- Per-SJ estimated departure/arrival times ----------
   const legTimingSpecs = useMemo<LegTimingSpec[]>(() => {
@@ -1609,7 +1617,7 @@ function TripCard({
     return specs;
   }, [pattern]);
 
-  const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, duckReady, duckQuery);
+  const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, duckActive, duckQuery);
 
   // ---------- Compute transfer probabilities + overall probability ----------
   // Empirical per-day pairing: for each historical day where both the arriving
@@ -2237,7 +2245,15 @@ export default function TripPlanner() {
   const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
 
   // DuckDB-WASM for empirical percentiles
-  const { ready: duckReady, query: duckQuery, loading: duckLoading } = useParquetQuery();
+  const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle } = useParquetQuery();
+
+  // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
+  // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
+  // overlapper den med at brukeren fyller ut resten av søket, og statistikken
+  // er (som regel) klar når reiseforslagene kommer.
+  useEffect(() => {
+    if (fromStop || toStop) warmupDuckDB();
+  }, [fromStop, toStop]);
 
   // Derive (stopRef, lineRef) pairs for DuckDB query from current trip results
   const duckPairs = useMemo(() => {
@@ -2312,6 +2328,7 @@ export default function TripPlanner() {
   const tripMutation = useMutation({
     mutationFn: async (opts?: { cursor: string; dir: "earlier" | "later" }) => {
       if (!fromStop || !toStop) throw new Error("Velg fra og til");
+      warmupDuckDB(); // backstop — normalt allerede varmet ved stoppvalg
 
       // Build dateTime ISO string from date + time, with local timezone offset
       const localDate = new Date(`${departDate}T${departTime}:00`);
@@ -2863,7 +2880,13 @@ export default function TripPlanner() {
                     : "text-muted-foreground border-border"
                 )}>
                   <Database className="h-3 w-3" />
-                  {duckReady ? "DuckDB klar" : duckLoading ? "Laster DuckDB..." : "DuckDB utilgjengelig"}
+                  {duckReady
+                    ? "DuckDB klar"
+                    : duckLoading
+                    ? "Laster DuckDB..."
+                    : duckIdle
+                    ? "DuckDB starter ved søk"
+                    : "DuckDB utilgjengelig"}
                 </span>
                 {duckObservationCount > 0 && (
                   <span className="text-[10px] text-muted-foreground/70">

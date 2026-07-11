@@ -67,7 +67,11 @@ type StopsDoc = {
 type LineNamesDoc = Record<string, string>;
 
 // ---------------------------------------------------------------------------
-// Artefakt-henting (én gang per sesjon; no-store så de alltid er ferske)
+// Artefakt-henting (én gang per sesjon). cache: "no-cache" = alltid
+// revalider mot serveren (ETag), men GJENBRUK cachet innhold ved 304 —
+// i motsetning til "no-store" som lastet hele 2-7 MB på nytt ved hver
+// eneste sidelast. Ferskhet bevares (ny ETag når artefakten endres
+// nattlig); gjentatte besøk koster bare et lite revalideringskall.
 // ---------------------------------------------------------------------------
 
 let summaryPromise: Promise<Summary> | null = null;
@@ -76,7 +80,7 @@ let lineNamesPromise: Promise<LineNamesDoc> | null = null;
 
 function fetchSummary(): Promise<Summary> {
   if (!summaryPromise) {
-    summaryPromise = fetch(`${PARQUET_BASE}/stats_summary.json`, { cache: "no-store" })
+    summaryPromise = fetch(`${PARQUET_BASE}/stats_summary.json`, { cache: "no-cache" })
       .then((r) => {
         if (!r.ok) throw new Error(`stats_summary.json: ${r.status}`);
         return r.json();
@@ -91,7 +95,7 @@ function fetchSummary(): Promise<Summary> {
 
 function fetchStops(): Promise<StopsDoc> {
   if (!stopsPromise) {
-    stopsPromise = fetch(`${PARQUET_BASE}/stats_stops_map.json`, { cache: "no-store" })
+    stopsPromise = fetch(`${PARQUET_BASE}/stats_stops_map.json`, { cache: "no-cache" })
       .then((r) => {
         if (!r.ok) throw new Error(`stats_stops_map.json: ${r.status}`);
         return r.json();
@@ -106,7 +110,7 @@ function fetchStops(): Promise<StopsDoc> {
 
 function fetchLineNames(): Promise<LineNamesDoc> {
   if (!lineNamesPromise) {
-    lineNamesPromise = fetch(`${PARQUET_BASE}/stats_line_names.json`, { cache: "no-store" })
+    lineNamesPromise = fetch(`${PARQUET_BASE}/stats_line_names.json`, { cache: "no-cache" })
       .then((r) => {
         if (!r.ok) throw new Error(`stats_line_names.json: ${r.status}`);
         return r.json();

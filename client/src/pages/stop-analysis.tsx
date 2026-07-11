@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLinesAtStop, useLineHourlyAtStop } from "@/hooks/use-journey-queries";
+import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -201,6 +202,11 @@ export default function StopAnalysis() {
 
   // Use specific quay ref when a platform is selected, otherwise use the stop place ref
   const activeRef = selectedPlatform ?? selectedStop?.ref ?? null;
+
+  // Lat DuckDB-init: start WASM-nedlastingen først når et stopp er valgt.
+  useEffect(() => {
+    if (activeRef) warmupDuckDB();
+  }, [activeRef]);
 
   const { data: availableDirections = [] } = useQuery<string[]>({
     queryKey: [`/api/stop/${encodeURIComponent(activeRef ?? "")}/directions${opStr ? `?${opStr}` : ""}`],

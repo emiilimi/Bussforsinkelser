@@ -10,6 +10,7 @@ import {
   type JourneyEntry,
 } from "@/hooks/use-journey-queries";
 import Layout from "@/components/layout";
+import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -256,6 +257,12 @@ export default function JourneyDetails() {
   const [lineOpen, setLineOpen] = useState(false);
   const [selectedLine, setSelectedLine] = useState<string>("");
   const [fetchedLine, setFetchedLine] = useState<string>("");
+
+  // Lat DuckDB-init: WASM-en lastes først når en linje faktisk er valgt —
+  // linjelisten kommer fra en lett JSON-artefakt og trenger ikke DuckDB.
+  useEffect(() => {
+    if (fetchedLine) warmupDuckDB();
+  }, [fetchedLine]);
 
   // Pre-select line from ?line= URL param (e.g. navigated from stop analysis)
   useEffect(() => {
