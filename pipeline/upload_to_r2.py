@@ -250,7 +250,7 @@ def main():
         # ---------- Statistikk-artefakter (full offload) ----------
         # Genereres av pipeline/aggregate_stats.py. Alltid no-cache: klienten
         # henter dem med no-store, og innholdet endres hver natt.
-        for stats_name in ("stats_summary.json", "stats_stops_map.json"):
+        for stats_name in ("stats_summary.json", "stats_stops_map.json", "stats_line_names.json"):
             stats_path = PARQUET_DIR / stats_name
             if not stats_path.exists():
                 continue

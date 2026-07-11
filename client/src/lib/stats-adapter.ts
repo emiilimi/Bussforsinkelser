@@ -62,12 +62,17 @@ type StopsDoc = {
   stops: StopRow[];
 };
 
+// {line_ref: navn} — SKY fra NeTEx, resten DB-derivert (dominerende
+// endeholdeplass-par). Se pipeline/aggregate_stats.py::build_line_names.
+type LineNamesDoc = Record<string, string>;
+
 // ---------------------------------------------------------------------------
 // Artefakt-henting (én gang per sesjon; no-store så de alltid er ferske)
 // ---------------------------------------------------------------------------
 
 let summaryPromise: Promise<Summary> | null = null;
 let stopsPromise: Promise<StopsDoc> | null = null;
+let lineNamesPromise: Promise<LineNamesDoc> | null = null;
 
 function fetchSummary(): Promise<Summary> {
   if (!summaryPromise) {
@@ -97,6 +102,24 @@ function fetchStops(): Promise<StopsDoc> {
       });
   }
   return stopsPromise;
+}
+
+function fetchLineNames(): Promise<LineNamesDoc> {
+  if (!lineNamesPromise) {
+    lineNamesPromise = fetch(`${PARQUET_BASE}/stats_line_names.json`, { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`stats_line_names.json: ${r.status}`);
+        return r.json();
+      })
+      .catch((err) => {
+        lineNamesPromise = null;
+        // Linjenavn er kosmetikk (sidene faller tilbake til "Linje N") —
+        // ikke la en feilet artefakt-henting kaste hele resten av svaret.
+        console.warn("[stats-adapter] Kunne ikke hente linjenavn:", err);
+        return {};
+      });
+  }
+  return lineNamesPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,7 +261,7 @@ async function apiWorstBestDays(params: URLSearchParams, order: "worst" | "best"
 const PERIOD_TO_DAYS: Record<string, number> = { week: 7, month: 30, year: 90 };
 
 async function apiLeaderboardLines(params: URLSearchParams) {
-  const summary = await fetchSummary();
+  const [summary, lineNames] = await Promise.all([fetchSummary(), fetchLineNames()]);
   const type = params.get("type") ?? "worst";
   const mode = params.get("mode") ?? "all";
   const operators = parseOperators(params);
@@ -266,7 +289,7 @@ async function apiLeaderboardLines(params: URLSearchParams) {
 
   return rows.slice(0, 20).map((l) => ({
     lineRef: l.lineRef,
-    lineName: null,
+    lineName: lineNames[l.lineRef] ?? null,
     avgDelayMin: l.avgDelayMin,
     stddevDelayMin: l.stddevDelayMin,
     pctOnTime: l.pctOnTime,
@@ -277,17 +300,17 @@ async function apiLeaderboardLines(params: URLSearchParams) {
 }
 
 async function apiLinesAll(params: URLSearchParams) {
-  const summary = await fetchSummary();
+  const [summary, lineNames] = await Promise.all([fetchSummary(), fetchLineNames()]);
   const operators = parseOperators(params);
   const maxWin = Math.max(...summary.windows);
   const seen = new Set<string>();
-  const out: Array<{ lineRef: string; lineName: null }> = [];
+  const out: Array<{ lineRef: string; lineName: string | null }> = [];
   for (const l of summary.lines) {
     if (l.window !== maxWin || l.mode !== "all") continue;
     if (operators.length > 0 && !operators.includes(lineOperator(l.lineRef))) continue;
     if (seen.has(l.lineRef)) continue;
     seen.add(l.lineRef);
-    out.push({ lineRef: l.lineRef, lineName: null });
+    out.push({ lineRef: l.lineRef, lineName: lineNames[l.lineRef] ?? null });
   }
   out.sort((a, b) => {
     const [na, ca] = lineSortKey(a.lineRef);
@@ -457,7 +480,7 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
   const where = conds.join(" AND ");
   const D = "COALESCE(delay_departure_min, delay_arrival_min)";
 
-  const [daily, hourly] = await Promise.all([
+  const [daily, hourly, lineNames] = await Promise.all([
     standaloneDuckQuery<Record<string, unknown>>(`
       SELECT
         date,
@@ -492,13 +515,14 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
       GROUP BY hour
       ORDER BY hour
     `),
+    fetchLineNames(),
   ]);
 
   return {
     daily: daily.map((row) => ({
       ...row,
       lineRef,
-      lineName: null,
+      lineName: lineNames[lineRef] ?? null,
       pctRealtimeCoverage: null,
     })),
     hourly: hourly.map((row) => ({ ...row, lineRef })),

@@ -18,6 +18,12 @@ Output (skrives til PARQUET_DIR, lastes opp av upload_to_r2.py med no-cache):
   stats_stops_map.json   Kart + stopp-topplister:
                            per (stopp, operatør) med koordinater og
                            [snitt, andel >2 min, stddev, avganger] per vindu
+  stats_line_names.json  {line_ref: navn} — SKY fra NeTEx (netex/sky/), andre
+                           operatører fra vektet dominerende endeholdeplass-par
+                           i journey_stop_daily. Samme metode som
+                           pipeline/populate_line_names.py, men skriver til en
+                           artefakt i stedet for SQLite-tabeller (reise.db har
+                           ingen line_daily-tabell å oppdatere).
 
 Alle prosenter er 0–100. Forsinkelse = COALESCE(delay_departure_min,
 delay_arrival_min) — samme definisjon som resten av systemet.
@@ -31,8 +37,10 @@ Env:
 import json
 import logging
 import os
+import re
 import sqlite3
 import time
+import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -61,6 +69,134 @@ D = "COALESCE(delay_departure_min, delay_arrival_min)"
 def r(v, digits=2):
     """Rund flyttall for kompakt JSON; None passerer gjennom."""
     return None if v is None else round(float(v), digits)
+
+
+# ---------------------------------------------------------------------------
+# Linjenavn — samme to strategier som pipeline/populate_line_names.py, men
+# skriver til en JSON-artefakt i stedet for å UPDATE-e SQLite-tabeller
+# (reise.db har ingen line_daily/leaderboard_lines å oppdatere).
+# ---------------------------------------------------------------------------
+
+NETEX_ROOT = REPO_ROOT / "netex"
+NETEX_NS = {"n": "http://www.netex.org.uk/netex"}
+
+
+def netex_line_names(operator: str) -> dict[str, str]:
+    """{line_ref: navn} parset fra netex/{operator_lower}/*.xml. Tomt hvis mappen mangler."""
+    netex_dir = NETEX_ROOT / operator.lower()
+    if not netex_dir.exists():
+        return {}
+    names: dict[str, str] = {}
+    for f in netex_dir.glob(f"{operator}_{operator}-Line-*.xml"):
+        try:
+            root = ET.parse(f).getroot()
+            for line_el in root.iter("{http://www.netex.org.uk/netex}Line"):
+                line_id = line_el.get("id")
+                name_el = line_el.find("n:Name", NETEX_NS)
+                if line_id and name_el is not None and name_el.text:
+                    names[line_id] = name_el.text.strip()
+        except ET.ParseError as e:
+            log.warning("  Kunne ikke parse %s: %s", f.name, e)
+    return names
+
+
+def short_id(line_ref: str) -> str:
+    """'SOF:Line:7284_69' -> 'SOF 7284_69'"""
+    m = re.match(r"^([^:]+):Line:(.+)$", line_ref)
+    return f"{m.group(1)} {m.group(2)}" if m else line_ref
+
+
+_TERMINUS_SQL = """
+WITH journey_endpoints AS (
+    SELECT
+        j.service_journey_id,
+        COUNT(*) AS journey_weight,
+        (SELECT COALESCE(sc.stop_name, j2.stop_ref)
+         FROM journey_stop_daily j2
+         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+         WHERE j2.service_journey_id = j.service_journey_id
+         ORDER BY j2.stop_sequence ASC LIMIT 1) AS first_stop,
+        (SELECT COALESCE(sc.stop_name, j2.stop_ref)
+         FROM journey_stop_daily j2
+         LEFT JOIN stop_coords sc ON sc.stop_ref = j2.stop_ref
+         WHERE j2.service_journey_id = j.service_journey_id
+         ORDER BY j2.stop_sequence DESC LIMIT 1) AS last_stop
+    FROM journey_stop_daily j
+    WHERE j.line_ref = ?
+    GROUP BY j.service_journey_id
+),
+terminus_pairs AS (
+    SELECT
+        MIN(first_stop, last_stop) AS stop_a,
+        MAX(first_stop, last_stop) AS stop_b,
+        SUM(journey_weight) AS total_weight
+    FROM journey_endpoints
+    WHERE first_stop IS NOT NULL AND last_stop IS NOT NULL
+    GROUP BY stop_a, stop_b
+    ORDER BY total_weight DESC
+)
+SELECT stop_a, stop_b, total_weight FROM terminus_pairs LIMIT 10
+"""
+
+
+def derive_db_name(sq: sqlite3.Connection, line_ref: str) -> str | None:
+    """Utled visningsnavn fra dominerende endeholdeplass-par (vektet på antall avganger)."""
+    rows = sq.execute(_TERMINUS_SQL, (line_ref,)).fetchall()
+    if not rows:
+        return None
+
+    main_pair, main_weight = None, 0
+    for stop_a, stop_b, weight in rows:
+        if stop_a and stop_b and stop_a != stop_b:
+            main_pair, main_weight = (stop_a, stop_b), weight
+            break
+
+    if main_pair is None:
+        return f"{short_id(line_ref)}: {rows[0][0]} (rundtur)"
+
+    stop_a, stop_b = main_pair
+    main_stops = {stop_a, stop_b}
+    threshold = main_weight * 0.15
+    extra: list[str] = []
+    seen: set[str] = set()
+    for row_a, row_b, weight in rows:
+        if (row_a, row_b) == main_pair or weight < threshold:
+            continue
+        for stop in (row_a, row_b):
+            if stop and stop not in main_stops and stop not in seen:
+                extra.append(stop)
+                seen.add(stop)
+
+    name = f"{short_id(line_ref)}: {stop_a} - {stop_b}"
+    if extra:
+        name += f" ({', '.join(extra)})"
+    return name
+
+
+def build_line_names(sq: sqlite3.Connection) -> dict[str, str]:
+    """{line_ref: navn} for alle linjer i journey_stop_daily. SKY fra NeTEx,
+    resten fra vektet endeholdeplass-par (DB-derivert)."""
+    line_refs = [row[0] for row in sq.execute("SELECT DISTINCT line_ref FROM journey_stop_daily")]
+    by_operator: dict[str, list[str]] = {}
+    for ref in line_refs:
+        op = ref.split(":", 1)[0]
+        by_operator.setdefault(op, []).append(ref)
+
+    names: dict[str, str] = {}
+    for op, refs in sorted(by_operator.items()):
+        netex = netex_line_names(op)
+        hits = 0
+        for ref in refs:
+            if ref in netex:
+                names[ref] = netex[ref]
+                hits += 1
+            else:
+                derived = derive_db_name(sq, ref)
+                if derived:
+                    names[ref] = derived
+        if netex:
+            log.info("  %s: %d/%d linjer fra NeTEx, resten DB-derivert", op, hits, len(refs))
+    return names
 
 
 def main() -> int:
@@ -255,6 +391,22 @@ def main() -> int:
     stops_path.write_text(json.dumps(stops_doc, separators=(",", ":")), encoding="utf-8")
     log.info("→ %s (%d stopp, %.0f KB)", stops_path.name, len(stop_rows),
              stops_path.stat().st_size / 1024)
+
+    # ------------------------------------------------------------------
+    # Linjenavn — {line_ref: navn}, SKY fra NeTEx, resten DB-derivert.
+    # ------------------------------------------------------------------
+    if Path(DB_PATH).exists():
+        sq = sqlite3.connect(DB_PATH)
+        try:
+            line_names = build_line_names(sq)
+        finally:
+            sq.close()
+        names_path = PARQUET_DIR / "stats_line_names.json"
+        names_path.write_text(json.dumps(line_names, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        log.info("→ %s (%d linjenavn, %.0f KB)", names_path.name, len(line_names),
+                 names_path.stat().st_size / 1024)
+    else:
+        log.warning("Fant ikke %s — hopper over linjenavn", DB_PATH)
 
     log.info("Ferdig på %.1fs", time.time() - started)
     return 0
