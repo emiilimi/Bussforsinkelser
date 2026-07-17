@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
+import { RegionSelector } from "@/components/region-selector";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl, useMap, useMapEvents } from "react-leaflet";
@@ -159,7 +160,10 @@ export default function DelayMap() {
     <Layout>
       <div className="space-y-4 animate-in fade-in duration-500">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold tracking-tight">Forsinkelseskart</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight">Forsinkelseskart</h2>
+            <RegionSelector />
+          </div>
           <p className="text-muted-foreground text-sm">
             Gjennomsnitt per stopp ({windowLabel}).
             {hasActiveFilters && (

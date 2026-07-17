@@ -1,38 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, ChevronDown, Check, Timer, BookOpen } from "lucide-react";
+import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, Timer, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRegion, REGION_LABEL, INDIVIDUAL_REGIONS, type Region } from "@/lib/RegionContext";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { FreshnessBadge } from "@/components/freshness-badge";
 import { IS_REISE } from "@/lib/app-mode";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { regions, setRegions } = useRegion();
-
-  // "Alle regioner" when empty array
-  const isAll = regions.length === 0;
-
-  function toggleRegion(r: Region) {
-    if (r === "alle") {
-      setRegions([]);
-      return;
-    }
-    if (regions.includes(r)) {
-      const next = regions.filter((x) => x !== r);
-      setRegions(next); // empty = alle
-    } else {
-      setRegions([...regions, r]);
-    }
-  }
-
-  function labelForSelection() {
-    if (isAll) return "Alle operatører";
-    if (regions.length === 1) return REGION_LABEL[regions[0]];
-    if (regions.length === 2) return `${REGION_LABEL[regions[0]]}, ${REGION_LABEL[regions[1]]}`;
-    return `${REGION_LABEL[regions[0]]} +${regions.length - 1}`;
-  }
 
   // Reise-bygget: analysesidene serveres fra R2-artefakter + DuckDB-WASM
   // (full offload) — ingen SQLite-backend.
@@ -75,55 +48,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Operatørvelger — filtrerer analysesidene (artefaktene har alle operatører). */}
-        <div className="px-2 space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Operatør</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full h-9 bg-background/50 text-sm justify-between font-normal truncate"
-              >
-                <span className="truncate text-left">{labelForSelection()}</span>
-                <ChevronDown className="w-4 h-4 flex-shrink-0 opacity-50 ml-1" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-1 max-h-[70vh] overflow-y-auto" align="start">
-              {/* Alle-option */}
-              <button
-                onClick={() => setRegions([])}
-                className={cn(
-                  "flex items-center gap-2 w-full px-3 py-2 rounded-sm text-sm hover:bg-muted transition-colors",
-                  isAll && "font-semibold",
-                )}
-              >
-                <span className={cn("flex h-4 w-4 items-center justify-center rounded border border-primary", isAll ? "bg-primary" : "bg-transparent")}>
-                  {isAll && <Check className="w-3 h-3 text-primary-foreground" />}
-                </span>
-                Alle operatører
-              </button>
-
-              <div className="my-1 border-t border-border" />
-
-              {INDIVIDUAL_REGIONS.map((r) => {
-                const checked = regions.includes(r);
-                return (
-                  <button
-                    key={r}
-                    onClick={() => toggleRegion(r)}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-sm text-sm hover:bg-muted transition-colors"
-                  >
-                    <span className={cn("flex h-4 w-4 items-center justify-center rounded border border-primary flex-shrink-0", checked ? "bg-primary" : "bg-transparent")}>
-                      {checked && <Check className="w-3 h-3 text-primary-foreground" />}
-                    </span>
-                    <span className="truncate">{REGION_LABEL[r]}</span>
-                  </button>
-                );
-              })}
-            </PopoverContent>
-          </Popover>
-        </div>
-
+        {/* Operatørvelgeren ligger nå øverst på sidene som filtrerer på
+            operatør (se components/region-selector.tsx) — ikke i sidemenyen. */}
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
           {navItems.map((item) => {
             const isActive = location === item.href;

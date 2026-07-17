@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
+import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, Line, ComposedChart } from "recharts";
@@ -138,13 +139,16 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <Tabs value={period} onValueChange={setPeriod} className="w-[300px]">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="week">Uke</TabsTrigger>
-              <TabsTrigger value="month">Måned</TabsTrigger>
-              <TabsTrigger value="year">{IS_REISE ? "90 dager" : "År"}</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <RegionSelector />
+            <Tabs value={period} onValueChange={setPeriod} className="w-[300px]">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="week">Uke</TabsTrigger>
+                <TabsTrigger value="month">Måned</TabsTrigger>
+                <TabsTrigger value="year">{IS_REISE ? "90 dager" : "År"}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

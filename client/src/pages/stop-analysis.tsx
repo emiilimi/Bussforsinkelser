@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLinesAtStop, useLineHourlyAtStop } from "@/hooks/use-journey-queries";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
+import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -323,8 +324,13 @@ export default function StopAnalysis() {
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold tracking-tight">Stoppstedsanalyse</h2>
-          <p className="text-muted-foreground">Detaljert forsinkelsesstatistikk for individuelle stopp.</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">Stoppstedsanalyse</h2>
+              <p className="text-muted-foreground">Detaljert forsinkelsesstatistikk for individuelle stopp.</p>
+            </div>
+            <RegionSelector />
+          </div>
 
           {/* Search box */}
           <div className="relative w-[340px]">

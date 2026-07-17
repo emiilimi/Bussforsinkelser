@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout";
+import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -107,11 +108,14 @@ export default function WorstLists() {
     <Layout>
       <TooltipProvider>
       <div className="space-y-8 animate-in fade-in duration-500">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Trophy className="h-8 w-8 text-primary" /> Topplister
-          </h2>
-          <p className="text-muted-foreground mt-1">Beste og dårligste dager og stoppesteder.</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Trophy className="h-8 w-8 text-primary" /> Topplister
+            </h2>
+            <p className="text-muted-foreground mt-1">Beste og dårligste dager og stoppesteder.</p>
+          </div>
+          <RegionSelector />
         </div>
 
         <TimeWindowPicker value={window} onChange={setWindow} />
