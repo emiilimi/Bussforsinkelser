@@ -294,9 +294,12 @@ export default function Methodology() {
               <code className="text-xs bg-muted px-1 rounded">
                 gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
               </code>
-              . Det er viktig for sjeldne linjer: sammenliknet man klokkeslett direkte,
-              kunne dagens nærmeste registrerte avgang være en <em>tidligere</em> rute enn
-              den du skal rekke — og en romslig overgang ville feilaktig vist 0 %.
+              . Grunnen: observasjonene er andre rutepassinger enn dine — nærmeste
+              med data kan ligge en halvtime unna i ruteplanen. Klokkeslettene deres
+              måler dermed gapet til en annen avgang enn den du skal rekke, ikke
+              ditt. Det eneste som kan overføres fra en naboavgang, er forsinkelsen
+              dens; vi beholder derfor ditt planlagte gap og justerer det med de
+              observerte forsinkelsene.
             </p>
             <p className="text-sm text-muted-foreground">
               <strong>Kjent begrensning:</strong> sammenlikningen skjer per <em>plattform</em>{" "}

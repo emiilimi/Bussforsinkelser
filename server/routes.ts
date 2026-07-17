@@ -184,9 +184,10 @@ function makeRateLimiter(opts: { windowMs: number; max: number; name: string }) 
     list.push(now);
     hits.set(ip, list);
 
-    // Occasional cleanup of stale keys (every ~500 requests)
+    // Occasional cleanup of stale keys (every ~500 requests).
+    // Array.from: tsconfig-target under es2015 kan ikke iterere Map direkte.
     if (hits.size > 500 && Math.random() < 0.01) {
-      for (const [key, arr] of hits) {
+      for (const [key, arr] of Array.from(hits.entries())) {
         if (arr.every((t) => t <= cutoff)) hits.delete(key);
       }
     }
@@ -843,7 +844,9 @@ export async function registerRoutes(
    * Cachet 60 sek server-side. Klienten kan refresh med `refetchInterval`.
    */
   app.get("/api/departures/:stopPlaceRef", departuresLimiter, async (req, res) => {
-    const stopPlaceRef = req.params.stopPlaceRef;
+    // Express 5 typer params som string | string[] — én navngitt segment er
+    // alltid string i praksis.
+    const stopPlaceRef = String(req.params.stopPlaceRef);
     if (!/^NSR:(StopPlace|Quay):\d+$/.test(stopPlaceRef)) {
       return res.status(400).json({ error: "Invalid stopPlaceRef" });
     }
@@ -966,7 +969,7 @@ export async function registerRoutes(
    * Speiler functions/api/servicejourney/[id].ts (Cloudflare-versjonen).
    */
   app.get("/api/servicejourney/:id", departuresLimiter, async (req, res) => {
-    const id = req.params.id;
+    const id = String(req.params.id);
     if (!/^[A-Za-z0-9:_\-.]{1,128}$/.test(id)) {
       return res.status(400).json({ error: "Invalid serviceJourneyId" });
     }

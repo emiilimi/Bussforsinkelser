@@ -224,10 +224,11 @@ function specificGapSql(s: TransferSpec): string | null {
  *      gap_dag = planlagt_gap + (avgangsforsinkelse − ankomstforsinkelse)
  *
  *  VIKTIG: vi sammenlikner IKKE absolutte klokkeslett på tvers av avganger.
- *  Gjør man det, kan en sjelden linje (f.eks. halvtimesfrekvens der bare noen
- *  avganger har data) matche en avgang som går FØR ankomsten — og en romslig
- *  27-minutters overgang vises som 0 %. Delay-proxy-formuleringen er immun
- *  mot dette: ruteforskjellen kanselleres, bare forsinkelsene teller. */
+ *  De valgte observasjonene er andre rutepassinger enn planens (nærmeste med
+ *  data kan ligge en halvtime unna i ruteplanen), så klokkeslettene deres
+ *  måler gapet til en annen avgang enn den brukeren skal rekke. Det eneste
+ *  som er overførbart fra en naboavgang er forsinkelsen dens; delay-proxyen
+ *  beholder planens gap og justerer kun med observerte forsinkelser. */
 function fallbackGapSql(s: TransferSpec): string | null {
   if (!s.arrLineRef || !s.arrQuayRef || !s.depLineRef || !s.depQuayRef) return null;
   if (s.arrAimedMin == null || s.depAimedMin == null) return null;
