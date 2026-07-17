@@ -706,7 +706,7 @@ export default function JourneyDetails() {
             </div>
             <TimeWindowPicker value={tw} onChange={setTw} />
             <p className="text-[11px] text-muted-foreground -mt-1">
-              Reiseprofiler bruker maks 13 uker (ukentlig aggregat).
+              Reiseprofiler dekker inntil 13 uker med rådata.
             </p>
           </div>
         )}
@@ -900,7 +900,7 @@ export default function JourneyDetails() {
                 <CardHeader>
                   <CardTitle>Verste stopp på ruten</CardTitle>
                   <CardDescription>
-                    Topp 5 stoppsteder med høyest gjennomsnittlig forsinkelse for {selectedLineName ?? fetchedLine} (siste 4 uker).
+                    Topp 5 stoppsteder med høyest gjennomsnittlig forsinkelse for {selectedLineName ?? fetchedLine} ({windowLabel(tw)}).
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -947,7 +947,7 @@ export default function JourneyDetails() {
                   <CardTitle>Forsinkelsesprofil langs ruten</CardTitle>
                   <CardDescription>
                     Gjennomsnittlig forsinkelse per stopp langs hele ruten — viser hvor forsinkelsen bygger seg opp.
-                    Båndet viser spennet mellom beste og verste enkeltavgang siste 4 uker.
+                    Båndet viser spennet mellom beste og verste enkeltavgang i valgt tidsvindu.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -1220,7 +1220,7 @@ export default function JourneyDetails() {
                         {section.title}
                       </CardTitle>
                       <CardDescription>
-                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {windowLabel(tw)} (maks 13 uker).
+                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {windowLabel(tw)} (inntil 13 uker).
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1228,7 +1228,7 @@ export default function JourneyDetails() {
                         <p className="text-sm text-muted-foreground py-4 text-center">
                           Ingen data i valgt tidsvindu.{" "}
                           {windowDaysFn(tw) < 14 && (
-                            <span>Prøv et lengre tidsvindu — avgangsprofiler lagres ukentlig.</span>
+                            <span>Prøv et lengre tidsvindu.</span>
                           )}
                         </p>
                       ) : (

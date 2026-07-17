@@ -7,10 +7,11 @@ Forskjell fra ingest.py:
   - Ingen av de ubegrensede aggregat-tabellene (daily_summary, line_daily,
     stop_daily, *_hourly_raw, *_hourly_profile, leaderboards, worst_days,
     data_quality_log). Det er disse som fyller opp disken — journey_stop_daily
-    er allerede et rullende 90-dagers vindu og holder seg lite.
+    prunes til et lite rullende vindu (se JSD_RETENTION_DAYS).
 
-Alt reiseplanleggeren + journey/line/stop-analyse (90 dager) trenger ligger i
-journey_stop_daily → Parquet → R2 → DuckDB-WASM i nettleseren. Denne pipelinen
+Alt reiseplanleggeren + journey/line/stop-analyse trenger ligger i
+journey_stop_daily → Parquet → R2 → DuckDB-WASM i nettleseren (nettleseren ser
+de siste PARQUET_KEEP_WEEKS ukene på R2, ikke denne basen). Denne pipelinen
 produserer nettopp den ene tabellen, og ingenting mer.
 
 Kjedet kjøres slik (se REISE.md):
@@ -31,7 +32,9 @@ Env-variabler:
     DATABASE_PATH        SQLite-fil (default: data/reise.db — EGEN, lett base)
     BQ_TABLE             BigQuery-kilde (arves fra ingest.py)
     BQ_OPERATOR          komma-separerte operatører (arves fra ingest.py)
-    JSD_RETENTION_DAYS   hvor mange dager journey_stop_daily beholdes (default 90)
+    JSD_RETENTION_DAYS   hvor mange dager journey_stop_daily beholdes lokalt
+                         (default 14 — basen er kun mellomlager for ukene som
+                         fortsatt kan endres; historikken ligger på R2)
     LOG_LEVEL            INFO (default) / DEBUG
 """
 

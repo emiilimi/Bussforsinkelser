@@ -6,18 +6,25 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatDateNO } from "@/lib/date-utils";
+import { IS_REISE } from "@/lib/app-mode";
 
 export type TimeWindow =
   | { kind: "preset"; days: number; label: string }
   | { kind: "custom"; from: string; to: string };
 
-export const PRESETS: Array<{ days: number; label: string }> = [
+const ALL_PRESETS: Array<{ days: number; label: string }> = [
   { days: 7, label: "Siste uke" },
   { days: 14, label: "Siste 2 uker" },
   { days: 30, label: "Siste måned" },
   { days: 90, label: "Siste 3 mnd" },
   { days: 365, label: "Siste år" },
 ];
+
+// Reise-bygget har maks 14 uker rådata (parquet på R2) — «Siste år» ville
+// stille vist samme tall som 3 mnd.
+export const PRESETS: Array<{ days: number; label: string }> = IS_REISE
+  ? ALL_PRESETS.filter((p) => p.days <= 90)
+  : ALL_PRESETS;
 
 export function windowToQuery(w: TimeWindow): string {
   if (w.kind === "preset") return `days=${w.days}`;
@@ -40,9 +47,20 @@ type Props = {
   value: TimeWindow;
   onChange: (w: TimeWindow) => void;
   className?: string;
+  /** Vis kun presets med disse dagene (f.eks. [7, 30, 90] der backend bare
+   *  har forhåndsberegnede vinduer). Default: alle. */
+  presetDays?: number[];
+  /** Skjul egendefinert datointervall der backend ikke støtter det. */
+  allowCustom?: boolean;
 };
 
-export function TimeWindowPicker({ value, onChange, className }: Props) {
+export function TimeWindowPicker({
+  value,
+  onChange,
+  className,
+  presetDays,
+  allowCustom = true,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState<string>(value.kind === "custom" ? value.from : "");
   const [draftTo, setDraftTo] = useState<string>(value.kind === "custom" ? value.to : "");
@@ -55,10 +73,14 @@ export function TimeWindowPicker({ value, onChange, className }: Props) {
     setOpen(false);
   };
 
+  const presets = presetDays
+    ? PRESETS.filter((p) => presetDays.includes(p.days))
+    : PRESETS;
+
   return (
     <div className={cn("flex items-center gap-2 flex-wrap", className)}>
       <span className="text-sm text-muted-foreground">Periode:</span>
-      {PRESETS.map((p) => (
+      {presets.map((p) => (
         <Button
           key={p.days}
           size="sm"
@@ -69,6 +91,7 @@ export function TimeWindowPicker({ value, onChange, className }: Props) {
           {p.label}
         </Button>
       ))}
+      {allowCustom && (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -123,6 +146,7 @@ export function TimeWindowPicker({ value, onChange, className }: Props) {
           </div>
         </PopoverContent>
       </Popover>
+      )}
     </div>
   );
 }

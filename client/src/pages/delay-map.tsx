@@ -11,6 +11,7 @@ import { formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { REGION_MAP_CENTER } from "@/lib/regionCoords";
 import { TimeWindowPicker, type TimeWindow, windowToQuery } from "@/components/time-window-picker";
+import { IS_REISE } from "@/lib/app-mode";
 
 type MapStop = {
   stopRef: string;
@@ -226,7 +227,15 @@ export default function DelayMap() {
             {/* Time window */}
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2">Tidsperiode</p>
-              <TimeWindowPicker value={window} onChange={setWindow} />
+              {/* Kart-endepunktet støtter kun hele dagsvinduer (windowDays) —
+                  egendefinert datointervall ville stille blitt ignorert.
+                  Reise-artefakten har dessuten bare 7/30/90-vinduer. */}
+              <TimeWindowPicker
+                value={window}
+                onChange={setWindow}
+                allowCustom={false}
+                presetDays={IS_REISE ? [7, 30, 90] : undefined}
+              />
             </div>
           </div>
         )}

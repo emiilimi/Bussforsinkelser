@@ -171,7 +171,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 Andel i rute
                 <InfoTip learnMoreHref="/metode#punktlighet">
-                  Andel avganger med forsinkelse under 2 minutter. Punktlighetsdefinisjonen varierer noe mellom operatører — vi bruker en relativt streng grense.
+                  Andel stopp-passeringer med høyst 2 minutter forsinkelse. Punktlighetsdefinisjonen varierer mellom operatører — vi bruker en relativt streng grense.
                 </InfoTip>
               </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -180,7 +180,7 @@ export default function Dashboard() {
               <div className="text-2xl font-bold font-mono">
                 {summary?.pctOnTime != null ? `${summary.pctOnTime.toFixed(1)}%` : "—"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Avganger &lt; 2 min forsinkelse</p>
+              <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse</p>
             </CardContent>
           </Card>
 

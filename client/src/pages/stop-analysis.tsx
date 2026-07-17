@@ -21,6 +21,7 @@ import {
   TimeWindowPicker,
   type TimeWindow,
   windowToQuery,
+  windowLabel,
 } from "@/components/time-window-picker";
 
 // ---------------------------------------------------------------------------
@@ -620,7 +621,7 @@ export default function StopAnalysis() {
                 <CardHeader>
                   <CardTitle>Linjer ved dette stoppestedet</CardTitle>
                   <CardDescription>
-                    Gjennomsnittlig forsinkelse per linje ved {formatStopName(stats.stopName, stats.stopRef)} (siste 4 uker).
+                    Gjennomsnittlig forsinkelse per linje ved {formatStopName(stats.stopName, stats.stopRef)} ({windowLabel(window)}).
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -678,7 +679,7 @@ export default function StopAnalysis() {
                 <CardHeader>
                   <CardTitle>Forsinkelse per linje etter time</CardTitle>
                   <CardDescription>
-                    Gjennomsnittlig forsinkelse per time for hver linje ved {formatStopName(stats.stopName, stats.stopRef)} (siste 4 uker, fra reisedata).
+                    Gjennomsnittlig forsinkelse per time for hver linje ved {formatStopName(stats.stopName, stats.stopRef)} ({windowLabel(window)}, fra reisedata).
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

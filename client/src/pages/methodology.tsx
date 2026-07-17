@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 
 /**
- * Metode-side: forklarer hva nettsiden viser, hvordan tallene beregnes, og
- * den tekniske metodikken bak. Tre nivåer, samme side. Andre sider lenker
- * til ankerne (#hva-vises, #persentiler, #dwell-time osv.).
+ * Metode-side: hva nettsiden viser, hvordan tallene beregnes, og hvilke
+ * forbehold som gjelder. Andre sider lenker til ankerne
+ * (#hva-vises, #persentiler, #dwell-time, #overgang, #plan-b, #begrensninger).
  */
 export default function Methodology() {
   return (
@@ -28,8 +28,8 @@ export default function Methodology() {
             <h1 className="text-3xl font-bold tracking-tight">Metode og datagrunnlag</h1>
           </div>
           <p className="text-muted-foreground">
-            Hvor tallene kommer fra, hva de betyr, og hvordan de er beregnet. Tre nivåer —
-            velg etter hvor mye detalj du vil ha.
+            Hvor tallene kommer fra, hvordan de er regnet ut, og hva de ikke kan
+            fortelle deg. Starter enkelt, blir mer teknisk nedover.
           </p>
         </header>
 
@@ -42,17 +42,17 @@ export default function Methodology() {
             <ol className="space-y-1.5 text-sm">
               <li>
                 <a href="#hva-vises" className="text-primary hover:underline">
-                  1. Hva viser nettsiden? <span className="text-muted-foreground">(for alle)</span>
+                  1. Hva viser nettsiden?
                 </a>
               </li>
               <li>
                 <a href="#hvordan-beregnes" className="text-primary hover:underline">
-                  2. Hvordan beregnes tallene? <span className="text-muted-foreground">(litt teknisk)</span>
+                  2. Hvordan beregnes tallene?
                 </a>
               </li>
               <li>
                 <a href="#detaljert-metodikk" className="text-primary hover:underline">
-                  3. Detaljert metodikk <span className="text-muted-foreground">(teknisk)</span>
+                  3. Detaljert metodikk
                 </a>
               </li>
               <li>
@@ -74,12 +74,13 @@ export default function Methodology() {
           <p className="text-muted-foreground leading-relaxed">
             {IS_REISE ? (
               <>
-                Dette er en <strong>reiseplanlegger med historisk forsinkelsesstatistikk</strong>.
-                Reisesøket henter forslag fra Entur, og beriker dem med hva som faktisk har
-                skjedd med de samme avgangene tidligere: Når en buss rapporterer sin faktiske
-                tid via sanntidssystemet, sammenlikner vi det med ruteplanen. Differansen
-                kalles <strong>forsinkelse</strong> (i minutter), og danner grunnlaget for
-                estimerte tider, overgangssannsynligheter og plan B-forslag.
+                Dette er en reiseplanlegger som legger historikk oppå reisesøket.
+                Selve reiseforslagene kommer fra Entur. I tillegg viser vi hva som
+                faktisk har skjedd med de samme avgangene tidligere: hver gang en buss
+                rapporterer faktisk tid via sanntidssystemet, sammenlikner vi med
+                ruteplanen. Differansen — <strong>forsinkelsen</strong>, målt i
+                minutter — er grunnlaget for estimerte tider,
+                overgangssannsynligheter og plan B-forslagene.
               </>
             ) : (
               <>
@@ -109,7 +110,7 @@ export default function Methodology() {
               <div className="text-xs font-semibold uppercase text-muted-foreground">Operatører</div>
               <p className="text-sm">
                 {IS_REISE
-                  ? "Forsinkelsesstatistikken dekker de aller fleste norske operatører med sanntid i SIRI ET-feeden (19 stk — Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg operatør i sidemenyen. Reisesøket dekker hele Norge via Entur."
+                  ? "Forsinkelsesstatistikken dekker 19 norske operatører med sanntid i SIRI ET-feeden (Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Reisesøket dekker hele Norge via Entur."
                   : "19 operatører over hele Norge (Skyss, Ruter, AtB, Kolumbus, Brakar m.fl.). Velg i sidemenyen."}
               </p>
             </div>
@@ -117,7 +118,7 @@ export default function Methodology() {
               <div className="text-xs font-semibold uppercase text-muted-foreground">Tidsvindu</div>
               <p className="text-sm">
                 {IS_REISE
-                  ? "Rullende vindu på inntil 90 dager med rå observasjoner. Statistikken vokser etter hvert som flere dager samles inn — antall dager vises alltid."
+                  ? "Rådataene dekker inntil 14 uker tilbake i tid (rullende). Innsamlingen er relativt ny, så vinduet vokser til det er fullt — antall dager bak et tall vises alltid."
                   : "Standard er siste 30 dager. Noen visninger har egne tidsvelgere."}
               </p>
             </div>
@@ -127,13 +128,15 @@ export default function Methodology() {
             <h3 className="text-lg font-semibold">Hva betyr de viktigste tallene?</h3>
 
             <Term name="Forsinkelse (minutter)">
-              Faktisk tid minus planlagt tid. Positiv = bussen var sen, negativ = bussen var tidlig.
-              Vi tar utgangspunkt i avgangstiden fra hvert stopp.
+              Faktisk tid minus planlagt tid ved et stopp. Positiv = bussen var sen,
+              negativ = bussen var tidlig. Vi bruker avgangstiden der den er
+              rapportert; mangler den, brukes ankomsttiden.
             </Term>
 
             <Term name="Snitt forsinkelse">
-              Gjennomsnittet av alle observerte forsinkelser i tidsvinduet. Et tall på{" "}
-              <em>2,1 min</em> betyr at en bussavgang i snitt var 2 minutter og 6 sekunder sen.
+              Gjennomsnittet av alle observerte forsinkelser i tidsvinduet, regnet per
+              stopp-passering. <em>2,1 min</em> betyr at bussene i snitt var 2 minutter
+              og 6 sekunder sene ved stoppene sine.
             </Term>
 
             <Term name="Andel i rute (%)">
@@ -143,9 +146,9 @@ export default function Methodology() {
               bidrar med 90 % i rute.
             </Term>
 
-            <Term name="Andel mer enn 2/5/10 min sen">
-              Andel avganger med forsinkelse over den oppgitte grensen. Brukes på topplister
-              for å fange opp problematiske stopp eller linjer.
+            <Term name="Andel mer enn 2/10 min sen">
+              Andel stopp-passeringer med forsinkelse over den oppgitte grensen. Brukes
+              på topplistene for å fange opp problematiske stopp og linjer.
             </Term>
           </div>
         </section>
@@ -160,44 +163,44 @@ export default function Methodology() {
           <div id="persentiler" className="scroll-mt-8 space-y-3">
             <h3 className="text-lg font-semibold">Persentiler: P50, P80 og P95</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Når noe varierer mye, er gjennomsnittet alene misvisende. En busslinje kan ha
-              snitt på 1 minutt forsinkelse, men hver tiende avgang kan være 15 minutter sen.
-              Derfor bruker vi <strong>persentiler</strong>:
+              Gjennomsnitt skjuler variasjon. En linje kan ha 1 minutt i snittforsinkelse
+              og likevel være kvarteret for sen hver tiende tur — og det er den turen du
+              husker. Derfor viser vi persentiler i tillegg:
             </p>
             <div className="grid sm:grid-cols-3 gap-3">
               <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 space-y-1">
                 <div className="font-bold text-emerald-900">P50 (median)</div>
                 <p className="text-xs text-emerald-900/80">
-                  Halvparten av avgangene er bedre, halvparten dårligere. En "typisk dag".
+                  Halvparten av observasjonene er bedre, halvparten dårligere. En typisk dag.
                 </p>
               </div>
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 space-y-1">
                 <div className="font-bold text-amber-900">P80</div>
                 <p className="text-xs text-amber-900/80">
-                  4 av 5 avganger er bedre enn dette. Et godt mål på "ganske dårlig dag".
+                  4 av 5 observasjoner er bedre enn dette. En ganske dårlig dag.
                 </p>
               </div>
               <div className="p-4 rounded-lg bg-rose-50 border border-rose-200 space-y-1">
                 <div className="font-bold text-rose-900">P95</div>
                 <p className="text-xs text-rose-900/80">
-                  19 av 20 avganger er bedre enn dette. Worst case du må regne med.
+                  19 av 20 er bedre enn dette. Så ille kan det bli uten at noe ekstraordinært skjer.
                 </p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Eksempel: Hvis vi viser "P80 = 7 min" for en avgang, betyr det at det er
-              omtrent 80 % sjanse for at neste avgang er mindre enn 7 minutter sen.
+              Står det «P80 = 7 min» for en avgang, betyr det at rundt 80 % av de
+              historiske turene var mindre enn 7 minutter sene.
             </p>
             <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-900 dark:text-amber-200 space-y-2">
               <p className="font-semibold flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4" />
-                Viktig: persentiler med lite data
+                Persentiler med lite data
               </p>
               <p>
                 Persentiler beregnes med <code>PERCENTILE_CONT</code> (kontinuerlig
                 interpolasjon): observasjonene sorteres, og persentilen leses av på posisjon{" "}
                 <code>p × (n − 1)</code> i den sorterte listen. Havner posisjonen mellom to
-                observasjoner, interpoleres det <em>lineært</em> mellom dem. Persentilen er
+                observasjoner, interpoleres det lineært mellom dem — persentilen er
                 altså ikke nødvendigvis en verdi som faktisk er observert.
               </p>
               <div className="p-2.5 rounded bg-amber-100/60 dark:bg-amber-900/30 font-mono text-xs space-y-1">
@@ -207,15 +210,11 @@ export default function Methodology() {
                 <p>P95 = 1,0 + 0,95 × (5,0 − 1,0) = <strong>4,8 min</strong> — nesten lik verste dag</p>
               </div>
               <p>
-                Med 2 datapunkter er "P80" altså bare et punkt på linjen mellom beste og verste
-                dag — ikke et statistisk estimat på noe som helst. Tallene ser presise ut
-                (4,2 min!), men presisjonen er en illusjon: en tredje dag kan flytte alt.
-                Først med flere titalls dager begynner persentilene å beskrive en faktisk
-                fordeling.
-              </p>
-              <p>
-                Vi viser alltid antall observasjoner tallene er basert på. Tommelfingerregel:
-                under 5 dager = upålitelig, 10–30 dager = brukbart, 30+ dager = solid.
+                Med 2 datapunkter er «P80» bare et punkt på linjen mellom beste og verste
+                dag. Tallet ser presist ut (4,2 min!), men en tredje dag kan flytte alt.
+                Først med noen titalls dager begynner persentilene å beskrive en faktisk
+                fordeling. Vi viser derfor alltid hvor mange observasjoner et tall bygger
+                på — under 5 dager bør du lese det som en anekdote, ikke statistikk.
               </p>
             </div>
           </div>
@@ -227,29 +226,34 @@ export default function Methodology() {
             </h3>
             <p className="text-muted-foreground leading-relaxed">
               <strong>Dwell time</strong> er hvor lenge bussen står stille på et stoppested —
-              fra den ankommer til den kjører videre. Vi måler dette i sekunder. Et høyt
-              dwell time kan bety to ganske ulike ting: mange på- og avstigninger (rushtid,
-              populært knutepunkt), eller at bussen ligger <em>foran</em> ruten sin og venter
-              på planlagt avgangstid (regulering). Tallet skiller ikke mellom de to.
+              fra den ankommer til den kjører videre, målt i sekunder. Høy dwell time kan
+              bety to ganske ulike ting: mange på- og avstigninger (rushtid, knutepunkt),
+              eller at bussen ligger <em>foran</em> ruten og venter på planlagt avgangstid
+              (regulering). Tallet skiller ikke mellom de to.
             </p>
           </div>
 
           <div id="day-type" className="scroll-mt-8 space-y-3 pt-2">
             <h3 className="text-lg font-semibold">Dagtype-segmentering</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Hverdager, lørdager og søndager har ofte ulikt rutemønster og trafikkmengde. For
-              å unngå at lørdagstall sløver hverdagsstatistikken, segmenterer vi etter{" "}
+              Hverdager, lørdager og søndager har ulikt rutemønster og trafikkmengde. For
+              at ikke lørdagstall skal blandes inn i hverdagsstatistikken, får hver dag en{" "}
               <strong>dagtype</strong>:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
               <li><strong>Hverdag</strong> — mandag til fredag (ekskl. helligdager)</li>
               <li><strong>Lørdag</strong></li>
               <li><strong>Søndag</strong></li>
-              <li><strong>Helligdag</strong> — norske offentlige helligdager (1. mai, 17. mai, jul, påske, m.fl.)</li>
+              <li><strong>Helligdag</strong> — norske offentlige helligdager (1. mai, jul, påske, Kristi himmelfart m.fl.)</li>
             </ul>
             <p className="text-sm text-muted-foreground">
-              Når du ser statistikk på en avgang, beregnes den fra historiske dager med samme
-              dagtype som datoen du ser på.
+              17. mai skilles i tillegg ut som egen kategori i datagrunnlaget —
+              paradedagen har et så avvikende kjøremønster at den ville forstyrret
+              helligdagstallene.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Statistikk for en avgang beregnes fra historiske dager med samme dagtype
+              som datoen du ser på.
             </p>
           </div>
 
@@ -257,8 +261,8 @@ export default function Methodology() {
             <h3 className="text-lg font-semibold">Empirisk overgangssannsynlighet</h3>
             <p className="text-muted-foreground leading-relaxed">
               I reiseplanleggeren viser vi sannsynligheten for at du faktisk{" "}
-              <strong>rekker en overgang</strong> mellom to busser. Dette er ikke et estimat
-              basert på snitt-forsinkelser, men en <strong>empirisk telling</strong>:
+              <strong>rekker en overgang</strong> mellom to busser. Dette er ikke regnet
+              ut fra snittforsinkelser, men telt opp dag for dag i historikken:
             </p>
             <ol className="text-sm text-muted-foreground space-y-2 ml-4 list-decimal">
               <li>
@@ -270,26 +274,27 @@ export default function Methodology() {
                 neste avgang.
               </li>
               <li>
-                Vi teller hvor mange av dagene som hadde mer enn nok tid til å rekke overgangen
+                Vi teller hvor mange av dagene som hadde nok tid til å rekke overgangen
                 (inkl. din valgte gangtid + sikkerhetsmargin).
               </li>
               <li>
-                Andelen blir sannsynligheten. <em>"Snitt over 47 dager: 82 %"</em> betyr at
+                Andelen blir sannsynligheten. <em>«Snitt over 47 dager: 82 %»</em> betyr at
                 samme overgang har gått 82 % av historiske dager.
               </li>
             </ol>
             <p className="text-sm text-muted-foreground">
-              Hvis vi ikke har nok data på akkurat din avgangs-ID, faller vi tilbake til
-              statistikk per (linje, stopp, retning, dagtype) — uthevet i hvor tallene kommer
-              fra. Retningen leses fra hvordan den planlagte avgangen selv er registrert i
-              dataene, siden noen plattformer trafikkeres i begge retninger av samme linje.
-              I fallback-modusen sammenlikner vi <strong>forsinkelser</strong>, ikke absolutte
-              klokkeslett: for hver historisk dag finner vi en sammenliknbar ankomst og avgang
-              (nærmest i rutetid, samme retning), og regner{" "}
+              Har vi for få dager (under 5) på akkurat din avgangs-ID, faller vi tilbake
+              til statistikk per (linje, stopp, retning, dagtype) — kilden merkes i
+              visningen. Retningen leses fra hvordan den planlagte avgangen selv er
+              registrert i dataene, siden noen plattformer trafikkeres i begge retninger
+              av samme linje. I fallback-modusen sammenlikner vi{" "}
+              <strong>forsinkelser</strong>, ikke absolutte klokkeslett: for hver
+              historisk dag finner vi en sammenliknbar ankomst og avgang (nærmest i
+              rutetid, samme retning), og regner{" "}
               <code className="text-xs bg-muted px-1 rounded">
                 gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
               </code>
-              . Dette er viktig for sjeldne linjer: sammenliknet man klokkeslett direkte,
+              . Det er viktig for sjeldne linjer: sammenliknet man klokkeslett direkte,
               kunne dagens nærmeste registrerte avgang være en <em>tidligere</em> rute enn
               den du skal rekke — og en romslig overgang ville feilaktig vist 0 %.
             </p>
@@ -301,12 +306,12 @@ export default function Methodology() {
               plattform, så dette rammer i praksis mest skinnegående transport.
             </p>
             <p className="text-sm text-muted-foreground">
-              Med få observasjoner (f.eks. 1–2 dager) blir sannsynligheten enten 0 % eller
-              100 % — det finnes ingen mellomting når du teller binært over én dag. Dette
-              kan se motstridende ut (f.eks. 0 % med margin, men 100 % med spurt), men er
-              logisk korrekt: den ene dagen var gapet akkurat stort nok til å rekke ved
-              spurt, men ikke stort nok med gangfart + margin. Antall dager vises alltid
-              slik at du kan vurdere påliteligheten selv.
+              Med 1–2 observasjoner blir sannsynligheten enten 0 % eller 100 % — det
+              finnes ingen mellomting når man teller binært over én dag. Det kan se
+              rart ut (0 % med margin, men 100 % med spurt), men er korrekt: den ene
+              dagen var gapet stort nok til å rekke ved spurt, men ikke med vanlig
+              gangfart + margin. Antall dager vises alltid, så du kan vurdere
+              påliteligheten selv.
             </p>
           </div>
 
@@ -314,8 +319,8 @@ export default function Methodology() {
             <div id="plan-b" className="scroll-mt-8 space-y-3 pt-2">
               <h3 className="text-lg font-semibold">Plan B/C/D: hva skjer hvis du mister overgangen?</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Når sannsynligheten for å miste en overgang er over 5 %, viser reiseplanleggeren
-                automatisk hva alternativet ditt er. Slik beregnes det:
+                Er sannsynligheten for å miste en overgang 5 % eller mer, viser
+                reiseplanleggeren hva alternativet ditt er. Slik beregnes det:
               </p>
               <ol className="text-sm text-muted-foreground space-y-2 ml-4 list-decimal">
                 <li>
@@ -340,8 +345,8 @@ export default function Methodology() {
                 </li>
                 <li>
                   Plan B får sin egen empiriske overgangssannsynlighet (samme metode som
-                  hovedreisen). Er sjansen for at du trenger enda et alternativ fortsatt over
-                  5 % — dvs. P(miste opprinnelig) × P(miste plan B) ≥ 5 % — henter vi{" "}
+                  hovedreisen). Er sjansen for at du trenger enda et alternativ fortsatt
+                  minst 5 % — dvs. P(miste opprinnelig) × P(miste plan B) ≥ 5 % — henter vi{" "}
                   <strong>plan C</strong> (første avgang etter plan B), og så videre.
                 </li>
                 <li>
@@ -362,7 +367,7 @@ export default function Methodology() {
               <h4 className="text-base font-semibold pt-1">Bytte av avgang på et enkelt legg</h4>
               <p className="text-sm text-muted-foreground">
                 Du kan bytte en enkelt del av reisen til en tidligere eller senere avgang av
-                samme linje ("Bytt avgang"). Da antar vi at kjøretiden er identisk med den
+                samme linje («Bytt avgang»). Da antar vi at kjøretiden er identisk med den
                 opprinnelige avgangen, og skyver hele legget tilsvarende. Bytter du et legg
                 midt i reisen slik at gapet til neste buss blir mindre enn gangtiden, flagges
                 overgangen som brutt i rødt — vi skjuler den ikke.
@@ -371,14 +376,15 @@ export default function Methodology() {
           )}
 
           <div id="punktlighet" className="scroll-mt-8 space-y-3 pt-2">
-            <h3 className="text-lg font-semibold">Definisjonen av "punktlig"</h3>
+            <h3 className="text-lg font-semibold">Definisjonen av «punktlig»</h3>
             <p className="text-muted-foreground leading-relaxed">
               Vi regner en stopp-passering som <strong>punktlig</strong> når forsinkelsen er{" "}
               <strong>høyst 2 minutter</strong> (avgangstid der den finnes, ellers ankomsttid).
               Tidlige passeringer regnes som i rute i dette målet. Bransjen har ingen
-              universell definisjon — mange operatører bruker vinduer som -1 til +3 eller
-              -1 til +5 minutter og teller per avgang; våre tall er derfor ikke direkte
-              sammenliknbare med operatørenes egne punktlighetsrapporter.
+              universell definisjon — mange operatører bruker vinduer som −1 til +3 eller
+              −1 til +5 minutter og teller per avgang. Våre tall er derfor ikke direkte
+              sammenliknbare med operatørenes egne punktlighetsrapporter, og vil typisk
+              se strengere ut.
             </p>
           </div>
         </section>
@@ -394,16 +400,17 @@ export default function Methodology() {
             <h3 className="text-lg font-semibold">Datakjede</h3>
             {IS_REISE ? (
               <p className="text-muted-foreground leading-relaxed text-sm">
-                Hver natt henter vi forrige dags rådata fra Enturs BigQuery-tabell{" "}
+                Hver natt hentes forrige dags rådata fra Enturs BigQuery-tabell{" "}
                 <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
                   realtime_siri_et.realtime_siri_et_last_recorded
                 </code>{" "}
                 (SIRI ET = Service Interface for Real time Information / Estimated Timetable).
-                Vi sammenlikner faktisk avgangs-/ankomsttid med planlagt tid, kvalitetssikrer
-                dataene, og lagrer rå observasjoner per (avgang, stopp, dag) i et rullende
-                90-dagers vindu. Disse eksporteres som ukentlige Parquet-filer til Cloudflare
-                R2. <strong>All statistikk beregnes i nettleseren din</strong> med DuckDB-WASM
-                direkte mot Parquet-filene — det finnes ingen statistikk-server.
+                Faktisk avgangs-/ankomsttid sammenliknes med planlagt tid, dataene
+                kvalitetssikres, og observasjonene per (avgang, stopp, dag) skrives til
+                ukentlige Parquet-filer som lastes opp til Cloudflare R2. De siste 14
+                ukene beholdes der. <strong>All statistikk beregnes i nettleseren
+                din</strong> med DuckDB-WASM direkte mot Parquet-filene — det finnes
+                ingen statistikk-server.
               </p>
             ) : (
               <p className="text-muted-foreground leading-relaxed text-sm">
@@ -425,8 +432,9 @@ export default function Methodology() {
               <div className="p-3 rounded bg-muted/40 border border-border">
                 <div className="font-mono text-xs text-primary">journey_stop_daily</div>
                 <p className="text-muted-foreground mt-1">
-                  Rå observasjon per avgang per stopp. Beholdes i 90 dager. Eksporteres til
-                  ukentlige Parquet-filer for klient-side persentilberegning.
+                  {IS_REISE
+                    ? "Rå observasjon per avgang per stopp per dag. Lagres som ukentlige Parquet-filer på R2; de siste 14 ukene beholdes."
+                    : "Rå observasjon per avgang per stopp. Beholdes i 90 dager. Eksporteres til ukentlige Parquet-filer for klient-side persentilberegning."}
                 </p>
               </div>
               {!IS_REISE && (
@@ -456,9 +464,12 @@ export default function Methodology() {
               )}
               {IS_REISE && (
                 <p className="text-muted-foreground text-xs">
-                  Dette er det eneste datagrunnlaget for reise-siden — alle persentiler,
+                  Dette er det eneste datagrunnlaget — alle persentiler,
                   overgangssannsynligheter og plan B-beregninger går tilbake til disse rå
-                  observasjonene. Ingen forhåndsaggregerte tabeller brukes.
+                  observasjonene. I tillegg forhåndsberegnes noen små oppsummeringsfiler
+                  hver natt fra de samme rådataene (dagstall, topplister, kartdata,
+                  linjenavn), slik at oversikts- og kartsidene slipper å skanne Parquet
+                  ved hvert besøk. Analysevinduene der er 7, 30 og 90 dager.
                 </p>
               )}
             </div>
@@ -476,12 +487,22 @@ export default function Methodology() {
                 feilrapporteringer.
               </li>
               <li>
-                Forsinkelser over ±120 minutter logges som <em>outliers</em> i en egen
-                kvalitetslogg, men inkluderes fortsatt i statistikken (de er ofte reelle
-                hendelser som streik, snøstorm eller infrastrukturproblemer).
+                {IS_REISE ? (
+                  <>
+                    Ekstreme forsinkelser (over ±2 timer) kappes ikke, men inkluderes som
+                    de er — de er ofte reelle hendelser (streik, snøstorm,
+                    infrastrukturproblemer), men kan også være klokke- eller GPS-feil.
+                  </>
+                ) : (
+                  <>
+                    Forsinkelser over ±120 minutter logges som <em>outliers</em> i en egen
+                    kvalitetslogg, men inkluderes fortsatt i statistikken (de er ofte reelle
+                    hendelser som streik, snøstorm eller infrastrukturproblemer).
+                  </>
+                )}
               </li>
               <li>
-                Avlyste avganger telles separat (ikke som "veldig sen").
+                Avlyste avganger telles separat (ikke som «veldig sen»).
               </li>
             </ul>
           </div>
@@ -509,12 +530,12 @@ export default function Methodology() {
           <div className="space-y-3 pt-2">
             <h3 className="text-lg font-semibold">Klient-side persentiler (DuckDB-WASM)</h3>
             <p className="text-muted-foreground leading-relaxed text-sm">
-              For å unngå tungt server-arbeid på hver visning, lastes ukentlige Parquet-filer
-              direkte til nettleseren og spørres med <strong>DuckDB-WASM</strong>. Dette gir
-              raske persentilberegninger uten å belaste serveren, og er grunnen til at
-              reiseplanleggeren og avgangslisten kan vise P50/P80/P95 nesten umiddelbart etter
-              første sidelast. DuckDB henter bare de delene av Parquet-filene den faktisk
-              trenger via HTTP range requests.
+              Persentiler og overgangsstatistikk beregnes med <strong>DuckDB-WASM</strong> —
+              en SQL-motor som kjører i nettleseren og spør direkte mot Parquet-filene på
+              R2. Den henter bare de delene av filene den faktisk trenger, via HTTP range
+              requests. Motoren (~7 MB) lastes først når du gjør noe som trenger den —
+              velger et stoppested, starter et søk — slik at selve sidelasten forblir
+              lett.
             </p>
           </div>
 
@@ -554,16 +575,17 @@ export default function Methodology() {
 
             <Limitation title="Ikke alle avganger rapporteres">
               Selv om en avgang står i rutetabellen, kan den mangle sanntidsdata (defekt sensor,
-              nedetid hos operatøren, kjøretøy uten kommunikasjon). Disse "manglende" avgangene
-              telles separat i kvalitetsloggen, men kan ikke skilles fra avlyste avganger med
-              full sikkerhet.
+              nedetid hos operatøren, kjøretøy uten kommunikasjon). Disse «manglende» avgangene
+              kan ikke skilles fra avlyste avganger med full sikkerhet.
             </Limitation>
 
-            <Limitation title="Forsinkelser måles ved avgang fra stopp">
-              Tallene reflekterer hvor sen bussen var da den forlot stoppet — ikke når den
-              kom inn. Det betyr at en buss som står 3 minutter ekstra på terminalen pga.
-              passasjerer telles som "sen ved avgang", selv om kjøretiden mellom stoppene var
-              normal.
+            <Limitation title="Forsinkelse måles primært ved avgang fra stopp">
+              Der bussen rapporterer avgangstid, er det den som telles — en buss som står
+              3 minutter ekstra på terminalen regnes som sen ved avgang, selv om kjøretiden
+              mellom stoppene var normal. Mangler avgangstiden, brukes ankomsttiden i
+              stedet. Overgangsanalysen bruker derimot alltid ankomsttid for bussen du
+              kommer med og avgangstid for bussen du skal rekke — det er de tidspunktene
+              som avgjør om du rekker byttet.
             </Limitation>
 
             <Limitation title="Datatilgjengelighet kan variere">
@@ -588,7 +610,7 @@ export default function Methodology() {
               observasjoner. Vi skjuler ikke tallene, men viser alltid antall observasjoner
               de er basert på, og en advarsel når det er under 5. Se{" "}
               <a href="#persentiler" className="text-primary hover:underline">seksjonen om persentiler</a>{" "}
-              for en forklaring på hvorfor tallene kan se merkelige ut med lite data.
+              for hvorfor tallene kan se merkelige ut med lite data.
             </Limitation>
           </div>
         </section>

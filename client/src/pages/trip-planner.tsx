@@ -2796,7 +2796,7 @@ export default function TripPlanner() {
               {tripPatterns.length} reiseforslag
               {delayStats.size > 0 && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  med forsinkelsesdata fra siste 13 uker
+                  med historiske forsinkelsesdata
                 </span>
               )}
             </h3>
@@ -2857,7 +2857,7 @@ export default function TripPlanner() {
         {tripPatterns.length === 0 && !tripMutation.isPending && tripMutation.isSuccess && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              <p>Ingen reiseforslag funnet. Prov andre stoppesteder eller juster filtre.</p>
+              <p>Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtrene.</p>
             </CardContent>
           </Card>
         )}
@@ -2920,15 +2920,15 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-amber-500 font-mono">~HH:MM</span> Estimert tid
                 </p>
-                <p>Rutetid + median forsinkelse (P50) for den aktuelle linjen ved det aktuelle stoppet. Basert pa ekte sanntidsdata fra de siste ukene. Beregnet med DuckDB-WASM direkte i nettleseren fra ukentlige Parquet-filer.</p>
+                <p>Rutetid + median historisk forsinkelse (P50) for avgangen ved det aktuelle stoppet. Beregnet med DuckDB-WASM direkte i nettleseren fra ukentlige Parquet-filer.</p>
               </div>
 
               {/* Sannsynlighet for overgang */}
               <div className="space-y-1">
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
-                  <span className="text-green-600 font-mono">X%</span> Sannsynlighet for a rekke bytte
+                  <span className="text-green-600 font-mono">X%</span> Sannsynlighet for å rekke bytte
                 </p>
-                <p>Beregnet empirisk fra historiske forsinkelsesdata. Vi ser pa alle registrerte ankomster av linje A ved byttestoppet, og regner ut hvor stor andel som ville rukket avgangen til linje B gitt buffertiden og din valgte ganghastighet/margin. Nar DuckDB-data er tilgjengelig brukes persentiler (P50/P80/P95) for interpolering; ellers brukes gjennomsnittsforsinkelse som fallback.</p>
+                <p>Telt opp dag for dag i historikken: for hver historisk dag (med samme dagtype) der begge avgangene gikk, måler vi det faktiske gapet mellom ankomst og neste avgang, og teller hvor mange dager gapet var stort nok (inkl. din gangtid + margin). Har vi under 5 dager på akkurat din avgangs-ID, brukes statistikk per (linje, stopp, retning, dagtype) i stedet — kilden merkes i visningen. Se <a href="/metode#overgang" className="text-primary hover:underline">metodesiden</a> for detaljer.</p>
               </div>
 
               {/* P80 punktlighet */}
@@ -2936,22 +2936,22 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-muted-foreground font-mono">P80</span> Punktlighet
                 </p>
-                <p>80. persentil av forsinkelsen. Betyr at 80% av avgangene er innenfor denne forsinkelsen. Beregnet via DuckDB-WASM fra ra observasjoner.</p>
+                <p>80. persentil av forsinkelsen — 80 % av de historiske turene var innenfor denne forsinkelsen. Beregnet via DuckDB-WASM fra rå observasjoner.</p>
               </div>
             </div>
 
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-start gap-2">
                 <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
-                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid - planlagt tid. Buss og flybuss fra alle operatorer med SIRI ET-feed har forsinkelsesdata. Andre transportmidler vises uten statistikk.</p>
+                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid − planlagt tid. Buss og flybuss fra operatører med SIRI ET-feed har forsinkelsesdata. Andre transportmidler vises uten statistikk.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                <p><strong>Tidsvindu-filter:</strong> Pavirker kun forsinkelsesstatistikken, ikke reiseforslagene fra Entur.</p>
+                <p><strong>Tidsvindu-filter:</strong> Påvirker kun forsinkelsesstatistikken, ikke reiseforslagene fra Entur.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Database className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                <p><strong>Teknisk:</strong> Forsinkelsesdata lagres i SQLite, eksporteres til Parquet (ZSTD), og analyseres med DuckDB-WASM (~6 MB) direkte i nettleseren. Ingen data sendes tilbake til serveren.</p>
+                <p><strong>Teknisk:</strong> Forsinkelsesdata eksporteres nattlig som ukentlige Parquet-filer (ZSTD) til Cloudflare R2, og analyseres med DuckDB-WASM direkte i nettleseren. De siste 14 ukene beholdes. Ingen data sendes tilbake til serveren.</p>
               </div>
             </div>
           </CardContent>

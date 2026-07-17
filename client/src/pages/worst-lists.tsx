@@ -233,7 +233,7 @@ export default function WorstLists() {
               <TabsTrigger value="pct" className="text-xs">Forsinket &gt;2m</TabsTrigger>
             </TabsList>
           </Tabs>
-          <InfoTip>"Snitt" sorterer etter vektet snittforsinkelse. "Forsinket &gt;2m" sorterer etter andel avganger som var mer enn 2 min forsinket.</InfoTip>
+          <InfoTip>"Snitt" sorterer etter vektet snittforsinkelse. "Forsinket &gt;2m" sorterer etter andel stopp-passeringer som var mer enn 2 min forsinket.</InfoTip>
           <span className="text-sm text-muted-foreground ml-2">Modus:</span>
           <Tabs value={vehicleMode} onValueChange={setVehicleMode} className="w-auto">
             <TabsList>

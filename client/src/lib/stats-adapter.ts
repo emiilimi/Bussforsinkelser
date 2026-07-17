@@ -334,7 +334,18 @@ async function apiLeaderboardStops(params: URLSearchParams) {
   const doc = await fetchStops();
   const type = params.get("type") ?? "worst";
   const operators = parseOperators(params);
+  const mode = params.get("mode");
+  const from = params.get("from");
+  const to = params.get("to");
   const days = params.get("days") ? parseInt(params.get("days")!, 10) : 7;
+
+  // Artefakten har verken transportmiddel-dimensjon eller vilkårlige
+  // datointervall — de tilfellene krever eksakt DuckDB-spørring over parquet.
+  // (Uten disse filtrene svarer artefakten øyeblikkelig.)
+  if ((mode && mode !== "all") || (from && to)) {
+    return apiLeaderboardStopsFiltered(doc, type, operators, mode, from, to, days);
+  }
+
   const win = snapWindow(days, doc.windows);
 
   const rows: Array<{
@@ -364,6 +375,60 @@ async function apiLeaderboardStops(params: URLSearchParams) {
       : (b.avgDelayMin ?? -Infinity) - (a.avgDelayMin ?? -Infinity),
   );
   return rows.slice(0, 50);
+}
+
+async function apiLeaderboardStopsFiltered(
+  doc: StopsDoc,
+  type: string,
+  operators: string[],
+  mode: string | null,
+  from: string | null,
+  to: string | null,
+  days: number,
+) {
+  const D = "COALESCE(delay_departure_min, delay_arrival_min)";
+  const conds: string[] = [`${D} IS NOT NULL`];
+  if (from && to) {
+    conds.push(`date >= '${esc(from)}'`, `date <= '${esc(to)}'`);
+  } else {
+    conds.push(
+      `date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(days - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`,
+    );
+  }
+  if (mode && mode !== "all") conds.push(`vehicle_mode = '${esc(mode)}'`);
+  if (operators.length > 0) {
+    conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  }
+
+  const rows = await standaloneDuckQuery<{
+    stop_ref: string; avg_delay: number | null; sd: number | null;
+    pct2: number | null; n: number;
+  }>(`
+    SELECT stop_ref,
+      ROUND(AVG(${D}), 2)          AS avg_delay,
+      ROUND(STDDEV_SAMP(${D}), 2)  AS sd,
+      ROUND(100.0 * AVG(CASE WHEN ${D} > 2 THEN 1 ELSE 0 END), 1) AS pct2,
+      COUNT(DISTINCT service_journey_id || date) AS n
+    FROM delays
+    WHERE ${conds.join(" AND ")}
+    GROUP BY stop_ref
+    HAVING COUNT(DISTINCT service_journey_id || date) >= 5
+    ORDER BY avg_delay ${type === "best" ? "ASC" : "DESC"}
+    LIMIT 50
+  `);
+
+  const names = new Map<string, string | null>();
+  for (const row of doc.stops) {
+    if (!names.has(row[0])) names.set(row[0], row[2]);
+  }
+  return rows.map((r) => ({
+    stopRef: r.stop_ref,
+    stopName: names.get(r.stop_ref) ?? null,
+    avgDelayMin: r.avg_delay,
+    stddevDelayMin: r.sd,
+    pctDelayed2plus: r.pct2,
+    totalDepartures: r.n,
+  }));
 }
 
 async function apiStopsMap(params: URLSearchParams) {
