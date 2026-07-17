@@ -35,14 +35,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   // Reise-bygget: analysesidene serveres fra R2-artefakter + DuckDB-WASM
-  // (full offload) — /stops gjenstår og er derfor ikke med ennå.
+  // (full offload) — ingen SQLite-backend.
   const navItems = IS_REISE
     ? [
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
         { href: "/avganger", label: "Avganger", icon: Timer },
         { href: "/oversikt", label: "Oversikt", icon: BarChart3 },
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
-        { href: "/worst", label: "Topplister", icon: Map },
+        { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
+        { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         { href: "/metode", label: "Metode", icon: BookOpen },
       ]

@@ -70,7 +70,6 @@ type TripStopStat = {
   avgDelayMin: number | null;
   avgDelayArrivalMin: number | null;
   avgDelayDepartureMin: number | null;
-  avgDwellTimeSec: number | null;
   numSamples: number | null;
 };
 
@@ -2424,7 +2423,6 @@ export default function TripPlanner() {
               ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
               ROUND(AVG(delay_arrival_min), 2)   AS avgDelayArrivalMin,
               ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
-              ROUND(AVG(dwell_time_sec), 1)       AS avgDwellTimeSec,
               COUNT(*) AS numSamples
             FROM delays
             WHERE date >= '${cutoffStr}' AND (${conditions})

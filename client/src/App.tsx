@@ -50,7 +50,7 @@ function FullRouter() {
 
 // Frittstående reise-side (VITE_APP=reise). Analysesidene (full offload)
 // serveres fra R2-artefakter + DuckDB-WASM via stats-adapteren — ingen
-// SQLite-backend. /stops gjenstår (trenger stoppesøk/retnings-adaptere).
+// SQLite-backend.
 function ReiseRouter() {
   return (
     <Switch>
@@ -59,6 +59,7 @@ function ReiseRouter() {
       <Route path="/avganger" component={Departures} />
       <Route path="/oversikt" component={Dashboard} />
       <Route path="/journey" component={JourneyDetails} />
+      <Route path="/stops" component={StopAnalysis} />
       <Route path="/worst" component={WorstLists} />
       <Route path="/map" component={DelayMap} />
       <Route path="/metode" component={Methodology} />

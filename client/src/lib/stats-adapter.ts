@@ -51,10 +51,17 @@ type Summary = {
   lines: LineRow[];
 };
 
-// Kompakt radformat: [stopRef, operator, stopName, lat, lng, w7, w30, w90]
-// der wN = [avgDelayMin, pctDelayed2plus, stddevDelayMin, totalDepartures] | null
+// Kompakt radformat: [stopRef, operator, stopName, lat, lng, w7, w30, w90,
+//                     spRef, platformCode, spName]
+// der wN = [avgDelayMin, pctDelayed2plus, stddevDelayMin, totalDepartures] | null.
+// De tre siste (etter vinduene) er stoppested-metadata for stoppanalyse-søket:
+// spRef er kompaktet til bare tallet i NSR:StopPlace:N, spName er null når det
+// er likt stopName. Eldre artefakter mangler dem — behandles som null.
 type StopWindowStats = [number | null, number | null, number | null, number] | null;
-type StopRow = [string, string, string | null, number | null, number | null, ...StopWindowStats[]];
+type StopRow = [
+  string, string, string | null, number | null, number | null,
+  ...Array<StopWindowStats | number | string | null>,
+];
 
 type StopsDoc = {
   generatedAt: string;
@@ -328,6 +335,249 @@ async function apiLinesAll(params: URLSearchParams) {
 function stopWindow(doc: StopsDoc, row: StopRow, win: number): StopWindowStats {
   const idx = 5 + doc.windows.indexOf(win);
   return (row[idx] as StopWindowStats) ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Stoppested-metadata (stoppanalyse): quay → stoppested + plattform.
+// Feltene ligger ETTER vinduene i raden; eldre artefakter mangler dem → null.
+// ---------------------------------------------------------------------------
+
+type QuayMeta = {
+  stopRef: string;
+  stopName: string | null;
+  stopPlaceRef: string | null;
+  stopPlaceName: string | null;
+  platformCode: string | null;
+};
+
+let quayMetaCache: Map<string, QuayMeta> | null = null;
+
+/** Unike quays på tvers av operatør-rader (cachet per sesjon). */
+function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
+  if (quayMetaCache) return quayMetaCache;
+  const base = 5 + doc.windows.length;
+  const map = new Map<string, QuayMeta>();
+  for (const row of doc.stops) {
+    if (map.has(row[0])) continue;
+    const rawSp = row[base] as number | string | null | undefined;
+    map.set(row[0], {
+      stopRef: row[0],
+      stopName: row[2],
+      stopPlaceRef:
+        typeof rawSp === "number"
+          ? `NSR:StopPlace:${rawSp}`
+          : (rawSp ?? null) || null,
+      platformCode: (row[base + 1] as string | null | undefined) ?? null,
+      stopPlaceName: (row[base + 2] as string | null | undefined) ?? null,
+    });
+  }
+  quayMetaCache = map;
+  return map;
+}
+
+/** NSR:StopPlace:X → medlems-quays (med data); quay-refs slippes gjennom.
+ *  nameHint: stoppestedets visningsnavn. */
+async function resolveStopQuays(
+  ref: string,
+): Promise<{ quays: string[]; nameHint: string | null }> {
+  const doc = await fetchStops();
+  const metas = quayMetaMap(doc);
+  if (ref.startsWith("NSR:StopPlace:")) {
+    const quays: string[] = [];
+    let name: string | null = null;
+    for (const m of Array.from(metas.values())) {
+      if (m.stopPlaceRef === ref) {
+        quays.push(m.stopRef);
+        name = m.stopPlaceName ?? m.stopName ?? name;
+      }
+    }
+    return { quays, nameHint: name };
+  }
+  return { quays: [ref], nameHint: metas.get(ref)?.stopName ?? null };
+}
+
+/**
+ * GET /api/stops/search?q=... — typeahead-søk for stoppanalysen.
+ * Grupperer per stoppested-NAVN (som serverens searchStops): store knutepunkt
+ * med flere StopPlace-IDer med identisk navn kollapses til ett treff, og
+ * MIN(ref) velges som representativ. Plattform-quays uten platformCode
+ * utelates fra quays-listen (plattformvelgeren), men teller i grunnlaget.
+ */
+async function apiStopsSearch(params: URLSearchParams) {
+  const q = (params.get("q") ?? "").trim().toLowerCase();
+  if (q.length < 2) return [];
+  const doc = await fetchStops();
+
+  const groups = new Map<string, { refs: string[]; quays: QuayMeta[] }>();
+  for (const meta of Array.from(quayMetaMap(doc).values())) {
+    const name = meta.stopPlaceName ?? meta.stopName;
+    if (!name) continue;
+    const matches =
+      name.toLowerCase().includes(q) ||
+      (meta.stopName != null && meta.stopName.toLowerCase().includes(q));
+    if (!matches) continue;
+    const g = groups.get(name) ?? { refs: [], quays: [] };
+    g.refs.push(meta.stopPlaceRef ?? meta.stopRef);
+    g.quays.push(meta);
+    groups.set(name, g);
+  }
+
+  const results = Array.from(groups.entries()).map(([name, g]) => {
+    const platforms = Array.from(
+      new Set(
+        g.quays.map((x) => x.platformCode).filter((p): p is string => !!p),
+      ),
+    ).sort();
+    return {
+      stopRef: g.refs.slice().sort()[0],
+      stopName: name,
+      platformCodes: platforms.length > 0 ? platforms.join(",") : null,
+      quays: g.quays
+        .filter((x): x is QuayMeta & { platformCode: string } => !!x.platformCode)
+        .map((x) => ({ stopRef: x.stopRef, platformCode: x.platformCode }))
+        .sort((a, b) => a.platformCode.localeCompare(b.platformCode, "nb")),
+    };
+  });
+  results.sort((a, b) => a.stopName.localeCompare(b.stopName, "nb"));
+  return results.slice(0, 20);
+}
+
+/**
+ * GET /api/stops/lookup?refs=...&expand=stopplace — batch-oppslag brukt av
+ * DuckDB-hookene (useLinesAtStop m.fl.) for å utvide StopPlace → quays.
+ */
+async function apiStopsLookup(params: URLSearchParams) {
+  const refs = (params.get("refs") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (refs.length === 0) return [];
+  const doc = await fetchStops();
+  const metas = quayMetaMap(doc);
+  const expand = params.get("expand") === "stopplace";
+
+  const out: Array<{ stopRef: string; stopName: string | null; stopPlaceRef: string | null }> = [];
+  for (const ref of refs) {
+    if (expand && ref.startsWith("NSR:StopPlace:")) {
+      for (const m of Array.from(metas.values())) {
+        if (m.stopPlaceRef === ref) {
+          out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
+        }
+      }
+    } else {
+      const m = metas.get(ref);
+      if (m) out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
+      else if (expand) out.push({ stopRef: ref, stopName: null, stopPlaceRef: null });
+    }
+  }
+  return out;
+}
+
+/**
+ * GET /api/stop/:ref — dagstrend + timesprofil for ett stoppested/quay.
+ * Speiler Express-svaret fra getStopStats + getStopHourlyProfile.
+ */
+async function apiStopStats(ref: string, params: URLSearchParams) {
+  const days = params.get("days") ? parseInt(params.get("days")!, 10) : 30;
+  const from = params.get("from");
+  const to = params.get("to");
+  const direction = params.get("direction");
+  const operators = parseOperators(params);
+
+  const { quays, nameHint } = await resolveStopQuays(ref);
+  if (quays.length === 0) throw new Error("Stoppested ikke funnet");
+
+  const D = "COALESCE(delay_departure_min, delay_arrival_min)";
+  const conds: string[] = [
+    `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,
+    `${D} IS NOT NULL`,
+  ];
+  if (from) conds.push(`date >= '${esc(from)}'`);
+  if (to) conds.push(`date <= '${esc(to)}'`);
+  if (!from && !to) {
+    conds.push(`date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(days - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`);
+  }
+  if (direction) conds.push(`direction_ref = '${esc(direction)}'`);
+  if (operators.length > 0) {
+    conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  }
+  const where = conds.join(" AND ");
+
+  const [daily, hourly] = await Promise.all([
+    standaloneDuckQuery<{
+      date: string; stopNameRow: string | null;
+      avgDelayMin: number | null; maxDelayMin: number | null; minDelayMin: number | null;
+      pctDelayed2plus: number | null; stddevDelayMin: number | null; numDepartures: number | null;
+    }>(`
+      SELECT
+        date,
+        MAX(stop_name)       AS stopNameRow,
+        ROUND(AVG(${D}), 2)  AS avgDelayMin,
+        ROUND(MAX(${D}), 1)  AS maxDelayMin,
+        ROUND(MIN(${D}), 1)  AS minDelayMin,
+        ROUND(100.0 * AVG(CASE WHEN ${D} > 2 THEN 1 ELSE 0 END), 1) AS pctDelayed2plus,
+        ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin,
+        COUNT(DISTINCT service_journey_id) AS numDepartures
+      FROM delays
+      WHERE ${where}
+      GROUP BY date
+      ORDER BY date
+    `),
+    standaloneDuckQuery<Record<string, unknown>>(`
+      WITH per_date_hour AS (
+        SELECT date,
+          CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
+          AVG(${D}) AS avg_delay,
+          COUNT(*) AS n
+        FROM delays
+        WHERE ${where} AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
+        GROUP BY 1, 2
+      )
+      SELECT hour,
+        ROUND(AVG(avg_delay), 2) AS avgDelayMin,
+        ROUND(MAX(avg_delay), 2) AS maxAvgDelayMin,
+        ROUND(MIN(avg_delay), 2) AS minAvgDelayMin,
+        CAST(SUM(n) AS INTEGER)  AS numSamples
+      FROM per_date_hour
+      GROUP BY hour
+      ORDER BY hour
+    `),
+  ]);
+
+  if (daily.length === 0) throw new Error("404: Stoppested ikke funnet");
+
+  const avgDelay =
+    daily.reduce((sum, r) => sum + (r.avgDelayMin ?? 0), 0) / daily.length;
+  const totalDepartures = daily.reduce((sum, r) => sum + (r.numDepartures ?? 0), 0);
+
+  return {
+    stopRef: ref,
+    stopName: nameHint ?? daily[0].stopNameRow,
+    avgDelayMin: Math.round(avgDelay * 100) / 100,
+    totalDepartures,
+    daily: daily.map(({ stopNameRow: _n, ...row }) => row),
+    hourly,
+  };
+}
+
+/** GET /api/stop/:ref/directions — direction_ref-verdier ved stoppet. */
+async function apiStopDirections(ref: string, params: URLSearchParams) {
+  const operators = parseOperators(params);
+  const { quays } = await resolveStopQuays(ref);
+  if (quays.length === 0) return [];
+  const conds: string[] = [
+    `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,
+    "direction_ref IS NOT NULL",
+  ];
+  if (operators.length > 0) {
+    conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  }
+  const rows = await standaloneDuckQuery<{ direction_ref: string }>(`
+    SELECT DISTINCT direction_ref FROM delays
+    WHERE ${conds.join(" AND ")}
+    ORDER BY direction_ref
+  `);
+  return rows.map((r) => String(r.direction_ref));
 }
 
 async function apiLeaderboardStops(params: URLSearchParams) {
@@ -622,6 +872,10 @@ export async function statsAdapterFetch(url: string): Promise<unknown | undefine
       return apiLeaderboardStops(params);
     case "/api/stops/map":
       return apiStopsMap(params);
+    case "/api/stops/search":
+      return apiStopsSearch(params);
+    case "/api/stops/lookup":
+      return apiStopsLookup(params);
     case "/api/lines/all":
       return apiLinesAll(params);
   }
@@ -629,6 +883,15 @@ export async function statsAdapterFetch(url: string): Promise<unknown | undefine
   const lineMatch = path.match(/^\/api\/line\/([^/]+)$/);
   if (lineMatch) {
     return apiLineStats(decodeURIComponent(lineMatch[1]), params);
+  }
+
+  const stopDirMatch = path.match(/^\/api\/stop\/([^/]+)\/directions$/);
+  if (stopDirMatch) {
+    return apiStopDirections(decodeURIComponent(stopDirMatch[1]), params);
+  }
+  const stopMatch = path.match(/^\/api\/stop\/([^/]+)$/);
+  if (stopMatch) {
+    return apiStopStats(decodeURIComponent(stopMatch[1]), params);
   }
 
   return undefined;

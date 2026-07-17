@@ -333,17 +333,30 @@ def main() -> int:
     # Kompakt format: rader er arrays, vinduer er [avg, pct2plus, stddev, n]
     # eller null når stoppet mangler data i vinduet.
     # ------------------------------------------------------------------
+    # Per quay: koordinater + stoppested-tilhørighet (for stoppanalyse-søkets
+    # gruppering per stoppested) + plattformkode (finnes i praksis kun for SKY).
     coords: dict[str, tuple] = {}
     if Path(DB_PATH).exists():
         sq = sqlite3.connect(DB_PATH)
         try:
-            for ref, lat, lng in sq.execute("SELECT stop_ref, lat, lng FROM stop_coords"):
-                coords[ref] = (lat, lng)
+            for ref, lat, lng, sp_ref, sp_name, platform in sq.execute(
+                "SELECT stop_ref, lat, lng, stop_place_ref, stop_place_name,"
+                "       platform_code FROM stop_coords"
+            ):
+                coords[ref] = (lat, lng, sp_ref, sp_name, platform)
         finally:
             sq.close()
         log.info("stop_coords: %d koordinater fra %s", len(coords), DB_PATH)
     else:
         log.warning("Fant ikke %s — kartet får ingen koordinater", DB_PATH)
+
+    def compact_sp_ref(sp_ref):
+        """'NSR:StopPlace:123' → 123 (int) for å spare bytes; ellers uendret."""
+        if isinstance(sp_ref, str) and sp_ref.startswith("NSR:StopPlace:"):
+            tail = sp_ref[len("NSR:StopPlace:"):]
+            if tail.isdigit():
+                return int(tail)
+        return sp_ref
 
     # windows-dict per (stop, operator)
     stops: dict[tuple, dict] = {}
@@ -370,20 +383,29 @@ def main() -> int:
                 entry["name"] = name
             entry["w"][w] = [r(avg), r(pct2, 1), r(std), int(dep)]
 
-    # Radformat: [stopRef, operator, stopName, lat, lng, w1, w2, w3]
+    # Radformat: [stopRef, operator, stopName, lat, lng, w1, w2, w3,
+    #             spRef, platformCode, spName]
+    # De tre siste er lagt til ETTER vinduene slik at eldre klienter (som
+    # indekserer 5 + vindusindeks) leser uendret. spRef er kompaktet til bare
+    # tallet; spName utelates når det er likt stopName.
     stop_rows = []
     for (stop_ref, operator), entry in sorted(stops.items()):
-        lat, lng = coords.get(stop_ref, (None, None))
+        lat, lng, sp_ref, sp_name, platform = coords.get(
+            stop_ref, (None, None, None, None, None))
         stop_rows.append([
             stop_ref, operator, entry["name"], lat, lng,
             *[entry["w"].get(w) for w in WINDOWS],
+            compact_sp_ref(sp_ref),
+            platform,
+            sp_name if (sp_name and sp_name != entry["name"]) else None,
         ])
 
     stops_doc = {
         "generatedAt": generated_at,
         "windows": WINDOWS,
         "cols": ["stopRef", "operator", "stopName", "lat", "lng",
-                 *[f"w{w}" for w in WINDOWS]],
+                 *[f"w{w}" for w in WINDOWS],
+                 "spRef", "platformCode", "spName"],
         "wcols": ["avgDelayMin", "pctDelayed2plus", "stddevDelayMin", "totalDepartures"],
         "stops": stop_rows,
     }

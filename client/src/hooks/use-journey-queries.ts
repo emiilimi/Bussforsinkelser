@@ -18,6 +18,27 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParquetQuery } from "./use-parquet-query";
+import { IS_REISE } from "@/lib/app-mode";
+
+/**
+ * Oppslag mot /api/stops/lookup. I reise-bygget finnes ikke Express-serveren —
+ * worker'en svarer 404 på ukjente /api/* — så der går oppslaget via
+ * stats-adapteren (stoppested-metadata fra R2-artefakten) i stedet.
+ * Dynamisk import: adapteren hører til duck/analyse-chunken, ikke hovedbundelen.
+ */
+async function lookupStops(
+  refs: string,
+  expand: boolean,
+): Promise<Array<{ stopRef: string; stopName?: string | null; stopPlaceRef?: string | null }>> {
+  const url = `/api/stops/lookup?refs=${encodeURIComponent(refs)}${expand ? "&expand=stopplace" : ""}`;
+  if (IS_REISE) {
+    const { statsAdapterFetch } = await import("@/lib/stats-adapter");
+    const res = await statsAdapterFetch(url);
+    return Array.isArray(res) ? res : [];
+  }
+  const res = await fetch(url);
+  return res.ok ? await res.json() : [];
+}
 
 // ---------------------------------------------------------------------------
 // Types (mirror the server return shapes exactly)
@@ -519,22 +540,8 @@ export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
-        // Fetch quays for this StopPlace from the server, then filter
-        const res = await fetch(`/api/stops/lookup?refs=${stopRef}`);
-        const stops = await res.json() as Array<{ stopRef: string; stopPlaceRef: string | null }>;
-        // Find all quays that belong to this StopPlace
-        const quayRefs = stops
-          .filter((s) => s.stopPlaceRef === stopRef || s.stopRef === stopRef)
-          .map((s) => s.stopRef);
-
-        // Also do a lookup for *all* quays at this stop place
-        const allQuaysRes = await fetch(
-          `/api/stops/lookup?refs=${stopRef}&expand=stopplace`,
-        );
-        const allQuays: Array<{ stopRef: string }> = allQuaysRes.ok
-          ? await allQuaysRes.json()
-          : quayRefs.map((r) => ({ stopRef: r }));
-
+        // Utvid StopPlace → alle barne-quays, så filtrer parquet på dem
+        const allQuays = await lookupStops(stopRef, true);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
@@ -580,8 +587,7 @@ export function useLinesAtStop(stopRef: string, fromDate: string) {
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
-        const res = await fetch(`/api/stops/lookup?refs=${stopRef}&expand=stopplace`);
-        const allQuays: Array<{ stopRef: string }> = res.ok ? await res.json() : [];
+        const allQuays = await lookupStops(stopRef, true);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
