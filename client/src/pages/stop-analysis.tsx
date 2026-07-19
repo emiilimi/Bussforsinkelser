@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLinesAtStop, useLineHourlyAtStop } from "@/hooks/use-journey-queries";
+import { useLinesAtStop, useLineHourlyAtStop, useLineDeparturesAtStop } from "@/hooks/use-journey-queries";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Loader2, AlertCircle } from "lucide-react";
-import { MapPin, Search, Route } from "lucide-react";
+import { MapPin, Search, Route, ChevronDown, ChevronUp } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Line, ReferenceLine, Legend } from "recharts";
 import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
@@ -75,6 +75,19 @@ function delayColor(delay: number | null) {
   if (d > 5) return "hsl(var(--destructive))";
   if (d > 2) return "hsl(var(--chart-4))";
   return "hsl(var(--primary))";
+}
+
+/** Formater én rå forsinkelsesobservasjon: "+3.2m" / "-0.5m" / "—". */
+function ObsDelay({ value }: { value: number | null }) {
+  if (value == null) return <span className="text-muted-foreground">—</span>;
+  const cls =
+    value > 2 ? "text-destructive" : value < -1 ? "text-sky-600" : "text-emerald-600";
+  return (
+    <span className={cls}>
+      {value > 0 ? "+" : ""}
+      {value.toFixed(1)}m
+    </span>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -206,8 +219,11 @@ export default function StopAnalysis() {
   const activeRef = selectedPlatform ?? selectedStop?.ref ?? null;
 
   // Lat DuckDB-init: start WASM-nedlastingen først når et stopp er valgt.
+  // Nullstill også utvidet linjerad — den hører til forrige stopp.
+  const [expandedLine, setExpandedLine] = useState<string | null>(null);
   useEffect(() => {
     if (activeRef) warmupDuckDB();
+    setExpandedLine(null);
   }, [activeRef]);
 
   const { data: availableDirections = [] } = useQuery<string[]>({
@@ -241,6 +257,14 @@ export default function StopAnalysis() {
 
   const { data: linesAtStop = [] } = useLinesAtStop(activeRef ?? "", stopFromDate);
   const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(activeRef ?? "", stopFromDate);
+
+  // Enkeltobservasjonene bak den utvidede linjeraden (én om gangen)
+  const { data: lineDeps = [], isLoading: lineDepsLoading } = useLineDeparturesAtStop(
+    expandedLine ?? "",
+    activeRef ?? "",
+    stopFromDate,
+    expandedLine != null && activeRef != null,
+  );
 
   const trendData = (stats?.daily ?? []).map((r) => ({
     date: r.date,
@@ -633,45 +657,122 @@ export default function StopAnalysis() {
                 <CardContent>
                   <div className="space-y-3">
                     {linesAtStop.map((line) => (
-                      <div key={line.lineRef} className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 w-44 flex-shrink-0 min-w-0">
-                          <Badge
-                            variant="outline"
-                            className="w-14 justify-center font-mono text-xs flex-shrink-0"
-                          >
-                            {lineNumber(line.lineRef)}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {lineNameMap[line.lineRef] ?? ""}
+                      <div key={line.lineRef} className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 w-44 flex-shrink-0 min-w-0">
+                            <Badge
+                              variant="outline"
+                              className="w-14 justify-center font-mono text-xs flex-shrink-0"
+                            >
+                              {lineNumber(line.lineRef)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground truncate">
+                              {lineNameMap[line.lineRef] ?? ""}
+                            </span>
+                          </div>
+                          {/* Relative delay bar */}
+                          <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${Math.max(2, ((line.avgDelayMin ?? 0) / maxLineDelay) * 100)}%`,
+                                backgroundColor: delayColor(line.avgDelayMin),
+                              }}
+                            />
+                          </div>
+                          <span className={cn(
+                            "text-sm font-mono font-semibold w-14 text-right flex-shrink-0",
+                            (line.avgDelayMin ?? 0) > 5 ? "text-destructive" : "text-orange-500",
+                          )}>
+                            {line.avgDelayMin != null ? `${line.avgDelayMin.toFixed(1)}m` : "—"}
                           </span>
+                          <span className="text-xs text-muted-foreground w-20 text-right flex-shrink-0">
+                            {line.numSamples?.toLocaleString("nb-NO")} avg.
+                          </span>
+                          <button
+                            onClick={() =>
+                              setExpandedLine(expandedLine === line.lineRef ? null : line.lineRef)
+                            }
+                            className={cn(
+                              "flex items-center gap-1 text-xs transition-colors flex-shrink-0",
+                              expandedLine === line.lineRef
+                                ? "text-foreground"
+                                : "text-muted-foreground hover:text-foreground",
+                            )}
+                            title="Vis enkeltavgangene bak snittet"
+                          >
+                            {expandedLine === line.lineRef ? (
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            ) : (
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            )}
+                            <span className="hidden sm:inline">Detaljer</span>
+                          </button>
+                          <button
+                            onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                            title="Åpne avgangsanalyse for denne linjen"
+                          >
+                            <Route className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Avgangsanalyse</span>
+                          </button>
                         </div>
-                        {/* Relative delay bar */}
-                        <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${Math.max(2, ((line.avgDelayMin ?? 0) / maxLineDelay) * 100)}%`,
-                              backgroundColor: delayColor(line.avgDelayMin),
-                            }}
-                          />
-                        </div>
-                        <span className={cn(
-                          "text-sm font-mono font-semibold w-14 text-right flex-shrink-0",
-                          (line.avgDelayMin ?? 0) > 5 ? "text-destructive" : "text-orange-500",
-                        )}>
-                          {line.avgDelayMin != null ? `${line.avgDelayMin.toFixed(1)}m` : "—"}
-                        </span>
-                        <span className="text-xs text-muted-foreground w-20 text-right flex-shrink-0">
-                          {line.numSamples?.toLocaleString("nb-NO")} avg.
-                        </span>
-                        <button
-                          onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                          title="Åpne avgangsanalyse for denne linjen"
-                        >
-                          <Route className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Avgangsanalyse</span>
-                        </button>
+
+                        {/* Rå enkeltobservasjoner bak snittet */}
+                        {expandedLine === line.lineRef && (
+                          <div className="rounded-md border border-border bg-muted/30 p-2">
+                            {lineDepsLoading ? (
+                              <p className="text-xs text-muted-foreground py-1 px-2 flex items-center gap-2">
+                                <Loader2 className="h-3 w-3 animate-spin" /> Henter enkeltavganger…
+                              </p>
+                            ) : lineDeps.length === 0 ? (
+                              <p className="text-xs text-muted-foreground py-1 px-2">
+                                Ingen enkeltavganger funnet i valgt tidsvindu.
+                              </p>
+                            ) : (
+                              <>
+                                <div className="max-h-64 overflow-y-auto">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="text-muted-foreground text-left">
+                                        <th className="py-1 px-2 font-medium">Dato</th>
+                                        <th className="py-1 px-2 font-medium">Planlagt</th>
+                                        <th className="py-1 px-2 font-medium text-right">Ankomst</th>
+                                        <th className="py-1 px-2 font-medium text-right">Avgang</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="font-mono">
+                                      {lineDeps.map((d, i) => (
+                                        <tr
+                                          key={`${d.date}-${d.serviceJourneyId ?? i}`}
+                                          className="border-t border-border/50"
+                                          title={d.serviceJourneyId ?? undefined}
+                                        >
+                                          <td className="py-1 px-2 whitespace-nowrap">
+                                            {formatWeekdayDateNO(d.date)}
+                                          </td>
+                                          <td className="py-1 px-2">{d.aimedTime ?? "—"}</td>
+                                          <td className="py-1 px-2 text-right">
+                                            <ObsDelay value={d.delayArrivalMin} />
+                                          </td>
+                                          <td className="py-1 px-2 text-right">
+                                            <ObsDelay value={d.delayDepartureMin} />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-1 px-2">
+                                  Rå enkeltobservasjoner for linjen ved dette stoppestedet,{" "}
+                                  {windowLabel(window).toLowerCase()}
+                                  {lineDeps.length >= 100 ? " — viser de 100 nyeste" : ""}. Hold
+                                  musepekeren over en rad for avgangs-ID.
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

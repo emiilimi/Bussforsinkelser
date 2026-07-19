@@ -617,6 +617,63 @@ export function useLinesAtStop(stopRef: string, fromDate: string) {
 }
 
 // ---------------------------------------------------------------------------
+// 9b. useLineDeparturesAtStop — enkeltobservasjonene bak en linjes snitt
+// ---------------------------------------------------------------------------
+
+export interface LineDepartureAtStop {
+  date: string;
+  dayType: string | null;
+  serviceJourneyId: string | null;
+  aimedTime: string | null;
+  delayArrivalMin: number | null;
+  delayDepartureMin: number | null;
+}
+
+/** De rå observasjonene bak «N avg.» for én linje ved ett stopp — én rad per
+ *  (avgang, dag). Samme populasjon som useLinesAtStop teller, så antallet
+ *  matcher. Kjøres kun når brukeren utvider raden (enabled). */
+export function useLineDeparturesAtStop(
+  lineRef: string,
+  stopRef: string,
+  fromDate: string,
+  enabled: boolean,
+) {
+  const { query, ready } = useParquetQuery();
+  const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+
+  return useQuery<LineDepartureAtStop[]>({
+    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate],
+    enabled: ready && enabled && !!lineRef && !!stopRef,
+    queryFn: async () => {
+      let stopCond: string;
+      if (isStopPlace) {
+        const allQuays = await lookupStops(stopRef, true);
+        const quayList = allQuays
+          .map((q) => `'${q.stopRef.replace(/'/g, "''")}'`)
+          .join(",");
+        if (!quayList) return [];
+        stopCond = `stop_ref IN (${quayList})`;
+      } else {
+        stopCond = `stop_ref = '${stopRef.replace(/'/g, "''")}'`;
+      }
+      return query<LineDepartureAtStop>(`
+        SELECT date,
+          day_type AS dayType,
+          service_journey_id AS serviceJourneyId,
+          SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 5) AS aimedTime,
+          delay_arrival_min   AS delayArrivalMin,
+          delay_departure_min AS delayDepartureMin
+        FROM delays
+        WHERE line_ref = ? AND ${stopCond} AND date >= ?
+        ORDER BY date DESC, aimedTime DESC
+        LIMIT 100`,
+        [lineRef, fromDate]);
+    },
+    staleTime: Infinity,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // 10. useCorridorComparison
 // ---------------------------------------------------------------------------
 
