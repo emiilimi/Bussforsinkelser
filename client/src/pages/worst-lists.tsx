@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
 } from "@/components/time-window-picker";
 import { InfoTip } from "@/components/info-tip";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BusLoading } from "@/components/bus-loading";
 
 type DaySummary = {
   date: string;
@@ -61,12 +62,14 @@ export default function WorstLists() {
   const modeStr = vehicleMode !== "all" ? `mode=${vehicleMode}` : "";
   const join = (...parts: string[]) => parts.filter(Boolean).join("&");
 
-  const { data: worstDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?${join(`limit=10`, opStr, wq)}`] });
-  const { data: bestDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?${join(`limit=10`, opStr, wq)}`] });
-  const { data: worstStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr)}`] });
-  const { data: bestStops = [] } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr)}`] });
-  const { data: reliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`] });
-  const { data: unreliableLines = [] } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr)}`] });
+  const { data: worstDays = [], isFetching: worstDaysFetching } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?${join(`limit=10`, opStr, wq)}`], placeholderData: keepPreviousData });
+  const { data: bestDays = [], isFetching: bestDaysFetching } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?${join(`limit=10`, opStr, wq)}`], placeholderData: keepPreviousData });
+  const { data: worstStops = [], isFetching: worstStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
+  const { data: bestStops = [], isFetching: bestStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
+  const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
+  const { data: unreliableLines = [], isFetching: unreliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
+
+  const isRefreshing = worstDaysFetching || bestDaysFetching || worstStopsFetching || bestStopsFetching || reliableLinesFetching || unreliableLinesFetching;
 
   // Sort days
   const sortedWorstDays = [...worstDays].sort((a, b) =>
@@ -119,6 +122,12 @@ export default function WorstLists() {
         </div>
 
         <TimeWindowPicker value={window} onChange={setWindow} />
+
+        {isRefreshing && (
+          <div className="flex items-center">
+            <BusLoading label="Laster nye data" scale={0.4} />
+          </div>
+        )}
 
         {/* Day sort */}
         <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
 import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
 import { IS_REISE } from "@/lib/app-mode";
+import { BusLoading } from "@/components/bus-loading";
 
 type DailySummary = {
   date: string;
@@ -70,16 +71,24 @@ export default function Dashboard() {
   // opStr is the raw query param (no leading separator) — appended with ? or & as needed per URL
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
 
-  const { data: summary } = useQuery<DailySummary>({ queryKey: [`/api/summary${opStr ? `?${opStr}` : ""}`] });
-  const { data: trend = [] } = useQuery<DailySummary[]>({
+  const { data: summary, isFetching: summaryFetching } = useQuery<DailySummary>({
+    queryKey: [`/api/summary${opStr ? `?${opStr}` : ""}`],
+    placeholderData: keepPreviousData,
+  });
+  const { data: trend = [], isFetching: trendFetching } = useQuery<DailySummary[]>({
     queryKey: [`/api/summary/trend?days=${days}${opStr ? `&${opStr}` : ""}`],
+    placeholderData: keepPreviousData,
   });
-  const { data: worstLines = [] } = useQuery<LeaderboardLine[]>({
+  const { data: worstLines = [], isFetching: worstLinesFetching } = useQuery<LeaderboardLine[]>({
     queryKey: [`/api/leaderboard/lines?type=worst&period=${period}${opStr ? `&${opStr}` : ""}`],
+    placeholderData: keepPreviousData,
   });
-  const { data: bestLines = [] } = useQuery<LeaderboardLine[]>({
+  const { data: bestLines = [], isFetching: bestLinesFetching } = useQuery<LeaderboardLine[]>({
     queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opStr ? `&${opStr}` : ""}`],
+    placeholderData: keepPreviousData,
   });
+
+  const isRefreshing = summaryFetching || trendFetching || worstLinesFetching || bestLinesFetching;
 
   // "Snitt forsinkelse" / "Andel i rute" / "Totale avganger" var alltid bundet
   // til `summary` (kun siste dag) selv om Uke/Måned/90 dager-velgeren sitter
@@ -174,6 +183,12 @@ export default function Dashboard() {
             </Tabs>
           </div>
         </div>
+
+        {isRefreshing && (
+          <div className="flex items-center">
+            <BusLoading label="Laster nye data" scale={0.4} />
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
