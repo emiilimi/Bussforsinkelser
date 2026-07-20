@@ -27,6 +27,7 @@ import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
 import { ScrollableChart, useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatDateNO } from "@/lib/date-utils";
+import { BusLoading } from "@/components/bus-loading";
 import {
   TimeWindowPicker,
   type TimeWindow,
@@ -717,11 +718,15 @@ export default function JourneyDetails() {
 
         {/* Loading / no data for selected direction */}
         {fetchedLine.length > 0 && !lineStats && direction !== "all" && (
-          <p className="text-sm text-muted-foreground">
-            {lineStatsLoading
-              ? `Laster data for ${directionLabels[direction] ?? `retning ${direction}`}…`
-              : `Ingen data for ${directionLabels[direction] ?? `retning ${direction}`}. Prøv en annen retning.`}
-          </p>
+          lineStatsLoading ? (
+            <div className="flex justify-center py-4">
+              <BusLoading label={`Laster data for ${directionLabels[direction] ?? `retning ${direction}`}`} scale={0.65} />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Ingen data for {directionLabels[direction] ?? `retning ${direction}`}. Prøv en annen retning.
+            </p>
+          )
         )}
 
         {/* ---- Stats + charts ---- */}
@@ -996,11 +1001,15 @@ export default function JourneyDetails() {
                     </div>
                   )}
                   {stopProfileData.length === 0 && stopProfileDir !== "" && (
-                    <p className="text-sm text-muted-foreground py-4">
-                      {lineStopProfileLoading
-                        ? `Laster stopp-data for retning ${stopProfileDir}…`
-                        : `Ingen stopp-data for retning ${stopProfileDir}.`}
-                    </p>
+                    lineStopProfileLoading ? (
+                      <div className="flex justify-center py-4">
+                        <BusLoading label={`Laster stopp-data for retning ${stopProfileDir}`} scale={0.65} />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4">
+                        Ingen stopp-data for retning {stopProfileDir}.
+                      </p>
+                    )
                   )}
                   {stopProfileData.length > 0 && (
                     <div>

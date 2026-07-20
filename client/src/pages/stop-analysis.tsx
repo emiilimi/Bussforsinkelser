@@ -18,6 +18,7 @@ import { useRegion } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatWeekdayDateNO } from "@/lib/date-utils";
+import { BusLoading } from "@/components/bus-loading";
 import {
   TimeWindowPicker,
   type TimeWindow,
@@ -465,9 +466,8 @@ export default function StopAnalysis() {
 
         {/* Loading state */}
         {statsLoading && !stats && (
-          <div className="flex items-center gap-3 text-muted-foreground py-8">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Laster data...</span>
+          <div className="flex justify-center py-6">
+            <BusLoading label="Laster data" scale={0.8} />
           </div>
         )}
 

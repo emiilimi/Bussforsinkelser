@@ -17,6 +17,7 @@ import {
   Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
   Info, Database, BarChart3,
 } from "lucide-react";
+import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
 import { InfoTip } from "@/components/info-tip";
@@ -2813,6 +2814,12 @@ export default function TripPlanner() {
             )}
           </CardContent>
         </Card>
+
+        {tripMutation.isPending && tripPatterns.length === 0 && (
+          <div className="flex justify-center py-8">
+            <BusLoading label="Leter etter reiseforslag" scale={0.7} />
+          </div>
+        )}
 
         {/* Results */}
         {tripPatterns.length > 0 && (

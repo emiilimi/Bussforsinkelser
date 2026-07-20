@@ -162,3 +162,71 @@
     @apply tracking-tight font-semibold;
   }
 }
+
+/* Bus-loading animasjon (Sen Tur-designet) — se client/src/components/bus-loading.tsx */
+@keyframes st-roadscroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-1080px); }
+}
+@keyframes st-busbob {
+  0% { transform: translateX(-50%) translateY(-3.3px) rotate(-7.00deg); }
+  2.08% { transform: translateX(-50%) translateY(-7.5px) rotate(-7.00deg); }
+  4.17% { transform: translateX(-50%) translateY(-11.7px) rotate(-7.00deg); }
+  6.25% { transform: translateX(-50%) translateY(-15.1px) rotate(-6.34deg); }
+  8.33% { transform: translateX(-50%) translateY(-17.6px) rotate(-6.34deg); }
+  10.42% { transform: translateX(-50%) translateY(-20.0px) rotate(-1.94deg); }
+  12.5% { transform: translateX(-50%) translateY(-19.5px) rotate(1.33deg); }
+  14.58% { transform: translateX(-50%) translateY(-18.3px) rotate(7.00deg); }
+  16.67% { transform: translateX(-50%) translateY(-12.6px) rotate(7.00deg); }
+  18.75% { transform: translateX(-50%) translateY(-7.3px) rotate(7.00deg); }
+  20.83% { transform: translateX(-50%) translateY(-4.0px) rotate(7.00deg); }
+  22.92% { transform: translateX(-50%) translateY(-0.7px) rotate(7.00deg); }
+  25% { transform: translateX(-50%) translateY(-0.7px) rotate(-2.12deg); }
+  27.08% { transform: translateX(-50%) translateY(-1.5px) rotate(-2.12deg); }
+  29.17% { transform: translateX(-50%) translateY(-1.6px) rotate(2.65deg); }
+  31.25% { transform: translateX(-50%) translateY(-0.5px) rotate(2.65deg); }
+  33.33% { transform: translateX(-50%) translateY(1.3px) rotate(7.00deg); }
+  35.42% { transform: translateX(-50%) translateY(4.1px) rotate(7.00deg); }
+  37.5% { transform: translateX(-50%) translateY(6.9px) rotate(7.00deg); }
+  39.58% { transform: translateX(-50%) translateY(9.5px) rotate(6.17deg); }
+  41.67% { transform: translateX(-50%) translateY(11.9px) rotate(6.17deg); }
+  43.75% { transform: translateX(-50%) translateY(14.3px) rotate(6.17deg); }
+  45.83% { transform: translateX(-50%) translateY(15.3px) rotate(1.06deg); }
+  47.92% { transform: translateX(-50%) translateY(15.7px) rotate(1.06deg); }
+  50% { transform: translateX(-50%) translateY(15.7px) rotate(-2.12deg); }
+  52.08% { transform: translateX(-50%) translateY(14.9px) rotate(-2.12deg); }
+  54.17% { transform: translateX(-50%) translateY(14.1px) rotate(-4.34deg); }
+  56.25% { transform: translateX(-50%) translateY(10.9px) rotate(-7.00deg); }
+  58.33% { transform: translateX(-50%) translateY(7.6px) rotate(-7.00deg); }
+  60.42% { transform: translateX(-50%) translateY(3.4px) rotate(-7.00deg); }
+  62.5% { transform: translateX(-50%) translateY(-1.6px) rotate(-7.00deg); }
+  64.58% { transform: translateX(-50%) translateY(-6.5px) rotate(-7.00deg); }
+  66.67% { transform: translateX(-50%) translateY(-10.7px) rotate(-7.00deg); }
+  68.75% { transform: translateX(-50%) translateY(-14.8px) rotate(-7.00deg); }
+  70.83% { transform: translateX(-50%) translateY(-17.5px) rotate(-5.29deg); }
+  72.92% { transform: translateX(-50%) translateY(-19.6px) rotate(-4.19deg); }
+  75% { transform: translateX(-50%) translateY(-18.9px) rotate(3.53deg); }
+  77.08% { transform: translateX(-50%) translateY(-16.1px) rotate(7.00deg); }
+  79.17% { transform: translateX(-50%) translateY(-10.9px) rotate(7.00deg); }
+  81.25% { transform: translateX(-50%) translateY(-5.6px) rotate(7.00deg); }
+  83.33% { transform: translateX(-50%) translateY(0.0px) rotate(7.00deg); }
+  85.42% { transform: translateX(-50%) translateY(1.0px) rotate(2.65deg); }
+  87.5% { transform: translateX(-50%) translateY(2.1px) rotate(2.65deg); }
+  89.58% { transform: translateX(-50%) translateY(3.1px) rotate(1.69deg); }
+  91.67% { transform: translateX(-50%) translateY(3.6px) rotate(1.33deg); }
+  93.75% { transform: translateX(-50%) translateY(3.6px) rotate(-4.47deg); }
+  95.83% { transform: translateX(-50%) translateY(1.5px) rotate(-5.29deg); }
+  97.92% { transform: translateX(-50%) translateY(-0.6px) rotate(-5.29deg); }
+  100% { transform: translateX(-50%) translateY(-3.3px) rotate(-7.00deg); }
+}
+@keyframes st-wheelspin {
+  to { transform: rotate(360deg); }
+}
+@keyframes st-dots {
+  0%, 100% { opacity: .25; }
+  50% { opacity: 1; }
+}
+.st-road { animation: st-roadscroll 9s linear infinite; }
+.st-bus { animation: st-busbob 9s ease-in-out infinite; }
+.st-wheel { animation: st-wheelspin .78s linear infinite; transform-box: fill-box; transform-origin: center; }
+.st-dot { animation: st-dots 1.4s infinite; }

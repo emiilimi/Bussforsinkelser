@@ -13,6 +13,7 @@ import { useRegion } from "@/lib/RegionContext";
 import { REGION_MAP_CENTER } from "@/lib/regionCoords";
 import { TimeWindowPicker, type TimeWindow, windowToQuery } from "@/components/time-window-picker";
 import { IS_REISE } from "@/lib/app-mode";
+import { BusLoading } from "@/components/bus-loading";
 
 type MapStop = {
   stopRef: string;
@@ -311,7 +312,7 @@ export default function DelayMap() {
           {/* Loading overlay */}
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-[500]">
-              <div className="text-sm text-muted-foreground animate-pulse">Laster stopp...</div>
+              <BusLoading label="Laster stopp" scale={0.85} />
             </div>
           )}
 

@@ -15,6 +15,7 @@ import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { InfoTip } from "@/components/info-tip";
 import { IS_REISE } from "@/lib/app-mode";
+import { BusLoading } from "@/components/bus-loading";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -222,7 +223,11 @@ function JourneyDetail({
   });
 
   if (isLoading) {
-    return <div className="py-3 pl-14 text-xs text-muted-foreground">Henter hele reisen…</div>;
+    return (
+      <div className="py-2 pl-8">
+        <BusLoading label="Henter hele reisen" scale={0.42} />
+      </div>
+    );
   }
   if (isError || !sj || sj.calls.length === 0) {
     return <div className="py-3 pl-14 text-xs text-muted-foreground">Fant ikke stopplisten for denne avgangen.</div>;

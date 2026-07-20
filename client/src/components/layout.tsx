@@ -34,19 +34,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground flex flex-col md:flex-row">
       <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/50 backdrop-blur-sm p-4 md:h-screen md:sticky md:top-0 flex flex-col gap-6 z-50">
-        <div className="flex items-center gap-3 px-2">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg shadow-lg">
-            <Bus className="w-6 h-6" />
+        {IS_REISE ? (
+          <div className="px-2 py-1">
+            <img src="/sen-tur-logo.svg" alt="Sen Tur" className="h-11 w-auto" />
           </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-tight leading-none text-primary">
-              {IS_REISE ? "SenTur.no" : "bussforsinkelser"}
-            </h1>
-            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">
-              {IS_REISE ? "Reiseplanlegger" : "Historisk statistikk"}
-            </p>
+        ) : (
+          <div className="flex items-center gap-3 px-2">
+            <div className="bg-primary text-primary-foreground p-2 rounded-lg shadow-lg">
+              <Bus className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg tracking-tight leading-none text-primary">
+                bussforsinkelser
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">
+                Historisk statistikk
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Operatørvelgeren ligger nå øverst på sidene som filtrerer på
             operatør (se components/region-selector.tsx) — ikke i sidemenyen. */}
