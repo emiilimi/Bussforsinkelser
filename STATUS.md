@@ -3,7 +3,43 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-05-21
+**Sist oppdatert**: 2026-07-20
+
+## Endringslogg — 2026-07-20: Loading-states, historiske avganger, Parquet-ytelse, og en kort produksjons-outage
+
+**Kontekst**: fortsettelse av en tidligere økt som satt fast (ventet ubesvart på et spørsmålswidget). Startet med opprydding av gjenstående punkter, endte med et ytelsesdykk i Parquet/DuckDB og et rotårsaksfunn for en demo som hang seg opp hos en bruker — som i sin tur avdekket en reell, kortvarig outage forårsaket av denne økten selv (se "Deploy-hendelsen" nederst).
+
+**Loading-states og avganger**:
+- `client/src/pages/departures.tsx` + `journey-details.tsx`: fullførte en tidligere økts isLoading-gating (samme mønster som retningsvelgeren) — "laster"-melding i stedet for "ingen data" mens trege DuckDB-spørringer pågår.
+- `client/src/pages/departures.tsx`: historisk avgangssøk (dato tilbake i tid) hentet før ingenting, siden Enturs sanntidstavle ikke har data så langt tilbake. Bygger nå en avgangsliste fra egne målte data (`journey_stop_daily` via DuckDB) for valgt dato — faktisk avgangstid, faktisk registrert forsinkelse for dagen, og P50/P80 som normalt. Henter quay-settet ved stoppet fra en live Entur-spørring (ikke fra `stop_coords`-cachen, som kan ha utdaterte StopPlace-IDer — se kjent avvik lenger ned).
+- `client/src/lib/RegionContext.tsx`: default operatørfilter endret fra "Skyss" til "Alle operatører". Multi-select-velgeren (`region-selector.tsx`) var allerede på plass.
+- `client/src/lib/RegionContext.tsx`: 7 operatørnavn rettet mot Enturs offisielle codespace-liste (Fram, Snelandia, Troms fylkestrafikk, Brakar/Buskerud — Viken er avviklet, Vy Group, Østfold kollektivtrafikk, Nordland fylkeskommune).
+- `client/src/components/layout.tsx`: header-tekst i reise-bygget endret fra "reise" til "SenTur.no".
+- `client/src/pages/dashboard.tsx`: "Snitt forsinkelse", "Andel i rute" og "Totale avganger" var bundet til `/api/summary` (alltid siste enkeltdag) uavhengig av Uke/Måned/90-dager-velgeren rett over — tallene sto stille ved periodebytte. Bruker nå et vektet snitt over samme `trend`-data som grafen henter for valgt periode.
+
+**Parquet-ytelse — dobbeltsortert eksport (`by-line` / `by-stop`)**:
+- Målt: en typisk linje- eller stopp-spørring måtte laste hele ukefiler (~9–12 MB, 23 HTTP-kall) fordi Parquets radgruppestatistikk (min/max) ikke var nyttig for `line_ref`/`stop_ref`-filtre — filene var bare sortert etter innsettingsrekkefølge (~dato). Testet fire alternativer (usortert, stop-sortert, line-sortert, z-order) med en range-loggende HTTP-server foran DuckDBs httpfs; z-order viste seg ubrukelig (ødelegger min/max-clustering på strengkolonner). Riktig sortert familie henter ~0.3 MB i 4–5 HTTP-kall — en ~25–40x reduksjon.
+- `pipeline/export_parquet.py`: hver uke skrives nå som to filer med identiske rader, `ORDER BY line_ref/stop_ref`, radgruppestørrelse 122880 (finere pruning enn pyarrows default på ~1M).
+- `pipeline/migrate_parquet_sort.py` (ny): engangsmigrering av gamle enkeltfil-uker — kjører mot eksisterende Parquet (ikke SQLite), siden de eldste ukenes kilderader for lengst er prunet fra `journey_stop_daily`. Krever ingen BigQuery-kvote.
+- `pipeline/upload_to_r2.py`: `KEEP_WEEKS` teller nå uker, ikke enkeltfiler.
+- `client/src/hooks/use-parquet-query.ts`: registrerer begge filfamilier, eksponerer `delays_by_line`/`delays_by_stop`-views. Ny `options`-parameter (`family`, `fromDate`, `toDate`) på `query()`/`standaloneDuckQuery()` lar spørringer begrense hvilke ukefiler som i det hele tatt registreres.
+- Alle DuckDB-spørringer i `use-journey-queries.ts`, `stats-adapter.ts`, `departures.tsx`, `trip-planner.tsx`, `delay-percentiles.tsx` oppdatert til å velge riktig familie ut fra sitt primære `WHERE`-filter.
+
+**Rotårsak: demo hang seg opp — manglende retry-beskyttelse**:
+- Bruker rapporterte at reise-bygget hang seg opp under en demo. Reprodusert direkte på sentur.no (ikke bare lokalt): `useParquetQuery()`s fil-registreringseffekt satte `initDone.current = true` uansett utfall — ett eneste forbigående nettverksglipp (treg R2-kaldstart, wifi-hikk) låste `ready` på `false` resten av siden, uten retry-vei siden DuckDB-singletonen (`db`) aldri ble `null` igjen for å trigge effekten på nytt.
+- Verre for stoppanalyse/linjeanalyse: disse går via `stats-adapter.ts` sine `apiStopStats`/`apiLineStats`, som kaller en egen funksjon (`standaloneDuckQuery`) uten hookens retry-logikk. React Query er satt opp med `retry:false` og `staleTime:Infinity` globalt (`queryClient.ts`) — én mislykket kjøring ble en **permanent cachet feiltilstand** for akkurat det stoppet/linjen, uten noen selvhelbredelse i det hele tatt.
+- `client/src/hooks/use-duckdb.ts`: 20s timeout rundt hele DuckDB-init-kjeden (jsDelivr → worker → instantiate), nullstiller `initPromise`/`initError` uansett utfall slik at neste `warmupDuckDB()` faktisk prøver på nytt.
+- `client/src/hooks/use-parquet-query.ts`: retry-logikken brakt ut til en delt `registerFilesWithRetry()`-hjelper (backoff 2s/5s/10s), brukt av **alle tre kodeveier**: hooken (reiseplanlegger, avganger), `standaloneDuckQuery` (stoppanalyse, linjeanalyse via adapteren), og `ensureParquetFilesRegistered`. Ny `retry()`-funksjon eksponert fra hooken for manuelt nytt forsøk.
+- `client/src/pages/trip-planner.tsx`: "Prøv igjen"-knapp i DuckDB-statusbadgen når automatiske forsøk er brukt opp.
+- Verifisert ved å simulere 2 og 4 påfølgende manifest-feil direkte i en levende fane, både lokalt og på selve sentur.no: appen selvhelbreder på ~7s uten brukerhandling, og "Prøv igjen" gjenoppretter umiddelbart selv etter vedvarende feil.
+
+**Deploy-hendelsen (viktig driftslærdom)**:
+- Bekreftet at `reise`-branchen har automatisk deploy til Cloudflare på push — ingen GitHub Actions-workflow i repoet (`gh api .../actions/workflows` gir 0 registrerte), sannsynligvis en Cloudflare Workers Builds/Pages-integrasjon som ikke rapporterer tilbake til GitHub sitt Deployments-API. Bekreftet empirisk: JS-bundlenavnet på sentur.no endret seg umiddelbart etter push.
+- Dette betyr at kode og data (R2-innhold) **må synkroniseres i riktig rekkefølge** når filnavnformat endres. Denne økten traff akkurat dette: Parquet-sorteringsarbeidet ble pushet og auto-deployet FØR de nye `-by-line`/`-by-stop`-filene ble lastet opp til R2. Den nye frontend-koden hopper stille over filnavn den ikke kjenner igjen (`parseFileName()` returnerer `null`), så `registeredFiles` ble tom — **alle DuckDB-avhengige sider (reiseplanlegger, linjeanalyse, stoppanalyse) var helt nede** med feilen "Ingen parquet-filer tilgjengelig" i noen minutter, inntil R2 ble oppdatert (`python pipeline/upload_to_r2.py --prune` med `R2_ENV_FILE=r2.reise.env`).
+- **Lærdom**: ved endringer som krever at frontend og R2-filformat henger sammen, last opp data til R2 FØR koden pushes/deployes — ikke etter. Motsatt rekkefølge (kode før data) gir et vindu med total nedetid for reise-siten siden auto-deploy er umiddelbar.
+
+**Kjent avvik, ikke rettet — NSR StopPlace-ID mismatch**:
+- Entur geocoder resolver "Bergen busstasjon" til `NSR:StopPlace:62356`, men `stats_stops_map.json` (generert fra `stop_coords`, populert via `populate_stops.py`/BigQuery) har fortsatt den samme fysiske plassen under en eldre ID, `NSR:StopPlace:30810`. NSR-IDer slås periodisk sammen/erstattes; cachen har ikke fanget opp endringen. Gir "Ingen data funnet for dette stoppestedet" i stoppanalysen for akkurat dette søket, selv om data faktisk finnes under den gamle IDen. `departures.tsx` sitt historiske avgangssøk unngår problemet ved å hente quay-settet fra en live Entur-spørring i stedet for `stop_coords`-cachen (se over) — samme løsning kunne vurderes for stoppanalyse ved en senere anledning. Krever trolig en `populate_stops.py --refresh` for å friske opp cachen permanent.
 
 ## Endringslogg — 2026-05-21: Fase 1 — blockers før offentlig promotering
 

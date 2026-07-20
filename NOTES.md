@@ -29,23 +29,31 @@ avgangssiden. Omfang og plassering i UI-et er ikke avklart.
 
 ---
 
-## Sekundært funn (ikke løst, verdt å diskutere)
+## Rettelse av et tidligere (feil) funn i denne filen
 
-Under arbeidet med "identisk forsinkelsessnitt for siste uke/måned"
-(undersøkt, ingen kode-bug funnet — tidsvinduet brukes korrekt i alle
-spørringer jeg sjekket) ble to ting oppdaget som er verdt å se på:
+En tidligere versjon av dette dokumentet hevdet at `stop-analysis.tsx` og
+`journey-details.tsx` kaller SQLite-baserte endepunkter ubetinget i
+reise-bygget. Det var feil — testet med en rå `fetch()` som hoppet forbi
+`stats-adapter.ts`, som i praksis fanger opp ALLE disse kallene
+(`getQueryFn` i `queryClient.ts` prøver `statsAdapterFetch()` først når
+`IS_REISE` er sann) og ruter dem til DuckDB/Parquet, aldri SQLite. Lokal
+`data/bussforsinkelser.db` (sterkt utdatert, stopper 2026-05-23) er derfor
+irrelevant for reise-bygget — den brukes kun av det gamle "full"-bygget.
 
-- **Lokal `data/bussforsinkelser.db` er sterkt utdatert** (alle tabeller
-  stopper 2026-05-23, ca. 2 måneder gammel i skrivende stund). Gjør det
-  vanskelig å teste SQLite-baserte endepunkter lokalt. Ukjent om dette også
-  gjelder produksjonsdataene, eller bare denne lokale kopien.
-- **`stop-analysis.tsx` og `journey-details.tsx` kaller fortsatt de
-  SQLite-baserte endepunktene** (`/api/stop/:stopref`, `/api/line/:lineref`)
-  uten `!IS_REISE`-sperre, i motsetning til `departures.tsx` som eksplisitt
-  skrur av tilsvarende kall i reise-bygget («ingen SQLite-backend» per
-  CLAUDE.md). I reise-bygget (som skal være «full offload») fører dette til
-  trege (2–4s) kall som til slutt feiler/gir tomt resultat, med en
-  "Laster data..."-spinner som henger unødvendig lenge før "Ingen data"
-  vises. Ble ikke rettet nå siden det ikke var en del av de bestilte
-  punktene — bør vurderes sammen med Emilie (skal disse sidene også
-  bruke Parquet/DuckDB slik `linesAtStop` m.fl. allerede gjør på samme side?).
+Se `STATUS.md` (2026-07-20-oppføringen) for hva som faktisk feilet: ingen
+retry-beskyttelse i `standaloneDuckQuery`/`useParquetQuery`-kjeden, kombinert
+med at React Query er satt til `retry:false` globalt — fikset samme dag.
+
+## Kjent avvik, ikke rettet — NSR StopPlace-ID mismatch
+
+Entur geocoder resolver "Bergen busstasjon" til `NSR:StopPlace:62356`, men
+`stats_stops_map.json` (bygget fra `stop_coords`, populert via
+`populate_stops.py`/BigQuery) har fortsatt samme fysiske sted under en eldre
+ID, `NSR:StopPlace:30810`. NSR-IDer slås periodisk sammen/erstattes, og
+cachen har ikke fanget opp endringen. Gir "Ingen data funnet for dette
+stoppestedet" i stoppanalysen for akkurat dette søket, selv om data finnes
+under den gamle IDen. `departures.tsx` sitt historiske avgangssøk unngår
+problemet ved å hente quay-settet fra en live Entur-spørring i stedet for
+`stop_coords`-cachen — samme tilnærming kunne vurderes for stoppanalyse.
+Krever trolig `populate_stops.py --refresh` for å friske opp cachen
+permanent. Ikke rørt nå — diskuter med Emilie før noen løsning velges.

@@ -358,21 +358,39 @@ query testTrip {
 **Dataflyt**:
 ```
 ingest.py → journey_stop_daily (SQLite 90d)
-    → export_parquet.py → data/parquet/YYYY-WXX.parquet (ZSTD)
-        → Server: GET /api/parquet/{file} (Accept-Ranges for HTTP range requests)
+    → export_parquet.py → data/parquet/YYYY-WXX-by-line.parquet + YYYY-WXX-by-stop.parquet (ZSTD)
+        → upload_to_r2.py → Cloudflare R2 (public .r2.dev URL)
             → DuckDB-WASM i nettleser (~6MB, jsDelivr CDN)
-                → PERCENTILE_CONT queries via `delays` view (union av alle uker)
+                → PERCENTILE_CONT queries via delays_by_line / delays_by_stop views
 ```
 
+> **Hver uke skrives som TO filer** (samme rader, ulik fysisk sortering — se
+> `pipeline/export_parquet.py`). Det finnes ikke lenger noen generisk
+> `delays`-view; SQL må referere `delays_by_line` (line_ref-filtre) eller
+> `delays_by_stop` (stop_ref-filtre) via `useParquetQuery().query(sql, params, { family: "by-line"|"by-stop" })`.
+> Se STATUS.md 2026-07-20 for hvorfor og hvor mye det betyr for ytelsen.
+>
+> **⚠️ Deploy-rekkefølge ved endring av Parquet-filnavnformat**: `reise`-
+> branchen har automatisk deploy til Cloudflare på push (ingen synlig GitHub
+> Actions-workflow — sannsynligvis en Cloudflare-side git-integrasjon).
+> Frontend-koden hopper STILLE over filnavn i manifestet den ikke kjenner
+> igjen (`parseFileName()` i `use-parquet-query.ts` returnerer `null`), så
+> hvis filnavnformatet endres, MÅ R2 oppdateres (`python
+> pipeline/upload_to_r2.py --prune` med `R2_ENV_FILE=r2.reise.env`) FØR
+> koden pushes — ikke etter. Motsatt rekkefølge gir total nedetid for
+> reise-siten (alle DuckDB-avhengige sider) helt til R2 følger etter. Skjedde
+> faktisk 2026-07-20, se STATUS.md.
+
 **Klient-filer**:
-- `hooks/use-duckdb.ts` — Singleton DuckDB-WASM initialisering (EH bundle fra jsDelivr)
-- `hooks/use-parquet-query.ts` — Henter manifest, registrerer Parquet-filer, eksponerer `query(sql)`
+- `hooks/use-duckdb.ts` — Singleton DuckDB-WASM initialisering (EH bundle fra jsDelivr), 20s init-timeout
+- `hooks/use-parquet-query.ts` — Henter manifest, registrerer begge filfamilier, eksponerer `query(sql, params?, { family, fromDate?, toDate? })` og `standaloneDuckQuery()` (samme, brukt utenfor React av `stats-adapter.ts`). Fil-registrering har automatisk retry med backoff (`registerFilesWithRetry`) — se deploy-varselet over for hvorfor det finnes.
 - `components/delay-percentiles.tsx` — `<DelayPercentiles lineRef="SKY:Line:6" stopRef?="..." />`
 - `pages/trip-planner.tsx` — `useTripDelayDistribution()` hook henter P50/P80/P95 per (line, stop) par
 
-**Server-endepunkter**:
+**Server-endepunkter (kun full-bygget, ikke reise)**:
 - `GET /api/parquet/manifest` — JSON-array av tilgjengelige ukefiler
 - `GET /api/parquet/:file` — Statisk serving med Accept-Ranges (for DuckDB HTTP range requests)
+- Reise-bygget henter i stedet direkte fra R2 sin public URL (`VITE_PARQUET_BASE_URL`).
 
 **Bruk i komponenter**:
 - `<DelayPercentiles lineRef="SKY:Line:6" />` — viser P50/P80/P95 kort
@@ -382,16 +400,22 @@ ingest.py → journey_stop_daily (SQLite 90d)
   - P80-punktlighets-badge per leg
   - Observasjonstall for transparens
 
-**SQL-mønster**: Queries kjøres mot `delays`-view som er union av alle registrerte Parquet-filer.
+**SQL-mønster**: Queries kjøres mot `delays_by_line` eller `delays_by_stop` — velg familie ut fra spørringens primære `WHERE`-kolonne (line_ref → by-line, stop_ref → by-stop). Full-scan-spørringer (topplister, kart) kan bruke hvilken som helst.
 
 **npm-pakke**: `@duckdb/duckdb-wasm@1.33.1-dev42.0`
-**Python-avhengigheter**: `pip install pyarrow` (for export_parquet.py)
-**Status**: Implementert. Krever `python pipeline/export_parquet.py --all` for å generere Parquet-filer. R2-opplasting ikke satt opp (bruker lokal serving).
+**Python-avhengigheter**: `pip install pyarrow duckdb boto3` (for export_parquet.py / migrate_parquet_sort.py / upload_to_r2.py)
+**Status**: Implementert, inkl. R2-opplasting (reise-bygget bruker denne i produksjon; lokal serving fra `data/parquet/` er kun for full-bygget/dev).
 
-**Oppstart**:
+**Oppstart (lokal, full-bygget)**:
 ```powershell
-python pipeline/export_parquet.py --all   # generer Parquet-filer fra journey_stop_daily
+python pipeline/export_parquet.py --all   # genererer -by-line.parquet + -by-stop.parquet per uke
 # Server serverer automatisk fra data/parquet/
+```
+
+**Opplasting til R2 (reise-bygget)** — se deploy-rekkefølge-varselet over:
+```powershell
+$env:R2_ENV_FILE = "r2.reise.env"
+python pipeline/upload_to_r2.py --prune
 ```
 
 ---
