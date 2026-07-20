@@ -13,6 +13,21 @@ export const PARQUET_BASE =
   `${typeof window !== "undefined" ? window.location.origin : ""}/api/parquet`;
 
 // ---------------------------------------------------------------------------
+// To filfamilier per uke — samme rader, ulik fysisk sortering (se
+// pipeline/export_parquet.py). Radgruppe-statistikk (min/max) lar DuckDB
+// hoppe over hele radgrupper, men bare langs kolonnen filen er sortert på —
+// derfor to familier: linje-sider bruker "by-line", stopp-sider "by-stop".
+// Målt: riktig familie henter ~0.3 MB i 4-5 HTTP-kall per uke for en typisk
+// spørring, mot ~9-12 MB i 23 kall for en usortert fil.
+// ---------------------------------------------------------------------------
+
+export type DelayFamily = "by-line" | "by-stop";
+const FAMILIES: DelayFamily[] = ["by-line", "by-stop"];
+// Familie brukt for spørringer som skanner alt uansett (leaderboards, kart)
+// og som ikke oppgir en familie eksplisitt — begge er like riktige/trege der.
+const DEFAULT_FAMILY: DelayFamily = "by-stop";
+
+// ---------------------------------------------------------------------------
 // Track which Parquet files have been registered in DuckDB
 // ---------------------------------------------------------------------------
 
@@ -21,13 +36,45 @@ export const PARQUET_BASE =
 // så uten ?v=md5 kan nettleseren servere gårsdagens bytes fra HTTP-cache.
 type ManifestEntry = string | { name: string; md5?: string };
 
-// name → versioned URL currently registered in DuckDB
-const registeredFiles = new Map<string, string>();
+type RegisteredFile = { url: string; family: DelayFamily; week: string; fromIso: string; toIso: string };
+
+// name → registered file info (both families share this map)
+const registeredFiles = new Map<string, RegisteredFile>();
 
 // Throttle manifest re-checks: ensureFilesRegistered kalles per query, men
 // manifestet trenger bare sjekkes med jevne mellomrom.
 const MANIFEST_CHECK_INTERVAL_MS = 60_000;
 let lastManifestCheck = 0;
+
+/** "2026-W29-by-line.parquet" -> { week: "2026-W29", family: "by-line" }. null hvis ikke gjenkjent. */
+function parseFileName(name: string): { week: string; family: DelayFamily } | null {
+  const stem = name.replace(/\.parquet$/, "");
+  for (const family of FAMILIES) {
+    if (stem.endsWith(`-${family}`)) {
+      return { week: stem.slice(0, -(family.length + 1)), family };
+    }
+  }
+  return null;
+}
+
+/** ISO week string ("2026-W29") -> [monday, sunday] as YYYY-MM-DD. */
+function weekDateRange(week: string): [string, string] {
+  const m = /^(\d{4})-W(\d{2})$/.exec(week);
+  if (!m) return ["0000-01-01", "9999-12-31"];
+  const year = Number(m[1]);
+  const weekNum = Number(m[2]);
+  // ISO 8601: week 1 is the week containing the first Thursday of the year.
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7; // Mon=1..Sun=7
+  const week1Monday = new Date(jan4);
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
+  const monday = new Date(week1Monday);
+  monday.setUTCDate(week1Monday.getUTCDate() + (weekNum - 1) * 7);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  return [iso(monday), iso(sunday)];
+}
 
 async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   if (
@@ -51,15 +98,16 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   const entries: ManifestEntry[] = await res.json();
   if (!entries || entries.length === 0) return;
 
-  let changed = false;
   for (const entry of entries) {
     const name = typeof entry === "string" ? entry : entry.name;
     const md5 = typeof entry === "string" ? undefined : entry.md5;
+    const parsed = parseFileName(name);
+    if (!parsed) continue; // ukjent/gammelt filnavn-format — ignorer
     const url = md5
       ? `${PARQUET_BASE}/${name}?v=${md5}`
       : `${PARQUET_BASE}/${name}`;
 
-    if (registeredFiles.get(name) === url) continue;
+    if (registeredFiles.get(name)?.url === url) continue;
 
     // Re-register if the file content changed mid-session (new md5)
     if (registeredFiles.has(name)) {
@@ -69,79 +117,144 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
         // ignore — file may not have been buffered
       }
     }
+    const [fromIso, toIso] = weekDateRange(parsed.week);
     // Full absolute URL — DuckDB worker runs from a blob: origin and
     // cannot resolve relative paths.
     await db.registerFileURL(name, url, 4 /* DuckDBDataProtocol.HTTP */, false);
-    registeredFiles.set(name, url);
-    changed = true;
+    registeredFiles.set(name, { url, family: parsed.family, week: parsed.week, fromIso, toIso });
   }
+}
 
-  // Create or replace a view that unions all registered Parquet files.
-  // This lets queries use a single table name "delays".
-  if (changed && registeredFiles.size > 0) {
-    const conn = await db.connect();
-    try {
-      const fileList = Array.from(registeredFiles.values())
-        .map((u) => `'${u}'`)
-        .join(", ");
-      await conn.query(
-        `CREATE OR REPLACE VIEW delays AS SELECT * FROM read_parquet([${fileList}])`,
-      );
-    } finally {
-      await conn.close();
-    }
+/** Sikrer at manifestet er lest og filene registrert — kall før
+ *  latestAvailableDate() slik at den ikke leser et tomt kart. */
+export async function ensureParquetFilesRegistered(): Promise<void> {
+  const db = await initDuckDB();
+  await ensureFilesRegistered(db);
+}
+
+/** Seneste dato dekket av en registrert ukefil i gitt familie (siste dag i
+ *  ISO-ukens søndag — en øvre tilnærming, aldri for lav). Brukes til å regne
+ *  "N dager tilbake fra ferskeste tilgjengelige data" i JS uten en egen
+ *  DuckDB-spørring (erstatter det tidligere MAX(date)-underspørringsmønsteret
+ *  mot den nå fjernede generiske "delays"-viewen). */
+export function latestAvailableDate(family: DelayFamily = DEFAULT_FAMILY): string | null {
+  let max: string | null = null;
+  for (const f of Array.from(registeredFiles.values())) {
+    if (f.family !== family) continue;
+    if (max === null || f.toIso > max) max = f.toIso;
   }
+  return max;
+}
+
+/** Filer for én familie, ev. begrenset til uker som overlapper [fromDate, toDate]. */
+function filesForFamily(family: DelayFamily, fromDate?: string, toDate?: string): string[] {
+  const out: string[] = [];
+  for (const [name, f] of Array.from(registeredFiles.entries())) {
+    if (f.family !== family) continue;
+    if (fromDate && f.toIso < fromDate) continue;
+    if (toDate && f.fromIso > toDate) continue;
+    out.push(f.url);
+  }
+  return out;
+}
+
+/** (Re)oppretter delays_by_line / delays_by_stop-viewene, ev. begrenset til
+ *  et datointervall — DuckDB slipper da å i det hele tatt åpne ukefiler
+ *  utenfor vinduet (ikke bare hoppe over radgrupper i dem). Billig
+ *  metadata-operasjon, kjøres på nytt per spørring som oppgir et intervall. */
+async function prepareView(
+  conn: AsyncDuckDBConnection,
+  family: DelayFamily,
+  fromDate?: string,
+  toDate?: string,
+): Promise<string> {
+  const viewName = `delays_${family.replace("-", "_")}`;
+  const files = filesForFamily(family, fromDate, toDate);
+  if (files.length === 0) {
+    // Ingen registrerte uker overlapper vinduet — tom, men gyldig, view.
+    await conn.query(`CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet([]) WHERE 1=0`);
+    return viewName;
+  }
+  const fileList = files.map((u) => `'${u}'`).join(", ");
+  await conn.query(`CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet([${fileList}])`);
+  return viewName;
 }
 
 // ---------------------------------------------------------------------------
 // Delt spørringskjøring: SQL → rader som plain JS-objekter
 // ---------------------------------------------------------------------------
 
-async function runDuckQuery<T = Record<string, unknown>>(
-  db: AsyncDuckDB,
+async function runQueryOnConn<T = Record<string, unknown>>(
+  conn: AsyncDuckDBConnection,
   sql: string,
 ): Promise<T[]> {
-  let conn: AsyncDuckDBConnection | null = null;
-  try {
-    conn = await db.connect();
-    const result = await conn.query(sql);
-
-    // Convert Arrow table to plain JS objects
-    const rows: T[] = [];
-    const numRows = result.numRows;
-    const schema = result.schema.fields;
-
-    for (let i = 0; i < numRows; i++) {
-      const row: Record<string, unknown> = {};
-      for (const field of schema) {
-        const col = result.getChild(field.name);
-        const val = col?.get(i) ?? null;
-        // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
-        row[field.name] = typeof val === "bigint" ? Number(val) : val;
-      }
-      rows.push(row as T);
+  const result = await conn.query(sql);
+  const rows: T[] = [];
+  const schema = result.schema.fields;
+  for (let i = 0; i < result.numRows; i++) {
+    const row: Record<string, unknown> = {};
+    for (const field of schema) {
+      const col = result.getChild(field.name);
+      const val = col?.get(i) ?? null;
+      // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
+      row[field.name] = typeof val === "bigint" ? Number(val) : val;
     }
-
-    return rows;
-  } finally {
-    if (conn) await conn.close();
+    rows.push(row as T);
   }
+  return rows;
+}
+
+export interface QueryOptions {
+  /** Hvilken sortert filfamilie spørringen skal kjøre mot — velg ut fra
+   *  spørringens primære WHERE-kolonne: "by-line" for line_ref-filtre,
+   *  "by-stop" for stop_ref-filtre. Default "by-stop" (vilkårlig — brukes
+   *  av spørringer som skanner alt uansett, f.eks. topplister/kart). SQL-en
+   *  må referere til viewet ved navn: delays_by_line / delays_by_stop. */
+  family?: DelayFamily;
+  /** Datointervall (inklusiv) — begrenser hvilke ukefiler som registreres i
+   *  viewet, slik at uker utenfor vinduet ikke en gang åpnes. Utelates for
+   *  spørringer som trenger hele historikken (topplister, kart). */
+  fromDate?: string;
+  toDate?: string;
+}
+
+/** Erstatter ? med escapede parameterverdier — DuckDB-WASM sitt JS-API
+ *  støtter ikke native prepared-statement-binding via conn.query(). */
+function bindParams(sql: string, params?: unknown[]): string {
+  if (!params || params.length === 0) return sql;
+  let idx = 0;
+  return sql.replace(/\?/g, () => {
+    if (idx >= params.length) return "NULL";
+    const val = params[idx++];
+    if (val === null || val === undefined) return "NULL";
+    if (typeof val === "number" || typeof val === "bigint") return String(val);
+    if (typeof val === "boolean") return val ? "TRUE" : "FALSE";
+    return `'${String(val).replace(/'/g, "''")}'`;
+  });
 }
 
 /**
  * Kjør en DuckDB-spørring utenfor React (brukes av stats-adapteren i
  * queryClient). Initialiserer DuckDB-singletonen og registrerer parquet-filene
- * ved behov — samme instans og `delays`-view som hooken bruker.
+ * ved behov — samme instans og views som hooken bruker.
  */
 export async function standaloneDuckQuery<T = Record<string, unknown>>(
   sql: string,
+  params?: unknown[],
+  options?: QueryOptions,
 ): Promise<T[]> {
   const db = await initDuckDB();
   await ensureFilesRegistered(db);
   if (registeredFiles.size === 0) {
     throw new Error("Ingen parquet-filer tilgjengelig");
   }
-  return runDuckQuery<T>(db, sql);
+  const conn = await db.connect();
+  try {
+    await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+    return await runQueryOnConn<T>(conn, bindParams(sql, params));
+  } finally {
+    await conn.close();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -159,10 +272,12 @@ export interface ParquetQueryState {
   /** Whether any Parquet files are available */
   ready: boolean;
   /** Run an arbitrary SQL query against loaded Parquet data.
-   *  Supports ? parameter binding (replaced sequentially). */
+   *  Supports ? parameter binding (replaced sequentially). SQL must
+   *  reference delays_by_line / delays_by_stop — pick via options.family. */
   query: <T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
+    options?: QueryOptions,
   ) => Promise<T[]>;
 }
 
@@ -216,30 +331,20 @@ export function useParquetQuery(): ParquetQueryState {
     async <T = Record<string, unknown>>(
       sql: string,
       params?: unknown[],
+      options?: QueryOptions,
     ): Promise<T[]> => {
       if (!db) throw new Error("DuckDB not initialized");
 
       // Re-register files in case new weeks appeared since last check
       await ensureFilesRegistered(db);
 
-      // Substitute ? placeholders with escaped parameter values.
-      // DuckDB-WASM's JS API does not support native prepared-statement
-      // parameter binding via conn.query(), so we inline them safely.
-      let finalSql = sql;
-      if (params && params.length > 0) {
-        let idx = 0;
-        finalSql = sql.replace(/\?/g, () => {
-          if (idx >= params.length) return "NULL";
-          const val = params[idx++];
-          if (val === null || val === undefined) return "NULL";
-          if (typeof val === "number" || typeof val === "bigint") return String(val);
-          if (typeof val === "boolean") return val ? "TRUE" : "FALSE";
-          // String: escape single quotes
-          return `'${String(val).replace(/'/g, "''")}'`;
-        });
+      const conn = await db.connect();
+      try {
+        await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+        return await runQueryOnConn<T>(conn, bindParams(sql, params));
+      } finally {
+        await conn.close();
       }
-
-      return runDuckQuery<T>(db, finalSql);
     },
     [db],
   );

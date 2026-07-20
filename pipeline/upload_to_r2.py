@@ -31,6 +31,8 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 
+from export_parquet import week_from_filename
+
 # ---------------------------------------------------------------------------
 # Konfigurasjon
 # ---------------------------------------------------------------------------
@@ -141,14 +143,24 @@ def upload_file(
 
 
 def newest_parquet_files(parquet_dir: Path) -> list[Path]:
-    """Ukefiler som skal være i manifest/bucket: nyeste KEEP_WEEKS.
+    """Filer som skal være i manifest/bucket: begge varianter (-by-line/-by-stop)
+    for de nyeste KEEP_WEEKS ISO-ukene.
 
-    Navnene er ISO-uker ('2026-W27.parquet') og sorterer riktig leksikalsk,
-    også over årsskifter."""
-    files = sorted(f for f in parquet_dir.glob("*.parquet") if f.is_file())
+    Ukenavnene ('2026-W27') sorterer riktig leksikalsk, også over årsskifter.
+    Grupperer per uke først slik at KEEP_WEEKS teller uker, ikke enkeltfiler
+    (hver uke er nå to filer)."""
+    files = [f for f in parquet_dir.glob("*.parquet") if f.is_file()]
+    by_week: dict[str, list[Path]] = {}
+    for f in files:
+        week = week_from_filename(f.name)
+        if week is None:
+            continue  # gammelt enkeltfil-format — ikke last opp, kjør migrate_parquet_sort.py
+        by_week.setdefault(week, []).append(f)
+
+    weeks = sorted(by_week.keys())
     if KEEP_WEEKS > 0:
-        files = files[-KEEP_WEEKS:]
-    return files
+        weeks = weeks[-KEEP_WEEKS:]
+    return sorted(f for w in weeks for f in by_week[w])
 
 
 def generate_manifest(parquet_dir: Path) -> list[dict]:

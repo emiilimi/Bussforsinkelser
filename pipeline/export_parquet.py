@@ -6,15 +6,22 @@ Parquet files are the data source for DuckDB-WASM in the browser,
 enabling client-side percentile queries, scatter-plots, and transfer
 probability calculations — without any server round-trip.
 
+Hver uke skrives som TO filer, samme rader men ulik fysisk sortering, slik at
+Parquets radgruppe-statistikk (min/max per kolonne) faktisk kan brukes til å
+hoppe over radgrupper — DuckDB kan bare "prune" effektivt langs kolonnen
+dataene er sortert på. Sider som filtrerer på line_ref (linjeanalyse) og
+sider som filtrerer på stop_ref (stoppanalyse, avganger) er begge vanlige,
+så én sortering ville gjort den andre halvparten av spørringene trege.
+Målt (juli 2026): riktig sortert fil henter ~0.3 MB i 4-5 HTTP range-kall per
+uke for en typisk spørring, mot ~9-12 MB i 23 kall usortert.
+
+    data/parquet/2026-W15-by-line.parquet   ORDER BY line_ref, direction_ref, date
+    data/parquet/2026-W15-by-stop.parquet   ORDER BY stop_ref, date
+
 Usage:
     python pipeline/export_parquet.py              # export all unwritten weeks
     python pipeline/export_parquet.py --all        # re-export everything
     python pipeline/export_parquet.py --week 2026-W15  # export one specific week
-
-Output:
-    data/parquet/2026-W14.parquet
-    data/parquet/2026-W15.parquet
-    ...
 
 Designed to run weekly via cron (after nightly ingest has populated journey_stop_daily).
 """
@@ -42,6 +49,13 @@ PARQUET_DIR = os.environ.get(
     "PARQUET_DIR",
     str(Path(__file__).parent.parent / "data" / "parquet"),
 )
+
+# Radgruppestørrelse — mindre grupper gir finere pruning-granularitet.
+# pyarrow sin default (2**20 ≈ 1.05M) er for grovt til at DuckDB kan hoppe
+# forbi mesteparten av en fil selv når den er sortert riktig.
+ROW_GROUP_SIZE = 122_880
+
+FAMILIES = ("by-line", "by-stop")
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -92,27 +106,53 @@ def get_weeks_in_db(conn: sqlite3.Connection) -> list[str]:
     return weeks
 
 
+def week_from_filename(name: str) -> str | None:
+    """'2026-W15-by-line.parquet' -> '2026-W15'. None if it doesn't match."""
+    stem = name[:-len(".parquet")] if name.endswith(".parquet") else name
+    for fam in FAMILIES:
+        suffix = f"-{fam}"
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)]
+    return None
+
+
 def get_existing_parquet_weeks(parquet_dir: str) -> set[str]:
-    """Return set of week strings that already have a Parquet file."""
+    """Return set of week strings that already have BOTH sorted variants written.
+
+    A week with only one of the two files (e.g. from an interrupted run) is
+    treated as not-yet-exported so it gets completed on the next run."""
     d = Path(parquet_dir)
     if not d.exists():
         return set()
-    return {f.stem for f in d.glob("*.parquet")}
+    have: dict[str, set[str]] = {}
+    for f in d.glob("*.parquet"):
+        week = week_from_filename(f.name)
+        if week is None:
+            continue
+        have.setdefault(week, set()).add(f.name)
+    return {
+        week for week, names in have.items()
+        if all(f"{week}-{fam}.parquet" in names for fam in FAMILIES)
+    }
 
 
 def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> int:
-    """Export one ISO week of journey_stop_daily to a Parquet file. Returns row count.
+    """Export one ISO week of journey_stop_daily to two Parquet files (same rows,
+    sorted differently — see module docstring). Returns row count.
 
-    Vern: en eksisterende ukefil overskrives ALDRI med en versjon som dekker
+    Vern: eksisterende ukefiler overskrives ALDRI med en versjon som dekker
     færre dager. Det kan skje når retention-vinduet (JSD_RETENTION_DAYS) har
     kastet gamle dager, eller når bare deler av en uke er backfillet. Da
-    beholdes den eksisterende (mer komplette) filen. Slett filen manuelt hvis
+    beholdes de eksisterende (mer komplette) filene. Slett dem manuelt hvis
     du faktisk vil re-eksportere med færre dager."""
     mon = monday_of_week(week_str)
     sun = mon + timedelta(days=6)
 
-    out_path_check = Path(parquet_dir) / f"{week_str}.parquet"
-    if out_path_check.exists():
+    # Representativ fil for "har vi allerede mer komplette data enn basen?"-
+    # sjekken — begge varianter av en uke inneholder alltid identiske rader
+    # (bare i ulik rekkefølge), så det holder å sjekke én.
+    check_path = Path(parquet_dir) / f"{week_str}-{FAMILIES[0]}.parquet"
+    if check_path.exists():
         db_dates = {
             r[0] for r in conn.execute(
                 "SELECT DISTINCT date FROM journey_stop_daily WHERE date >= ? AND date <= ?",
@@ -121,7 +161,7 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         }
         try:
             file_dates = set(
-                pq.read_table(out_path_check, columns=["date"])
+                pq.read_table(check_path, columns=["date"])
                 .column("date").to_pylist()
             )
         except Exception:
@@ -130,7 +170,7 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         if missing:
             log.warning(
                 "  %s: basen mangler %d dag(er) som finnes i eksisterende fil (%s) — "
-                "beholder filen i stedet for å skrive en mindre komplett versjon",
+                "beholder filene i stedet for å skrive en mindre komplett versjon",
                 week_str, len(missing), ", ".join(sorted(missing)),
             )
             return 0
@@ -145,7 +185,6 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         FROM journey_stop_daily j
         LEFT JOIN stop_coords s ON s.stop_ref = j.stop_ref
         WHERE j.date >= ? AND j.date <= ?
-        ORDER BY j.date, j.line_ref, j.service_journey_id, j.stop_sequence
         """,
         (mon.isoformat(), sun.isoformat()),
     ).fetchall()
@@ -172,15 +211,27 @@ def export_week(conn: sqlite3.Connection, week_str: str, parquet_dir: str) -> in
         pa.array(cols[12], type=pa.string()),      # day_type
         pa.array(cols[13], type=pa.string()),      # stop_name
     ]
-
     table = pa.table(arrays, schema=ARROW_SCHEMA)
 
-    out_path = Path(parquet_dir) / f"{week_str}.parquet"
-    pq.write_table(table, out_path, compression="zstd")
+    write_sorted_family(table, parquet_dir, week_str, "by-line",
+                         [("line_ref", "ascending"), ("direction_ref", "ascending"),
+                          ("date", "ascending"), ("stop_sequence", "ascending")])
+    write_sorted_family(table, parquet_dir, week_str, "by-stop",
+                         [("stop_ref", "ascending"), ("date", "ascending"),
+                          ("stop_sequence", "ascending")])
 
-    size_kb = out_path.stat().st_size / 1024
-    log.info("  %s: %d rows → %s (%.0f KB)", week_str, len(rows), out_path.name, size_kb)
+    log.info("  %s: %d rows → 2 files", week_str, len(rows))
     return len(rows)
+
+
+def write_sorted_family(
+    table: "pa.Table", parquet_dir: str, week_str: str, family: str, sort_keys: list[tuple[str, str]],
+) -> None:
+    sorted_table = table.sort_by(sort_keys)
+    out_path = Path(parquet_dir) / f"{week_str}-{family}.parquet"
+    pq.write_table(sorted_table, out_path, compression="zstd", row_group_size=ROW_GROUP_SIZE)
+    size_kb = out_path.stat().st_size / 1024
+    log.info("    %s (%.0f KB)", out_path.name, size_kb)
 
 
 # ---------------------------------------------------------------------------

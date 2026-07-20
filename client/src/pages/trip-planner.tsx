@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useParquetQuery } from "@/hooks/use-parquet-query";
+import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -195,7 +195,7 @@ function specificGapSql(s: TransferSpec): string | null {
       SELECT date,
         (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
          CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) + delay_arrival_min AS actual_arr_min
-      FROM delays
+      FROM delays_by_stop
       WHERE service_journey_id = '${esc(s.arrSjId)}'
         AND stop_ref = '${esc(s.arrQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
@@ -205,7 +205,7 @@ function specificGapSql(s: TransferSpec): string | null {
       SELECT date,
         (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
          CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) + delay_departure_min AS actual_dep_min
-      FROM delays
+      FROM delays_by_stop
       WHERE service_journey_id = '${esc(s.depSjId)}'
         AND stop_ref = '${esc(s.depQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
@@ -247,7 +247,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
   const dirClause = (sjId: string | null) =>
     sjId
       ? `AND direction_ref IS NOT DISTINCT FROM COALESCE(
-           (SELECT ANY_VALUE(direction_ref) FROM delays
+           (SELECT ANY_VALUE(direction_ref) FROM delays_by_stop
             WHERE service_journey_id = '${esc(sjId)}'),
            direction_ref)`
       : "";
@@ -256,7 +256,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
       SELECT date, delay_arrival_min AS arr_delay,
         (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
          CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) AS aimed_min
-      FROM delays
+      FROM delays_by_stop
       WHERE line_ref = '${esc(s.arrLineRef)}'
         AND stop_ref = '${esc(s.arrQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
@@ -272,7 +272,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
       SELECT date, delay_departure_min AS dep_delay,
         (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
          CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) AS aimed_min
-      FROM delays
+      FROM delays_by_stop
       WHERE line_ref = '${esc(s.depLineRef)}'
         AND stop_ref = '${esc(s.depQuayRef)}'
         AND day_type = '${esc(s.dayType)}'
@@ -293,7 +293,7 @@ function fallbackGapSql(s: TransferSpec): string | null {
 function useTransferGaps(
   specs: TransferSpec[],
   duckReady: boolean,
-  duckQuery: (sql: string) => Promise<any[]>,
+  duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
 ) {
   return useQuery<Map<string, TransferGapResult>>({
     queryKey: [
@@ -310,14 +310,14 @@ function useTransferGaps(
         let gaps: number[] = [];
         let source: TransferGapResult["source"] = "none";
         if (primarySql) {
-          const rows = await duckQuery(primarySql) as Array<{ gap: number }>;
+          const rows = await duckQuery(primarySql, undefined, { family: "by-stop" }) as Array<{ gap: number }>;
           gaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
           if (gaps.length >= SPECIFIC_MIN_DAYS) source = "specific";
         }
         if (source === "none") {
           const fallbackSql = fallbackGapSql(s);
           if (fallbackSql) {
-            const rows = await duckQuery(fallbackSql) as Array<{ gap: number }>;
+            const rows = await duckQuery(fallbackSql, undefined, { family: "by-stop" }) as Array<{ gap: number }>;
             const fallbackGaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
             if (fallbackGaps.length > 0) {
               gaps = fallbackGaps;
@@ -348,7 +348,7 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ${col}) AS p50,
       PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY ${col}) AS p80,
       COUNT(*) AS n
-    FROM delays WHERE ${where} AND ${col} IS NOT NULL
+    FROM delays_by_stop WHERE ${where} AND ${col} IS NOT NULL
   `;
 }
 
@@ -356,7 +356,7 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
 function useEstimatedLegTimes(
   specs: LegTimingSpec[],
   duckReady: boolean,
-  duckQuery: (sql: string) => Promise<any[]>,
+  duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
 ) {
   return useQuery<Map<string, LegTimingResult>>({
     queryKey: [
@@ -368,17 +368,17 @@ function useEstimatedLegTimes(
     queryFn: async () => {
       const out = new Map<string, LegTimingResult>();
       for (const s of specs) {
-        const r0 = await duckQuery(legTimingSql(s));
+        const r0 = await duckQuery(legTimingSql(s), undefined, { family: "by-stop" });
         if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj" });
           continue;
         }
-        const r1 = await duckQuery(legTimingSql(s, 1));
+        const r1 = await duckQuery(legTimingSql(s, 1), undefined, { family: "by-stop" });
         if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1" });
           continue;
         }
-        const r2 = await duckQuery(legTimingSql(s, 2));
+        const r2 = await duckQuery(legTimingSql(s, 2), undefined, { family: "by-stop" });
         const n2 = r2[0]?.n ?? 0;
         out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none" });
       }
@@ -824,7 +824,7 @@ function useFallbackChain(opts: {
 function useTripDelayDistribution(
   pairs: Array<{ stopRef: string; lineRef: string }>,
   duckReady: boolean,
-  duckQuery: (sql: string) => Promise<any[]>,
+  duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
 ) {
   return useQuery<Map<string, DuckDelayRow>>({
     queryKey: ["duck-trip-delays", ...pairs.map(p => `${p.stopRef}|${p.lineRef}`)],
@@ -846,13 +846,13 @@ function useTripDelayDistribution(
           PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min) AS p80_arr,
           PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_arrival_min) AS p95_arr,
           COUNT(*) AS n
-        FROM delays
+        FROM delays_by_stop
         WHERE (${conditions})
           AND (delay_departure_min IS NOT NULL OR delay_arrival_min IS NOT NULL)
         GROUP BY stop_ref, line_ref
       `;
 
-      const rows = await duckQuery(sql) as DuckDelayRow[];
+      const rows = await duckQuery(sql, undefined, { family: "by-stop" }) as DuckDelayRow[];
       const map = new Map<string, DuckDelayRow>();
       for (const row of rows) {
         map.set(`${row.stop_ref}|${row.line_ref}`, row);
@@ -2300,7 +2300,7 @@ export default function TripPlanner() {
     staleTime: Infinity,
     queryFn: async () => {
       const rows = await duckQuery(
-        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays`,
+        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
       );
       const r = rows[0] as { days: number; mind: string; maxd: string } | undefined;
       return r && Number(r.days) > 0
@@ -2424,9 +2424,9 @@ export default function TripPlanner() {
               ROUND(AVG(delay_arrival_min), 2)   AS avgDelayArrivalMin,
               ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
               COUNT(*) AS numSamples
-            FROM delays
+            FROM delays_by_stop
             WHERE date >= '${cutoffStr}' AND (${conditions})
-            GROUP BY stop_ref, line_ref`);
+            GROUP BY stop_ref, line_ref`, undefined, { family: "by-stop", fromDate: cutoffStr });
           statsMap = new Map(statsData.map((s) => [`${s.stopRef}|${s.lineRef}`, s]));
         } catch (err) {
           if (import.meta.env.DEV) {

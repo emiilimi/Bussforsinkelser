@@ -11,7 +11,10 @@
 // (totalCancellations, per-linje sanntidsdekning) er null.
 // ---------------------------------------------------------------------------
 
-import { PARQUET_BASE, standaloneDuckQuery } from "@/hooks/use-parquet-query";
+import {
+  PARQUET_BASE, standaloneDuckQuery, ensureParquetFilesRegistered, latestAvailableDate,
+  type DelayFamily,
+} from "@/hooks/use-parquet-query";
 
 // ---------------------------------------------------------------------------
 // Artefakt-typer
@@ -229,6 +232,17 @@ function lineSortKey(lineRef: string): [number, string] {
 }
 
 const esc = (s: string) => s.replace(/'/g, "''");
+
+/** "N dager tilbake fra ferskeste tilgjengelige data" — erstatter det
+ *  tidligere MAX(date)-underspørringsmønsteret mot den nå fjernede
+ *  generiske "delays"-viewen. Krever at ensureParquetFilesRegistered() er
+ *  kalt først (gjøres i statsAdapterFetch). */
+function daysAgoFromLatest(days: number, family: DelayFamily): string {
+  const latest = latestAvailableDate(family) ?? new Date().toISOString().slice(0, 10);
+  const d = new Date(`${latest}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - Math.max(days - 1, 0));
+  return d.toISOString().slice(0, 10);
+}
 
 // ---------------------------------------------------------------------------
 // Endepunkt-adaptere
@@ -487,21 +501,22 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
   const { quays, nameHint } = await resolveStopQuays(ref);
   if (quays.length === 0) throw new Error("Stoppested ikke funnet");
 
+  await ensureParquetFilesRegistered();
+  const effectiveFrom = from ?? daysAgoFromLatest(days, "by-stop");
+
   const D = "COALESCE(delay_departure_min, delay_arrival_min)";
   const conds: string[] = [
     `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,
     `${D} IS NOT NULL`,
+    `date >= '${esc(effectiveFrom)}'`,
   ];
-  if (from) conds.push(`date >= '${esc(from)}'`);
   if (to) conds.push(`date <= '${esc(to)}'`);
-  if (!from && !to) {
-    conds.push(`date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(days - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`);
-  }
   if (direction) conds.push(`direction_ref = '${esc(direction)}'`);
   if (operators.length > 0) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
   }
   const where = conds.join(" AND ");
+  const duckOptions = { family: "by-stop" as const, fromDate: effectiveFrom, toDate: to ?? undefined };
 
   const [daily, hourly] = await Promise.all([
     standaloneDuckQuery<{
@@ -518,18 +533,18 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
         ROUND(100.0 * AVG(CASE WHEN ${D} > 2 THEN 1 ELSE 0 END), 1) AS pctDelayed2plus,
         ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin,
         COUNT(DISTINCT service_journey_id) AS numDepartures
-      FROM delays
+      FROM delays_by_stop
       WHERE ${where}
       GROUP BY date
       ORDER BY date
-    `),
+    `, undefined, duckOptions),
     standaloneDuckQuery<Record<string, unknown>>(`
       WITH per_date_hour AS (
         SELECT date,
           CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
           AVG(${D}) AS avg_delay,
           COUNT(*) AS n
-        FROM delays
+        FROM delays_by_stop
         WHERE ${where} AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
         GROUP BY 1, 2
       )
@@ -541,7 +556,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
       FROM per_date_hour
       GROUP BY hour
       ORDER BY hour
-    `),
+    `, undefined, duckOptions),
   ]);
 
   if (daily.length === 0) throw new Error("404: Stoppested ikke funnet");
@@ -573,10 +588,10 @@ async function apiStopDirections(ref: string, params: URLSearchParams) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
   }
   const rows = await standaloneDuckQuery<{ direction_ref: string }>(`
-    SELECT DISTINCT direction_ref FROM delays
+    SELECT DISTINCT direction_ref FROM delays_by_stop
     WHERE ${conds.join(" AND ")}
     ORDER BY direction_ref
-  `);
+  `, undefined, { family: "by-stop" });
   return rows.map((r) => String(r.direction_ref));
 }
 
@@ -636,15 +651,14 @@ async function apiLeaderboardStopsFiltered(
   to: string | null,
   days: number,
 ) {
+  await ensureParquetFilesRegistered();
+  const useExplicitRange = !!(from && to);
+  const effectiveFrom = useExplicitRange ? from! : daysAgoFromLatest(days, "by-stop");
+  const effectiveTo = useExplicitRange ? to! : undefined;
+
   const D = "COALESCE(delay_departure_min, delay_arrival_min)";
-  const conds: string[] = [`${D} IS NOT NULL`];
-  if (from && to) {
-    conds.push(`date >= '${esc(from)}'`, `date <= '${esc(to)}'`);
-  } else {
-    conds.push(
-      `date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(days - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`,
-    );
-  }
+  const conds: string[] = [`${D} IS NOT NULL`, `date >= '${esc(effectiveFrom)}'`];
+  if (effectiveTo) conds.push(`date <= '${esc(effectiveTo)}'`);
   if (mode && mode !== "all") conds.push(`vehicle_mode = '${esc(mode)}'`);
   if (operators.length > 0) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
@@ -659,13 +673,13 @@ async function apiLeaderboardStopsFiltered(
       ROUND(STDDEV_SAMP(${D}), 2)  AS sd,
       ROUND(100.0 * AVG(CASE WHEN ${D} > 2 THEN 1 ELSE 0 END), 1) AS pct2,
       COUNT(DISTINCT service_journey_id || date) AS n
-    FROM delays
+    FROM delays_by_stop
     WHERE ${conds.join(" AND ")}
     GROUP BY stop_ref
     HAVING COUNT(DISTINCT service_journey_id || date) >= 5
     ORDER BY avg_delay ${type === "best" ? "ASC" : "DESC"}
     LIMIT 50
-  `);
+  `, undefined, { family: "by-stop", fromDate: effectiveFrom, toDate: effectiveTo });
 
   const names = new Map<string, string | null>();
   for (const row of doc.stops) {
@@ -735,9 +749,12 @@ async function apiStopsMapFiltered(
   hourMin: string | null,
   hourMax: string | null,
 ) {
+  await ensureParquetFilesRegistered();
+  const effectiveFrom = daysAgoFromLatest(windowDays, "by-stop");
+
   const conds: string[] = [
     "COALESCE(delay_departure_min, delay_arrival_min) IS NOT NULL",
-    `date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(windowDays - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`,
+    `date >= '${esc(effectiveFrom)}'`,
   ];
   if (dayType === "weekday") conds.push("day_type IN ('weekday')");
   if (dayType === "weekend") conds.push("day_type IN ('saturday', 'sunday')");
@@ -755,11 +772,11 @@ async function apiStopsMapFiltered(
       ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avg_delay,
       ROUND(100.0 * AVG(CASE WHEN COALESCE(delay_departure_min, delay_arrival_min) > 2 THEN 1 ELSE 0 END), 1) AS pct2,
       COUNT(DISTINCT service_journey_id || date) AS n
-    FROM delays
+    FROM delays_by_stop
     WHERE ${conds.join(" AND ")}
     GROUP BY stop_ref
     HAVING COUNT(DISTINCT service_journey_id || date) >= 5
-  `);
+  `, undefined, { family: "by-stop", fromDate: effectiveFrom });
 
   // Koordinater + navn fra artefakten
   const meta = new Map<string, { name: string | null; lat: number | null; lng: number | null }>();
@@ -786,18 +803,21 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
   const to = params.get("to");
   const direction = params.get("direction");
 
+  await ensureParquetFilesRegistered();
+  const useExplicitRange = !!(from && to);
+  const effectiveFrom = useExplicitRange ? from! : daysAgoFromLatest(days, "by-line");
+  const effectiveTo = useExplicitRange ? to! : undefined;
+
   const conds: string[] = [
     `line_ref = '${esc(lineRef)}'`,
     "COALESCE(delay_departure_min, delay_arrival_min) IS NOT NULL",
+    `date >= '${esc(effectiveFrom)}'`,
   ];
-  if (from) conds.push(`date >= '${esc(from)}'`);
-  if (to) conds.push(`date <= '${esc(to)}'`);
-  if (!from && !to) {
-    conds.push(`date >= (SELECT strftime(MAX(date)::DATE - INTERVAL ${Math.max(days - 1, 0)} DAY, '%Y-%m-%d') FROM delays)`);
-  }
+  if (effectiveTo) conds.push(`date <= '${esc(effectiveTo)}'`);
   if (direction) conds.push(`direction_ref = '${esc(direction)}'`);
   const where = conds.join(" AND ");
   const D = "COALESCE(delay_departure_min, delay_arrival_min)";
+  const duckOptions = { family: "by-line" as const, fromDate: effectiveFrom, toDate: effectiveTo };
 
   const [daily, hourly, lineNames] = await Promise.all([
     standaloneDuckQuery<Record<string, unknown>>(`
@@ -810,18 +830,18 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
         ROUND(100.0 * AVG(CASE WHEN ${D} > 10 THEN 1 ELSE 0 END), 1)             AS pctDelayed10plus,
         COUNT(DISTINCT service_journey_id) AS numDepartures,
         ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin
-      FROM delays
+      FROM delays_by_line
       WHERE ${where}
       GROUP BY date
       ORDER BY date
-    `),
+    `, undefined, duckOptions),
     standaloneDuckQuery<Record<string, unknown>>(`
       WITH per_date_hour AS (
         SELECT date,
           CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
           AVG(${D}) AS avg_delay,
           COUNT(*) AS n
-        FROM delays
+        FROM delays_by_line
         WHERE ${where} AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
         GROUP BY 1, 2
       )
@@ -833,7 +853,7 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
       FROM per_date_hour
       GROUP BY hour
       ORDER BY hour
-    `),
+    `, undefined, duckOptions),
     fetchLineNames(),
   ]);
 

@@ -11,7 +11,7 @@ import { Search, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { ModeIcon } from "@/components/mode-icon";
 import { cn, formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
-import { useParquetQuery } from "@/hooks/use-parquet-query";
+import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { InfoTip } from "@/components/info-tip";
 import { IS_REISE } from "@/lib/app-mode";
@@ -179,7 +179,7 @@ function JourneyDetail({
   lineRef: string | null;
   highlightQuay: string | null;
   duckReady: boolean;
-  duckQuery: (sql: string) => Promise<any[]>;
+  duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>;
 }) {
   const date = dateIso.slice(0, 10);
   const { data: sj, isLoading, isError } = useQuery<SjResponse>({
@@ -205,15 +205,15 @@ function JourneyDetail({
       // nok observasjoner på akkurat denne avgangen.
       if (lineRef) {
         const lineRows = await duckQuery(`
-          SELECT stop_ref, ${cols} FROM delays
+          SELECT stop_ref, ${cols} FROM delays_by_line
           WHERE line_ref = '${esc(lineRef)}'
-          GROUP BY stop_ref`) as Array<Omit<SjStopStat, "source">>;
+          GROUP BY stop_ref`, undefined, { family: "by-line" }) as Array<Omit<SjStopStat, "source">>;
         for (const r of lineRows) map.set(r.stop_ref, { ...r, source: "line" });
       }
       const sjRows = await duckQuery(`
-        SELECT stop_ref, ${cols} FROM delays
+        SELECT stop_ref, ${cols} FROM delays_by_line
         WHERE service_journey_id = '${esc(sjId)}'
-        GROUP BY stop_ref`) as Array<Omit<SjStopStat, "source">>;
+        GROUP BY stop_ref`, undefined, { family: "by-line" }) as Array<Omit<SjStopStat, "source">>;
       for (const r of sjRows) {
         if (r.n >= 3) map.set(r.stop_ref, { ...r, source: "sj" });
       }
@@ -465,14 +465,14 @@ export default function Departures() {
         SELECT service_journey_id, line_ref, direction_ref, stop_ref,
                aimed_departure, aimed_arrival, delay_departure_min, delay_arrival_min,
                vehicle_mode
-        FROM delays
+        FROM delays_by_stop
         WHERE date = '${esc(customDate)}'
           AND stop_ref IN (${quayList})
           AND ${timeCol} IS NOT NULL
           AND ${timeCol} >= '${esc(fromHM)}' AND ${timeCol} <= '${esc(toHM)}'
         ORDER BY ${timeCol}
         LIMIT 200`;
-      const rows = await duckQuery(sql) as Array<{
+      const rows = await duckQuery(sql, undefined, { family: "by-stop", fromDate: customDate, toDate: customDate }) as Array<{
         service_journey_id: string; line_ref: string; direction_ref: string; stop_ref: string;
         aimed_departure: string | null; aimed_arrival: string | null;
         delay_departure_min: number | null; delay_arrival_min: number | null;
@@ -571,10 +571,10 @@ export default function Departures() {
           PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_departure_min) AS p80_dep,
           PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_departure_min) AS p95_dep,
           COUNT(*) AS n
-        FROM delays
+        FROM delays_by_stop
         WHERE (${conditions}) AND delay_departure_min IS NOT NULL
         GROUP BY stop_ref, line_ref`;
-      const rows = await duckQuery(sql) as DuckDelayRow[];
+      const rows = await duckQuery(sql, undefined, { family: "by-stop" }) as DuckDelayRow[];
       const map = new Map<string, DuckDelayRow>();
       for (const r of rows) map.set(`${r.stop_ref}|${r.line_ref}`, r);
       return map;

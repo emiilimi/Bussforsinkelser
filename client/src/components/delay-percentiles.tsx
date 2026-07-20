@@ -44,11 +44,11 @@ export function DelayPercentiles({ lineRef, stopRef }: DelayPercentilesProps) {
           PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_departure_min) AS p80,
           PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_departure_min) AS p95,
           COUNT(*) AS n
-        FROM delays
+        FROM delays_by_line
         ${whereClause}
       `;
 
-      const rows = await query<PercentileResult>(sql);
+      const rows = await query<PercentileResult>(sql, undefined, { family: "by-line" });
       if (rows.length === 0) {
         return { p50: null, p80: null, p95: null, n: 0 };
       }

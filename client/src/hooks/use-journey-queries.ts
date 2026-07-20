@@ -8,6 +8,12 @@
  *      populated via LEFT JOIN stop_coords in export_parquet.py).
  *      No separate server round-trip needed.
  *
+ * Hver spørring kjører mot delays_by_line eller delays_by_stop (se
+ * use-parquet-query.ts) — velges ut fra hvilken kolonne spørringen filtrerer
+ * på FØRST/mest selektivt, siden Parquet radgruppe-pruning kun virker langs
+ * kolonnen filen faktisk er sortert på. fromDate sendes med som options så
+ * ukefiler utenfor vinduet ikke en gang registreres.
+ *
  * SQL dialect: DuckDB (not SQLite). Key differences:
  *   - date arithmetic: current_date - INTERVAL N DAY  (not date('now', '-N days'))
  *   - CAST(x AS INTEGER) → CAST(x AS INTEGER) ✓ same
@@ -175,20 +181,21 @@ export function useJourneysForLine(lineRef: string, fromDate: string) {
             d.direction_ref,
             MIN(COALESCE(d.aimed_departure, d.aimed_arrival)) AS first_stop_time,
             (SELECT COALESCE(d2.stop_name, d2.stop_ref)
-             FROM delays d2
+             FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_name,
             (SELECT COALESCE(d2.stop_name, d2.stop_ref)
-             FROM delays d2
+             FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_name
-          FROM delays d
+          FROM delays_by_line d
           WHERE d.line_ref = ? AND d.date >= ?
           GROUP BY d.service_journey_id, d.direction_ref
         )
         GROUP BY direction_ref, first_stop_time
         ORDER BY direction_ref, first_stop_time`,
-        [lineRef, fromDate]),
+        [lineRef, fromDate],
+        { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
 }
@@ -214,11 +221,12 @@ export function useJourneyProfile(
     queryFn: () =>
       query<{ service_journey_id: string }>(`
         SELECT DISTINCT service_journey_id
-        FROM delays
+        FROM delays_by_line
         WHERE line_ref = ? AND direction_ref = ? AND date >= ?
         GROUP BY service_journey_id
         HAVING MIN(COALESCE(aimed_departure, aimed_arrival)) = ?`,
-        [lineRef, directionRef, effectiveFrom, firstStopTime]),
+        [lineRef, directionRef, effectiveFrom, firstStopTime],
+        { family: "by-line", fromDate: effectiveFrom }),
     staleTime: Infinity,
   });
 
@@ -228,7 +236,9 @@ export function useJourneyProfile(
       ? `AND day_type IN (${dayTypes.map((dt) => `'${dt.replace(/'/g, "''")}'`).join(",")})`
       : "";
 
-  // Step 2: aggregate profile
+  // Step 2: aggregate profile — filtrert på en liste med service_journey_id
+  // (ikke line_ref/stop_ref direkte), men disse tilhører alle linjen fra
+  // steg 1, så by-line + samme fromDate-vindu gir fortsatt god pruning.
   const profileQuery = useQuery<JourneyStopProfile[]>({
     queryKey: ["journey-profile", sjIds.join(","), dtFilter],
     enabled: sjIds.length > 0,
@@ -254,11 +264,13 @@ export function useJourneyProfile(
             - AVG(COALESCE(delay_departure_min, delay_arrival_min))
             * AVG(COALESCE(delay_departure_min, delay_arrival_min))
           )), 2)                                                                AS stddevDelayMin
-        FROM delays
+        FROM delays_by_line
         WHERE service_journey_id IN (${ph}) ${dtFilter}
         GROUP BY stop_ref
         ORDER BY MIN(COALESCE(aimed_departure, aimed_arrival)) ASC,
-                 MIN(stop_sequence) ASC`);
+                 MIN(stop_sequence) ASC`,
+        undefined,
+        { family: "by-line", fromDate: effectiveFrom });
     },
     staleTime: Infinity,
   });
@@ -285,13 +297,14 @@ export function useWorstStopsForLine(lineRef: string, fromDate: string, limit = 
           COALESCE(MAX(stop_name), stop_ref) AS stopName,
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
-        FROM delays
+        FROM delays_by_line
         WHERE line_ref = ? AND date >= ?
         GROUP BY stop_ref
         HAVING COUNT(*) >= 20
         ORDER BY avgDelayMin DESC
         LIMIT ?`,
-        [lineRef, fromDate, limit]),
+        [lineRef, fromDate, limit],
+        { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
   return stats;
@@ -321,19 +334,19 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
             COUNT(DISTINCT d.stop_ref) AS num_stops,
             MIN(COALESCE(d.aimed_departure, d.aimed_arrival)) AS first_time,
             COUNT(*) AS total_samples,
-            (SELECT d2.stop_ref FROM delays d2
+            (SELECT d2.stop_ref FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_ref,
-            (SELECT d2.stop_ref FROM delays d2
+            (SELECT d2.stop_ref FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_ref,
-            (SELECT d2.stop_name FROM delays d2
+            (SELECT d2.stop_name FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_name,
-            (SELECT d2.stop_name FROM delays d2
+            (SELECT d2.stop_name FROM delays_by_line d2
              WHERE d2.service_journey_id = d.service_journey_id
              ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_name
-          FROM delays d
+          FROM delays_by_line d
           WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           GROUP BY d.service_journey_id
         )
@@ -341,7 +354,8 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
         HAVING SUM(total_samples) >= 20
         ORDER BY totalSamples DESC
         LIMIT 20`,
-        [lineRef, directionRef, fromDate]),
+        [lineRef, directionRef, fromDate],
+        { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
 }
@@ -369,41 +383,45 @@ export function useLineStopProfile(
           const [, firstStop, lastStop, numStops] = m;
           return query<{ service_journey_id: string }>(`
             SELECT d.service_journey_id
-            FROM delays d
+            FROM delays_by_line d
             WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
             GROUP BY d.service_journey_id
             HAVING COUNT(DISTINCT d.stop_ref) = ?
-              AND (SELECT d2.stop_ref FROM delays d2
+              AND (SELECT d2.stop_ref FROM delays_by_line d2
                    WHERE d2.service_journey_id = d.service_journey_id
                    ORDER BY d2.stop_sequence ASC LIMIT 1) = ?
-              AND (SELECT d2.stop_ref FROM delays d2
+              AND (SELECT d2.stop_ref FROM delays_by_line d2
                    WHERE d2.service_journey_id = d.service_journey_id
                    ORDER BY d2.stop_sequence DESC LIMIT 1) = ?
             ORDER BY COUNT(*) DESC
             LIMIT 1`,
-            [lineRef, directionRef, fromDate, parseInt(numStops), firstStop, lastStop]);
+            [lineRef, directionRef, fromDate, parseInt(numStops), firstStop, lastStop],
+            { family: "by-line", fromDate });
         }
       }
       return query<{ service_journey_id: string }>(`
-        SELECT service_journey_id FROM delays
+        SELECT service_journey_id FROM delays_by_line
         WHERE line_ref = ? AND direction_ref = ? AND date >= ?
         GROUP BY service_journey_id ORDER BY COUNT(*) DESC LIMIT 1`,
-        [lineRef, directionRef, fromDate]);
+        [lineRef, directionRef, fromDate],
+        { family: "by-line", fromDate });
     },
     staleTime: Infinity,
   });
 
   const dominantId = dominantQuery.data?.[0]?.service_journey_id;
 
-  // Step 2: get canonical stops for dominant journey
+  // Step 2: get canonical stops for dominant journey (én avgang — liten
+  // oppslagsspørring, datovindu ukjent her så vi lar den gå mot hele by-line).
   const canonicalQuery = useQuery<Array<{ stop_ref: string }>>({
     queryKey: ["line-stop-profile-canonical", dominantId ?? ""],
     enabled: !!dominantId,
     queryFn: () =>
       query<{ stop_ref: string }>(`
-        SELECT stop_ref FROM delays WHERE service_journey_id = ?
+        SELECT stop_ref FROM delays_by_line WHERE service_journey_id = ?
         GROUP BY stop_ref`,
-        [dominantId!]),
+        [dominantId!],
+        { family: "by-line" }),
     staleTime: Infinity,
   });
 
@@ -419,7 +437,7 @@ export function useLineStopProfile(
       return query<LineStopProfileEntry>(`
         SELECT
           d.stop_ref AS stopRef,
-          (SELECT d2.stop_sequence FROM delays d2
+          (SELECT d2.stop_sequence FROM delays_by_line d2
            WHERE d2.service_journey_id = '${domId}' AND d2.stop_ref = d.stop_ref
            LIMIT 1) AS stopSequence,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
@@ -430,15 +448,16 @@ export function useLineStopProfile(
           ROUND(AVG(d.dwell_time_sec), 1)       AS avgDwellTimeSec,
           COUNT(*)                              AS numSamples,
           COALESCE(MAX(d.stop_name), d.stop_ref) AS stopName
-        FROM delays d
+        FROM delays_by_line d
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           AND d.stop_ref IN (${ph})
         GROUP BY d.stop_ref
         HAVING COUNT(*) >= 3
-        ORDER BY (SELECT d2.stop_sequence FROM delays d2
+        ORDER BY (SELECT d2.stop_sequence FROM delays_by_line d2
                   WHERE d2.service_journey_id = '${domId}' AND d2.stop_ref = d.stop_ref
                   LIMIT 1)`,
-        [lineRef, directionRef, fromDate]);
+        [lineRef, directionRef, fromDate],
+        { family: "by-line", fromDate });
     },
     staleTime: Infinity,
   });
@@ -470,26 +489,27 @@ function useJourneyRankings(
         SELECT
           d.service_journey_id AS serviceJourneyId,
           (SELECT COALESCE(d2.aimed_departure, d2.aimed_arrival)
-           FROM delays d2
+           FROM delays_by_line d2
            WHERE d2.service_journey_id = d.service_journey_id
              AND COALESCE(d2.aimed_departure, d2.aimed_arrival) IS NOT NULL
            ORDER BY d2.stop_sequence ASC LIMIT 1) AS departureTime,
-          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays d2
+          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays_by_line d2
            WHERE d2.service_journey_id = d.service_journey_id
            ORDER BY d2.stop_sequence ASC LIMIT 1) AS firstStopRef,
-          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays d2
+          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays_by_line d2
            WHERE d2.service_journey_id = d.service_journey_id
            ORDER BY d2.stop_sequence DESC LIMIT 1) AS lastStopRef,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(DISTINCT d.date)     AS observedDepartures,
           COUNT(DISTINCT d.stop_ref) AS numStops
-        FROM delays d
+        FROM delays_by_line d
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
         GROUP BY d.service_journey_id
         HAVING numStops >= 3
         ORDER BY avgDelayMin ${order}
         LIMIT ?`,
-        [lineRef, directionRef, fromDate, limit]),
+        [lineRef, directionRef, fromDate, limit],
+        { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
 
@@ -550,12 +570,13 @@ export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
             CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
             ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
             COUNT(*) AS numSamples
-          FROM delays
+          FROM delays_by_stop
           WHERE stop_ref IN (${quayList}) AND date >= ?
             AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
           GROUP BY line_ref, CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)
           ORDER BY line_ref, hour`,
-          [fromDate]);
+          [fromDate],
+          { family: "by-stop", fromDate });
       }
 
       return query<HourlyAtStop>(`
@@ -563,12 +584,13 @@ export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
           CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
-        FROM delays
+        FROM delays_by_stop
         WHERE stop_ref = ? AND date >= ?
           AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
         GROUP BY line_ref, CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)
         ORDER BY line_ref, hour`,
-        [stopRef, fromDate]);
+        [stopRef, fromDate],
+        { family: "by-stop", fromDate });
     },
     staleTime: Infinity,
   });
@@ -595,22 +617,24 @@ export function useLinesAtStop(stopRef: string, fromDate: string) {
           SELECT line_ref AS lineRef,
             ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
             COUNT(*) AS numSamples
-          FROM delays
+          FROM delays_by_stop
           WHERE stop_ref IN (${quayList}) AND date >= ?
           GROUP BY line_ref
           ORDER BY avgDelayMin DESC`,
-          [fromDate]);
+          [fromDate],
+          { family: "by-stop", fromDate });
       }
 
       return query<LineAtStop>(`
         SELECT line_ref AS lineRef,
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
-        FROM delays
+        FROM delays_by_stop
         WHERE stop_ref = ? AND date >= ?
         GROUP BY line_ref
         ORDER BY avgDelayMin DESC`,
-        [stopRef, fromDate]);
+        [stopRef, fromDate],
+        { family: "by-stop", fromDate });
     },
     staleTime: Infinity,
   });
@@ -656,6 +680,9 @@ export function useLineDeparturesAtStop(
       } else {
         stopCond = `stop_ref = '${stopRef.replace(/'/g, "''")}'`;
       }
+      // Kalt fra en stopp-sentrert side (stoppanalyse) — stop_ref er
+      // eksakt/enkelt, så by-stop gir best pruning selv om line_ref også
+      // er et likhetsfilter.
       return query<LineDepartureAtStop>(`
         SELECT date,
           day_type AS dayType,
@@ -663,11 +690,12 @@ export function useLineDeparturesAtStop(
           SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 5) AS aimedTime,
           delay_arrival_min   AS delayArrivalMin,
           delay_departure_min AS delayDepartureMin
-        FROM delays
+        FROM delays_by_stop
         WHERE line_ref = ? AND ${stopCond} AND date >= ?
         ORDER BY date DESC, aimedTime DESC
         LIMIT 100`,
-        [lineRef, fromDate]);
+        [lineRef, fromDate],
+        { family: "by-stop", fromDate });
     },
     staleTime: Infinity,
   });
@@ -694,6 +722,8 @@ export function useCorridorComparison(
         const ph = entry.stopRefs.map((s) => `'${s.replace(/'/g, "''")}'`).join(",");
         const lineRef = entry.lineRef.replace(/'/g, "''");
 
+        // line_ref er én eksakt verdi (svært selektiv under by-line-sortering),
+        // stop_ref-listen er sekundær — by-line vinner her.
         const rows = await query<Omit<CorridorStop, "corridorIndex" | "lineRef"> & { stopRef: string }>(`
           SELECT
             stop_ref AS stopRef,
@@ -703,10 +733,11 @@ export function useCorridorComparison(
             ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
             ROUND(AVG(dwell_time_sec), 1)       AS avgDwellTimeSec,
             COUNT(*) AS numSamples
-          FROM delays
+          FROM delays_by_line
           WHERE line_ref = '${lineRef}' AND date >= ? AND stop_ref IN (${ph})
           GROUP BY stop_ref`,
-          [fromDate]);
+          [fromDate],
+          { family: "by-line", fromDate });
 
         const stopMap = new Map(rows.map((r) => [r.stopRef, r]));
         entry.stopRefs.forEach((stopRef, idx) => {
@@ -746,6 +777,8 @@ export function useTripStopStats(stops: Array<{ stopRef: string; lineRef: string
         .map((s) => `(stop_ref = '${s.stopRef.replace(/'/g, "''")}' AND line_ref = '${s.lineRef.replace(/'/g, "''")}')`)
         .join(" OR ");
       const cutoff = daysAgo(91);
+      // Blandet sett med (stopp, linje)-par fra en hel reise — verken
+      // sortering vinner konsekvent, by-stop som default er like godt.
       return query<TripStopStat>(`
         SELECT
           stop_ref AS stopRef,
@@ -755,9 +788,11 @@ export function useTripStopStats(stops: Array<{ stopRef: string; lineRef: string
           ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
           ROUND(AVG(dwell_time_sec), 1)       AS avgDwellTimeSec,
           COUNT(*) AS numSamples
-        FROM delays
+        FROM delays_by_stop
         WHERE date >= '${cutoff}' AND (${conditions})
-        GROUP BY stop_ref, line_ref`);
+        GROUP BY stop_ref, line_ref`,
+        undefined,
+        { family: "by-stop", fromDate: cutoff });
     },
     staleTime: Infinity,
   });
