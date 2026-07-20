@@ -411,46 +411,59 @@ export default function Departures() {
   // Ved valgt tidspunkt (startIso) er vinduet fast — ingen auto-refresh.
   // view=arrivals gir også avganger som KUN ankommer stoppet (endeholdeplass) —
   // uten den er «Ankomster» bare avgangslisten med ankomsttider.
-  // Ved historisk søk (isHistorical) hopper vi over Entur helt — sanntidstavlen
-  // har uansett ikke data så langt tilbake, se historicalDeps under.
+  // Prøves NÅ også for historiske datoer — Entur viser faktisk rutetider (og
+  // ekte destinasjon!) opptil ~3 dager tilbake, bare uten sanntid. Først når
+  // Entur returnerer tomt (eldre enn det) faller vi tilbake på egne data,
+  // se historicalDeps under. Verifisert direkte mot Entur 2026-07-20.
   const { data: depResp, isLoading: depLoading, isError: depError, error: depErr } =
     useQuery<DeparturesResponse>({
       queryKey: [
         `/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}${startIso ? `&startTime=${encodeURIComponent(startIso)}` : ""}${mode === "arrival" ? "&view=arrivals" : ""}`,
       ],
-      enabled: stopRef != null && !isHistorical,
+      enabled: stopRef != null,
       refetchInterval: startIso ? false : 60_000,
       placeholderData: keepPreviousData,
     });
 
-  // Quay-settet ved dette stoppestedet — trengs for å spørre DuckDB på
-  // historiske avganger, siden Parquet-dataene er lagret på quay-nivå (ikke
-  // StopPlace-nivå). Hentes fra en "nå"-spørring mot Entur i stedet for vår
-  // egen stop_coords-cache: NSR StopPlace-IDer slås jevnlig sammen/erstattes,
-  // og cachen (fylt fra BigQuery) kan derfor peke på en utdatert StopPlace-ID
-  // for samme fysiske stoppested — mens Entur og SIRI-feeden (som quay-refene
-  // i Parquet-dataene kommer fra) alltid bruker gjeldende quay-IDer.
-  const { data: liveForQuays } = useQuery<DeparturesResponse>({
+  // Entur hadde faktisk rutedata for denne historiske datoen — bruk den
+  // (ekte destinasjon, rutetider), bare uten sanntid.
+  const enturHistoricalOk = isHistorical && (depResp?.departures?.length ?? 0) > 0;
+  // Entur er ferdig og hadde INGENTING for denne datoen (for gammel — se
+  // grense over) — da må vi rekonstruere fra egne data, se historicalDeps.
+  const enturHistoricalEmpty = isHistorical && !depLoading && (depResp?.departures?.length ?? 0) === 0;
+
+  // Quay-settet ved dette stoppestedet — trengs for å spørre DuckDB, siden
+  // Parquet-dataene er lagret på quay-nivå (ikke StopPlace-nivå). Når Entur
+  // ga treff for den historiske datoen, bruker vi quay-ene derfra direkte
+  // (ingen ekstra kall nødvendig). Bare når Entur var tom trengs en egen
+  // "nå"-spørring for å finne quay-settet — NSR StopPlace-IDer slås jevnlig
+  // sammen/erstattes, så stop_coords-cachen kan peke på en utdatert ID for
+  // samme fysiske sted, mens Entur/SIRI alltid bruker gjeldende quay-IDer.
+  const { data: liveForQuays, isLoading: liveQuaysLoading } = useQuery<DeparturesResponse>({
     queryKey: [`/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=180`],
-    enabled: stopRef != null && isHistorical,
+    enabled: stopRef != null && enturHistoricalEmpty,
     staleTime: 5 * 60_000,
   });
 
-  // Historiske avganger (egne målte data) for søk tilbake i tid — Entur sin
-  // sanntidstavle rekker ikke så langt tilbake (se isHistorical over).
-  // Bruker aimed_departure/aimed_arrival + faktisk registrert forsinkelse for
-  // akkurat den datoen, fra samme Parquet-data som P50/P80-tallene.
+  const quaysForDuck = useMemo(() => {
+    const source = enturHistoricalOk ? depResp!.departures : (liveForQuays?.departures ?? []);
+    const map = new Map<string, string | null>();
+    for (const d of source) if (d.quayRef) map.set(d.quayRef, d.quayName);
+    return map;
+  }, [enturHistoricalOk, depResp, liveForQuays]);
+
+  // Egne målte data for den historiske datoen — brukes ALLTID når isHistorical
+  // (ikke bare som fallback): gir "Faktisk avgang" (den forsinkelsen som
+  // faktisk ble registrert den dagen — mer treffsikkert enn Enturs
+  // realtime:false for gamle kall) som en berikelse oppå Entur-listen når
+  // Entur har treff, og som HELE listen (med "Retning N" i stedet for ekte
+  // destinasjon, som ikke finnes i SIRI-dataene) når Entur er tom.
   const { data: historicalDeps = [], isLoading: histLoading } = useQuery<Departure[]>({
-    queryKey: ["duck-historical-departures", stopRef ?? "", customDate, customTime, minutes, mode, !!liveForQuays],
-    enabled: isHistorical && duckReady && !!liveForQuays,
+    queryKey: ["duck-historical-departures", stopRef ?? "", customDate, customTime, minutes, mode, Array.from(quaysForDuck.keys()).join(",")],
+    enabled: isHistorical && duckReady && quaysForDuck.size > 0,
     staleTime: Infinity,
     queryFn: async () => {
-      const nameByQuay = new Map<string, string | null>();
-      for (const d of liveForQuays?.departures ?? []) {
-        if (d.quayRef) nameByQuay.set(d.quayRef, d.quayName);
-      }
-      const quayRefs = Array.from(nameByQuay.keys());
-      if (quayRefs.length === 0) return [];
+      const quayRefs = Array.from(quaysForDuck.keys());
 
       const timeCol = mode === "arrival" ? "aimed_arrival" : "aimed_departure";
       const fromHM = customTime;
@@ -494,7 +507,7 @@ export default function Departures() {
           cancelled: false,
           destination: `Retning ${r.direction_ref}`,
           quayRef: r.stop_ref,
-          quayName: nameByQuay.get(r.stop_ref) ?? null,
+          quayName: quaysForDuck.get(r.stop_ref) ?? null,
           platform: null,
           lineRef: r.line_ref,
           lineNumber: null,
@@ -507,14 +520,35 @@ export default function Departures() {
     },
   });
 
+  // Berik Entur-listen med "faktisk avgang" fra egne data (koblet på
+  // service_journey_id) når Entur hadde treff for den historiske datoen.
+  const enturHistoricalEnriched = useMemo(() => {
+    if (!enturHistoricalOk) return [];
+    const byId = new Map(historicalDeps.map((r) => [r.serviceJourneyId, r]));
+    return depResp!.departures.map((d) => {
+      const own = d.serviceJourneyId ? byId.get(d.serviceJourneyId) : undefined;
+      return own
+        ? { ...d, expectedTime: own.expectedTime, expectedArrivalTime: own.expectedArrivalTime }
+        : d;
+    });
+  }, [enturHistoricalOk, depResp, historicalDeps]);
+
+  const historicalLoading = depLoading || (enturHistoricalEmpty && liveQuaysLoading) || histLoading;
+
   // Sorter på visningstiden (avgang eller ankomst)
   const departures = useMemo(() => {
-    const list = [...(isHistorical ? historicalDeps : (depResp?.departures ?? []))];
+    let source: Departure[];
+    if (isHistorical) {
+      source = enturHistoricalOk ? enturHistoricalEnriched : historicalDeps;
+    } else {
+      source = depResp?.departures ?? [];
+    }
+    const list = [...source];
     list.sort(
       (a, b) => new Date(displayTime(a, mode)).getTime() - new Date(displayTime(b, mode)).getTime(),
     );
     return list;
-  }, [depResp, historicalDeps, isHistorical, mode]);
+  }, [depResp, historicalDeps, enturHistoricalEnriched, enturHistoricalOk, isHistorical, mode]);
 
   // Stop stat cards (last 30 days) — SQLite-backend. Skrus av i reise-bygget
   // (ingen DB). Fase 5 erstatter disse med en Parquet-basert oppsummering.
@@ -693,7 +727,8 @@ export default function Departures() {
               </Button>
               {isHistorical && (
                 <span className="text-xs text-muted-foreground italic">
-                  Historisk dato: avganger og faktisk forsinkelse hentes fra egne målte data (siste 90 dager) — ikke Enturs sanntidsfeed.
+                  Historisk dato: rutetider fra Entur når tilgjengelig (~3 dager tilbake), ellers fra
+                  egne data. Faktisk avgangstid og P50/P80 er alltid fra egne målte data (siste 90 dager).
                 </span>
               )}
             </div>
@@ -748,7 +783,7 @@ export default function Departures() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{(isHistorical ? selectedStop?.name : depResp?.stopName) ?? selectedStop?.name ?? "Avganger"}</span>
-                {(isHistorical ? histLoading : depLoading) && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                {(isHistorical ? historicalLoading : depLoading) && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
               </CardTitle>
               <CardDescription className="flex items-center gap-1.5">
                 <span>
@@ -757,12 +792,24 @@ export default function Departures() {
                     ? `${minutes} min fra ${fmtHM(startIso)} (${customDate})`
                     : `neste ${minutes} minutter • Oppdateres hvert minutt`}
                   {isHistorical
-                    ? " • Historiske observasjoner"
+                    ? (!historicalLoading && (enturHistoricalOk
+                        ? " • Rutetider fra Entur, faktisk avgang fra egne data"
+                        : " • Egne målte data (Entur har ikke rutedata så langt tilbake)"))
                     : (duckReady && delayMap && <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>)}
                 </span>
                 <InfoTip learnMoreHref="/metode#persentiler">
-                  Tallene til høyre: <strong>Sanntid</strong> (faktisk forsinkelse nå) og
-                  <strong> P80</strong> (historisk — 4 av 5 ganger har avgangen vært bedre enn dette).
+                  {isHistorical ? (
+                    <>
+                      <strong>Faktisk avgang</strong> (blå) er forsinkelsen som faktisk ble
+                      registrert den dagen. <strong>P50</strong>/<strong>P80</strong> er historiske
+                      persentiler for linjen ved stoppet.
+                    </>
+                  ) : (
+                    <>
+                      Tallene til høyre: <strong>Sanntid</strong> (faktisk forsinkelse nå) og
+                      <strong> P80</strong> (historisk — 4 av 5 ganger har avgangen vært bedre enn dette).
+                    </>
+                  )}
                 </InfoTip>
               </CardDescription>
             </CardHeader>
@@ -774,10 +821,10 @@ export default function Departures() {
                 </div>
               )}
 
-              {(isHistorical ? !histLoading : !depError && !depLoading) && departures.length === 0 && (
+              {(isHistorical ? !historicalLoading : !depError && !depLoading) && departures.length === 0 && (
                 <p className="text-sm text-muted-foreground py-6 text-center">
                   {isHistorical
-                    ? "Ingen historiske avganger funnet for denne datoen og tidsvinduet (data finnes for de siste 90 dagene)."
+                    ? "Ingen avganger funnet for denne datoen og tidsvinduet, verken fra Entur eller egne data (siste 90 dager)."
                     : "Ingen avganger funnet i tidsvinduet."}
                 </p>
               )}
@@ -790,6 +837,11 @@ export default function Departures() {
                   const lineNum = lineNumberOf(d);
                   const rowKey = `${d.serviceJourneyId ?? i}-${d.aimedTime}`;
                   const isExpanded = expandedKey === rowKey;
+                  // "Faktisk avgang" — den forsinkelsen som faktisk ble registrert
+                  // den historiske dagen (fra egne data, se enturHistoricalEnriched
+                  // / historicalDeps). Uavhengig av Enturs realtime-flagg, som alltid
+                  // er false for gamle kall selv når vi selv har det faktiske utfallet.
+                  const actualTime = mode === "arrival" ? d.expectedArrivalTime : d.expectedTime;
 
                   return (
                     <div key={rowKey}>
@@ -824,8 +876,19 @@ export default function Departures() {
                         )}
                       </div>
 
-                      {/* Realtime badge */}
-                      {rt != null ? (
+                      {/* Sanntid (live) / Faktisk avgang (historisk) */}
+                      {isHistorical ? (
+                        actualTime != null ? (
+                          <span
+                            className="font-mono text-xs text-blue-600 dark:text-blue-400 whitespace-nowrap"
+                            title="Faktisk registrert avgangstid denne dagen"
+                          >
+                            {fmtHM(actualTime)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/60 italic">ukjent</span>
+                        )
+                      ) : rt != null ? (
                         <Badge variant="outline" className={cn("font-mono text-xs", delayBadgeClass(rt))}>
                           {fmtDeltaMin(rt)}
                         </Badge>
@@ -833,11 +896,20 @@ export default function Departures() {
                         <span className="text-xs text-muted-foreground italic">ingen sanntid</span>
                       )}
 
-                      {/* Historical P80 badge */}
-                      {hist && hist.p80_dep != null ? (
-                        <Badge variant="outline" className="font-mono text-xs whitespace-nowrap" title="Historisk 80-persentil — 4 av 5 avganger er bedre enn dette">
-                          P80 {hist.p80_dep > 0 ? "+" : ""}{hist.p80_dep.toFixed(1)}m
-                        </Badge>
+                      {/* P50 / P80 */}
+                      {hist && (hist.p50_dep != null || hist.p80_dep != null) ? (
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          {hist.p50_dep != null && (
+                            <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400" title="Historisk median (P50)">
+                              ~{hist.p50_dep > 0 ? "+" : ""}{hist.p50_dep.toFixed(1)}m
+                            </span>
+                          )}
+                          {hist.p80_dep != null && (
+                            <Badge variant="outline" className="font-mono text-xs" title="Historisk 80-persentil — 4 av 5 avganger er bedre enn dette">
+                              P80 {hist.p80_dep > 0 ? "+" : ""}{hist.p80_dep.toFixed(1)}m
+                            </Badge>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground/60 italic">—</span>
                       )}

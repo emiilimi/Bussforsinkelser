@@ -320,7 +320,7 @@ export default function Dashboard() {
                 <TrendingUp className="h-5 w-5 text-destructive" />
                 <div>
                   <CardTitle>Dårligste linjer</CardTitle>
-                  <CardDescription>Høyest gjennomsnittlig forsinkelse.</CardDescription>
+                  <CardDescription>Høyest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -338,7 +338,13 @@ export default function Dashboard() {
                         contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
                         formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
                       />
-                      <Bar dataKey="avgDelayMin" radius={[0, 4, 4, 0]} barSize={24}>
+                      <Bar
+                        dataKey="avgDelayMin"
+                        radius={[0, 4, 4, 0]}
+                        barSize={24}
+                        cursor="pointer"
+                        onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
+                      >
                         {topWorst.map((entry, index) => (
                           <Cell
                             key={index}
@@ -365,7 +371,7 @@ export default function Dashboard() {
                 <TrendingDown className="h-5 w-5 text-emerald-500" />
                 <div>
                   <CardTitle>Beste linjer</CardTitle>
-                  <CardDescription>Lavest gjennomsnittlig forsinkelse.</CardDescription>
+                  <CardDescription>Lavest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -383,7 +389,13 @@ export default function Dashboard() {
                         contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
                         formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
                       />
-                      <Bar dataKey="avgDelayMin" radius={[0, 4, 4, 0]} barSize={24}>
+                      <Bar
+                        dataKey="avgDelayMin"
+                        radius={[0, 4, 4, 0]}
+                        barSize={24}
+                        cursor="pointer"
+                        onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
+                      >
                         {topBest.map((_, index) => (
                           <Cell key={index} fill="hsl(var(--chart-2))" />
                         ))}
