@@ -72,7 +72,11 @@ const Router = IS_REISE ? ReiseRouter : FullRouter;
 
 function App() {
   useEffect(() => {
-    if (IS_REISE) document.title = "Reiseplanlegger — emoldestad.no";
+    if (IS_REISE) {
+      document.title = "Sen Tur - reiseplanlegger og analyse";
+      const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+      if (favicon) favicon.href = "/sen-tur-favicon.svg";
+    }
   }, []);
   return (
     <QueryClientProvider client={queryClient}>
