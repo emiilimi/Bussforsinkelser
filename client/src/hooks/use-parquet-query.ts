@@ -125,11 +125,35 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   }
 }
 
+// Et enkelt mislykket forsøk (forbigående nettverksglipp, treg R2-edge ved
+// kaldstart) skal ikke bli en PERMANENT feil for spørringer som går via
+// React Query — queryClient er satt opp med retry:false og
+// staleTime:Infinity, så uten denne retry-en her ville én glipp gitt en
+// evig cachet feiltilstand for den spørringen, uten noen vei tilbake før
+// brukeren endrer noe i URL-en (bytter stopp/linje) eller laster siden på
+// nytt. Sett i produksjon: DuckDB-spørringer på stoppanalyse/linjeanalyse
+// sto fast som "ingen data" etter én slik glipp.
+const REGISTRATION_RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
+
+/** ensureFilesRegistered() med automatisk retry ved forbigående feil. */
+async function registerFilesWithRetry(db: AsyncDuckDB): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await ensureFilesRegistered(db);
+      return;
+    } catch (err) {
+      const delay = REGISTRATION_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) throw err;
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
+
 /** Sikrer at manifestet er lest og filene registrert — kall før
  *  latestAvailableDate() slik at den ikke leser et tomt kart. */
 export async function ensureParquetFilesRegistered(): Promise<void> {
   const db = await initDuckDB();
-  await ensureFilesRegistered(db);
+  await registerFilesWithRetry(db);
 }
 
 /** Seneste dato dekket av en registrert ukefil i gitt familie (siste dag i
@@ -244,7 +268,7 @@ export async function standaloneDuckQuery<T = Record<string, unknown>>(
   options?: QueryOptions,
 ): Promise<T[]> {
   const db = await initDuckDB();
-  await ensureFilesRegistered(db);
+  await registerFilesWithRetry(db);
   if (registeredFiles.size === 0) {
     throw new Error("Ingen parquet-filer tilgjengelig");
   }
@@ -284,12 +308,6 @@ export interface ParquetQueryState {
   retry: () => void;
 }
 
-// Et enkelt mislykket forsøk (forbigående nettverksglipp, treg R2-edge ved
-// kaldstart) skal ikke låse siden permanent i "utilgjengelig" resten av
-// økten — uten dette var det ingen vei tilbake før en full sideoppfriskning
-// (sett i produksjon: demo hos en venn hang seg opp etter én glipp).
-const REGISTRATION_RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
-
 export function useParquetQuery(): ParquetQueryState {
   const { db, loading: dbLoading, idle: dbIdle, error: dbError } = useDuckDB();
   // Registrering pågår fra db er klar til filene er registrert
@@ -302,8 +320,8 @@ export function useParquetQuery(): ParquetQueryState {
   // fil-registreringen som feilet, ikke selve WASM-initialiseringen).
   const [retryTick, setRetryTick] = useState(0);
 
-  // Register Parquet files once DuckDB is ready — med automatisk retry ved
-  // forbigående feil, inntil REGISTRATION_RETRY_DELAYS_MS er brukt opp.
+  // Register Parquet files once DuckDB is ready — registerFilesWithRetry
+  // gjør allerede automatisk retry ved forbigående feil.
   useEffect(() => {
     if (!db || initDone.current) return;
 
@@ -312,31 +330,22 @@ export function useParquetQuery(): ParquetQueryState {
     setError(null);
 
     (async () => {
-      for (let attempt = 0; ; attempt++) {
-        try {
-          await ensureFilesRegistered(db);
-          if (!cancelled) {
-            setReady(registeredFiles.size > 0);
-            setRegistering(false);
-            setError(null);
-          }
-          initDone.current = true;
-          return;
-        } catch (err: unknown) {
-          const delay = REGISTRATION_RETRY_DELAYS_MS[attempt];
-          if (delay === undefined || cancelled) {
-            if (!cancelled) {
-              const msg =
-                err instanceof Error ? err.message : "Failed to load Parquet files";
-              setError(msg);
-              setRegistering(false);
-            }
-            initDone.current = true;
-            return;
-          }
-          await new Promise((r) => setTimeout(r, delay));
+      try {
+        await registerFilesWithRetry(db);
+        if (!cancelled) {
+          setReady(registeredFiles.size > 0);
+          setRegistering(false);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          const msg =
+            err instanceof Error ? err.message : "Failed to load Parquet files";
+          setError(msg);
+          setRegistering(false);
         }
       }
+      initDone.current = true;
     })();
 
     return () => {
