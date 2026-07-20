@@ -2245,7 +2245,7 @@ export default function TripPlanner() {
   const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
 
   // DuckDB-WASM for empirical percentiles
-  const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle } = useParquetQuery();
+  const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
@@ -2876,6 +2876,8 @@ export default function TripPlanner() {
                     ? "text-green-600 border-green-300 bg-green-50 dark:bg-green-950/20"
                     : duckLoading
                     ? "text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/20"
+                    : !duckIdle
+                    ? "text-red-600 border-red-300 bg-red-50 dark:bg-red-950/20"
                     : "text-muted-foreground border-border"
                 )}>
                   <Database className="h-3 w-3" />
@@ -2885,8 +2887,18 @@ export default function TripPlanner() {
                     ? "Laster DuckDB..."
                     : duckIdle
                     ? "DuckDB starter ved søk"
-                    : "DuckDB utilgjengelig"}
+                    : "DuckDB utilgjengelig akkurat nå"}
                 </span>
+                {!duckReady && !duckLoading && !duckIdle && (
+                  <button
+                    type="button"
+                    onClick={duckRetry}
+                    className="text-[10px] text-primary hover:underline"
+                    title="Prøv å laste DuckDB og historiske data på nytt"
+                  >
+                    Prøv igjen
+                  </button>
+                )}
                 {duckObservationCount > 0 && (
                   <span className="text-[10px] text-muted-foreground/70">
                     {duckObservationCount.toLocaleString("nb-NO")} obs.

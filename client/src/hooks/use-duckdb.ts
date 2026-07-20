@@ -29,11 +29,27 @@ function notifyListeners(): void {
   for (const l of Array.from(listeners)) l();
 }
 
+// Et hengende jsDelivr-kall (kald CDN-edge, blokkert worker-instansiering på
+// enkelte nettlesere/nettverk) skal feile raskt i stedet for å la UI-et stå
+// på "Laster..." i det uendelige — det gir brukeren/demoen null tilbakemelding
+// og hindrer også retry-logikken i useParquetQuery fra noensinne å prøve på nytt.
+const INIT_TIMEOUT_MS = 20_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} tok mer enn ${ms / 1000}s`)), ms);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 export async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   if (dbInstance) return dbInstance;
   if (initPromise) return initPromise;
 
-  initPromise = (async () => {
+  initPromise = withTimeout((async () => {
     try {
       const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
       const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
@@ -69,7 +85,15 @@ export async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
       notifyListeners();
       throw err;
     }
-  })();
+  })(), INIT_TIMEOUT_MS, "DuckDB-initialisering").catch((err) => {
+    // Timeout-grenen fanges ikke av try/catch over (den kapper selve venten,
+    // ikke løftet) — sørg for at initPromise/initError uansett nullstilles
+    // slik at neste warmupDuckDB()-kall faktisk prøver på nytt.
+    initPromise = null;
+    if (!initError) initError = err instanceof Error ? err.message : "DuckDB init failed";
+    notifyListeners();
+    throw err;
+  });
 
   notifyListeners(); // loading startet
   return initPromise;

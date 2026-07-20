@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { AsyncDuckDB, AsyncDuckDBConnection } from "@duckdb/duckdb-wasm";
-import { useDuckDB, initDuckDB } from "./use-duckdb";
+import { useDuckDB, initDuckDB, warmupDuckDB } from "./use-duckdb";
 
 // ---------------------------------------------------------------------------
 // Base URL for Parquet files — falls back to local server during development.
@@ -279,7 +279,16 @@ export interface ParquetQueryState {
     params?: unknown[],
     options?: QueryOptions,
   ) => Promise<T[]>;
+  /** Manuelt nytt forsøk på fil-registrering etter at automatiske retries
+   *  er brukt opp. Trengs kun ved lengre utilgjengelighet enn ~17s. */
+  retry: () => void;
 }
+
+// Et enkelt mislykket forsøk (forbigående nettverksglipp, treg R2-edge ved
+// kaldstart) skal ikke låse siden permanent i "utilgjengelig" resten av
+// økten — uten dette var det ingen vei tilbake før en full sideoppfriskning
+// (sett i produksjon: demo hos en venn hang seg opp etter én glipp).
+const REGISTRATION_RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
 
 export function useParquetQuery(): ParquetQueryState {
   const { db, loading: dbLoading, idle: dbIdle, error: dbError } = useDuckDB();
@@ -288,35 +297,63 @@ export function useParquetQuery(): ParquetQueryState {
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const initDone = useRef(false);
+  // Økes av retry() for å tvinge effekten under til å kjøre igjen selv om
+  // `db` ikke har endret seg (DuckDB-instansen lever videre — det er
+  // fil-registreringen som feilet, ikke selve WASM-initialiseringen).
+  const [retryTick, setRetryTick] = useState(0);
 
-  // Register Parquet files once DuckDB is ready
+  // Register Parquet files once DuckDB is ready — med automatisk retry ved
+  // forbigående feil, inntil REGISTRATION_RETRY_DELAYS_MS er brukt opp.
   useEffect(() => {
     if (!db || initDone.current) return;
 
     let cancelled = false;
     setRegistering(true);
+    setError(null);
 
     (async () => {
-      try {
-        await ensureFilesRegistered(db);
-        if (!cancelled) {
-          setReady(registeredFiles.size > 0);
-          setRegistering(false);
-        }
-      } catch (err: unknown) {
-        if (!cancelled) {
-          const msg =
-            err instanceof Error ? err.message : "Failed to load Parquet files";
-          setError(msg);
-          setRegistering(false);
+      for (let attempt = 0; ; attempt++) {
+        try {
+          await ensureFilesRegistered(db);
+          if (!cancelled) {
+            setReady(registeredFiles.size > 0);
+            setRegistering(false);
+            setError(null);
+          }
+          initDone.current = true;
+          return;
+        } catch (err: unknown) {
+          const delay = REGISTRATION_RETRY_DELAYS_MS[attempt];
+          if (delay === undefined || cancelled) {
+            if (!cancelled) {
+              const msg =
+                err instanceof Error ? err.message : "Failed to load Parquet files";
+              setError(msg);
+              setRegistering(false);
+            }
+            initDone.current = true;
+            return;
+          }
+          await new Promise((r) => setTimeout(r, delay));
         }
       }
-      initDone.current = true;
     })();
 
     return () => {
       cancelled = true;
     };
+  }, [db, retryTick]);
+
+  /** Manuelt nytt forsøk etter at automatiske retries er brukt opp (f.eks.
+   *  en lengre utilgjengelighet enn ~17s). Dekker begge feilpunkter: hvis
+   *  DuckDB-WASM selv ikke kom i gang (db er fortsatt null), start den på
+   *  nytt også — warmupDuckDB() er trygg å kalle igjen etter en feilet init
+   *  (den nullstiller initPromise/initError selv). */
+  const retry = useCallback(() => {
+    initDone.current = false;
+    setError(null);
+    if (!db) warmupDuckDB();
+    setRetryTick((t) => t + 1);
   }, [db]);
 
   // Propagate DuckDB-level errors
@@ -355,5 +392,6 @@ export function useParquetQuery(): ParquetQueryState {
     error,
     ready,
     query: queryFn,
+    retry,
   };
 }
