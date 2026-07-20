@@ -36,7 +36,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/50 backdrop-blur-sm p-4 md:h-screen md:sticky md:top-0 flex flex-col gap-6 z-50">
         {IS_REISE ? (
           <div className="px-2 py-1">
-            <img src="/sen-tur-logo.svg" alt="Sen Tur" className="h-11 w-auto" />
+            <img src="/sen-tur-logo-compact.svg" alt="Sen Tur" className="h-12 md:h-14 w-auto" />
+            <p className="text-[10px] text-muted-foreground mt-1 leading-snug max-w-[200px]">
+              for deg som vil vite når du faktisk kommer frem
+            </p>
           </div>
         ) : (
           <div className="flex items-center gap-3 px-2">

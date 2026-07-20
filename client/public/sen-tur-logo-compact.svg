@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="165" viewBox="0 0 620 165" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">Sen Tur</title>
+  <line x1="40" y1="150" x2="600" y2="150" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"></line>
+  <rect x="50" y="74" width="130" height="61" rx="12" fill="#2563eb"></rect>
+  <rect x="63" y="86" width="30" height="24" rx="3" fill="#ffffff"></rect>
+  <rect x="100" y="86" width="30" height="24" rx="3" fill="#ffffff"></rect>
+  <rect x="137" y="86" width="30" height="24" rx="3" fill="#ffffff"></rect>
+  <circle cx="172" cy="122" r="5" fill="#fde047"></circle>
+  <g fill="#1a1a1a">
+    <circle cx="80" cy="135" r="15"></circle>
+    <circle cx="150" cy="135" r="15"></circle>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="80" cy="135" r="5"></circle>
+    <circle cx="150" cy="135" r="5"></circle>
+  </g>
+  <text x="210" y="135" font-family="'Nunito', Arial, sans-serif" font-size="74" font-weight="800" letter-spacing="-1" fill="#1a1a1a">Sen Tur</text>
+</svg>
