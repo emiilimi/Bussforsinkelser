@@ -15,7 +15,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
   Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
-  Info, Database,
+  Info, Database, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
@@ -1576,6 +1576,8 @@ function TripCard({
   const [altOpenLeg, setAltOpenLeg] = useState<number | null>(null);
   // Legg der brukeren har utvidet den kollapsede stopplisten
   const [stopsExpandedLegs, setStopsExpandedLegs] = useState<Set<number>>(new Set());
+  // Reiseanalyse: viser alle mellomstopp for alle legg samtidig + P95
+  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Stable shape so the gap-fetching hook below has a stable cache key.
@@ -1881,6 +1883,17 @@ function TripCard({
 
       {expanded && (
         <CardContent className="pt-0 space-y-3">
+          <div className="flex justify-end">
+            <Button
+              variant={showFullAnalysis ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setShowFullAnalysis((v) => !v)}
+            >
+              <BarChart3 className="h-3 w-3 mr-1" />
+              {showFullAnalysis ? "Skjul reiseanalyse" : "Vis reiseanalyse"}
+            </Button>
+          </div>
           {pattern.legs.map((leg, legIdx) => {
             const lineRef = leg.line?.id ?? "";
             const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
@@ -1990,11 +2003,17 @@ function TripCard({
                       const p80Raw = isLast
                         ? (duckStop?.p80_arr ?? null)
                         : (duckStop?.p80_dep ?? null);
+                      const p95Raw = isLast
+                        ? (duckStop?.p95_arr ?? null)
+                        : (duckStop?.p95_dep ?? null);
                       const p50Time = stop.aimedTime && p50Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p50Raw))
                         : null;
                       const p80Time = stop.aimedTime && p80Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p80Raw))
+                        : null;
+                      const p95Time = showFullAnalysis && stop.aimedTime && p95Raw != null
+                        ? formatTime(addMinutesToIso(stop.aimedTime, p95Raw))
                         : null;
 
                       return (
@@ -2027,11 +2046,18 @@ function TripCard({
                               {p80Time}
                             </span>
                           )}
+                          {/* P95 (violet) — kun i reiseanalyse-visning */}
+                          {p95Time && (
+                            <span className="font-mono text-[10px] text-violet-500/80 tabular-nums">
+                              {p95Time}
+                            </span>
+                          )}
                         </div>
                       );
                     };
 
                     const collapsed =
+                      !showFullAnalysis &&
                       allStops.length > STOP_COLLAPSE_THRESHOLD &&
                       !stopsExpandedLegs.has(legIdx);
 
@@ -2054,7 +2080,7 @@ function TripCard({
                         ) : (
                           <>
                             {allStops.map(renderStopRow)}
-                            {allStops.length > STOP_COLLAPSE_THRESHOLD && (
+                            {!showFullAnalysis && allStops.length > STOP_COLLAPSE_THRESHOLD && (
                               <button
                                 className="flex items-center gap-1 text-[11px] text-primary hover:underline py-0.5 ml-3.5"
                                 onClick={() =>
