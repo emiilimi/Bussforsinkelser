@@ -81,6 +81,30 @@ export default function Dashboard() {
     queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opStr ? `&${opStr}` : ""}`],
   });
 
+  // "Snitt forsinkelse" / "Andel i rute" / "Totale avganger" var alltid bundet
+  // til `summary` (kun siste dag) selv om Uke/Måned/90 dager-velgeren sitter
+  // rett over dem — de endret seg derfor aldri når man byttet periode. Bruker
+  // nå et vektet snitt over `trend` (samme data som grafen under) i stedet.
+  const periodStats = useMemo(() => {
+    let delayNum = 0, delayDen = 0, onTimeNum = 0, onTimeDen = 0;
+    let totalJourneys = 0, totalCancellations = 0;
+    for (const r of trend) {
+      const n = r.totalJourneys ?? 0;
+      if (r.avgDelayMin != null) { delayNum += r.avgDelayMin * n; delayDen += n; }
+      if (r.pctOnTime != null) { onTimeNum += r.pctOnTime * n; onTimeDen += n; }
+      totalJourneys += n;
+      totalCancellations += r.totalCancellations ?? 0;
+    }
+    return {
+      avgDelayMin: delayDen > 0 ? delayNum / delayDen : null,
+      pctOnTime: onTimeDen > 0 ? onTimeNum / onTimeDen : null,
+      totalJourneys,
+      totalCancellations,
+    };
+  }, [trend]);
+
+  const periodLabel = period === "week" ? "Siste uke" : period === "month" ? "Siste måned" : `Siste ${days} dager`;
+
   const trendData = useMemo(() => {
     const raw = trend.map((r) => ({
       date: r.date,
@@ -157,16 +181,16 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 Snitt forsinkelse
                 <InfoTip learnMoreHref="/metode#hva-vises">
-                  Gjennomsnittlig differanse (i minutter) mellom faktisk og planlagt avgangstid for siste tilgjengelige dag.
+                  Gjennomsnittlig differanse (i minutter) mellom faktisk og planlagt avgangstid, vektet over valgt periode.
                 </InfoTip>
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-mono">
-                {summary?.avgDelayMin != null ? `${summary.avgDelayMin.toFixed(1)}m` : "—"}
+                {periodStats.avgDelayMin != null ? `${periodStats.avgDelayMin.toFixed(1)}m` : "—"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Siste tilgjengelige dag</p>
+              <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
             </CardContent>
           </Card>
 
@@ -175,16 +199,16 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                 Andel i rute
                 <InfoTip learnMoreHref="/metode#punktlighet">
-                  Andel stopp-passeringer med høyst 2 minutter forsinkelse. Punktlighetsdefinisjonen varierer mellom operatører — vi bruker en relativt streng grense.
+                  Andel stopp-passeringer med høyst 2 minutter forsinkelse, vektet over valgt periode. Punktlighetsdefinisjonen varierer mellom operatører — vi bruker en relativt streng grense.
                 </InfoTip>
               </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-mono">
-                {summary?.pctOnTime != null ? `${summary.pctOnTime.toFixed(1)}%` : "—"}
+                {periodStats.pctOnTime != null ? `${periodStats.pctOnTime.toFixed(1)}%` : "—"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse</p>
+              <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse · {periodLabel.toLowerCase()}</p>
             </CardContent>
           </Card>
 
@@ -215,16 +239,16 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-mono">
-                {summary?.totalJourneys != null
-                  ? summary.totalJourneys.toLocaleString("nb-NO")
+                {periodStats.totalJourneys > 0
+                  ? periodStats.totalJourneys.toLocaleString("nb-NO")
                   : "—"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Siste tilgjengelige dag
-                {(summary?.totalCancellations ?? 0) > 0 && (
+                {periodLabel}
+                {periodStats.totalCancellations > 0 && (
                   <span className="text-destructive ml-1">
                     <XCircle className="h-3 w-3 inline mr-0.5" />
-                    {summary!.totalCancellations} kansellert
+                    {periodStats.totalCancellations} kansellert
                   </span>
                 )}
               </p>
