@@ -141,6 +141,17 @@ function addMinToIso(iso: string, minutes: number): string {
   return d.toISOString();
 }
 
+/** Linjenummer å vise: publicCode hvis vi har det, ellers siste ledd av
+ *  line_ref — men bare hvis det faktisk ligner et linjenummer (korte koder
+ *  som "6" eller "16E"). Noen historiske rader har uregistrerte/interne
+ *  line_ref-er uten "Operatør:Line:N"-form (f.eks. en ren UUID) — da vises "?"
+ *  i stedet for å dumpe hele strengen i UI-et. */
+function lineNumberOf(d: Departure): string {
+  if (d.lineNumber) return d.lineNumber;
+  const suffix = d.lineRef ? d.lineRef.split(":").pop() ?? "" : "";
+  return suffix && suffix.length <= 6 ? suffix : "?";
+}
+
 // ---------------------------------------------------------------------------
 // Utvidet visning: hele reisen for én avgang (klikk på en rad)
 // ---------------------------------------------------------------------------
@@ -178,7 +189,7 @@ function JourneyDetail({
 
   // Per-stopp P50/P80 fra DuckDB: helst for akkurat denne avgangen
   // (service_journey_id), ellers for linjen ved stoppet.
-  const { data: statMap } = useQuery<Map<string, SjStopStat>>({
+  const { data: statMap, isLoading: statMapLoading } = useQuery<Map<string, SjStopStat>>({
     queryKey: ["duck-sj-stops", sjId, lineRef ?? ""],
     enabled: duckReady,
     staleTime: Infinity,
@@ -282,7 +293,12 @@ function JourneyDetail({
           );
         })}
       </div>
-      {(!statMap || statMap.size === 0) && (
+      {(!duckReady || statMapLoading) && (
+        <p className="text-[10px] text-muted-foreground/60 italic mt-1.5">
+          Laster historiske observasjoner…
+        </p>
+      )}
+      {duckReady && !statMapLoading && (!statMap || statMap.size === 0) && (
         <p className="text-[10px] text-muted-foreground/60 italic mt-1.5">
           Ingen historiske observasjoner for denne linjen ennå — kun rutetider og sanntid vises.
         </p>
@@ -329,6 +345,10 @@ export default function Departures() {
     const d = new Date(`${customDate}T${customTime}:00`);
     return Number.isNaN(d.getTime()) ? null : d.toISOString();
   }, [customDate, customTime]);
+  // Entur sin sanntidstavle holder bare et kort vindu bakover i tid — søk
+  // lenger tilbake gir tomt resultat der. For slike søk bruker vi i stedet
+  // egne historiske data (journey_stop_daily via DuckDB), se lenger ned.
+  const isHistorical = startIso != null && new Date(startIso).getTime() < Date.now() - 5 * 60_000;
 
   const nowDate = () => new Date().toISOString().slice(0, 10);
   const nowTime = () => {
@@ -382,28 +402,119 @@ export default function Departures() {
     if (stopRef) warmupDuckDB();
   }, [stopRef]);
 
+  // DuckDB-WASM percentiles per (quay, line) pair seen in the departure list.
+  // Flyttet opp hit (før depResp) fordi den historiske avgangslisten under
+  // også trenger duckReady/duckQuery.
+  const { ready: duckReady, query: duckQuery } = useParquetQuery();
+
   // Departures from Entur (1-minute server cache + 60s client refresh).
   // Ved valgt tidspunkt (startIso) er vinduet fast — ingen auto-refresh.
   // view=arrivals gir også avganger som KUN ankommer stoppet (endeholdeplass) —
   // uten den er «Ankomster» bare avgangslisten med ankomsttider.
+  // Ved historisk søk (isHistorical) hopper vi over Entur helt — sanntidstavlen
+  // har uansett ikke data så langt tilbake, se historicalDeps under.
   const { data: depResp, isLoading: depLoading, isError: depError, error: depErr } =
     useQuery<DeparturesResponse>({
       queryKey: [
         `/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=${minutes}${startIso ? `&startTime=${encodeURIComponent(startIso)}` : ""}${mode === "arrival" ? "&view=arrivals" : ""}`,
       ],
-      enabled: stopRef != null,
+      enabled: stopRef != null && !isHistorical,
       refetchInterval: startIso ? false : 60_000,
       placeholderData: keepPreviousData,
     });
 
+  // Quay-settet ved dette stoppestedet — trengs for å spørre DuckDB på
+  // historiske avganger, siden Parquet-dataene er lagret på quay-nivå (ikke
+  // StopPlace-nivå). Hentes fra en "nå"-spørring mot Entur i stedet for vår
+  // egen stop_coords-cache: NSR StopPlace-IDer slås jevnlig sammen/erstattes,
+  // og cachen (fylt fra BigQuery) kan derfor peke på en utdatert StopPlace-ID
+  // for samme fysiske stoppested — mens Entur og SIRI-feeden (som quay-refene
+  // i Parquet-dataene kommer fra) alltid bruker gjeldende quay-IDer.
+  const { data: liveForQuays } = useQuery<DeparturesResponse>({
+    queryKey: [`/api/departures/${encodeURIComponent(stopRef ?? "")}?minutes=180`],
+    enabled: stopRef != null && isHistorical,
+    staleTime: 5 * 60_000,
+  });
+
+  // Historiske avganger (egne målte data) for søk tilbake i tid — Entur sin
+  // sanntidstavle rekker ikke så langt tilbake (se isHistorical over).
+  // Bruker aimed_departure/aimed_arrival + faktisk registrert forsinkelse for
+  // akkurat den datoen, fra samme Parquet-data som P50/P80-tallene.
+  const { data: historicalDeps = [], isLoading: histLoading } = useQuery<Departure[]>({
+    queryKey: ["duck-historical-departures", stopRef ?? "", customDate, customTime, minutes, mode, !!liveForQuays],
+    enabled: isHistorical && duckReady && !!liveForQuays,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const nameByQuay = new Map<string, string | null>();
+      for (const d of liveForQuays?.departures ?? []) {
+        if (d.quayRef) nameByQuay.set(d.quayRef, d.quayName);
+      }
+      const quayRefs = Array.from(nameByQuay.keys());
+      if (quayRefs.length === 0) return [];
+
+      const timeCol = mode === "arrival" ? "aimed_arrival" : "aimed_departure";
+      const fromHM = customTime;
+      const end = new Date(`${customDate}T${customTime}:00`);
+      end.setMinutes(end.getMinutes() + minutes);
+      const toHM = end.toISOString().slice(0, 10) === customDate
+        ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`
+        : "23:59";
+
+      const quayList = quayRefs.map((r) => `'${esc(r)}'`).join(", ");
+      const sql = `
+        SELECT service_journey_id, line_ref, direction_ref, stop_ref,
+               aimed_departure, aimed_arrival, delay_departure_min, delay_arrival_min,
+               vehicle_mode
+        FROM delays
+        WHERE date = '${esc(customDate)}'
+          AND stop_ref IN (${quayList})
+          AND ${timeCol} IS NOT NULL
+          AND ${timeCol} >= '${esc(fromHM)}' AND ${timeCol} <= '${esc(toHM)}'
+        ORDER BY ${timeCol}
+        LIMIT 200`;
+      const rows = await duckQuery(sql) as Array<{
+        service_journey_id: string; line_ref: string; direction_ref: string; stop_ref: string;
+        aimed_departure: string | null; aimed_arrival: string | null;
+        delay_departure_min: number | null; delay_arrival_min: number | null;
+        vehicle_mode: string | null;
+      }>;
+
+      const iso = (hm: string | null) => (hm ? `${customDate}T${hm}:00` : null);
+      return rows.map((r): Departure => {
+        const aimedDepIso = iso(r.aimed_departure);
+        const aimedArrIso = iso(r.aimed_arrival);
+        return {
+          aimedTime: aimedDepIso ?? aimedArrIso ?? "",
+          expectedTime: aimedDepIso && r.delay_departure_min != null
+            ? addMinToIso(aimedDepIso, r.delay_departure_min) : null,
+          aimedArrivalTime: aimedArrIso,
+          expectedArrivalTime: aimedArrIso && r.delay_arrival_min != null
+            ? addMinToIso(aimedArrIso, r.delay_arrival_min) : null,
+          realtime: mode === "arrival" ? r.delay_arrival_min != null : r.delay_departure_min != null,
+          cancelled: false,
+          destination: `Retning ${r.direction_ref}`,
+          quayRef: r.stop_ref,
+          quayName: nameByQuay.get(r.stop_ref) ?? null,
+          platform: null,
+          lineRef: r.line_ref,
+          lineNumber: null,
+          lineName: null,
+          transportMode: r.vehicle_mode,
+          serviceJourneyId: r.service_journey_id,
+          directionRef: r.direction_ref,
+        };
+      });
+    },
+  });
+
   // Sorter på visningstiden (avgang eller ankomst)
   const departures = useMemo(() => {
-    const list = [...(depResp?.departures ?? [])];
+    const list = [...(isHistorical ? historicalDeps : (depResp?.departures ?? []))];
     list.sort(
       (a, b) => new Date(displayTime(a, mode)).getTime() - new Date(displayTime(b, mode)).getTime(),
     );
     return list;
-  }, [depResp, mode]);
+  }, [depResp, historicalDeps, isHistorical, mode]);
 
   // Stop stat cards (last 30 days) — SQLite-backend. Skrus av i reise-bygget
   // (ingen DB). Fase 5 erstatter disse med en Parquet-basert oppsummering.
@@ -432,8 +543,6 @@ export default function Departures() {
     return den > 0 ? num / den : null;
   }, [stats]);
 
-  // DuckDB-WASM percentiles per (quay, line) pair seen in the departure list
-  const { ready: duckReady, query: duckQuery } = useParquetQuery();
   const duckPairs = useMemo(() => {
     const seen = new Set<string>();
     const out: Array<{ stopRef: string; lineRef: string }> = [];
@@ -582,9 +691,9 @@ export default function Departures() {
               >
                 Nå
               </Button>
-              {startIso && new Date(startIso).getTime() < Date.now() - 5 * 60_000 && (
+              {isHistorical && (
                 <span className="text-xs text-muted-foreground italic">
-                  Tilbake i tid: sanntid finnes bare kort tid etter avgang — eldre visninger er rutetider.
+                  Historisk dato: avganger og faktisk forsinkelse hentes fra egne målte data (siste 90 dager) — ikke Enturs sanntidsfeed.
                 </span>
               )}
             </div>
@@ -638,8 +747,8 @@ export default function Departures() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{depResp?.stopName ?? selectedStop?.name ?? "Avganger"}</span>
-                {depLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                <span>{(isHistorical ? selectedStop?.name : depResp?.stopName) ?? selectedStop?.name ?? "Avganger"}</span>
+                {(isHistorical ? histLoading : depLoading) && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
               </CardTitle>
               <CardDescription className="flex items-center gap-1.5">
                 <span>
@@ -647,9 +756,9 @@ export default function Departures() {
                   {startIso
                     ? `${minutes} min fra ${fmtHM(startIso)} (${customDate})`
                     : `neste ${minutes} minutter • Oppdateres hvert minutt`}
-                  {duckReady && delayMap && (
-                    <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>
-                  )}
+                  {isHistorical
+                    ? " • Historiske observasjoner"
+                    : (duckReady && delayMap && <span className="ml-2">• Forsinkelsesstatistikk fra DuckDB</span>)}
                 </span>
                 <InfoTip learnMoreHref="/metode#persentiler">
                   Tallene til høyre: <strong>Sanntid</strong> (faktisk forsinkelse nå) og
@@ -658,16 +767,18 @@ export default function Departures() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {depError && (
+              {!isHistorical && depError && (
                 <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 py-4">
                   <AlertCircle className="w-4 h-4" />
                   Kunne ikke laste avganger. {depErr instanceof Error ? depErr.message : ""}
                 </div>
               )}
 
-              {!depError && departures.length === 0 && !depLoading && (
+              {(isHistorical ? !histLoading : !depError && !depLoading) && departures.length === 0 && (
                 <p className="text-sm text-muted-foreground py-6 text-center">
-                  Ingen avganger funnet i tidsvinduet.
+                  {isHistorical
+                    ? "Ingen historiske avganger funnet for denne datoen og tidsvinduet (data finnes for de siste 90 dagene)."
+                    : "Ingen avganger funnet i tidsvinduet."}
                 </p>
               )}
 
@@ -676,7 +787,7 @@ export default function Departures() {
                   const rt = realtimeDelayMin(d, mode);
                   const histKey = d.quayRef && d.lineRef ? `${d.quayRef}|${d.lineRef}` : null;
                   const hist = histKey ? delayMap?.get(histKey) : null;
-                  const lineNum = d.lineNumber ?? (d.lineRef ? d.lineRef.split(":").pop() : "?");
+                  const lineNum = lineNumberOf(d);
                   const rowKey = `${d.serviceJourneyId ?? i}-${d.aimedTime}`;
                   const isExpanded = expandedKey === rowKey;
 

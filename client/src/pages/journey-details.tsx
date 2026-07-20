@@ -289,7 +289,7 @@ export default function JourneyDetails() {
     ? `/api/line/${encodeURIComponent(fetchedLine)}?${wq}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;
 
-  const { data: lineStats } = useQuery<LineStatsResponse>({
+  const { data: lineStats, isLoading: lineStatsLoading } = useQuery<LineStatsResponse>({
     queryKey: [lineStatsUrl],
     enabled: lineStatsUrl != null,
   });
@@ -327,7 +327,7 @@ export default function JourneyDetails() {
     fetchedLine, stopProfileDir, fromDate, 5,
   );
 
-  const { data: lineStopProfile = [] } = useLineStopProfile(
+  const { data: lineStopProfile = [], isLoading: lineStopProfileLoading } = useLineStopProfile(
     fetchedLine, stopProfileDir, fromDate, selectedVariant,
   );
 
@@ -715,10 +715,12 @@ export default function JourneyDetails() {
           </div>
         )}
 
-        {/* No data for selected direction */}
+        {/* Loading / no data for selected direction */}
         {fetchedLine.length > 0 && !lineStats && direction !== "all" && (
           <p className="text-sm text-muted-foreground">
-            Ingen data for {directionLabels[direction] ?? `retning ${direction}`}. Prøv en annen retning.
+            {lineStatsLoading
+              ? `Laster data for ${directionLabels[direction] ?? `retning ${direction}`}…`
+              : `Ingen data for ${directionLabels[direction] ?? `retning ${direction}`}. Prøv en annen retning.`}
           </p>
         )}
 
@@ -995,7 +997,9 @@ export default function JourneyDetails() {
                   )}
                   {stopProfileData.length === 0 && stopProfileDir !== "" && (
                     <p className="text-sm text-muted-foreground py-4">
-                      Ingen stopp-data for retning {stopProfileDir}.
+                      {lineStopProfileLoading
+                        ? `Laster stopp-data for retning ${stopProfileDir}…`
+                        : `Ingen stopp-data for retning ${stopProfileDir}.`}
                     </p>
                   )}
                   {stopProfileData.length > 0 && (

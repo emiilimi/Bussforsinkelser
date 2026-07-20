@@ -40,7 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-tight leading-none text-primary">
-              {IS_REISE ? "reise" : "bussforsinkelser"}
+              {IS_REISE ? "SenTur.no" : "bussforsinkelser"}
             </h1>
             <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">
               {IS_REISE ? "Reiseplanlegger" : "Historisk statistikk"}

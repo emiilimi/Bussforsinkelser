@@ -47,19 +47,21 @@ export const REGION_OPERATOR: Record<Region, string> = {
   vot: "VOT",
 };
 
+// Offisielle operatørnavn per codespace, hentet fra Enturs egen liste:
+// https://entur.atlassian.net/wiki/spaces/PUBLIC/pages/637370434/List+of+current+Codespaces
 export const REGION_LABEL: Record<Region, string> = {
   alle: "Alle operatører",
   sky: "Skyss (Vestland)",
-  mor: "Møre og Romsdal",
+  mor: "Fram (Møre og Romsdal)",
   inn: "Innlandet",
-  ost: "Østfold",
+  ost: "Østfold kollektivtrafikk",
   rut: "Ruter (Oslo/Akershus)",
   kol: "Kolumbus (Rogaland)",
-  vyg: "Vy grønn",
-  tro: "Troms",
-  bra: "Brakar (Viken)",
-  fin: "Finnmark",
-  nor: "Nordland",
+  vyg: "Vy Group",
+  tro: "Troms fylkestrafikk",
+  bra: "Brakar (Buskerud)",
+  fin: "Snelandia (Finnmark)",
+  nor: "Nordland fylkeskommune",
   akt: "Agder kollektivtrafikk",
   atb: "AtB (Trøndelag)",
   bnr: "Bane NOR",
@@ -91,7 +93,7 @@ const STORAGE_KEY = "bussforsinkelser_region";
 function getSavedRegions(): Region[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return ["sky"];
+    if (!saved) return [];
 
     // New format: JSON array like ["sky","rut"] or []
     if (saved.startsWith("[")) {
@@ -121,7 +123,7 @@ function getSavedRegions(): Region[] {
   } catch {
     // localStorage unavailable
   }
-  return ["sky"];
+  return [];
 }
 
 const RegionContext = createContext<RegionContextType | undefined>(undefined);
