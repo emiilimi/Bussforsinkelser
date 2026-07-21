@@ -1,11 +1,20 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Info, Heart } from "lucide-react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
 import { IS_REISE } from "@/lib/app-mode";
+import { rememberCurrentUrl, getRememberedUrl } from "@/lib/nav-memory";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const search = useSearch();
+
+  // Husk denne siden sin fulle URL (med filtre/valg) slik at sidemeny-lenken
+  // hit tar deg tilbake til akkurat det du så på, ikke standardvisningen.
+  useEffect(() => {
+    rememberCurrentUrl(location, search);
+  }, [location, search]);
 
   // Reise-bygget: analysesidene serveres fra R2-artefakter + DuckDB-WASM
   // (full offload) — ingen SQLite-backend.
@@ -66,7 +75,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={getRememberedUrl(item.href)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
                     isActive

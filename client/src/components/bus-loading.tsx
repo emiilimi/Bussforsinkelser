@@ -33,13 +33,13 @@ export function BusLoading({
   scale?: number;
   className?: string;
 }) {
-  // Bredere enn originaldesignet ("dinosaur game"-stil) — mer vei synlig
-  // samtidig i stedet for en trang, kortklippet rute. Høyden må være minst
-  // bottom-offset (47) + busshøyde (95) + maks oppoverbevegelse i
-  // st-busbob-animasjonen (~20px) = 162, ellers klippes bussetaket av
-  // overflow-hidden i det høyeste punktet av "hoppet".
-  const W = 480;
-  const H = 172;
+  // Tilbake til originaldesignets mål (360x150) — forsøket på en bredere,
+  // konturløs "dinosaur game"-variant så mer ujevn/urealistisk ut i praksis
+  // enn den opprinnelige, avgrensede kort-visningen. Kortbakgrunnen gjør
+  // også at hoppe-animasjonen leses som en boks med sin egen bevegelse i
+  // stedet for et objekt som klipper mot vilkårlig sideinnhold bak.
+  const W = 360;
+  const H = 150;
   return (
     <div
       className={cn("inline-block overflow-hidden", className)}
@@ -47,7 +47,7 @@ export function BusLoading({
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left" }}>
         <div
-          className="relative overflow-hidden"
+          className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
           style={{ width: W, height: H }}
           role="img"
           aria-label={`${label} — buss som kjører`}
