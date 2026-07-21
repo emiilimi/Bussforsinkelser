@@ -33,8 +33,10 @@ export function BusLoading({
   scale?: number;
   className?: string;
 }) {
-  const W = 360;
-  const H = 150;
+  // Bredere enn originaldesignet ("dinosaur game"-stil) — mer vei synlig
+  // samtidig i stedet for en trang, kortklippet rute.
+  const W = 480;
+  const H = 130;
   return (
     <div
       className={cn("inline-block overflow-hidden", className)}
@@ -42,7 +44,7 @@ export function BusLoading({
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left" }}>
         <div
-          className="relative bg-card rounded-2xl overflow-hidden"
+          className="relative overflow-hidden"
           style={{ width: W, height: H }}
           role="img"
           aria-label={`${label} — buss som kjører`}
@@ -54,7 +56,7 @@ export function BusLoading({
             className="st-road absolute left-0"
             style={{ bottom: 30 }}
           >
-            <path d={ROAD_PATH} fill="none" stroke="#cfcfca" strokeWidth="4" strokeLinecap="round" />
+            <path d={ROAD_PATH} fill="none" stroke="hsl(var(--muted-foreground))" strokeOpacity="0.35" strokeWidth="4" strokeLinecap="round" />
           </svg>
           <svg
             width="130"
@@ -72,8 +74,8 @@ export function BusLoading({
             <BusWheel cx={100} />
           </svg>
           <div
-            className="absolute left-0 right-0 text-center font-semibold"
-            style={{ bottom: 12, fontFamily: "'Nunito', Arial, sans-serif", fontSize: 13, color: "#8a8a86" }}
+            className="absolute left-0 right-0 text-center font-semibold text-muted-foreground"
+            style={{ bottom: 12, fontFamily: "'Nunito', Arial, sans-serif", fontSize: 13 }}
           >
             {label}
             <span className="st-dot" style={{ animationDelay: "0s" }}>.</span>

@@ -639,7 +639,7 @@ export default function JourneyDetails() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="grid gap-2 flex-1">
+              <div className="grid gap-2 flex-1 min-w-0">
                 <label className="text-sm font-medium">Linje</label>
                 <Popover open={lineOpen} onOpenChange={setLineOpen}>
                   <PopoverTrigger asChild>
@@ -647,11 +647,13 @@ export default function JourneyDetails() {
                       variant="outline"
                       role="combobox"
                       aria-expanded={lineOpen}
-                      className="w-full justify-between font-normal"
+                      className="w-full min-w-0 justify-between font-normal"
                     >
-                      {selectedLine
-                        ? (() => { const l = allLines.find(l => l.lineRef === selectedLine); return l ? `${lineNumber(l.lineRef)} — ${l.lineName ?? l.lineRef}` : selectedLine; })()
-                        : "Søk etter linje..."}
+                      <span className="truncate">
+                        {selectedLine
+                          ? (() => { const l = allLines.find(l => l.lineRef === selectedLine); return l ? `${lineNumber(l.lineRef)} — ${l.lineName ?? l.lineRef}` : selectedLine; })()
+                          : "Søk etter linje..."}
+                      </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -716,16 +718,21 @@ export default function JourneyDetails() {
           </div>
         )}
 
-        {/* Loading / no data for selected direction */}
-        {fetchedLine.length > 0 && !lineStats && direction !== "all" && (
+        {/* Loading / no data */}
+        {fetchedLine.length > 0 && !lineStats && (
           lineStatsLoading ? (
-            <div className="flex justify-center py-4">
-              <BusLoading label={`Laster data for ${directionLabels[direction] ?? `retning ${direction}`}`} scale={0.65} />
+            <div className="flex justify-center py-6">
+              <BusLoading
+                label={direction !== "all" ? `Laster data for ${directionLabels[direction] ?? `retning ${direction}`}` : "Laster linjedata"}
+                scale={0.65}
+              />
             </div>
-          ) : (
+          ) : direction !== "all" ? (
             <p className="text-sm text-muted-foreground">
               Ingen data for {directionLabels[direction] ?? `retning ${direction}`}. Prøv en annen retning.
             </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">Ingen data funnet for denne linjen.</p>
           )
         )}
 
