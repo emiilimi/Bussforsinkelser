@@ -10,9 +10,10 @@ import { useLocation, useSearch } from "wouter";
 import { Search, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { ModeIcon } from "@/components/mode-icon";
 import { cn, formatStopName } from "@/lib/utils";
-import { useRegion } from "@/lib/RegionContext";
+import { REGION_OPERATOR, type Region } from "@/lib/RegionContext";
 import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
+import { useUrlParam } from "@/hooks/use-url-state";
 import { InfoTip } from "@/components/info-tip";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
@@ -315,16 +316,32 @@ function JourneyDetail({
 export default function Departures() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const { operators } = useRegion();
+
+  // Operatørfilteret er BEVISST lokalt for denne siden (URL-synkronisert),
+  // ikke koblet til den delte RegionContext-en som resten av analysesidene
+  // bruker — avganger skal alltid starte på "Alle operatører" uansett hva
+  // som er valgt andre steder i appen, men beholde valget når man navigerer
+  // bort og tilbake på akkurat denne siden (se useUrlParam).
+  const [operatorParam, setOperatorParam] = useUrlParam("operator", "");
+  const operatorRegions: Region[] = useMemo(
+    () => (operatorParam ? operatorParam.split(",").filter((r): r is Region => r in REGION_OPERATOR) : []),
+    [operatorParam],
+  );
+  const setOperatorRegions = (r: Region[]) => setOperatorParam(r.join(","));
+  const operators = operatorRegions.map((r) => REGION_OPERATOR[r]).filter(Boolean);
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [minutes, setMinutes] = useState(90);
+  const [minutesParam, setMinutesParam] = useUrlParam("minutes", "90");
+  const minutes = Number(minutesParam) || 90;
+  const setMinutes = (n: number) => setMinutesParam(String(n));
   // Avgang (når bussen forlater stoppet) vs ankomst (når den kommer inn)
-  const [mode, setMode] = useState<"departure" | "arrival">("departure");
+  const [modeParam, setModeParam] = useUrlParam("mode", "departure");
+  const mode = (modeParam === "arrival" ? "arrival" : "departure") as "departure" | "arrival";
+  const setMode = (m: "departure" | "arrival") => setModeParam(m);
   // Valgt tidspunkt. Tomt = "nå" (live-visning med auto-refresh hvert minutt).
   // Satt = fast vindu fra valgt tid — Entur støtter også tidspunkt bakover i
   // tid (startTime), men sanntidsdata for passerte avganger finnes bare i en
@@ -599,7 +616,7 @@ export default function Departures() {
               Kommende avganger fra et stoppested, med historisk forsinkelsesstatistikk per linje og stoppested.
             </p>
           </div>
-          <RegionSelector />
+          <RegionSelector regions={operatorRegions} onChange={setOperatorRegions} />
         </div>
 
         {/* Stop search */}
@@ -627,8 +644,12 @@ export default function Departures() {
                           setSelectedStop({ ref: r.stopRef, name });
                           setQuery(name);
                           setShowResults(false);
-                          // Update URL so refresh + share works
-                          navigate(`/avganger?stop=${encodeURIComponent(r.stopRef)}&name=${encodeURIComponent(name)}`);
+                          // Oppdater URL-en (for refresh/deling) — behold ev. andre
+                          // parametre (operator/minutes/mode) som allerede står der.
+                          const params = new URLSearchParams(search);
+                          params.set("stop", r.stopRef);
+                          params.set("name", name);
+                          navigate(`/avganger?${params.toString()}`);
                         }}
                       >
                         <div className="font-medium">{name}</div>
@@ -889,7 +910,7 @@ export default function Departures() {
                 Detaljert forsinkelsesstatistikk for {selectedStop.name}.
               </p>
             </div>
-            <StopAnalysisSection stopRef={stopRef} stopName={selectedStop.name} />
+            <StopAnalysisSection stopRef={stopRef} stopName={selectedStop.name} operators={operators} />
           </div>
         )}
 

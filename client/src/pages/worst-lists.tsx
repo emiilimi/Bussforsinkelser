@@ -14,10 +14,13 @@ import {
   TimeWindowPicker,
   type TimeWindow,
   windowToQuery,
+  serializeWindow,
+  parseWindow,
 } from "@/components/time-window-picker";
 import { InfoTip } from "@/components/info-tip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BusLoading } from "@/components/bus-loading";
+import { useUrlParam } from "@/hooks/use-url-state";
 
 type DaySummary = {
   date: string;
@@ -50,11 +53,14 @@ type LeaderboardLine = {
 export default function WorstLists() {
   const [, navigate] = useLocation();
   const { operators } = useRegion();
-  const [daySort, setDaySort] = useState<"delay" | "cancellations">("delay");
-  const [stopSort, setStopSort] = useState<"delay" | "pct">("delay");
-  const [lineSort, setLineSort] = useState<"stddev" | "pctOnTime" | "cancellations">("stddev");
-  const [vehicleMode, setVehicleMode] = useState("all");
-  const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 7, label: "Siste uke" });
+  const [daySort, setDaySort] = useUrlParam("daySort", "delay");
+  const [stopSort, setStopSort] = useUrlParam("stopSort", "delay");
+  const [lineSort, setLineSort] = useUrlParam("lineSort", "stddev");
+  const [vehicleMode, setVehicleMode] = useUrlParam("vehicleMode", "all");
+  const DEFAULT_WINDOW: TimeWindow = { kind: "preset", days: 7, label: "Siste uke" };
+  const [windowParam, setWindowParam] = useUrlParam("window", serializeWindow(DEFAULT_WINDOW));
+  const window = parseWindow(windowParam, DEFAULT_WINDOW);
+  const setWindow = (w: TimeWindow) => setWindowParam(serializeWindow(w));
   const wq = windowToQuery(window);
 
   // opStr/modeStr: raw query params (no leading separator). Each callsite chooses ? or & explicitly.

@@ -35,7 +35,10 @@ import {
   windowToQuery,
   windowDays as windowDaysFn,
   windowLabel,
+  serializeWindow,
+  parseWindow,
 } from "@/components/time-window-picker";
+import { useUrlParam } from "@/hooks/use-url-state";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -245,10 +248,13 @@ export default function JourneyDetails() {
   const search = useSearch();
 
   // Direction filter for stats charts ('all' = both directions aggregated)
-  const [direction, setDirection] = useState<string>("all");
+  const [direction, setDirection] = useUrlParam("direction", "all");
 
   // Time window (5 presets + custom range).
-  const [tw, setTw] = useState<TimeWindow>({ kind: "preset", days: 30, label: "Siste måned" });
+  const DEFAULT_TW: TimeWindow = { kind: "preset", days: 30, label: "Siste måned" };
+  const [twParam, setTwParam] = useUrlParam("tw", serializeWindow(DEFAULT_TW));
+  const tw = parseWindow(twParam, DEFAULT_TW);
+  const setTw = (w: TimeWindow) => setTwParam(serializeWindow(w));
   const wq = windowToQuery(tw);
   // fromDate: ISO date string used by DuckDB hooks (replaces server-side week window)
   const fromDate = tw.kind === "custom"
@@ -300,7 +306,7 @@ export default function JourneyDetails() {
 
   const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate);
 
-  const [stopProfileDir, setStopProfileDir] = useState<string>("");
+  const [stopProfileDir, setStopProfileDir] = useUrlParam("stopProfileDir", "");
   const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
 
   // Route variants for the current line + direction

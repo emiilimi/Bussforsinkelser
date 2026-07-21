@@ -11,9 +11,10 @@ import type { LatLngBounds } from "leaflet";
 import { formatStopName } from "@/lib/utils";
 import { useRegion } from "@/lib/RegionContext";
 import { REGION_MAP_CENTER } from "@/lib/regionCoords";
-import { TimeWindowPicker, type TimeWindow, windowToQuery } from "@/components/time-window-picker";
+import { TimeWindowPicker, type TimeWindow, windowToQuery, serializeWindow, parseWindow } from "@/components/time-window-picker";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
+import { useUrlParam } from "@/hooks/use-url-state";
 
 type MapStop = {
   stopRef: string;
@@ -92,9 +93,18 @@ export default function DelayMap() {
   const mapConfig = REGION_MAP_CENTER[region];
   const center: [number, number] = [mapConfig.lat, mapConfig.lng];
 
-  const [dayType, setDayType] = useState<DayFilter>("all");
-  const [timePreset, setTimePreset] = useState<TimePreset>(TIME_PRESETS[0]);
-  const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 7, label: "Siste uke" });
+  const [dayTypeParam, setDayTypeParam] = useUrlParam("dayType", "all");
+  const dayType = dayTypeParam as DayFilter;
+  const setDayType = (d: DayFilter) => setDayTypeParam(d);
+
+  const [timePresetLabel, setTimePresetLabel] = useUrlParam("timePreset", TIME_PRESETS[0].label);
+  const timePreset = TIME_PRESETS.find((p) => p.label === timePresetLabel) ?? TIME_PRESETS[0];
+  const setTimePreset = (p: TimePreset) => setTimePresetLabel(p.label);
+
+  const DEFAULT_MAP_WINDOW: TimeWindow = { kind: "preset", days: 7, label: "Siste uke" };
+  const [mapWindowParam, setMapWindowParam] = useUrlParam("window", serializeWindow(DEFAULT_MAP_WINDOW));
+  const window = parseWindow(mapWindowParam, DEFAULT_MAP_WINDOW);
+  const setWindow = (w: TimeWindow) => setMapWindowParam(serializeWindow(w));
   const [showFilters, setShowFilters] = useState(false);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
 

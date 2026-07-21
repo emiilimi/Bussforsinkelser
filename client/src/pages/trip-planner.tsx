@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation, useSearch } from "wouter";
 import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
@@ -2223,10 +2224,40 @@ function TripCard({
 }
 
 // ---------------------------------------------------------------------------
+// URL-persistering av søket (ref+navn holder — trenger ikke hele geocoder-
+// resultatet igjen). "coords:lat,lng" som stopRef (adressesøk) beholder
+// lat/lng gjennom prefikset; ekte stopp trenger dem aldri (locationRef()
+// prioriterer alltid stopPlaceRef først).
+// ---------------------------------------------------------------------------
+
+function encodeStopForUrl(s: StopSearchResult): string {
+  return `${s.stopRef}|${s.stopName}`;
+}
+
+function decodeStopFromUrl(raw: string | null): StopSearchResult | null {
+  if (!raw) return null;
+  const sep = raw.indexOf("|");
+  if (sep < 0) return null;
+  const ref = raw.slice(0, sep);
+  const name = raw.slice(sep + 1);
+  if (!ref || !name) return null;
+  if (ref.startsWith("coords:")) {
+    const [lat, lng] = ref.slice(7).split(",").map(Number);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+    return { stopRef: ref, stopPlaceRef: null, stopName: name, label: name, layer: "address", lat, lng };
+  }
+  return { stopRef: ref, stopPlaceRef: ref, stopName: name, label: name, layer: "venue", lat: null, lng: null };
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
 export default function TripPlanner() {
+  const [location, navigate] = useLocation();
+  const urlSearch = useSearch();
+  const restoredFromUrl = useRef(false);
+
   const [fromStop, setFromStop] = useState<StopSearchResult | null>(null);
   const [toStop, setToStop] = useState<StopSearchResult | null>(null);
   const [fromQuery, setFromQuery] = useState("");
@@ -2486,6 +2517,31 @@ export default function TripPlanner() {
     },
   });
 
+  // Gjenopprett søk fra URL (?from=ref|navn&to=ref|navn&date=...&time=...&arriveBy=1)
+  // — kjøres kun én gang ved mount. Trigger samme søk automatisk hvis begge
+  // stopp ble gjenopprettet, slik at man ser resultatene igjen etter å ha
+  // navigert bort og tilbake, ikke bare et forhåndsutfylt skjema.
+  useEffect(() => {
+    if (restoredFromUrl.current) return;
+    restoredFromUrl.current = true;
+    const params = new URLSearchParams(urlSearch);
+    const from = decodeStopFromUrl(params.get("from"));
+    const to = decodeStopFromUrl(params.get("to"));
+    const date = params.get("date");
+    const time = params.get("time");
+    if (from) { setFromStop(from); setFromQuery(from.stopName); }
+    if (to) { setToStop(to); setToQuery(to.stopName); }
+    if (date) setDepartDate(date);
+    if (time) setDepartTime(time);
+    if (params.get("arriveBy") === "1") setArriveBy(true);
+    if (from && to) {
+      // setState er async — vent til neste tick slik at fromStop/toStop
+      // faktisk er satt før mutationFn leser dem.
+      setTimeout(() => tripMutation.mutate(undefined), 0);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Destinasjon som Entur Location-objekt — brukes av plan B/C/D-søk fra
   // overgangsstopp. Samme logikk som locationRef() i tripMutation.
   const destinationLocation = useMemo<Record<string, unknown> | null>(() => {
@@ -2543,7 +2599,20 @@ export default function TripPlanner() {
               <StopSearch label="Til" value={toStop} onSelect={(s) => { setToStop(s); setToQuery(s.stopName); }} externalQuery={toQuery} />
               <div className="flex items-end">
                 <Button
-                  onClick={() => tripMutation.mutate(undefined)}
+                  onClick={() => {
+                    // Lagre søket i URL-en (for refresh/deling og for at det
+                    // består om man navigerer bort og tilbake) før søket kjøres.
+                    if (fromStop && toStop) {
+                      const params = new URLSearchParams();
+                      params.set("from", encodeStopForUrl(fromStop));
+                      params.set("to", encodeStopForUrl(toStop));
+                      params.set("date", departDate);
+                      params.set("time", departTime);
+                      if (arriveBy) params.set("arriveBy", "1");
+                      navigate(`${location}?${params.toString()}`, { replace: true });
+                    }
+                    tripMutation.mutate(undefined);
+                  }}
                   disabled={!canSearch || tripMutation.isPending}
                   className="w-full md:w-auto"
                 >

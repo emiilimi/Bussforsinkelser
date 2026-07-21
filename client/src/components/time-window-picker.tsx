@@ -43,6 +43,25 @@ export function windowLabel(w: TimeWindow): string {
   return `${formatDateNO(w.from)} – ${formatDateNO(w.to)}`;
 }
 
+/** Kompakt strengkoding av et TimeWindow — for URL-persistering (?window=d30). */
+export function serializeWindow(w: TimeWindow): string {
+  if (w.kind === "preset") return `d${w.days}`;
+  return `c${w.from}_${w.to}`;
+}
+
+/** Motsatt av serializeWindow. Faller tilbake til `fallback` ved ugyldig/tom streng. */
+export function parseWindow(s: string, fallback: TimeWindow): TimeWindow {
+  if (s.startsWith("d")) {
+    const days = parseInt(s.slice(1), 10);
+    const preset = ALL_PRESETS.find((p) => p.days === days);
+    if (preset) return { kind: "preset", days: preset.days, label: preset.label };
+  } else if (s.startsWith("c")) {
+    const [from, to] = s.slice(1).split("_");
+    if (from && to) return { kind: "custom", from, to };
+  }
+  return fallback;
+}
+
 type Props = {
   value: TimeWindow;
   onChange: (w: TimeWindow) => void;

@@ -10,7 +10,6 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { Route, ChevronDown, ChevronUp } from "lucide-react";
 import { ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Line, ReferenceLine, Legend } from "recharts";
 import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
-import { useRegion } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatWeekdayDateNO } from "@/lib/date-utils";
@@ -20,7 +19,10 @@ import {
   type TimeWindow,
   windowToQuery,
   windowLabel,
+  serializeWindow,
+  parseWindow,
 } from "@/components/time-window-picker";
+import { useUrlParam } from "@/hooks/use-url-state";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -169,12 +171,14 @@ function HourlyTooltip({ active, payload }: RechartsTooltipProps<HourlyPoint>) {
  * stoppanalyse-siden er droppet her — Entur-geocoderet (delt søk) gir ikke
  * quay-lister, kun retningsvelgeren (som hentes uavhengig) er beholdt.
  */
-export function StopAnalysisSection({ stopRef, stopName }: { stopRef: string; stopName: string }) {
+export function StopAnalysisSection({ stopRef, stopName, operators }: { stopRef: string; stopName: string; operators: string[] }) {
   const [, navigate] = useLocation();
-  const { operators } = useRegion();
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
-  const [direction, setDirection] = useState<string>("all");
-  const [window, setWindow] = useState<TimeWindow>({ kind: "preset", days: 30, label: "Siste måned" });
+  const [direction, setDirection] = useUrlParam("stopDirection", "all");
+  const DEFAULT_STOP_WINDOW: TimeWindow = { kind: "preset", days: 30, label: "Siste måned" };
+  const [stopWindowParam, setStopWindowParam] = useUrlParam("stopWindow", serializeWindow(DEFAULT_STOP_WINDOW));
+  const window = parseWindow(stopWindowParam, DEFAULT_STOP_WINDOW);
+  const setWindow = (w: TimeWindow) => setStopWindowParam(serializeWindow(w));
   const [expandedLine, setExpandedLine] = useState<string | null>(null);
 
   useEffect(() => {
@@ -332,7 +336,7 @@ export function StopAnalysisSection({ stopRef, stopName }: { stopRef: string; st
           <p className="text-sm text-muted-foreground max-w-md">
             {direction !== "all"
               ? <>Det finnes ingen forsinkelsesdata for <span className="font-medium">{stopName}</span> i retning {direction}. Prøv en annen retning.</>
-              : <>Det finnes ingen forsinkelsesdata for <span className="font-medium">{stopName}</span> i den valgte perioden. Vi har foreløpig kun forsinkelsesdata for buss og flybuss — trikk, bane og ferge er ikke dekket ennå. Stoppestedet kan også ha for lite trafikk i perioden.</>
+              : <>Ingen data for dette stoppestedet funnet. Dette kan skyldes at dette stoppet ikke har noen avganger, eller at kollektivselskapet ikke har lastet opp forsinkelsesdata for dette stoppet.</>
             }
           </p>
           {direction !== "all" && (

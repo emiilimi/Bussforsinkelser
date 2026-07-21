@@ -13,6 +13,7 @@ import { InfoTip } from "@/components/info-tip";
 import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
+import { useUrlParam } from "@/hooks/use-url-state";
 
 type DailySummary = {
   date: string;
@@ -63,7 +64,7 @@ function formatTrendDate(isoDate: string, period: string): string {
 }
 
 export default function Dashboard() {
-  const [period, setPeriod] = useState("week");
+  const [period, setPeriod] = useUrlParam("period", "week");
   const [, navigate] = useLocation();
   const { operators, region } = useRegion();
   const days = PERIOD_DAYS[period];

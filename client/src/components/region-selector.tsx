@@ -11,8 +11,17 @@ import { Button } from "@/components/ui/button";
  * (reiseplanlegger, avganger, metode) viser den ikke.
  * Valget deles via RegionContext og persisteres i localStorage som før.
  */
-export function RegionSelector({ className }: { className?: string }) {
-  const { regions, setRegions } = useRegion();
+export function RegionSelector({ className, regions: controlledRegions, onChange }: {
+  className?: string;
+  /** Kontrollert modus: overstyrer den delte RegionContext-en med lokal
+   *  state (f.eks. URL-synkronisert). Kun relevant for sider som bevisst
+   *  IKKE skal dele operatørvalg med resten av appen (se avganger-siden). */
+  regions?: Region[];
+  onChange?: (r: Region[]) => void;
+}) {
+  const ctx = useRegion();
+  const regions = controlledRegions ?? ctx.regions;
+  const setRegions = onChange ?? ctx.setRegions;
 
   // "Alle operatører" when empty array
   const isAll = regions.length === 0;
