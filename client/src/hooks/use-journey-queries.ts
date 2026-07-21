@@ -105,13 +105,11 @@ export interface LineStopProfileEntry {
 }
 
 export interface JourneyRanking {
-  serviceJourneyId: string;
   departureTime: string | null;
   firstStopName: string | null;
   lastStopName: string | null;
   avgDelayMin: number;
   observedDepartures: number;
-  numStops: number;
   /** Siste observerte dato — eksakt dato for tallet når observedDepartures = 1. */
   lastDate: string | null;
 }
@@ -476,6 +474,23 @@ export function useLineStopProfile(
 // 6 & 7. useWorstJourneysForLine / useBestJourneysForLine
 // ---------------------------------------------------------------------------
 
+/**
+ * Rangerer avganger på LINJENS RUTETID, ikke service_journey_id.
+ *
+ * Skyss (SKY) sitt NeTEx-datagrunnlag utsteder tilsynelatende en ny
+ * service_journey_id per driftsdøgn for samme rutetabell-slot, i stedet for
+ * én stabil ID som gjenbrukes hver dag (bekreftet ved direkte inspeksjon:
+ * linje 22s 06:46-avgang hadde 18 ulike service_journey_id-er over 20
+ * observerte dager). Å gruppere på service_journey_id (som tidligere) gir
+ * derfor nesten utelukkende singleton-grupper (1 observasjon) selv for
+ * avganger som i praksis går hver eneste dag — misvisende som "verste
+ * enkeltavganger".
+ *
+ * Grupperer i stedet på (rutetid, første stopp, siste stopp) — den faktiske
+ * rutetabell-sloten, uavhengig av hvilken SJ-id den enkelte dagen fikk.
+ * Både rutetid OG endestoppene er med i grupperingsnøkkelen fordi samme
+ * klokkeslett i sjeldne tilfeller dekker flere ulike rutevarianter.
+ */
 function useJourneyRankings(
   lineRef: string,
   directionRef: string,
@@ -486,31 +501,33 @@ function useJourneyRankings(
 ) {
   const { query, ready } = useParquetQuery();
   const stats = useQuery<Array<Omit<JourneyRanking, "firstStopName" | "lastStopName"> & { firstStopRef: string; lastStopRef: string }>>({
-    queryKey: ["journey-rankings", lineRef, directionRef, fromDate, order, limit, minObservedDays],
+    queryKey: ["journey-rankings-v2", lineRef, directionRef, fromDate, order, limit, minObservedDays],
     enabled: ready && !!lineRef,
     queryFn: () =>
       query(`
+        WITH sj_dep AS (
+          SELECT
+            service_journey_id,
+            arg_min(COALESCE(aimed_departure, aimed_arrival), stop_sequence) AS depTime,
+            arg_min(COALESCE(stop_name, stop_ref), stop_sequence) AS firstStopRef,
+            arg_max(COALESCE(stop_name, stop_ref), stop_sequence) AS lastStopRef,
+            COUNT(DISTINCT stop_ref) AS numStops
+          FROM delays_by_line
+          WHERE line_ref = ? AND direction_ref = ? AND date >= ?
+          GROUP BY service_journey_id
+          HAVING COUNT(DISTINCT stop_ref) >= 3
+        )
         SELECT
-          d.service_journey_id AS serviceJourneyId,
-          (SELECT COALESCE(d2.aimed_departure, d2.aimed_arrival)
-           FROM delays_by_line d2
-           WHERE d2.service_journey_id = d.service_journey_id
-             AND COALESCE(d2.aimed_departure, d2.aimed_arrival) IS NOT NULL
-           ORDER BY d2.stop_sequence ASC LIMIT 1) AS departureTime,
-          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays_by_line d2
-           WHERE d2.service_journey_id = d.service_journey_id
-           ORDER BY d2.stop_sequence ASC LIMIT 1) AS firstStopRef,
-          (SELECT COALESCE(d2.stop_name, d2.stop_ref) FROM delays_by_line d2
-           WHERE d2.service_journey_id = d.service_journey_id
-           ORDER BY d2.stop_sequence DESC LIMIT 1) AS lastStopRef,
+          sd.depTime      AS departureTime,
+          sd.firstStopRef AS firstStopRef,
+          sd.lastStopRef  AS lastStopRef,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
-          COUNT(DISTINCT d.date)     AS observedDepartures,
-          COUNT(DISTINCT d.stop_ref) AS numStops,
-          MAX(d.date)                AS lastDate
-        FROM delays_by_line d
-        WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
-        GROUP BY d.service_journey_id
-        HAVING numStops >= 3 AND observedDepartures >= ?
+          COUNT(DISTINCT d.date) AS observedDepartures,
+          MAX(d.date)            AS lastDate
+        FROM sj_dep sd
+        JOIN delays_by_line d ON d.service_journey_id = sd.service_journey_id
+        GROUP BY sd.depTime, sd.firstStopRef, sd.lastStopRef
+        HAVING observedDepartures >= ?
         ORDER BY avgDelayMin ${order}
         LIMIT ?`,
         [lineRef, directionRef, fromDate, minObservedDays, limit],
@@ -521,13 +538,11 @@ function useJourneyRankings(
   return {
     ...stats,
     data: stats.data?.map((r) => ({
-      serviceJourneyId: r.serviceJourneyId,
       departureTime: r.departureTime,
       firstStopName: (r.firstStopRef as string) ?? null,
       lastStopName: (r.lastStopRef as string) ?? null,
       avgDelayMin: r.avgDelayMin,
       observedDepartures: r.observedDepartures,
-      numStops: r.numStops,
       lastDate: (r as any).lastDate as string | null,
     })) as JourneyRanking[] | undefined,
   };

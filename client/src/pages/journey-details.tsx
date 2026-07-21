@@ -1294,7 +1294,7 @@ export default function JourneyDetails() {
                           <tbody>
                             {section.data.map((j, i) => (
                               <tr
-                                key={j.serviceJourneyId}
+                                key={`${j.departureTime}-${j.firstStopName}-${j.lastStopName}`}
                                 className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                                 onClick={() => {
                                   if (!j.departureTime) return;
