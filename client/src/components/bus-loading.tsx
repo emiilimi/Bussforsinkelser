@@ -35,9 +35,7 @@ export function BusLoading({
 }) {
   // Tilbake til originaldesignets mål (360x150) — forsøket på en bredere,
   // konturløs "dinosaur game"-variant så mer ujevn/urealistisk ut i praksis
-  // enn den opprinnelige, avgrensede kort-visningen. Kortbakgrunnen gjør
-  // også at hoppe-animasjonen leses som en boks med sin egen bevegelse i
-  // stedet for et objekt som klipper mot vilkårlig sideinnhold bak.
+  // enn den opprinnelige, avgrensede kort-visningen.
   const W = 360;
   const H = 150;
   return (
@@ -47,7 +45,7 @@ export function BusLoading({
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left" }}>
         <div
-          className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
+          className="relative overflow-hidden"
           style={{ width: W, height: H }}
           role="img"
           aria-label={`${label} — buss som kjører`}
