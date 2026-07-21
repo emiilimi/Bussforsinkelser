@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
@@ -320,12 +321,17 @@ export default function JourneyDetails() {
 
 
 
+  // "single" = enkeltobservasjoner (kan være én dags avvik), "recurring" =
+  // krever minst 5 observerte dager for et mer pålitelig "verste"-bilde.
+  const [journeyRankingMode, setJourneyRankingMode] = useState<"single" | "recurring">("single");
+  const journeyRankingMinObs = journeyRankingMode === "recurring" ? 5 : 1;
+
   const { data: worstJourneys = [] } = useWorstJourneysForLine(
-    fetchedLine, stopProfileDir, fromDate, 5,
+    fetchedLine, stopProfileDir, fromDate, 5, journeyRankingMinObs,
   );
 
   const { data: bestJourneys = [] } = useBestJourneysForLine(
-    fetchedLine, stopProfileDir, fromDate, 5,
+    fetchedLine, stopProfileDir, fromDate, 5, journeyRankingMinObs,
   );
 
   const { data: lineStopProfile = [], isLoading: lineStopProfileLoading } = useLineStopProfile(
@@ -344,6 +350,9 @@ export default function JourneyDetails() {
     setSelectedJourney(null);
     setDirection("all");
     setStopProfileDir("");
+    // Lagre valget i URL-en, slik at det består om man navigerer bort (f.eks.
+    // til kartet) og tilbake — se ?line=-lesingen i useEffect over.
+    navigate(`/journey?line=${encodeURIComponent(selectedLine)}`, { replace: true });
   };
 
   // ---- Derived data for existing charts ----
@@ -1232,6 +1241,22 @@ export default function JourneyDetails() {
 
             {/* ---- Worst & best individual departures ---- */}
             {fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all" && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-muted-foreground">Visning:</span>
+                  <Tabs value={journeyRankingMode} onValueChange={(v) => setJourneyRankingMode(v as "single" | "recurring")}>
+                    <TabsList>
+                      <TabsTrigger value="single" className="text-xs">Enkeltavganger</TabsTrigger>
+                      <TabsTrigger value="recurring" className="text-xs">Gjentakende (min. 5 dager)</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <InfoTip>
+                    "Enkeltavganger" kan vise en avgang som bare er observert én dag — ett uvanlig
+                    avvik, ikke nødvendigvis et mønster. "Gjentakende" krever minst 5 observerte
+                    dager for den samme avgangen, og gir et mer pålitelig bilde av hva som faktisk
+                    går igjen.
+                  </InfoTip>
+                </div>
               <div className="grid gap-6 lg:grid-cols-2">
                 {[
                   { title: "Verste enkeltavganger", desc: "Mest forsinkede", data: worstJourneys, isWorst: true },
@@ -1288,6 +1313,13 @@ export default function JourneyDetails() {
                                   <span className="inline-block w-5 text-xs text-muted-foreground mr-2">{i + 1}.</span>
                                   {j.departureTime ?? "—"}
                                   <ArrowRight className="inline-block ml-1.5 h-3 w-3 text-muted-foreground opacity-50" />
+                                  {j.lastDate && (
+                                    <div className="text-[10px] text-muted-foreground font-normal ml-7">
+                                      {j.observedDepartures === 1
+                                        ? `${formatDateShortNO(j.lastDate)} — kun 1 observasjon`
+                                        : `sist ${formatDateShortNO(j.lastDate)}`}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="py-2 text-muted-foreground text-xs hidden md:table-cell max-w-[180px] truncate">
                                   {j.firstStopName && j.lastStopName
@@ -1311,6 +1343,7 @@ export default function JourneyDetails() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
               </div>
             )}
 

@@ -86,16 +86,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {!IS_REISE && <FreshnessBadge />}
 
             <div className="p-3 rounded-lg bg-muted/50 border border-border text-[9px] text-muted-foreground space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span className="font-semibold text-foreground/80">Entur åpne data</span>
-                </div>
-                <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-                  <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto" />
-                </a>
-              </div>
+              <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
+                <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto" />
+              </a>
               <p>Historiske SIRI ET-data. Oppdateres hver natt. Kilde: ent-data-sharing-ext-prd.</p>
+              <p>Reiseplanleggeren bruker Entur sitt Journey Planner API for ruteforslag.</p>
               <p>
                 Inneholder data under{" "}
                 <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">

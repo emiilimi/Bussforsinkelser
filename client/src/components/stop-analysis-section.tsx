@@ -183,10 +183,15 @@ export function StopAnalysisSection({ stopRef, stopName }: { stopRef: string; st
     setDirection("all");
   }, [stopRef]);
 
+  // name=... følger med på alle stopp-spørringer: NSR-IDer slås periodisk
+  // sammen/erstattes, så geocoderets ref kan avvike fra den artefakten
+  // (stats_stops_map.json) kjenner til — navnet brukes som fallback for å
+  // finne stoppet likevel. Se resolveStopQuays i stats-adapter.ts.
+  const nameQ = `name=${encodeURIComponent(stopName)}`;
   const { data: availableDirections = [] } = useQuery<string[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(stopRef)}/directions${opStr ? `?${opStr}` : ""}`],
+    queryKey: [`/api/stop/${encodeURIComponent(stopRef)}/directions?${[nameQ, opStr].filter(Boolean).join("&")}`],
   });
-  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${windowToQuery(window)}${opStr ? `&${opStr}` : ""}${direction !== "all" ? `&direction=${direction}` : ""}`;
+  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : ""].filter(Boolean).join("&")}`;
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
     queryKey: [stopStatsUrl],
@@ -207,14 +212,15 @@ export function StopAnalysisSection({ stopRef, stopName }: { stopRef: string; st
     return d.toISOString().slice(0, 10);
   })();
 
-  const { data: linesAtStop = [] } = useLinesAtStop(stopRef, stopFromDate);
-  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(stopRef, stopFromDate);
+  const { data: linesAtStop = [] } = useLinesAtStop(stopRef, stopFromDate, stopName);
+  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(stopRef, stopFromDate, stopName);
 
   const { data: lineDeps = [], isLoading: lineDepsLoading } = useLineDeparturesAtStop(
     expandedLine ?? "",
     stopRef,
     stopFromDate,
     expandedLine != null,
+    stopName,
   );
 
   const trendData = (stats?.daily ?? []).map((r) => ({
@@ -326,7 +332,7 @@ export function StopAnalysisSection({ stopRef, stopName }: { stopRef: string; st
           <p className="text-sm text-muted-foreground max-w-md">
             {direction !== "all"
               ? <>Det finnes ingen forsinkelsesdata for <span className="font-medium">{stopName}</span> i retning {direction}. Prøv en annen retning.</>
-              : <>Det finnes ingen forsinkelsesdata for <span className="font-medium">{stopName}</span> i den valgte perioden. Stoppestedet kan være et ferjekai, trikk eller ha for lite trafikk til å vises.</>
+              : <>Det finnes ingen forsinkelsesdata for <span className="font-medium">{stopName}</span> i den valgte perioden. Vi har foreløpig kun forsinkelsesdata for buss og flybuss — trikk, bane og ferge er ikke dekket ennå. Stoppestedet kan også ha for lite trafikk i perioden.</>
             }
           </p>
           {direction !== "all" && (

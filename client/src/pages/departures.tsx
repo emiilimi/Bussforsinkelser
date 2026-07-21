@@ -296,7 +296,7 @@ function JourneyDetail({
           Ingen historiske observasjoner for denne linjen ennå — kun rutetider og sanntid vises.
         </p>
       )}
-      {!IS_REISE && lineRef && (
+      {lineRef && (
         <a
           href={`/journey?line=${encodeURIComponent(lineRef)}`}
           className="text-[10px] text-primary hover:underline inline-block mt-1.5"
@@ -772,17 +772,25 @@ export default function Departures() {
 
                   return (
                     <div key={rowKey}>
-                    <button
+                    <div
+                      role="button"
+                      tabIndex={d.serviceJourneyId ? 0 : -1}
                       onClick={() => {
                         if (d.serviceJourneyId) {
                           setExpandedKey(isExpanded ? null : rowKey);
                         }
                       }}
-                      disabled={!d.serviceJourneyId}
+                      onKeyDown={(e) => {
+                        if (d.serviceJourneyId && (e.key === "Enter" || e.key === " ")) {
+                          e.preventDefault();
+                          setExpandedKey(isExpanded ? null : rowKey);
+                        }
+                      }}
                       title="Vis hele reisen med rutetider, sanntid og historiske estimater"
                       className={cn(
                         "w-full grid grid-cols-[auto_auto_1fr_auto_auto] gap-3 items-center py-3 px-1 text-left",
-                        "hover:bg-muted/40 transition-colors disabled:cursor-default",
+                        "hover:bg-muted/40 transition-colors",
+                        d.serviceJourneyId ? "cursor-pointer" : "cursor-default",
                         isExpanded && "bg-muted/30",
                         d.cancelled && "opacity-60 line-through",
                       )}
@@ -793,7 +801,20 @@ export default function Departures() {
 
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <ModeIcon mode={d.transportMode} size={14} />
-                        <span className="font-mono text-sm">{lineNum}</span>
+                        {d.lineRef ? (
+                          <span
+                            className="font-mono text-sm hover:underline hover:text-foreground cursor-pointer"
+                            title="Se linjeanalyse for denne linjen"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/journey?line=${encodeURIComponent(d.lineRef!)}`);
+                            }}
+                          >
+                            {lineNum}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-sm">{lineNum}</span>
+                        )}
                       </div>
 
                       <div className="text-sm truncate">
@@ -840,7 +861,7 @@ export default function Departures() {
                       ) : (
                         <span className="text-xs text-muted-foreground/60 italic">—</span>
                       )}
-                    </button>
+                    </div>
                     {isExpanded && d.serviceJourneyId && (
                       <JourneyDetail
                         sjId={d.serviceJourneyId}

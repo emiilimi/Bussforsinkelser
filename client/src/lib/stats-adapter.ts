@@ -389,10 +389,39 @@ function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
   return map;
 }
 
+function normName(s: string): string {
+  return s.trim().toLowerCase();
+}
+
+/** Alle quays der stopPlaceName/stopName matcher det gitte navnet nøyaktig
+ *  (normalisert). Brukt som fallback når en NSR:StopPlace-ref ikke finnes i
+ *  artefakten — se resolveStopQuays. */
+function quaysByName(metas: Map<string, QuayMeta>, name: string): { quays: string[]; nameHint: string | null } {
+  const target = normName(name);
+  const quays: string[] = [];
+  let found: string | null = null;
+  for (const m of Array.from(metas.values())) {
+    const candidate = m.stopPlaceName ?? m.stopName;
+    if (candidate && normName(candidate) === target) {
+      quays.push(m.stopRef);
+      found = candidate;
+    }
+  }
+  return { quays, nameHint: found };
+}
+
 /** NSR:StopPlace:X → medlems-quays (med data); quay-refs slippes gjennom.
- *  nameHint: stoppestedets visningsnavn. */
+ *  nameHint: stoppestedets visningsnavn (fra Entur-geocoderet, som brukes
+ *  til stoppsøket i reise-bygget).
+ *
+ *  NSR-IDer slås periodisk sammen/erstattes (se NOTES.md) — geocoderet gir
+ *  gjerne en NYERE ID enn den `stats_stops_map.json` ble bygget med, og et
+ *  eksakt ref-oppslag gir da null quays selv om stoppet åpenbart finnes.
+ *  Faller derfor tilbake til navnematch når ref-oppslaget er tomt OG en
+ *  nameHint er oppgitt — samme fysiske sted, bare under den gamle IDen. */
 async function resolveStopQuays(
   ref: string,
+  nameHint?: string | null,
 ): Promise<{ quays: string[]; nameHint: string | null }> {
   const doc = await fetchStops();
   const metas = quayMetaMap(doc);
@@ -405,7 +434,9 @@ async function resolveStopQuays(
         name = m.stopPlaceName ?? m.stopName ?? name;
       }
     }
-    return { quays, nameHint: name };
+    if (quays.length > 0) return { quays, nameHint: name };
+    if (nameHint) return quaysByName(metas, nameHint);
+    return { quays: [], nameHint: null };
   }
   return { quays: [ref], nameHint: metas.get(ref)?.stopName ?? null };
 }
@@ -457,8 +488,10 @@ async function apiStopsSearch(params: URLSearchParams) {
 }
 
 /**
- * GET /api/stops/lookup?refs=...&expand=stopplace — batch-oppslag brukt av
- * DuckDB-hookene (useLinesAtStop m.fl.) for å utvide StopPlace → quays.
+ * GET /api/stops/lookup?refs=...&expand=stopplace&name=... — batch-oppslag
+ * brukt av DuckDB-hookene (useLinesAtStop m.fl.) for å utvide StopPlace →
+ * quays. `name` er en valgfri fallback — se resolveStopQuays over for
+ * hvorfor (NSR-ID-drift mellom geocoderet og artefakten).
  */
 async function apiStopsLookup(params: URLSearchParams) {
   const refs = (params.get("refs") ?? "")
@@ -469,13 +502,23 @@ async function apiStopsLookup(params: URLSearchParams) {
   const doc = await fetchStops();
   const metas = quayMetaMap(doc);
   const expand = params.get("expand") === "stopplace";
+  const nameHint = params.get("name");
 
   const out: Array<{ stopRef: string; stopName: string | null; stopPlaceRef: string | null }> = [];
   for (const ref of refs) {
     if (expand && ref.startsWith("NSR:StopPlace:")) {
+      let matched = false;
       for (const m of Array.from(metas.values())) {
         if (m.stopPlaceRef === ref) {
           out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
+          matched = true;
+        }
+      }
+      if (!matched && nameHint) {
+        const { quays } = quaysByName(metas, nameHint);
+        for (const q of quays) {
+          const m = metas.get(q);
+          if (m) out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
         }
       }
     } else {
@@ -498,7 +541,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
   const direction = params.get("direction");
   const operators = parseOperators(params);
 
-  const { quays, nameHint } = await resolveStopQuays(ref);
+  const { quays, nameHint } = await resolveStopQuays(ref, params.get("name"));
   if (quays.length === 0) throw new Error("Stoppested ikke funnet");
 
   await ensureParquetFilesRegistered();
@@ -578,7 +621,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
 /** GET /api/stop/:ref/directions — direction_ref-verdier ved stoppet. */
 async function apiStopDirections(ref: string, params: URLSearchParams) {
   const operators = parseOperators(params);
-  const { quays } = await resolveStopQuays(ref);
+  const { quays } = await resolveStopQuays(ref, params.get("name"));
   if (quays.length === 0) return [];
   const conds: string[] = [
     `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,

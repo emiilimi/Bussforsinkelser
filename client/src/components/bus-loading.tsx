@@ -34,9 +34,12 @@ export function BusLoading({
   className?: string;
 }) {
   // Bredere enn originaldesignet ("dinosaur game"-stil) — mer vei synlig
-  // samtidig i stedet for en trang, kortklippet rute.
+  // samtidig i stedet for en trang, kortklippet rute. Høyden må være minst
+  // bottom-offset (47) + busshøyde (95) + maks oppoverbevegelse i
+  // st-busbob-animasjonen (~20px) = 162, ellers klippes bussetaket av
+  // overflow-hidden i det høyeste punktet av "hoppet".
   const W = 480;
-  const H = 130;
+  const H = 172;
   return (
     <div
       className={cn("inline-block overflow-hidden", className)}

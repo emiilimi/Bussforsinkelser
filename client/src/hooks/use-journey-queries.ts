@@ -35,8 +35,9 @@ import { IS_REISE } from "@/lib/app-mode";
 async function lookupStops(
   refs: string,
   expand: boolean,
+  nameHint?: string,
 ): Promise<Array<{ stopRef: string; stopName?: string | null; stopPlaceRef?: string | null }>> {
-  const url = `/api/stops/lookup?refs=${encodeURIComponent(refs)}${expand ? "&expand=stopplace" : ""}`;
+  const url = `/api/stops/lookup?refs=${encodeURIComponent(refs)}${expand ? "&expand=stopplace" : ""}${nameHint ? `&name=${encodeURIComponent(nameHint)}` : ""}`;
   if (IS_REISE) {
     const { statsAdapterFetch } = await import("@/lib/stats-adapter");
     const res = await statsAdapterFetch(url);
@@ -111,6 +112,8 @@ export interface JourneyRanking {
   avgDelayMin: number;
   observedDepartures: number;
   numStops: number;
+  /** Siste observerte dato — eksakt dato for tallet når observedDepartures = 1. */
+  lastDate: string | null;
 }
 
 export interface HourlyAtStop {
@@ -479,10 +482,11 @@ function useJourneyRankings(
   fromDate: string,
   order: "DESC" | "ASC",
   limit = 15,
+  minObservedDays = 1,
 ) {
   const { query, ready } = useParquetQuery();
   const stats = useQuery<Array<Omit<JourneyRanking, "firstStopName" | "lastStopName"> & { firstStopRef: string; lastStopRef: string }>>({
-    queryKey: ["journey-rankings", lineRef, directionRef, fromDate, order, limit],
+    queryKey: ["journey-rankings", lineRef, directionRef, fromDate, order, limit, minObservedDays],
     enabled: ready && !!lineRef,
     queryFn: () =>
       query(`
@@ -501,14 +505,15 @@ function useJourneyRankings(
            ORDER BY d2.stop_sequence DESC LIMIT 1) AS lastStopRef,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(DISTINCT d.date)     AS observedDepartures,
-          COUNT(DISTINCT d.stop_ref) AS numStops
+          COUNT(DISTINCT d.stop_ref) AS numStops,
+          MAX(d.date)                AS lastDate
         FROM delays_by_line d
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
         GROUP BY d.service_journey_id
-        HAVING numStops >= 3
+        HAVING numStops >= 3 AND observedDepartures >= ?
         ORDER BY avgDelayMin ${order}
         LIMIT ?`,
-        [lineRef, directionRef, fromDate, limit],
+        [lineRef, directionRef, fromDate, minObservedDays, limit],
         { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
@@ -523,6 +528,7 @@ function useJourneyRankings(
       avgDelayMin: r.avgDelayMin,
       observedDepartures: r.observedDepartures,
       numStops: r.numStops,
+      lastDate: (r as any).lastDate as string | null,
     })) as JourneyRanking[] | undefined,
   };
 }
@@ -532,8 +538,9 @@ export function useWorstJourneysForLine(
   directionRef: string,
   fromDate: string,
   limit = 15,
+  minObservedDays = 1,
 ) {
-  return useJourneyRankings(lineRef, directionRef, fromDate, "DESC", limit);
+  return useJourneyRankings(lineRef, directionRef, fromDate, "DESC", limit, minObservedDays);
 }
 
 export function useBestJourneysForLine(
@@ -541,27 +548,28 @@ export function useBestJourneysForLine(
   directionRef: string,
   fromDate: string,
   limit = 15,
+  minObservedDays = 1,
 ) {
-  return useJourneyRankings(lineRef, directionRef, fromDate, "ASC", limit);
+  return useJourneyRankings(lineRef, directionRef, fromDate, "ASC", limit, minObservedDays);
 }
 
 // ---------------------------------------------------------------------------
 // 8. useLineHourlyAtStop
 // ---------------------------------------------------------------------------
 
-export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
+export function useLineHourlyAtStop(stopRef: string, fromDate: string, stopName?: string) {
   const { query, ready } = useParquetQuery();
 
   // NSR:StopPlace → expand to all quays via /api/stops/lookup (raw fetch, not hook)
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<HourlyAtStop[]>({
-    queryKey: ["line-hourly-at-stop", stopRef, fromDate],
+    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? ""],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
         // Utvid StopPlace → alle barne-quays, så filtrer parquet på dem
-        const allQuays = await lookupStops(stopRef, true);
+        const allQuays = await lookupStops(stopRef, true, stopName);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
@@ -600,16 +608,16 @@ export function useLineHourlyAtStop(stopRef: string, fromDate: string) {
 // 9. useLinesAtStop
 // ---------------------------------------------------------------------------
 
-export function useLinesAtStop(stopRef: string, fromDate: string) {
+export function useLinesAtStop(stopRef: string, fromDate: string, stopName?: string) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<LineAtStop[]>({
-    queryKey: ["lines-at-stop", stopRef, fromDate],
+    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? ""],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
-        const allQuays = await lookupStops(stopRef, true);
+        const allQuays = await lookupStops(stopRef, true, stopName);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
@@ -661,17 +669,18 @@ export function useLineDeparturesAtStop(
   stopRef: string,
   fromDate: string,
   enabled: boolean,
+  stopName?: string,
 ) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<LineDepartureAtStop[]>({
-    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate],
+    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate, stopName ?? ""],
     enabled: ready && enabled && !!lineRef && !!stopRef,
     queryFn: async () => {
       let stopCond: string;
       if (isStopPlace) {
-        const allQuays = await lookupStops(stopRef, true);
+        const allQuays = await lookupStops(stopRef, true, stopName);
         const quayList = allQuays
           .map((q) => `'${q.stopRef.replace(/'/g, "''")}'`)
           .join(",");
