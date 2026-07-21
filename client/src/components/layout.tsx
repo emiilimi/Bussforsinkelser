@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Bus, BarChart3, Map, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Info, Heart } from "lucide-react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Info, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
 import { IS_REISE } from "@/lib/app-mode";
@@ -12,10 +12,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = IS_REISE
     ? [
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
-        { href: "/avganger", label: "Avganger", icon: Timer },
+        { href: "/avganger", label: "Avganger og stopp", icon: Timer },
         { href: "/oversikt", label: "Oversikt", icon: BarChart3 },
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
-        { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         { href: "/metode", label: "Metode", icon: BookOpen },
@@ -24,11 +23,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     : [
         { href: "/", label: "Dashboard", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
-        { href: "/stops", label: "Stoppstedsanalyse", icon: Map },
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
-        { href: "/avganger", label: "Avganger", icon: Timer },
+        { href: "/avganger", label: "Avganger og stopp", icon: Timer },
         { href: "/metode", label: "Metode", icon: BookOpen },
       ];
 

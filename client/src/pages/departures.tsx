@@ -16,6 +16,8 @@ import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { InfoTip } from "@/components/info-tip";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
+import { RegionSelector } from "@/components/region-selector";
+import { StopAnalysisSection } from "@/components/stop-analysis-section";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -72,20 +74,6 @@ type SjResponse = {
   line: { lineRef: string; publicCode: string | null; name: string | null; transportMode: string | null } | null;
   date: string;
   calls: SjCall[];
-};
-
-type StopStatsResponse = {
-  stopRef: string;
-  stopName: string | null;
-  avgDelayMin: number;
-  totalDepartures: number;
-  daily: Array<{
-    date: string;
-    avgDelayMin: number | null;
-    pctDelayed2plus: number | null;
-    stddevDelayMin: number | null;
-    numDepartures: number | null;
-  }>;
 };
 
 type DuckDelayRow = {
@@ -555,33 +543,6 @@ export default function Departures() {
     return list;
   }, [depResp, historicalDeps, enturHistoricalEnriched, enturHistoricalOk, isHistorical, mode]);
 
-  // Stop stat cards (last 30 days) — SQLite-backend. Skrus av i reise-bygget
-  // (ingen DB). Fase 5 erstatter disse med en Parquet-basert oppsummering.
-  const { data: stats } = useQuery<StopStatsResponse>({
-    queryKey: [`/api/stop/${encodeURIComponent(stopRef ?? "")}?days=30${opStr ? `&${opStr}` : ""}`],
-    enabled: stopRef != null && !IS_REISE,
-    placeholderData: keepPreviousData,
-  });
-
-  // Compute summary stats from `daily` (mirrors stop-analysis.tsx)
-  const avgDelayMin = stats?.avgDelayMin ?? null;
-  const totalDepartures = stats?.totalDepartures ?? null;
-  const avgPctDelayed = useMemo(() => {
-    if (!stats || stats.daily.length === 0) return null;
-    return stats.daily.reduce((s, r) => s + (r.pctDelayed2plus ?? 0), 0) / stats.daily.length;
-  }, [stats]);
-  const avgStddev = useMemo(() => {
-    if (!stats || stats.daily.length === 0) return null;
-    let num = 0, den = 0;
-    for (const r of stats.daily) {
-      if (r.stddevDelayMin != null && r.numDepartures != null) {
-        num += r.stddevDelayMin * r.numDepartures;
-        den += r.numDepartures;
-      }
-    }
-    return den > 0 ? num / den : null;
-  }, [stats]);
-
   const duckPairs = useMemo(() => {
     const seen = new Set<string>();
     const out: Array<{ stopRef: string; lineRef: string }> = [];
@@ -628,14 +589,17 @@ export default function Departures() {
 
   return (
     <Layout>
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Clock className="w-7 h-7 text-primary" /> Avganger
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Kommende avganger fra et stoppested, med historisk forsinkelsesstatistikk per linje.
-          </p>
+      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <Clock className="w-7 h-7 text-primary" /> Avganger
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              Kommende avganger fra et stoppested, med historisk forsinkelsesstatistikk per linje og stoppested.
+            </p>
+          </div>
+          <RegionSelector />
         </div>
 
         {/* Stop search */}
@@ -739,48 +703,6 @@ export default function Departures() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Stop stat cards (mirrors stop-analysis.tsx) */}
-        {stopRef && stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Snitt forsinkelse</CardDescription>
-                <CardTitle className="text-2xl font-mono">
-                  {avgDelayMin != null ? `${avgDelayMin.toFixed(2)}m` : "—"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">Siste 30 dager</CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Pålitelighet (σ)</CardDescription>
-                <CardTitle className="text-2xl font-mono">
-                  {avgStddev != null ? `${avgStddev.toFixed(2)}m` : "—"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">Lavere = mer forutsigbar</CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Forsinket &gt; 2 min</CardDescription>
-                <CardTitle className="text-2xl font-mono">
-                  {avgPctDelayed != null ? `${avgPctDelayed.toFixed(1)}%` : "—"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">Andel av avganger</CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Avganger</CardDescription>
-                <CardTitle className="text-2xl font-mono">
-                  {totalDepartures != null ? totalDepartures.toLocaleString("nb-NO") : "—"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">Totalt siste 30 dager</CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Departure list */}
         {stopRef && (
@@ -935,6 +857,19 @@ export default function Departures() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Stoppstedsanalyse — under avgangslisten, deler samme søk/stopp */}
+        {stopRef && selectedStop && (
+          <div className="pt-4 space-y-4">
+            <div className="border-t border-border pt-6">
+              <h3 className="text-2xl font-bold tracking-tight">Stoppstedsanalyse</h3>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Detaljert forsinkelsesstatistikk for {selectedStop.name}.
+              </p>
+            </div>
+            <StopAnalysisSection stopRef={stopRef} stopName={selectedStop.name} />
+          </div>
         )}
 
         {!stopRef && (

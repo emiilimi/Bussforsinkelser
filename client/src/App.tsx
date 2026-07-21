@@ -14,7 +14,6 @@ import generatedImage from '@assets/generated_images/minimalist_abstract_transit
 // Nå laster f.eks. reiseplanleggeren uten Leaflet, og kartet uten Recharts.
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
-const StopAnalysis = lazy(() => import("@/pages/stop-analysis"));
 const WorstLists = lazy(() => import("@/pages/worst-lists"));
 const JourneyDetails = lazy(() => import("@/pages/journey-details"));
 const DelayMap = lazy(() => import("@/pages/delay-map"));
@@ -38,7 +37,7 @@ function FullRouter() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/map" component={DelayMap} />
-      <Route path="/stops" component={StopAnalysis} />
+      <Route path="/stops" component={Departures} />
       <Route path="/worst" component={WorstLists} />
       <Route path="/journey" component={JourneyDetails} />
       <Route path="/reise" component={TripPlanner} />
@@ -60,7 +59,7 @@ function ReiseRouter() {
       <Route path="/avganger" component={Departures} />
       <Route path="/oversikt" component={Dashboard} />
       <Route path="/journey" component={JourneyDetails} />
-      <Route path="/stops" component={StopAnalysis} />
+      <Route path="/stops" component={Departures} />
       <Route path="/worst" component={WorstLists} />
       <Route path="/map" component={DelayMap} />
       <Route path="/metode" component={Methodology} />
