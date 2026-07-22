@@ -1,5 +1,5 @@
 import { Link, useLocation, useSearch } from "wouter";
-import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Info, Heart } from "lucide-react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
@@ -27,7 +27,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         { href: "/metode", label: "Metode", icon: BookOpen },
-        { href: "/om", label: "Om", icon: Info },
       ]
     : [
         { href: "/", label: "Dashboard", icon: BarChart3 },
