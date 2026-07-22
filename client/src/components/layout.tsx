@@ -121,9 +121,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground text-center">
             <span>Laget av Emilie Moldestad og Claude.</span>
             <span>Ønsker du å støtte prosjektet?</span>
-            {/* TODO: sett inn faktisk lenke til innsamlingsaksjonen */}
             <a
-              href="#"
+              href="https://gieffektivt.no/innsamling/til-effektiv-bistand"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 font-medium hover:bg-primary/15 transition-colors"
             >
               <Heart className="w-3 h-3" />
