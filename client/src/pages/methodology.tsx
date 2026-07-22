@@ -630,6 +630,19 @@ export default function Methodology() {
               Datakatalog hos Entur — SIRI ET
             </a>
           </p>
+          {IS_REISE && (
+            <p className="flex items-center gap-1.5">
+              <ExternalLink className="w-3 h-3" />
+              <a
+                href="https://developer.entur.org/pages-journeyplanner-journeyplanner"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Enturs dokumentasjon — Journey Planner API
+              </a>
+            </p>
+          )}
           <p>
             Inneholder data under Norsk lisens for offentlige data (NLOD 2.0), distribuert av
             Entur AS. Statistikken er bearbeidet og aggregert av denne tjenesten — Entur står
