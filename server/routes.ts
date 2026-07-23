@@ -546,7 +546,7 @@ export async function registerRoutes(
     try {
       const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(text)}&size=${size}&lang=no`;
       const response = await fetch(url, {
-        headers: { "ET-Client-Name": "emiliemoldestad-bussprosjekt" },
+        headers: { "ET-Client-Name": "emiliemoldestad-sentur" },
       });
       if (!response.ok) {
         return res.status(502).json({ error: "Geocoder error" });
@@ -752,11 +752,11 @@ export async function registerRoutes(
               transportSubmode
               fromPlace {
                 name
-                quay { id name }
+                quay { id name publicCode }
               }
               toPlace {
                 name
-                quay { id name }
+                quay { id name publicCode }
               }
               line {
                 id
@@ -771,6 +771,7 @@ export async function registerRoutes(
               intermediateQuays {
                 id
                 name
+                publicCode
               }
               serviceJourney {
                 id
@@ -799,7 +800,7 @@ export async function registerRoutes(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ET-Client-Name": "emiliemoldestad-bussprosjekt",
+          "ET-Client-Name": "emiliemoldestad-sentur",
         },
         body: JSON.stringify({ query, variables }),
       });
@@ -902,7 +903,7 @@ export async function registerRoutes(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ET-Client-Name": "emiliemoldestad-bussprosjekt",
+          "ET-Client-Name": "emiliemoldestad-sentur",
         },
         body: JSON.stringify({
           query,
@@ -1008,7 +1009,7 @@ export async function registerRoutes(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ET-Client-Name": "emiliemoldestad-bussprosjekt",
+          "ET-Client-Name": "emiliemoldestad-sentur",
         },
         body: JSON.stringify({ query, variables: { id, date } }),
       });

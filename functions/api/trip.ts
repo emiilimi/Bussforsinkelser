@@ -149,15 +149,15 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
           legs {
             mode
             transportSubmode
-            fromPlace { name quay { id name } }
-            toPlace { name quay { id name } }
+            fromPlace { name quay { id name publicCode } }
+            toPlace { name quay { id name publicCode } }
             line { id publicCode name }
             expectedStartTime
             expectedEndTime
             duration
             distance
             pointsOnLink { points }
-            intermediateQuays { id name }
+            intermediateQuays { id name publicCode }
             serviceJourney {
               id
               passingTimes {

@@ -10,7 +10,7 @@
 // ---------------------------------------------------------------------------
 
 // Entur krever denne headeren på alle kall. Kan overstyres via env (ET_CLIENT_NAME).
-export const DEFAULT_ET_CLIENT_NAME = "emiliemoldestad-bussprosjekt";
+export const DEFAULT_ET_CLIENT_NAME = "emiliemoldestad-sentur";
 
 export const JP_V3_URL = "https://api.entur.io/journey-planner/v3/graphql";
 export const GEOCODER_URL = "https://api.entur.io/geocoder/v1/autocomplete";

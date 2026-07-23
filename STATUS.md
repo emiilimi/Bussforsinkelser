@@ -3,7 +3,22 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-07-20
+**Sist oppdatert**: 2026-07-23
+
+## Endringslogg — 2026-07-23: Reiseplanlegger-omarbeiding (persentilvelger, reiseanalyse-popup, plan-tre, gap-prefetch) + ET-Client-Name-rebrand
+
+**ET-Client-Name → `emiliemoldestad-sentur`**: byttet fra `emiliemoldestad-bussprosjekt` i `functions/api/_entur.ts` (`DEFAULT_ET_CLIENT_NAME`) og de fire hardkodede stedene i `server/routes.ts` (trip/geocoder/departures/servicejourney-proxyene). Docs oppdatert (CLAUDE.md, README uendret, STATUS "gjeldende"-seksjoner). Den daterte 2026-04-12-endringen i historikken beholdt som den var.
+
+**Reiseplanlegger (`client/src/pages/trip-planner.tsx` + nye filer)**:
+- **Delt modul `client/src/lib/trip-shared.ts` (ny)**: flyttet trip-typene (`TripLeg`/`TripPattern`/`DuckDelayRow`), gap-SQL (`specificGapSql`/`fallbackGapSql`), `legStops()`, `probFromGaps()` og `minutesToHM()` hit så plan-graf-komponenten og reiseanalyse-dialogen kan gjenbruke dem. Gap-SQL-ene returnerer nå også `date`/`arr_min`/`dep_min` (per-dag-observasjoner, ikke bare rå gap), og primær+fallback UNION-es i **én DuckDB-rundtur** per overgang (`computeTransferGap`) — halverer antall spørringer mot forrige to-sekvensielle mønster.
+- **Persentilvelger**: erstattet «Vis reiseanalyse»-knappen (som gjemte P95 bak en per-kort-toggle) med tre avkryssingsbokser (P50/P80/P95) over resultatlista — **alle på som standard**. Styrer hvilke estimatkolonner som vises per stopp på alle kort samtidig. Kollaps av lange stopplister er nå uavhengig av persentilvalget.
+- **Reiseanalyse-popup** (`TransferAnalysisDialog`): den store inline-blokken per overgang er krympet til én kompakt rad (%-merke + gangtid + linjer + «Reiseanalyse»-knapp). Dialogen viser de tre sannsynlighetene (2 min / brukermargin / spurt), datakilde, og en **«Vis data»**-tabell med de siste inntil 10 faktiske forekomstene (dato, ankomst, avgang, gap, rakk?). For «specific»-kilde vises faktiske klokkeslett; for «fallback» vises «—» (tallene er fra sammenlignbare naboavganger, ikke akkurat dine avganger).
+- **Plan-tre** (`TransferFallbacks` omskrevet): flat Plan B/C/D-liste erstattet med en rekursiv gren-visning (Plan A-rot → «↳ hvis du mister overgangen» → Plan B → «↳ hvis du også mister plan B» → Plan C …), med sannsynlighet på hver gren. Hver plan-node har «Vis graf» som åpner en **forsinkelse-langs-ruten-graf** (`client/src/components/plan-delay-chart.tsx`, ny) — P50/P80/P95 per stopp langs hele reisen med leggegrenser markert, en forbedret utgave av stopp-profilen i avgangsanalysen. Fallback-plan-statistikken tar nå med mellomstopp (ikke bare første/siste) så grafen får full profil.
+- **Gap-prefetch for alle forslag**: overgangs-gapene beregnes nå på sidenivå for **alle** reiseforslag, sekvensielt i bakgrunnen, med utvidede kort prioritert først. Kollapsede kort får %-merket fylt inn topp-til-bunn etter hvert som beregningen fullfører (tidligere ventet hvert kort til det ble utvidet). Verifisert i nettleser: utvidelse av et kort som prefetchen alt har nådd viser resultater umiddelbart (ingen «beregner…»).
+- **Klikkbart linjenummer → hele avgangen** (`client/src/components/service-journey-detail.tsx`, ny): klikk på linjenr./-navn i et legg åpner HELE avgangens stoppliste (ikke bare reisens delstrekning — f.eks. linje 760 viser alle 88 stopp fra Odda), med rutetid, sanntid og P50/P80/P95 per stopp (samme avkryssingsbokser). Reisens på-/avstigning markeres «(på)»/«(av)». Data (Entur `/api/servicejourney/:id` + DuckDB per-stopp-persentiler) prefetches i bakgrunnen for alle legg i et utvidet kort (`active={expanded}`), så visningen er umiddelbar ved klikk. Rendrer bare tabellen når åpnet.
+- **Perrong tydeliggjort**: trip-spørringene (`functions/api/trip.ts` + `server/routes.ts`) henter nå `quay.publicCode`. Perrong vises som badge på på-/avstigningsstopp i leggvisningen og på hvert stopp i «hele avgangen»-visningen. `TripLeg`/`StopEntry`/`legStops()` i trip-shared.ts bærer `platform`.
+
+**Verifisert**: `tsc` rent, `npm run build` OK, og manuell nettlesertest mot R2-data (Lagunen→Åsane, 6 forslag): badges fyller inn i bakgrunnen, reiseanalyse-dialog + «Vis data»-tabell + persentil-avkryssing + plan-tre-graf fungerer alle.
 
 ## Endringslogg — 2026-07-20: Loading-states, historiske avganger, Parquet-ytelse, og en kort produksjons-outage
 
@@ -309,7 +324,7 @@ python pipeline/strip_for_prod.py
 ### Reiseplanlegger (`/api/trip*`)
 | Endpoint | Storage-fn | Frontend | Notat |
 |---|---|---|---|
-| `POST /api/trip` | — (Entur proxy) | trip-planner | Cachet 5 min, `ET-Client-Name: emiliemoldestad-bussprosjekt` |
+| `POST /api/trip` | — (Entur proxy) | trip-planner | Cachet 5 min, `ET-Client-Name: emiliemoldestad-sentur` |
 | `POST /api/trip/stats` | `getTripStopStats` | trip-planner | Delay overlay per (stopRef, lineRef) fra `journey_stop_weekly` |
 
 ### Korridor & datakvalitet
@@ -330,7 +345,7 @@ python pipeline/strip_for_prod.py
 | NSR via BQ | API | GPS-koordinater for stoppesteder | `populate_stops.py --refresh` |
 | Entur Journey Planner v3 | GraphQL API | Reiseforslag for `/reise` | Sanntid, cachet 5 min server-side |
 
-**Entur API-vilkår**: NLOD 2.0-lisens. `ET-Client-Name: emiliemoldestad-bussprosjekt`. ~30 req/min rate limit for trip-queries. Attribusjon lagt til i sidebar.
+**Entur API-vilkår**: NLOD 2.0-lisens. `ET-Client-Name: emiliemoldestad-sentur`. ~30 req/min rate limit for trip-queries. Attribusjon lagt til i sidebar.
 
 **Operatør-info**: `dataSource = "SKY"` filtrerer Skyss. Ghost-linjer (gamle Rutebanken-stopp) filtreres bort av `NSR:`-sjekken. `vehicleMode = NULL` betyr buss for Skyss (kun ferge er eksplisitt tagget).
 

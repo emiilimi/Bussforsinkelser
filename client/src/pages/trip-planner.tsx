@@ -22,6 +22,20 @@ import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
 import { InfoTip } from "@/components/info-tip";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { formatWeekdayDateNO } from "@/lib/date-utils";
+import { PlanDelayChart } from "@/components/plan-delay-chart";
+import { ServiceJourneyDetail } from "@/components/service-journey-detail";
+import {
+  type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
+  type TransferSpec, type TransferGapResult, type TransferGapObservation,
+  type DuckQueryFn,
+  legStops, minutesToHM, computeTransferGap, computeTransferGaps,
+  probFromGaps, SPECIFIC_MIN_DAYS,
+} from "@/lib/trip-shared";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -36,34 +50,6 @@ type StopSearchResult = {
   lat: number | null;
   lng: number | null;
   quayCount?: number;
-};
-
-type TripLeg = {
-  mode: string;
-  transportSubmode: string | null;
-  fromPlace: { name: string; quay: { id: string; name: string } | null };
-  toPlace: { name: string; quay: { id: string; name: string } | null };
-  line: { id: string; publicCode: string; name: string } | null;
-  expectedStartTime: string;
-  expectedEndTime: string;
-  duration: number;
-  distance: number;
-  intermediateQuays: Array<{ id: string; name: string }>;
-  serviceJourney: {
-    id: string;
-    passingTimes: Array<{
-      quay: { id: string } | null;
-      departure: { time: string; dayOffset: number | null } | null;
-      arrival: { time: string; dayOffset: number | null } | null;
-    }>;
-  } | null;
-};
-
-type TripPattern = {
-  expectedStartTime: string;
-  expectedEndTime: string;
-  duration: number;
-  legs: TripLeg[];
 };
 
 type TripStopStat = {
@@ -119,18 +105,6 @@ const MODES_WITH_DELAY_DATA = new Set(["bus", "coach", "ferry"]);
 
 function esc(s: string) { return s.replace(/'/g, "''"); }
 
-type DuckDelayRow = {
-  stop_ref: string;
-  line_ref: string;
-  p50_dep: number | null;
-  p80_dep: number | null;
-  p95_dep: number | null;
-  p50_arr: number | null;
-  p80_arr: number | null;
-  p95_arr: number | null;
-  n: number;
-};
-
 type LegTimingSpec = {
   key: string;
   serviceJourneyId: string;
@@ -149,190 +123,11 @@ type LegTimingResult = {
 };
 
 // ---------------------------------------------------------------------------
-// Empirical transfer-success: per-day pairing (NOT pooled per (stop, line)).
-//
-// For each transfer we want one observation per historical day where BOTH
-// the arriving service journey AND the departing service journey ran:
-//
-//     gap_min = (actual_dep_time at depQuay) − (actual_arr_time at arrQuay)
-//
-// Then prob(margin) = #days where gap_min ≥ walk_time + margin / total #days.
-//
-// Primary path matches both serviceJourney IDs exactly (same scheduled trip
-// you'd take today). Fallback when the SJ pair has too few observations:
-// pool by (line, stop, day_type) but still pair per date — pick the row whose
-// aimed time is closest to the planned aimed time.
-//
-// Both paths filter day_type so weekday/saturday/sunday/may17/holiday queries
-// don't bleed into each other.
+// Empirisk overgangs-suksess: SQL og typer bor nå i lib/trip-shared.ts
+// (delt med reiseanalyse-dialogen og plan-grafene). Selve beregningen kjøres
+// sekvensielt for ALLE reiseforslag på sidenivå — se gap-prefetch-effekten i
+// TripPlanner.
 // ---------------------------------------------------------------------------
-
-export type TransferGapResult = {
-  gaps: number[];                // gap (minutes) for each historical day
-  source: "specific" | "fallback" | "none";
-};
-
-export type TransferSpec = {
-  key: string;                   // unique id per transfer (used as cache key + map key)
-  arrSjId: string | null;        // serviceJourney.id of the arriving leg
-  arrQuayRef: string | null;     // toPlace.quay.id of the arriving leg
-  arrLineRef: string | null;     // line.id of the arriving leg (for fallback)
-  arrAimedMin: number | null;    // planned aimed_arrival in minutes-since-midnight (for fallback closest-match)
-  depSjId: string | null;        // serviceJourney.id of the departing leg
-  depQuayRef: string | null;     // fromPlace.quay.id of the departing leg
-  depLineRef: string | null;     // line.id of the departing leg (for fallback)
-  depAimedMin: number | null;    // planned aimed_departure in minutes-since-midnight
-  dayType: string;               // 'weekday'|'saturday'|'sunday'|'holiday'|'may17'
-};
-
-const SPECIFIC_MIN_DAYS = 5;     // below this, fall back to hour-of-day pooling
-
-/** Build the SQL for the primary (per-SJ) gap query. Returns null if we lack
- *  the IDs needed. Day_type is filtered so e.g. a Wednesday trip doesn't
- *  pick up Saturday observations. */
-function specificGapSql(s: TransferSpec): string | null {
-  if (!s.arrSjId || !s.arrQuayRef || !s.depSjId || !s.depQuayRef) return null;
-  return `
-    WITH arr AS (
-      SELECT date,
-        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) + delay_arrival_min AS actual_arr_min
-      FROM delays_by_stop
-      WHERE service_journey_id = '${esc(s.arrSjId)}'
-        AND stop_ref = '${esc(s.arrQuayRef)}'
-        AND day_type = '${esc(s.dayType)}'
-        AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
-    ),
-    dep AS (
-      SELECT date,
-        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) + delay_departure_min AS actual_dep_min
-      FROM delays_by_stop
-      WHERE service_journey_id = '${esc(s.depSjId)}'
-        AND stop_ref = '${esc(s.depQuayRef)}'
-        AND day_type = '${esc(s.dayType)}'
-        AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
-    )
-    SELECT (dep.actual_dep_min - arr.actual_arr_min) AS gap
-    FROM arr INNER JOIN dep ON arr.date = dep.date
-  `;
-}
-
-/** Fallback: pool by line + stop + day_type. For hver dato velges den
- *  ankomsten/avgangen hvis rutetid ligger nærmest planens rutetid (±60 min),
- *  og forsinkelsene deres brukes som PROXY for planens avganger:
- *
- *      gap_dag = planlagt_gap + (avgangsforsinkelse − ankomstforsinkelse)
- *
- *  VIKTIG: vi sammenlikner IKKE absolutte klokkeslett på tvers av avganger.
- *  De valgte observasjonene er andre rutepassinger enn planens (nærmeste med
- *  data kan ligge en halvtime unna i ruteplanen), så klokkeslettene deres
- *  måler gapet til en annen avgang enn den brukeren skal rekke. Det eneste
- *  som er overførbart fra en naboavgang er forsinkelsen dens; delay-proxyen
- *  beholder planens gap og justerer kun med observerte forsinkelser. */
-function fallbackGapSql(s: TransferSpec): string | null {
-  if (!s.arrLineRef || !s.arrQuayRef || !s.depLineRef || !s.depQuayRef) return null;
-  if (s.arrAimedMin == null || s.depAimedMin == null) return null;
-  const HALF_WINDOW = 60; // minutes either side
-  const arrLo = s.arrAimedMin - HALF_WINDOW;
-  const arrHi = s.arrAimedMin + HALF_WINDOW;
-  const depLo = s.depAimedMin - HALF_WINDOW;
-  const depHi = s.depAimedMin + HALF_WINDOW;
-  // Planlagt gap i minutter; overganger over midnatt gir negativ diff → +24t
-  let plannedGap = s.depAimedMin - s.arrAimedMin;
-  if (plannedGap < -720) plannedGap += 1440;
-  // Samme retning: ~7 % av (linje, stopp)-kombinasjoner har trafikk i begge
-  // retninger på samme plattform. direction_ref-verdiene varierer per operatør
-  // ('1'/'2', 'Outbound'/'Inbound', ...), så i stedet for å mappe Enturs
-  // directionType slår vi opp retningen den PLANLAGTE avgangen selv er
-  // registrert med i dataene. Ukjent SJ → COALESCE gjør vilkåret til no-op.
-  const dirClause = (sjId: string | null) =>
-    sjId
-      ? `AND direction_ref IS NOT DISTINCT FROM COALESCE(
-           (SELECT ANY_VALUE(direction_ref) FROM delays_by_stop
-            WHERE service_journey_id = '${esc(sjId)}'),
-           direction_ref)`
-      : "";
-  return `
-    WITH arr_raw AS (
-      SELECT date, delay_arrival_min AS arr_delay,
-        (CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER)) AS aimed_min
-      FROM delays_by_stop
-      WHERE line_ref = '${esc(s.arrLineRef)}'
-        AND stop_ref = '${esc(s.arrQuayRef)}'
-        AND day_type = '${esc(s.dayType)}'
-        AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
-        ${dirClause(s.arrSjId)}
-    ),
-    arr AS (
-      SELECT date, arr_delay FROM arr_raw
-      WHERE aimed_min BETWEEN ${arrLo} AND ${arrHi}
-      QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.arrAimedMin})) = 1
-    ),
-    dep_raw AS (
-      SELECT date, delay_departure_min AS dep_delay,
-        (CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60 +
-         CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER)) AS aimed_min
-      FROM delays_by_stop
-      WHERE line_ref = '${esc(s.depLineRef)}'
-        AND stop_ref = '${esc(s.depQuayRef)}'
-        AND day_type = '${esc(s.dayType)}'
-        AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
-        ${dirClause(s.depSjId)}
-    ),
-    dep AS (
-      SELECT date, dep_delay FROM dep_raw
-      WHERE aimed_min BETWEEN ${depLo} AND ${depHi}
-      QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY ABS(aimed_min - ${s.depAimedMin})) = 1
-    )
-    SELECT (${plannedGap} + dep.dep_delay - arr.arr_delay) AS gap
-    FROM arr INNER JOIN dep ON arr.date = dep.date
-  `;
-}
-
-/** Hook: empirical per-day gap distributions per transfer. */
-function useTransferGaps(
-  specs: TransferSpec[],
-  duckReady: boolean,
-  duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
-) {
-  return useQuery<Map<string, TransferGapResult>>({
-    queryKey: [
-      "transfer-gaps",
-      ...specs.map(s => `${s.key}|${s.arrSjId ?? ""}|${s.depSjId ?? ""}|${s.arrAimedMin ?? ""}|${s.depAimedMin ?? ""}|${s.dayType}`),
-    ],
-    enabled: duckReady && specs.length > 0,
-    staleTime: Infinity,
-    queryFn: async () => {
-      const out = new Map<string, TransferGapResult>();
-      for (const s of specs) {
-        // Try primary (specific service journeys)
-        const primarySql = specificGapSql(s);
-        let gaps: number[] = [];
-        let source: TransferGapResult["source"] = "none";
-        if (primarySql) {
-          const rows = await duckQuery(primarySql, undefined, { family: "by-stop" }) as Array<{ gap: number }>;
-          gaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
-          if (gaps.length >= SPECIFIC_MIN_DAYS) source = "specific";
-        }
-        if (source === "none") {
-          const fallbackSql = fallbackGapSql(s);
-          if (fallbackSql) {
-            const rows = await duckQuery(fallbackSql, undefined, { family: "by-stop" }) as Array<{ gap: number }>;
-            const fallbackGaps = rows.map(r => Number(r.gap)).filter(g => Number.isFinite(g));
-            if (fallbackGaps.length > 0) {
-              gaps = fallbackGaps;
-              source = "fallback";
-            }
-          }
-        }
-        out.set(s.key, { gaps, source });
-      }
-      return out;
-    },
-  });
-}
 
 /** Build SQL for per-SJ (delta=undefined) or hour-window (delta=1|2) leg timing query.
  *  aimed_departure / aimed_arrival columns in Parquet are "HH:MM:SS" time strings. */
@@ -389,8 +184,6 @@ function useEstimatedLegTimes(
   });
 }
 
-/** Empirical transfer probability: fraction of historical days where
- *  the actual gap was at least the required buffer (walk + margin). */
 /** Stabil nøkkel for et reiseforslag — brukes til dedup ved paginering og som React key. */
 function patternKey(p: TripPattern): string {
   return `${p.expectedStartTime}|${p.expectedEndTime}|${p.legs
@@ -489,15 +282,6 @@ function shiftPatternLeg(
     (new Date(expectedEndTime).getTime() - new Date(expectedStartTime).getTime()) / 1000;
 
   return { ...pattern, legs, expectedStartTime, expectedEndTime, duration };
-}
-
-function probFromGaps(gaps: number[], requiredBuffer: number): number {
-  if (gaps.length === 0) return -1;
-  let made = 0;
-  for (const g of gaps) {
-    if (g >= requiredBuffer) made++;
-  }
-  return made / gaps.length;
 }
 
 /**
@@ -616,7 +400,7 @@ function useFallbackChain(opts: {
   walkSpeedKmh: number;
   transferMarginMin: number;
   duckReady: boolean;
-  duckQuery: (sql: string) => Promise<any[]>;
+  duckQuery: DuckQueryFn;
 }) {
   const {
     enabled, transferQuayId, destination, missProb, missArrivalIso,
@@ -667,25 +451,9 @@ function useFallbackChain(opts: {
         const walks = transferWalkTimes(pattern);
         for (let t = 0; t < specs.length; t++) {
           let gaps: number[] = [];
-          const sql = specificGapSql(specs[t]);
-          if (sql) {
-            try {
-              gaps = (await duckQuery(sql))
-                .map((r: any) => Number(r.gap))
-                .filter((g: number) => Number.isFinite(g));
-            } catch { /* ignorér — behandles som manglende data */ }
-          }
-          if (gaps.length < SPECIFIC_MIN_DAYS) {
-            const fsql = fallbackGapSql(specs[t]);
-            if (fsql) {
-              try {
-                const g2 = (await duckQuery(fsql))
-                  .map((r: any) => Number(r.gap))
-                  .filter((g: number) => Number.isFinite(g));
-                if (g2.length > 0) gaps = g2;
-              } catch { /* ignorér */ }
-            }
-          }
+          try {
+            gaps = (await computeTransferGap(specs[t], duckQuery)).gaps;
+          } catch { /* ignorér — behandles som manglende data */ }
           if (gaps.length > 0) {
             const p = probFromGaps(gaps, (walks[t] ?? 0) + transferMarginMin);
             makeProb *= Math.max(0, p);
@@ -1241,23 +1009,202 @@ const PLAN_LETTERS = ["B", "C", "D", "E"];
 // Legg med flere stopp enn dette kollapses til første + siste stopp
 const STOP_COLLAPSE_THRESHOLD = 8;
 
-/** "Vis mer" for en fallback-plan: legg-for-legg med avgangs-/ankomsttider og
- *  DuckDB-estimerte tider (~P50 i oransje, P80 i rødt) der vi har data. */
-function FallbackStepDetails({
+// ---------------------------------------------------------------------------
+// Overgangsinfo per transit→transit-bytte (beregnet i TripCard, vist både i
+// den kompakte inline-raden og i reiseanalyse-dialogen)
+// ---------------------------------------------------------------------------
+
+type TransferProbs = { default: number; user: number; sprint: number };
+
+type TransferInfo = {
+  buffer: number;         // totalt planlagt gap (minutter)
+  walkTime: number;       // gangtid mellom A og B (minutter)
+  sprintWalkTime: number; // gangtid skalert til spurt-tempo
+  probs: TransferProbs;   // 3 empiriske sannsynligheter, -1 = ukjent
+  daysObserved: number;   // antall historiske dager gapet er observert
+  source: "specific" | "fallback" | "none";
+  fromLine: string | null;
+  toLine: string | null;
+  assumingOnTime: boolean;
+  // true når planlagt gap < gangtid — overgangen er umulig selv uten
+  // forsinkelse (oppstår typisk etter manuelt bytte av avgang på et legg)
+  broken: boolean;
+  observations: TransferGapObservation[]; // per-dag-observasjoner, nyeste først
+};
+
+const OBSERVATION_TABLE_LIMIT = 10;
+
+/** Reiseanalyse-dialog for én overgang: de tre sannsynlighetene, datakilde,
+ *  og ("Vis data") de siste faktiske forekomstene av overgangen — samme idé
+ *  som enkeltavgangs-tabellen i stoppanalysen. */
+function TransferAnalysisDialog({
+  info,
+  transferMarginMin,
+  sprintSpeedKmh,
+  onClose,
+}: {
+  info: TransferInfo;
+  transferMarginMin: number;
+  sprintSpeedKmh: number;
+  onClose: () => void;
+}) {
+  const [showData, setShowData] = useState(false);
+  // "Rakk"-kolonnen bruker samme terskel som "Med X min margin"-raden
+  const requiredGap = info.walkTime + transferMarginMin;
+  const rows = info.observations.slice(0, OBSERVATION_TABLE_LIMIT);
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base">
+            Reiseanalyse — overgang
+            {info.fromLine && info.toLine && <> linje {info.fromLine} → {info.toLine}</>}
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Planlagt gap {info.buffer.toFixed(0)} min
+            {info.walkTime > 0 && <>, hvorav {info.walkTime.toFixed(1)} min gange</>}.
+            Sannsynlighetene telles opp dag for dag i historikken — ingen simulering.
+          </DialogDescription>
+        </DialogHeader>
+
+        {info.probs.default >= 0 ? (
+          <div className="flex flex-col gap-1 text-xs">
+            {info.daysObserved < 5 && (
+              <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">
+                <AlertTriangle className="h-3 w-3 inline mr-1" />
+                Kun {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground w-48">Med 2 min margin:</span>
+              {probabilityBadge(info.probs.default)}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground w-48">Med {transferMarginMin} min margin:</span>
+              {info.probs.user >= 0
+                ? probabilityBadge(info.probs.user)
+                : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground w-48">
+                Spurt ({sprintSpeedKmh.toFixed(1)} km/t + 30 sek):
+              </span>
+              {info.probs.sprint >= 0
+                ? probabilityBadge(info.probs.sprint)
+                : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
+            </div>
+            <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
+              Basert på {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"}
+              {info.source === "specific"
+                ? " hvor begge avgangene har gått (samme avgangs-ID). Hver dag sammenliknes faktisk ankomst med faktisk avgang."
+                : info.source === "fallback"
+                  ? " med sammenlignbare avganger (samme linje, stopp, retning, time og dagtype). Én sammenligning per dag: planlagt gap + forskjellen i forsinkelse den dagen."
+                  : "."}{" "}
+              <a href="/metode#overgang" className="text-primary hover:underline">Metode →</a>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">
+            Mangler forsinkelsesdata for å vurdere denne overgangen.
+          </p>
+        )}
+
+        {rows.length > 0 && (
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setShowData((v) => !v)}
+            >
+              <Database className="h-3 w-3 mr-1" />
+              {showData ? "Skjul data" : "Vis data"}
+            </Button>
+            {showData && (
+              <>
+                <div className="max-h-56 overflow-y-auto rounded-md border border-border">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-muted-foreground text-left bg-muted/40">
+                        <th className="py-1 px-2 font-medium">Dato</th>
+                        <th className="py-1 px-2 font-medium text-right">Ankomst</th>
+                        <th className="py-1 px-2 font-medium text-right">Avgang</th>
+                        <th className="py-1 px-2 font-medium text-right">Gap</th>
+                        <th className="py-1 px-2 font-medium text-right">Rakk?</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-mono">
+                      {rows.map((o) => {
+                        const made = o.gap >= requiredGap;
+                        return (
+                          <tr key={o.date} className="border-t border-border/50">
+                            <td className="py-1 px-2 whitespace-nowrap font-sans">
+                              {formatWeekdayDateNO(o.date)}
+                            </td>
+                            <td className="py-1 px-2 text-right tabular-nums">
+                              {o.arrActualMin != null ? minutesToHM(o.arrActualMin) : "—"}
+                            </td>
+                            <td className="py-1 px-2 text-right tabular-nums">
+                              {o.depActualMin != null ? minutesToHM(o.depActualMin) : "—"}
+                            </td>
+                            <td className="py-1 px-2 text-right tabular-nums">
+                              {o.gap.toFixed(1)}m
+                            </td>
+                            <td className={cn(
+                              "py-1 px-2 text-right",
+                              made ? "text-green-600" : "text-red-500",
+                            )}>
+                              {made ? "✓" : "✗"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  De {rows.length} siste av {info.daysObserved}{" "}
+                  {info.daysObserved === 1 ? "dag" : "dager"} med observasjoner.
+                  «Rakk?» = gap ≥ gangtid + din margin ({requiredGap.toFixed(1)} min).
+                  {info.source === "fallback" && (
+                    <> Ankomst-/avgangstid vises ikke: tallene er beregnet fra
+                    sammenlignbare naboavganger (planlagt gap ± forsinkelsesforskjell),
+                    ikke akkurat dine avganger.</>
+                  )}
+                </p>
+              </>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Detaljer for en plan i treet: forsinkelse-langs-ruten-graf +
+ *  legg-for-legg med avgangs-/ankomsttider og DuckDB-estimerte tider
+ *  (~P50 i oransje, P80 i rødt) der vi har data. */
+function PlanNodeDetails({
   pattern,
   duckReady,
   duckQuery,
 }: {
   pattern: TripPattern;
   duckReady: boolean;
-  duckQuery: (sql: string) => Promise<any[]>;
+  duckQuery: DuckQueryFn;
 }) {
+  // Alle stopp langs rutene (inkl. mellomstopp) — grafen trenger hele profilen.
   const pairs = useMemo(() => {
     const out: Array<{ stopRef: string; lineRef: string }> = [];
     const seen = new Set<string>();
     for (const leg of pattern.legs) {
       if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-      for (const q of [leg.fromPlace.quay?.id, leg.toPlace.quay?.id]) {
+      for (const q of [
+        leg.fromPlace.quay?.id,
+        ...leg.intermediateQuays.map((iq) => iq.id),
+        leg.toPlace.quay?.id,
+      ]) {
         if (!q) continue;
         const k = `${q}|${leg.line.id}`;
         if (!seen.has(k)) {
@@ -1273,6 +1220,7 @@ function FallbackStepDetails({
 
   return (
     <div className="ml-2 mt-1 mb-1 border-l border-border pl-2 space-y-1">
+      <PlanDelayChart pattern={pattern} stats={stats} />
       {pattern.legs.map((leg, i) => {
         if (leg.mode === "foot") {
           const min = Math.round((leg.duration ?? 0) / 60);
@@ -1352,7 +1300,7 @@ function TransferFallbacks({
   walkSpeedKmh: number;
   transferMarginMin: number;
   duckReady: boolean;
-  duckQuery: (sql: string) => Promise<any[]>;
+  duckQuery: DuckQueryFn;
 }) {
   const legA = pattern.legs[legAIdx];
 
@@ -1400,8 +1348,8 @@ function TransferFallbacks({
     duckQuery,
   });
 
-  // Hvilken plan som viser detaljer ("Vis mer")
-  const [openStep, setOpenStep] = useState<number | null>(null);
+  // Hvilken plan-node som viser graf/detaljer: "A", "0", "0-alt-1", ...
+  const [openKey, setOpenKey] = useState<string | null>(null);
 
   // Forventet ankomst: p(A) × ankomst_A + Σ p(bruk plan k) × ankomst_k.
   // Siste plan i kjeden får all gjenværende sannsynlighet (kjeden er kuttet <5 %).
@@ -1431,84 +1379,131 @@ function TransferFallbacks({
 
   const origArrMs = new Date(pattern.expectedEndTime).getTime();
 
+  // Tre-struktur: kjeden av planer (B → C → D ...), med rene alternativer
+  // (altOnly, f.eks. buss når gange er raskest) hektet på planen de følger.
+  const chain: Array<{ step: FallbackStep; alts: FallbackStep[] }> = [];
+  for (const s of steps ?? []) {
+    if (s.altOnly && chain.length > 0) chain[chain.length - 1].alts.push(s);
+    else if (!s.altOnly) chain.push({ step: s, alts: [] });
+  }
+
+  const detailsToggle = (k: string) => (
+    <button
+      className="text-primary hover:underline flex items-center gap-0.5 flex-shrink-0"
+      onClick={() => setOpenKey(openKey === k ? null : k)}
+    >
+      <BarChart3 className="h-2.5 w-2.5" />
+      {openKey === k ? (
+        <>Skjul graf <ChevronUp className="h-2.5 w-2.5" /></>
+      ) : (
+        <>Vis graf <ChevronDown className="h-2.5 w-2.5" /></>
+      )}
+    </button>
+  );
+
+  const renderPlanRow = (step: FallbackStep, planIdx: number, k: string) => {
+    const deltaMin = Math.round(
+      (new Date(step.pattern.expectedEndTime).getTime() - origArrMs) / 60000,
+    );
+    const transitLegs = step.pattern.legs.filter((l) => l.mode !== "foot");
+    const walkMinutes = Math.round(
+      step.pattern.legs.reduce((a, l) => a + (l.mode === "foot" ? l.duration ?? 0 : 0), 0) / 60,
+    );
+    return (
+      <div key={k} className="text-xs space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="text-[9px] border-amber-400/60 text-amber-700 dark:text-amber-400">
+            {step.altOnly ? "Alternativ buss" : `Plan ${PLAN_LETTERS[planIdx]}${step.isWalk ? " — gå" : ""}`}
+          </Badge>
+          <span className="font-mono">{formatTime(step.pattern.expectedStartTime)}</span>
+          {step.isWalk ? (
+            <Badge variant="secondary" className="text-[9px] gap-0.5">
+              <Footprints className="h-2.5 w-2.5" />
+              {walkMinutes} min gange
+            </Badge>
+          ) : (
+            transitLegs.map((l, j) => (
+              <Badge key={j} variant="secondary" className="text-[9px] gap-0.5">
+                <ModeIcon mode={l.mode} className="h-2.5 w-2.5" />
+                {l.line?.publicCode ?? modeLabel(l.mode)}
+              </Badge>
+            ))
+          )}
+          <ArrowRight className="h-3 w-3 text-muted-foreground" />
+          <span className="font-mono">{formatTime(step.pattern.expectedEndTime)}</span>
+          <span className={cn("font-mono text-[10px]", deltaMin > 0 ? "text-red-500" : "text-green-600")}>
+            ({deltaMin >= 0 ? "+" : ""}{deltaMin} min)
+          </span>
+        </div>
+        <div className="text-[10px] text-muted-foreground ml-1 flex items-center gap-2 flex-wrap">
+          <span>
+            {step.altOnly ? (
+              <>Hvis du heller vil vente på buss enn å gå — ikke med i tidsestimatet</>
+            ) : (
+              <>Trengs med {Math.round(step.needProb * 100)} % sannsynlighet</>
+            )}
+            {step.isWalk && <> · gange påvirkes ikke av forsinkelser</>}
+            {step.makeProb < 1 && (
+              <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
+                {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
+              </>
+            )}
+          </span>
+          {!step.isWalk && detailsToggle(k)}
+        </div>
+        {openKey === k && (
+          <PlanNodeDetails
+            pattern={step.pattern}
+            duckReady={duckReady}
+            duckQuery={duckQuery}
+          />
+        )}
+      </div>
+    );
+  };
+
+  // Rekursiv gren: "mister du også denne → neste plan"
+  const renderBranch = (i: number): React.ReactNode => {
+    if (i >= chain.length) return null;
+    const { step, alts } = chain[i];
+    return (
+      <div className="ml-1.5 border-l-2 border-amber-300/50 pl-3 pt-1.5 space-y-1">
+        <div className="text-[10px] font-medium text-amber-700 dark:text-amber-400">
+          ↳ {i === 0
+            ? `hvis du mister overgangen (${Math.round(missProb * 100)} % sjanse)`
+            : `hvis du også mister plan ${PLAN_LETTERS[i - 1]} sin overgang (${Math.round(step.needProb * 100)} %)`}
+        </div>
+        {renderPlanRow(step, i, `${i}`)}
+        {alts.map((a, j) => renderPlanRow(a, i, `${i}-alt-${j}`))}
+        {renderBranch(i + 1)}
+      </div>
+    );
+  };
+
   return (
     <div className="ml-5 mt-2 border-l-2 border-amber-300/50 pl-3 space-y-1.5">
       <p className="text-[10px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-        Hvis du mister overgangen ({Math.round(missProb * 100)} % sjanse)
+        Plan A → {PLAN_LETTERS.slice(0, Math.max(chain.length, 1)).join(" → ")}
       </p>
+      {/* Rot-node: planen du faktisk har valgt */}
+      <div className="text-xs space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">Plan A</Badge>
+          <span className="font-mono">{formatTime(pattern.expectedStartTime)}</span>
+          <ArrowRight className="h-3 w-3 text-muted-foreground" />
+          <span className="font-mono">{formatTime(pattern.expectedEndTime)}</span>
+          <span className="text-[10px] text-muted-foreground">
+            rekker overgangen {Math.round((1 - missProb) * 100)} % av dagene
+          </span>
+          {detailsToggle("A")}
+        </div>
+        {openKey === "A" && (
+          <PlanNodeDetails pattern={pattern} duckReady={duckReady} duckQuery={duckQuery} />
+        )}
+      </div>
       {isLoading && <p className="text-xs text-muted-foreground">Beregner plan B...</p>}
       {isError && <p className="text-xs text-muted-foreground italic">Kunne ikke hente alternativ reise.</p>}
-      {steps?.map((step, i) => {
-        const deltaMin = Math.round(
-          (new Date(step.pattern.expectedEndTime).getTime() - origArrMs) / 60000,
-        );
-        const transitLegs = step.pattern.legs.filter((l) => l.mode !== "foot");
-        // Plan-bokstav telles bare for planer som inngår i estimatet
-        const planIdx = steps.slice(0, i + 1).filter((s) => !s.altOnly).length - 1;
-        const walkMinutes = Math.round(
-          step.pattern.legs.reduce((a, l) => a + (l.mode === "foot" ? l.duration ?? 0 : 0), 0) / 60,
-        );
-        return (
-          <div key={i} className="text-xs space-y-0.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-[9px] border-amber-400/60 text-amber-700 dark:text-amber-400">
-                {step.altOnly ? "Alternativ buss" : `Plan ${PLAN_LETTERS[planIdx]}${step.isWalk ? " — gå" : ""}`}
-              </Badge>
-              <span className="font-mono">{formatTime(step.pattern.expectedStartTime)}</span>
-              {step.isWalk ? (
-                <Badge variant="secondary" className="text-[9px] gap-0.5">
-                  <Footprints className="h-2.5 w-2.5" />
-                  {walkMinutes} min gange
-                </Badge>
-              ) : (
-                transitLegs.map((l, j) => (
-                  <Badge key={j} variant="secondary" className="text-[9px] gap-0.5">
-                    <ModeIcon mode={l.mode} className="h-2.5 w-2.5" />
-                    {l.line?.publicCode ?? modeLabel(l.mode)}
-                  </Badge>
-                ))
-              )}
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <span className="font-mono">{formatTime(step.pattern.expectedEndTime)}</span>
-              <span className={cn("font-mono text-[10px]", deltaMin > 0 ? "text-red-500" : "text-green-600")}>
-                ({deltaMin >= 0 ? "+" : ""}{deltaMin} min)
-              </span>
-            </div>
-            <div className="text-[10px] text-muted-foreground ml-1 flex items-center gap-2">
-              <span>
-                {step.altOnly ? (
-                  <>Hvis du heller vil vente på buss enn å gå — ikke med i tidsestimatet</>
-                ) : (
-                  <>Trengs med {Math.round(step.needProb * 100)} % sannsynlighet</>
-                )}
-                {step.isWalk && <> · gange påvirkes ikke av forsinkelser</>}
-                {step.makeProb < 1 && (
-                  <> · egen overgang går {Math.round(step.makeProb * 100)} % av dagene
-                    {step.daysObservedMin != null && ` (${step.daysObservedMin} dager data)`}
-                  </>
-                )}
-              </span>
-              <button
-                className="text-primary hover:underline flex items-center gap-0.5"
-                onClick={() => setOpenStep(openStep === i ? null : i)}
-              >
-                {openStep === i ? (
-                  <>Vis mindre <ChevronUp className="h-2.5 w-2.5" /></>
-                ) : (
-                  <>Vis mer <ChevronDown className="h-2.5 w-2.5" /></>
-                )}
-              </button>
-            </div>
-            {openStep === i && (
-              <FallbackStepDetails
-                pattern={step.pattern}
-                duckReady={duckReady}
-                duckQuery={duckQuery}
-              />
-            )}
-          </div>
-        );
-      })}
+      {renderBranch(0)}
       {expectation && (
         <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
           <span className="font-medium">Forventet ankomst: </span>
@@ -1558,6 +1553,8 @@ function TripCard({
   onPatternChange,
   destination,
   selectedModes,
+  gapMap,
+  showPct,
 }: {
   pattern: TripPattern;
   index: number;
@@ -1567,35 +1564,36 @@ function TripCard({
   walkSpeedKmh: number;
   sprintSpeedKmh: number;
   duckReady: boolean;
-  duckQuery: (sql: string) => Promise<any[]>;
+  duckQuery: DuckQueryFn;
   expanded: boolean;
   onToggleExpanded: () => void;
   onPatternChange: (newPattern: TripPattern) => void;
   destination: Record<string, unknown> | null;
   selectedModes: string[];
+  /** Overgangs-gap beregnet på sidenivå (prefetches for alle forslag). */
+  gapMap?: Map<string, TransferGapResult>;
+  /** Hvilke persentil-kolonner som vises per stopp. */
+  showPct: { p50: boolean; p80: boolean; p95: boolean };
 }) {
   // Hvilket legg som viser "andre avganger"-panelet
   const [altOpenLeg, setAltOpenLeg] = useState<number | null>(null);
   // Legg der brukeren har utvidet den kollapsede stopplisten
   const [stopsExpandedLegs, setStopsExpandedLegs] = useState<Set<number>>(new Set());
-  // Reiseanalyse: viser alle mellomstopp for alle legg samtidig + P95
-  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
+  // Reiseanalyse-dialog: hvilken overgang (indeks) som er åpen
+  const [analysisOpenIdx, setAnalysisOpenIdx] = useState<number | null>(null);
+  // Legg der brukeren har åpnet "hele avgangen"-visningen (klikk på linjenr)
+  const [journeyOpenLeg, setJourneyOpenLeg] = useState<number | null>(null);
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
-  // Stable shape so the gap-fetching hook below has a stable cache key.
+  // Samme spec-nøkler ("t0", "t1", ...) som sidenivå-prefetchen bruker.
   const transferSpecs = useMemo<TransferSpec[]>(
     () => buildTransferSpecsForPattern(pattern),
     [pattern],
   );
 
-  // Kjør bare overgangs-/tidsspørringene for UTVIDEDE kort. Tidligere fyrte
-  // alle 10-17 reiseforslag sine spørringer samtidig i det duckReady slo til —
-  // 40+ spørringer i kø på én DuckDB-worker, så selv det øverste (utvidede)
-  // kortet måtte vente på alle de andre. Nå regnes kun kortene brukeren ser
-  // detaljene til; resten beregnes i det de utvides (~1-2 sek).
+  // Estimert avgangs-/ankomsttid spørres fortsatt bare for UTVIDEDE kort —
+  // overgangs-gapene kommer ferdig beregnet fra sidenivået (gapMap-prop).
   const duckActive = duckReady && expanded;
-
-  const { data: gapMap } = useTransferGaps(transferSpecs, duckActive, duckQuery);
 
   // ---------- Per-SJ estimated departure/arrival times ----------
   const legTimingSpecs = useMemo<LegTimingSpec[]>(() => {
@@ -1631,21 +1629,6 @@ function TripCard({
   // come from the same day. Falls back to hour-of-day pooling per (line, stop)
   // when the specific SJ pair has too few historical observations.
   const transferAnalysis = useMemo(() => {
-    type Probs = { default: number; user: number; sprint: number };
-    type TransferInfo = {
-      buffer: number;         // total gap (planned, minutes)
-      walkTime: number;       // walking minutes between A and B
-      sprintWalkTime: number; // walkTime scaled to sprint speed
-      probs: Probs;           // 3 empirical probabilities, -1 = unknown
-      daysObserved: number;   // # of historical days the gap was observed on
-      source: "specific" | "fallback" | "none";
-      fromLine: string | null;
-      toLine: string | null;
-      assumingOnTime: boolean;
-      // true når planlagt gap < gangtid — overgangen er umulig selv uten
-      // forsinkelse (oppstår typisk etter manuelt bytte av avgang på et legg)
-      broken: boolean;
-    };
     const transfers: TransferInfo[] = [];
 
     const transitIdxs: number[] = [];
@@ -1687,6 +1670,7 @@ function TripCard({
           toLine: legB.line?.publicCode ?? null,
           assumingOnTime: false,
           broken: true,
+          observations: [],
         });
         continue;
       }
@@ -1705,7 +1689,7 @@ function TripCard({
         return probFromGaps(gaps, requiredBuffer);
       };
 
-      const probs: Probs = {
+      const probs: TransferProbs = {
         default: probFor(walkTime + 2),
         user: probFor(walkTime + transferMarginMin),
         sprint: probFor(sprintWalkTime + 0.5),
@@ -1722,6 +1706,7 @@ function TripCard({
         toLine: legB.line?.publicCode ?? null,
         assumingOnTime,
         broken: false,
+        observations: gapResult?.observations ?? [],
       });
     }
 
@@ -1885,50 +1870,13 @@ function TripCard({
 
       {expanded && (
         <CardContent className="pt-0 space-y-3">
-          <div className="flex justify-end">
-            <Button
-              variant={showFullAnalysis ? "secondary" : "outline"}
-              size="sm"
-              className="h-7 px-2 text-[11px]"
-              onClick={() => setShowFullAnalysis((v) => !v)}
-            >
-              <BarChart3 className="h-3 w-3 mr-1" />
-              {showFullAnalysis ? "Skjul reiseanalyse" : "Vis reiseanalyse"}
-            </Button>
-          </div>
           {pattern.legs.map((leg, legIdx) => {
             const lineRef = leg.line?.id ?? "";
             const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
 
-            // All quay stops in this leg, with timing from serviceJourney.passingTimes
-            type StopEntry = { id: string; name: string; aimedTime: string | null };
-
-            // Build a quayId → ISO datetime map from passingTimes
-            const passingTimeMap = new Map<string, string>();
-            if (leg.serviceJourney?.passingTimes?.length) {
-              const baseDate = leg.expectedStartTime.slice(0, 10); // YYYY-MM-DD
-              for (const pt of leg.serviceJourney.passingTimes) {
-                if (!pt.quay?.id) continue;
-                const td = pt.departure ?? pt.arrival;
-                if (!td?.time) continue;
-                // time is "HH:MM:SS", dayOffset 0 or 1 for past-midnight
-                const [hStr, mStr, sStr] = td.time.split(":");
-                const dateObj = new Date(`${baseDate}T00:00:00`);
-                dateObj.setDate(dateObj.getDate() + (td.dayOffset ?? 0));
-                dateObj.setHours(parseInt(hStr, 10), parseInt(mStr, 10), parseInt(sStr ?? "0", 10));
-                passingTimeMap.set(pt.quay.id, dateObj.toISOString());
-              }
-            }
-
-            const allStops: StopEntry[] = [
-              leg.fromPlace.quay
-                ? { ...leg.fromPlace.quay, aimedTime: passingTimeMap.get(leg.fromPlace.quay.id) ?? leg.expectedStartTime }
-                : null,
-              ...leg.intermediateQuays.map((q) => ({ ...q, aimedTime: passingTimeMap.get(q.id) ?? null })),
-              leg.toPlace.quay
-                ? { ...leg.toPlace.quay, aimedTime: passingTimeMap.get(leg.toPlace.quay.id) ?? leg.expectedEndTime }
-                : null,
-            ].filter(Boolean) as StopEntry[];
+            // Alle quay-stopp i legget, med rutetid fra serviceJourney.passingTimes
+            // (delt hjelper — samme logikk brukes av plan-grafene)
+            const allStops: StopEntry[] = legStops(leg);
 
             // Attach transferInfo on the inbound transit leg (= legA of a transit→transit pair).
             const transferIdx = transferAnalysis.transferIdxByLeg.get(legIdx);
@@ -1955,22 +1903,45 @@ function TripCard({
                 <div className="border rounded-lg p-3 bg-muted/20">
                   {/* Leg header */}
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <ModeIcon mode={leg.mode} className="h-4 w-4 text-primary" />
-                      {leg.line?.publicCode ? (
-                        <Badge className="text-xs font-mono">{leg.line.publicCode}</Badge>
+                    {(() => {
+                      const canOpenJourney = !!leg.serviceJourney?.id;
+                      const journeyOpen = journeyOpenLeg === legIdx;
+                      const header = (
+                        <>
+                          <ModeIcon mode={leg.mode} className="h-4 w-4 text-primary" />
+                          {leg.line?.publicCode ? (
+                            <Badge className="text-xs font-mono">{leg.line.publicCode}</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">{modeLabel(leg.mode)}</Badge>
+                          )}
+                          {leg.line?.name && (
+                            <span className="text-xs text-muted-foreground truncate max-w-48">{leg.line.name}</span>
+                          )}
+                          {canOpenJourney && (
+                            journeyOpen
+                              ? <ChevronUp className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              : <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          )}
+                          {!hasDelayData && (
+                            <span className="text-[9px] text-muted-foreground/60 italic">
+                              mangler data{leg.line?.publicCode ? ` for linje ${leg.line.publicCode}` : ""}
+                            </span>
+                          )}
+                        </>
+                      );
+                      return canOpenJourney ? (
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity text-left"
+                          title="Vis hele avgangen (alle stopp) med forsinkelsestall"
+                          onClick={() => setJourneyOpenLeg(journeyOpen ? null : legIdx)}
+                        >
+                          {header}
+                        </button>
                       ) : (
-                        <Badge variant="secondary" className="text-xs">{modeLabel(leg.mode)}</Badge>
-                      )}
-                      {leg.line?.name && (
-                        <span className="text-xs text-muted-foreground truncate max-w-48">{leg.line.name}</span>
-                      )}
-                      {!hasDelayData && (
-                        <span className="text-[9px] text-muted-foreground/60 italic">
-                          mangler data{leg.line?.publicCode ? ` for linje ${leg.line.publicCode}` : ""}
-                        </span>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-2">{header}</div>
+                      );
+                    })()}
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-muted-foreground">
                         {formatTime(leg.expectedStartTime)} - {formatTime(leg.expectedEndTime)}
@@ -1988,6 +1959,23 @@ function TripCard({
                       )}
                     </div>
                   </div>
+
+                  {/* Hele avgangen (alle stopp) — prefetches i bakgrunnen når
+                      kortet er utvidet, vises når linjenr. klikkes. */}
+                  {leg.serviceJourney?.id && leg.line?.id && (
+                    <ServiceJourneyDetail
+                      sjId={leg.serviceJourney.id}
+                      dateIso={leg.expectedStartTime}
+                      lineRef={leg.line.id}
+                      highlightFromQuay={leg.fromPlace.quay?.id ?? null}
+                      highlightToQuay={leg.toPlace.quay?.id ?? null}
+                      open={journeyOpenLeg === legIdx}
+                      active={expanded}
+                      showPct={showPct}
+                      duckReady={duckReady}
+                      duckQuery={duckQuery}
+                    />
+                  )}
 
                   {/* Stops along leg — lange legg kollapses til første + siste stopp */}
                   {(() => {
@@ -2008,13 +1996,13 @@ function TripCard({
                       const p95Raw = isLast
                         ? (duckStop?.p95_arr ?? null)
                         : (duckStop?.p95_dep ?? null);
-                      const p50Time = stop.aimedTime && p50Raw != null
+                      const p50Time = showPct.p50 && stop.aimedTime && p50Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p50Raw))
                         : null;
-                      const p80Time = stop.aimedTime && p80Raw != null
+                      const p80Time = showPct.p80 && stop.aimedTime && p80Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p80Raw))
                         : null;
-                      const p95Time = showFullAnalysis && stop.aimedTime && p95Raw != null
+                      const p95Time = showPct.p95 && stop.aimedTime && p95Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p95Raw))
                         : null;
 
@@ -2030,6 +2018,19 @@ function TripCard({
                           )}>
                             {stop.name}
                           </span>
+                          {/* Perrong/plattform — vises på på-/avstigning (og alle stopp med kjent perrong) */}
+                          {stop.platform && (
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[9px] px-1 py-0 font-mono flex-shrink-0",
+                                (isFirst || isLast) ? "border-primary/40 text-primary" : "text-muted-foreground",
+                              )}
+                              title="Perrong"
+                            >
+                              Perrong {stop.platform}
+                            </Badge>
+                          )}
                           {/* Timetable time */}
                           {stop.aimedTime && (
                             <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
@@ -2059,7 +2060,6 @@ function TripCard({
                     };
 
                     const collapsed =
-                      !showFullAnalysis &&
                       allStops.length > STOP_COLLAPSE_THRESHOLD &&
                       !stopsExpandedLegs.has(legIdx);
 
@@ -2082,7 +2082,7 @@ function TripCard({
                         ) : (
                           <>
                             {allStops.map(renderStopRow)}
-                            {!showFullAnalysis && allStops.length > STOP_COLLAPSE_THRESHOLD && (
+                            {allStops.length > STOP_COLLAPSE_THRESHOLD && (
                               <button
                                 className="flex items-center gap-1 text-[11px] text-primary hover:underline py-0.5 ml-3.5"
                                 onClick={() =>
@@ -2116,86 +2116,63 @@ function TripCard({
                   )}
                 </div>
 
-                {/* Transfer indicator with three probabilities */}
+                {/* Kompakt overgangsrad — detaljene bor i reiseanalyse-dialogen */}
                 {transferInfo && (
                   <div className="py-2 px-3 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <ArrowDown className="h-3 w-3 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        Overgang: {transferInfo.buffer.toFixed(0)} min total
+                        Overgang: {transferInfo.buffer.toFixed(0)} min
+                        {transferInfo.walkTime > 0 && ` (${transferInfo.walkTime.toFixed(1)} min gange)`}
+                        {transferInfo.fromLine && transferInfo.toLine && (
+                          <> · linje {transferInfo.fromLine} &rarr; {transferInfo.toLine}</>
+                        )}
                         <InfoTip learnMoreHref="/metode#overgang">
                           Sannsynligheten for å rekke overgangen beregnes empirisk fra historiske
                           dager der begge avgangene faktisk gikk. Ikke en simulering eller
                           gjennomsnittsberegning.
                         </InfoTip>
                       </span>
-                      {transferInfo.walkTime > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          ({transferInfo.walkTime.toFixed(1)} min gange)
-                        </span>
+                      {transferInfo.broken ? (
+                        <Badge variant="destructive" className="text-[10px]">rekker ikke</Badge>
+                      ) : transferInfo.probs.default >= 0 ? (
+                        probabilityBadge(transferInfo.probs.default)
+                      ) : gapMap ? (
+                        <Badge variant="outline" className="text-muted-foreground/50 border-dashed text-[9px]">
+                          ingen data
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground/50 border-dashed text-[9px]">
+                          beregner…
+                        </Badge>
                       )}
-                      {transferInfo.fromLine && transferInfo.toLine && (
-                        <span className="text-xs text-muted-foreground">
-                          Linje {transferInfo.fromLine} &rarr; Linje {transferInfo.toLine}
-                        </span>
+                      {!transferInfo.broken && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-[10px]"
+                          onClick={() => setAnalysisOpenIdx(transferIdx ?? null)}
+                        >
+                          <BarChart3 className="h-3 w-3 mr-1" />
+                          Reiseanalyse
+                        </Button>
                       )}
                     </div>
-                    {transferInfo.broken ? (
+                    {transferInfo.broken && (
                       <div className="ml-5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1.5 font-medium">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Rekker ikke neste buss — gapet ({transferInfo.buffer.toFixed(0)} min) er
                         mindre enn gangtiden ({transferInfo.walkTime.toFixed(1)} min). Bytt til en
                         senere avgang på neste legg, eller en tidligere på dette.
                       </div>
-                    ) : transferInfo.probs.default >= 0 ? (
-                      <div className="flex flex-col gap-0.5 ml-5 text-xs">
-                        {transferInfo.daysObserved < 5 && (
-                          <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">
-                            <AlertTriangle className="h-3 w-3 inline mr-1" />
-                            Kun {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground w-44">
-                            Med 2 min margin:
-                          </span>
-                          {probabilityBadge(transferInfo.probs.default)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground w-44">
-                            Med {transferMarginMin} min margin:
-                          </span>
-                          {transferInfo.probs.user >= 0
-                            ? probabilityBadge(transferInfo.probs.user)
-                            : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground w-44">
-                            Spurt ({sprintSpeedKmh.toFixed(1)} km/t + 30 sek):
-                          </span>
-                          {transferInfo.probs.sprint >= 0
-                            ? probabilityBadge(transferInfo.probs.sprint)
-                            : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
-                          Basert på {transferInfo.daysObserved}{" "}
-                          {transferInfo.daysObserved === 1 ? "dag" : "dager"}
-                          {transferInfo.source === "specific"
-                            ? " hvor begge avgangene har gått (samme avgangs-ID)."
-                            : transferInfo.source === "fallback"
-                              ? " med sammenlignbare avganger (samme linje, stopp, retning, time og dagtype). Én sammenligning per dag: planlagt gap + forskjellen i forsinkelse den dagen."
-                              : "."}
-                          {transferInfo.source === "specific" && (
-                            <> Hver dag sammenliknes faktisk ankomst med faktisk avgang.</>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="ml-5 text-[10px] text-muted-foreground/60 italic">
-                        mangler forsinkelsesdata for vurdering
+                    )}
+                    {!transferInfo.broken && transferInfo.daysObserved > 0 && transferInfo.daysObserved < 5 && (
+                      <div className="ml-5 text-[10px] text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="h-3 w-3 inline mr-1" />
+                        Kun {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
                       </div>
                     )}
-                    {/* Plan B/C/D når overgangen kan ryke (>5 % sjanse) */}
+                    {/* Plan-tre (B/C/D) når overgangen kan ryke (>5 % sjanse) */}
                     {destination &&
                       (transferInfo.broken ||
                         (transferInfo.probs.default >= 0 && transferInfo.probs.default < 0.95)) && (
@@ -2217,6 +2194,15 @@ function TripCard({
               </div>
             );
           })}
+          {/* Reiseanalyse-dialog for valgt overgang */}
+          {analysisOpenIdx != null && transferAnalysis.transfers[analysisOpenIdx] && (
+            <TransferAnalysisDialog
+              info={transferAnalysis.transfers[analysisOpenIdx]}
+              transferMarginMin={transferMarginMin}
+              sprintSpeedKmh={sprintSpeedKmh}
+              onClose={() => setAnalysisOpenIdx(null)}
+            />
+          )}
         </CardContent>
       )}
     </Card>
@@ -2302,8 +2288,52 @@ export default function TripPlanner() {
   // Statistics time window filter
   const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
 
+  // Hvilke persentil-kolonner som vises per stopp (alle på som standard)
+  const [showPct, setShowPct] = useState({ p50: true, p80: true, p95: true });
+
   // DuckDB-WASM for empirical percentiles
   const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
+
+  // ---------------------------------------------------------------------------
+  // Overgangs-gap for ALLE reiseforslag, beregnet sekvensielt i bakgrunnen.
+  // Utvidede kort prioriteres (typisk det øverste); resten fylles inn
+  // topp-til-bunn slik at %-merkene dukker opp på sammenslåtte kort etter
+  // hvert som de blir klare. Én DuckDB-rundtur per overgang (primær +
+  // fallback UNION-et i samme spørring — se lib/trip-shared.ts).
+  // ---------------------------------------------------------------------------
+  const [gapResults, setGapResults] = useState<Map<string, Map<string, TransferGapResult>>>(new Map());
+  const gapResultsRef = useRef(gapResults);
+  gapResultsRef.current = gapResults;
+  const gapGen = useRef(0);
+  useEffect(() => {
+    if (!duckReady || tripPatterns.length === 0) return;
+    const gen = ++gapGen.current;
+    const ordered = [...tripPatterns].sort(
+      (a, b) =>
+        (expandedKeys.has(patternKey(b)) ? 1 : 0) - (expandedKeys.has(patternKey(a)) ? 1 : 0),
+    );
+    (async () => {
+      for (const p of ordered) {
+        if (gapGen.current !== gen) return; // nytt søk/ny prioritering — avbryt
+        const key = patternKey(p);
+        if (gapResultsRef.current.has(key)) continue;
+        const specs = buildTransferSpecsForPattern(p);
+        try {
+          const m = specs.length > 0
+            ? await computeTransferGaps(specs, duckQuery)
+            : new Map<string, TransferGapResult>();
+          if (gapGen.current !== gen) return;
+          setGapResults((prev) => new Map(prev).set(key, m));
+        } catch (err) {
+          // Forbigående DuckDB-/nettverksfeil: hopp over — kortet viser
+          // "beregner…" og forsøkes igjen neste gang effekten kjører.
+          if (import.meta.env.DEV) {
+            console.warn("[trip] overgangs-gap feilet for", key, err);
+          }
+        }
+      }
+    })();
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery]);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
@@ -2893,14 +2923,35 @@ export default function TripPlanner() {
         {/* Results */}
         {tripPatterns.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">
-              {tripPatterns.length} reiseforslag
-              {delayStats.size > 0 && (
-                <span className="text-sm font-normal text-muted-foreground ml-2">
-                  med historiske forsinkelsesdata
-                </span>
-              )}
-            </h3>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-lg font-semibold">
+                {tripPatterns.length} reiseforslag
+                {delayStats.size > 0 && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    med historiske forsinkelsesdata
+                  </span>
+                )}
+              </h3>
+              {/* Persentil-velger: styrer hvilke estimatkolonner som vises per stopp */}
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-muted-foreground">Vis estimater:</span>
+                {([
+                  ["p50", "~P50", "text-amber-500", "Median — halvparten av avgangene er innenfor"],
+                  ["p80", "P80", "text-red-500/80", "4 av 5 avganger er innenfor"],
+                  ["p95", "P95", "text-violet-500/80", "19 av 20 avganger er innenfor"],
+                ] as const).map(([key, label, color, title]) => (
+                  <label key={key} className="flex items-center gap-1.5 cursor-pointer" title={title}>
+                    <Checkbox
+                      checked={showPct[key]}
+                      onCheckedChange={(c) =>
+                        setShowPct((prev) => ({ ...prev, [key]: c === true }))
+                      }
+                    />
+                    <span className={cn("font-mono", color)}>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             {pageCursors.prev && (
               <Button
                 variant="outline"
@@ -2938,6 +2989,8 @@ export default function TripPlanner() {
                 onPatternChange={(newPattern) => handlePatternChange(i, newPattern)}
                 destination={destinationLocation}
                 selectedModes={selectedModes}
+                gapMap={gapResults.get(patternKey(pattern))}
+                showPct={showPct}
               />
             ))}
             {pageCursors.next && (

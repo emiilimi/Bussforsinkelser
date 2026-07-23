@@ -25,15 +25,17 @@ client/src/
     stop-analysis.tsx      /stops       Stoppanalyse: søk, trend, timesprofil, linjer ved stopp
     worst-lists.tsx        /worst       Topplister: dager, stopp, pålitelighet
     delay-map.tsx          /map         Leaflet-kart med fargede stoppmarkører
-    trip-planner.tsx       /reise       Reiseplanlegger: Entur JP v3, DuckDB-WASM persentiler, overgangsanalyse, metodeboks
+    trip-planner.tsx       /reise       Reiseplanlegger: Entur JP v3, DuckDB-WASM persentiler (P50/P80/P95-avkryssing), reiseanalyse-popup m/ "Vis data"-historikk, plan-tre m/ forsinkelsesgrafer, metodeboks
     not-found.tsx          *            404-side
   components/
     layout.tsx             Sidebar, nav, regionvelger, NLOD-attribusjon
     data-quality-banner.tsx  Outlier/missing-time varsler
     scrollable-chart.tsx   Horisontal-scrollbar + draggable Y-akse for grafer
     delay-percentiles.tsx  DuckDB-WASM P50/P80/P95 persentilkort
+    plan-delay-chart.tsx   Forsinkelse-langs-ruten-graf per plan-node (reiseplanlegger plan-tre)
     ui/                    shadcn/ui (60+ filer)
   lib/
+    trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)
     regionCoords.ts        Kartsentrum + zoom per region
@@ -259,7 +261,7 @@ SQLite støtter **ikke** `ALTER TABLE` for å endre PK. Endring krever full DB-r
 ## Entur Journey Planner API v3
 
 - **Endepunkt**: `https://api.entur.io/journey-planner/v3/graphql`
-- **Header**: `ET-Client-Name: emiliemoldestad-bussprosjekt` (PÅKREVD av Entur)
+- **Header**: `ET-Client-Name: emiliemoldestad-sentur` (PÅKREVD av Entur)
 - **Lisens**: NLOD 2.0 — attribusjon i sidebar (`layout.tsx`)
 - **Rate limit**: ~30 trip-requests/min (uregistrert). Server-cache 5 min TTL, max 200 entries.
 - **Input**: `Location!` — enten `{ place: "NSR:StopPlace:X" }` eller `{ coordinates: { latitude, longitude }, name: "..." }`
