@@ -94,6 +94,11 @@ const MODE_ICONS: Record<string, typeof Bus> = {
   foot: Footprints,
 };
 
+// Spurt-scenariet: gangtiden regnes om til spurt-tempo, pluss en liten
+// sikkerhetsmargin for å komme seg av bussen og i gang.
+const SPRINT_MARGIN_SEC = 10;
+const SPRINT_MARGIN_MIN = SPRINT_MARGIN_SEC / 60;
+
 // Modes for which the pipeline currently produces delay statistics.
 // 'coach' (flybuss) and 'ferry' share the Skyss SIRI ET feed with regular buses.
 // ('ferry' is the vehicleMode value Skyss uses — NOT 'water'.)
@@ -1088,7 +1093,7 @@ function TransferAnalysisDialog({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-48">
-                Spurt ({sprintSpeedKmh.toFixed(1)} km/t + 30 sek):
+                Spurt ({sprintSpeedKmh.toFixed(1)} km/t + {SPRINT_MARGIN_SEC} sek):
               </span>
               {info.probs.sprint >= 0
                 ? probabilityBadge(info.probs.sprint)
@@ -1723,7 +1728,8 @@ function TripCard({
       const probs: TransferProbs = {
         default: probFor(walkTime + 2),
         user: probFor(walkTime + transferMarginMin),
-        sprint: probFor(sprintWalkTime + 0.5),
+        // Spurt: gangtiden skalert til spurt-tempo + 10 sek sikkerhetsmargin
+        sprint: probFor(sprintWalkTime + SPRINT_MARGIN_MIN),
       };
 
       transfers.push({
@@ -2301,13 +2307,13 @@ export default function TripPlanner() {
   const [departDate, setDepartDate] = useState(todayISO());
   const [departTime, setDepartTime] = useState(roundedNow());
   const [arriveBy, setArriveBy] = useState(false);
-  const [walkSpeedKmh, setWalkSpeedKmh] = useState(4.8);
+  const [walkSpeedKmh, setWalkSpeedKmh] = useState(5);
   // Probability-only filters (don't affect Entur routing):
   // - transferMarginMin: extra buffer the user wants on top of pure walk time (e.g. 5 min)
   // - sprintSpeedKmh: pace used when running the "spurt" scenario; defaults to walk speed
   //   so that a sprint = walking at the chosen pace + 30 sec margin, until user overrides.
   const [transferMarginMin, setTransferMarginMin] = useState(5);
-  const [sprintSpeedKmh, setSprintSpeedKmh] = useState<number | null>(null);
+  const [sprintSpeedKmh, setSprintSpeedKmh] = useState<number | null>(12);
 
   // Sprint speed must always be ≥ walk speed (you can't "sprint" slower than your walk).
   // When walk speed increases past the current sprint setting, bump sprint up to match.
@@ -2803,8 +2809,13 @@ export default function TripPlanner() {
 
                   {/* User transfer margin — only affects probability shown, not Entur routing */}
                   <div className="col-span-2 md:col-span-1">
-                    <Label className="text-xs text-muted-foreground">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
                       Overgangsmargin: {transferMarginMin} min
+                      <InfoTip>
+                        Hvor mye slark <strong>du</strong> vil ha utover ren gangtid ved bytte.
+                        Påvirker <strong>kun sannsynligheten</strong> som vises («Med {transferMarginMin} min
+                        margin») — den endrer ikke hvilke reiser du får opp. Sendes ikke til Entur.
+                      </InfoTip>
                     </Label>
                     <div className="pt-2 px-1">
                       <Slider
@@ -2839,9 +2850,17 @@ export default function TripPlanner() {
                     </Select>
                   </div>
 
-                  {/* Transfer slack */}
+                  {/* Transfer slack — sendes til Entur, styrer HVILKE reiser vi får */}
                   <div>
-                    <Label className="text-xs text-muted-foreground">Overgangstid</Label>
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      Overgangstid
+                      <InfoTip>
+                        Minste byttetid <strong>Entur</strong> godtar når de setter sammen
+                        reiseforslag. Sendes til Journey Planner API-et og endrer{" "}
+                        <strong>hvilke reiser du får opp</strong> — høyere verdi gir færre, men
+                        romsligere overganger. Lav/negativ verdi gir også de knappe byttene.
+                      </InfoTip>
+                    </Label>
                     <Select value={transferSlack} onValueChange={setTransferSlack}>
                       <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
