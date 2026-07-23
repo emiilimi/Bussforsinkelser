@@ -18,6 +18,35 @@
 - **Klikkbart linjenummer → hele avgangen** (`client/src/components/service-journey-detail.tsx`, ny): klikk på linjenr./-navn i et legg åpner HELE avgangens stoppliste (ikke bare reisens delstrekning — f.eks. linje 760 viser alle 88 stopp fra Odda), med rutetid, sanntid og P50/P80/P95 per stopp (samme avkryssingsbokser). Reisens på-/avstigning markeres «(på)»/«(av)». Data (Entur `/api/servicejourney/:id` + DuckDB per-stopp-persentiler) prefetches i bakgrunnen for alle legg i et utvidet kort (`active={expanded}`), så visningen er umiddelbar ved klikk. Rendrer bare tabellen når åpnet.
 - **Perrong tydeliggjort**: trip-spørringene (`functions/api/trip.ts` + `server/routes.ts`) henter nå `quay.publicCode`. Perrong vises som badge på på-/avstigningsstopp i leggvisningen og på hvert stopp i «hele avgangen»-visningen. `TripLeg`/`StopEntry`/`legStops()` i trip-shared.ts bærer `platform`.
 
+### 🔴 Rotårsak: overgangs-statistikken har ALDRI brukt de faktiske avgangene
+
+**Symptom**: «Ankomst»/«Avgang» i reiseanalysens «Vis data» sto alltid tomt, og kilden var alltid `fallback` (±60 min-pool av naboavganger) — aldri `specific`.
+
+**Rotårsak**: `specificGapSql` matchet på hele `service_journey_id`. **Skyss' SJ-id er ikke stabil over dager.** Formatet er `SKY:ServiceJourney:{linje}-{datasettversjon}-{avgang}`, og MIDTERSTE ledd endres nesten daglig når ruteplanen republiseres:
+
+```
+2026-04-20  SKY:ServiceJourney:20-198135-19135528
+2026-04-21  SKY:ServiceJourney:20-200353-19135528
+2026-04-22  SKY:ServiceJourney:20-200567-19135528
+```
+
+Målt: samme 10:00-avgang på linje 20 hadde **23 ulike SJ-id-er over 35 dager**; 38,9 % av alle SJ-id-er finnes på kun én dato. Terskelen `SPECIFIC_MIN_DAYS = 5` ble derfor nesten aldri nådd, og koden falt stille tilbake til poolen. Dette har vært tilfelle så lenge funksjonen har eksistert — ikke en ny regresjon.
+
+**Siste ledd er derimot stabilt**: `19135528` = hverdagsavgangen 10:00 (13 dager), `19141661` = lørdagsavgangen. Det bytter kun ved ekte ruteendring, som er ønsket — en omlagt avgang skal ikke slås sammen med sin gamle utgave.
+
+**Fiks — tre matche-nivåer** (`computeTransferGap`, UNION-et i én DuckDB-rundtur):
+| Nivå | Kilde | Match | Klokkeslett |
+|---|---|---|---|
+| 1 | `sj` | stabil avgangs-id (`stableSjId()`) + stopp + dagtype | faktisk målte |
+| 2 | `aimed` | eksakt rutetid + linje + stopp + retning + dagtype | faktisk målte |
+| 3 | `pool` | ±60 min naboavganger (som før) | vises ikke |
+
+Nivå 1 og 2 krever ≥5 dager. Poolen er nå eksplisitt merket i UI med et gult varsel («Ikke dine avganger») både i dialogen og på den kompakte overgangsraden, så den aldri kan forveksles med faktiske observasjoner.
+
+Predikatet bruker `ENDS_WITH(service_journey_id, '-<stabil>')` framfor `REGEXP_EXTRACT` (målt 204 ms mot 235 ms over 7 ukefiler, identisk resultat). Det kan ikke brukes til radgruppe-pruning — pruningen kommer fra `stop_ref`, som er sorteringsnøkkel i by-stop-familien, så disse spørringene MÅ kjøre mot den familien.
+
+**Verifisert**: overgang 760→2080 gikk fra `fallback`/8 dager/tomme tider til `sj`/7 dager med ekte målte klokkeslett (17:20→17:27 mot gap 7,9 min), og sannsynligheten endret seg 88 % → 86 %.
+
 **Verifisert**: `tsc` rent, `npm run build` OK, og manuell nettlesertest mot R2-data (Lagunen→Åsane, 6 forslag): badges fyller inn i bakgrunnen, reiseanalyse-dialog + «Vis data»-tabell + persentil-avkryssing + plan-tre-graf fungerer alle.
 
 ## Endringslogg — 2026-07-20: Loading-states, historiske avganger, Parquet-ytelse, og en kort produksjons-outage

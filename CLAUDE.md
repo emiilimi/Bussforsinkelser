@@ -214,6 +214,14 @@ Backend filtrerer via `?dayType=weekday`, `?dayType=weekday,saturday`, eller `?d
 - `journeyCancellation`, `dayOfTheWeek`, `operatingDate`, `directionRef`
 
 ### Skyss (SKY) quirks
+- **`serviceJourneyId` er IKKE stabil over dager.** Formatet er
+  `SKY:ServiceJourney:{linje}-{datasettversjon}-{avgang}`, og det MIDTERSTE
+  leddet endres nesten daglig når ruteplanen republiseres. Samme 10:00-avgang
+  på linje 20 hadde 23 ulike id-er på 35 dager; 38,9 % av alle id-er finnes på
+  kun én dato. **Skal du matche "samme faktiske avgang" på tvers av dager, bruk
+  SISTE ledd** (`stableSjId()` i `lib/trip-shared.ts`) — det bytter kun ved ekte
+  ruteendring. Å matche på hele id-en gir ~1 dag og feiler stille. Se STATUS.md
+  2026-07-23 for hvordan dette gjorde all overgangsstatistikk pool-basert.
 - `vehicleMode = NULL` → buss. Koden bruker `fillna("bus")`. Kun ferge er eksplisitt tagget.
 - `stopPointName` alltid NULL → navn fra `stop_coords` via BQ + GTFS
 - Ghost-linjer (1200, 3260) har numeriske Rutebanken-IDs → filtreres av `NSR:`-sjekken

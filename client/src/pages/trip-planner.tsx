@@ -32,9 +32,9 @@ import { ServiceJourneyDetail } from "@/components/service-journey-detail";
 import {
   type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
-  type DuckQueryFn,
+  type TransferGapSource, type DuckQueryFn,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps,
-  probFromGaps, SPECIFIC_MIN_DAYS,
+  probFromGaps, isActualDepartureSource, SPECIFIC_MIN_DAYS,
 } from "@/lib/trip-shared";
 
 // ---------------------------------------------------------------------------
@@ -1022,7 +1022,7 @@ type TransferInfo = {
   sprintWalkTime: number; // gangtid skalert til spurt-tempo
   probs: TransferProbs;   // 3 empiriske sannsynligheter, -1 = ukjent
   daysObserved: number;   // antall historiske dager gapet er observert
-  source: "specific" | "fallback" | "none";
+  source: TransferGapSource;
   fromLine: string | null;
   toLine: string | null;
   assumingOnTime: boolean;
@@ -1094,14 +1094,31 @@ function TransferAnalysisDialog({
                 ? probabilityBadge(info.probs.sprint)
                 : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
             </div>
-            <div className="text-[10px] text-muted-foreground/70 mt-1 italic">
-              Basert på {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"}
-              {info.source === "specific"
-                ? " hvor begge avgangene har gått (samme avgangs-ID). Hver dag sammenliknes faktisk ankomst med faktisk avgang."
-                : info.source === "fallback"
-                  ? " med sammenlignbare avganger (samme linje, stopp, retning, time og dagtype). Én sammenligning per dag: planlagt gap + forskjellen i forsinkelse den dagen."
-                  : "."}{" "}
-              <a href="/metode#overgang" className="text-primary hover:underline">Metode →</a>
+            {/* Datakilde — skiller tydelig mellom DINE avganger og nabo-pool */}
+            <div className="mt-1.5">
+              {info.source === "pool" ? (
+                <div className="text-[10px] rounded border border-amber-400/50 bg-amber-50 dark:bg-amber-950/20 px-2 py-1.5 text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                  <strong>Ikke dine avganger.</strong> Vi fant ikke nok historikk for akkurat
+                  disse to avgangene, så tallene bygger på {info.daysObserved}{" "}
+                  {info.daysObserved === 1 ? "dag" : "dager"} med <em>sammenlignbare</em> avganger
+                  (samme linje, stopp, retning og dagtype, innen ±60 min). Bare forsinkelsen
+                  deres er overført — planlagt gap + forskjellen i forsinkelse den dagen.
+                  Klokkeslett vises derfor ikke.
+                </div>
+              ) : (
+                <div className="text-[10px] text-muted-foreground/70 italic">
+                  Basert på {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"} hvor
+                  begge dine avganger faktisk gikk
+                  {info.source === "sj"
+                    ? " (samme avgangs-ID)"
+                    : " (samme rutetid, linje, stopp og retning)"}
+                  . Hver dag sammenliknes faktisk ankomst med faktisk avgang.
+                </div>
+              )}
+              <a href="/metode#overgang" className="text-[10px] text-primary hover:underline">
+                Metode →
+              </a>
             </div>
           </div>
         ) : (
@@ -1128,8 +1145,18 @@ function TransferAnalysisDialog({
                     <thead>
                       <tr className="text-muted-foreground text-left bg-muted/40">
                         <th className="py-1 px-2 font-medium">Dato</th>
-                        <th className="py-1 px-2 font-medium text-right">Ankomst</th>
-                        <th className="py-1 px-2 font-medium text-right">Avgang</th>
+                        <th className="py-1 px-2 font-medium text-right whitespace-nowrap">
+                          Ankomst
+                          <span className="block font-normal text-[10px] text-muted-foreground/70">
+                            {info.fromLine ? `linje ${info.fromLine}` : "inn"}
+                          </span>
+                        </th>
+                        <th className="py-1 px-2 font-medium text-right whitespace-nowrap">
+                          Avgang
+                          <span className="block font-normal text-[10px] text-muted-foreground/70">
+                            {info.toLine ? `linje ${info.toLine}` : "ut"}
+                          </span>
+                        </th>
                         <th className="py-1 px-2 font-medium text-right">Gap</th>
                         <th className="py-1 px-2 font-medium text-right">Rakk?</th>
                       </tr>
@@ -1166,11 +1193,15 @@ function TransferAnalysisDialog({
                 <p className="text-[10px] text-muted-foreground">
                   De {rows.length} siste av {info.daysObserved}{" "}
                   {info.daysObserved === 1 ? "dag" : "dager"} med observasjoner.
+                  <strong> Ankomst</strong> = når linje {info.fromLine ?? "inn"} kom fram,{" "}
+                  <strong>avgang</strong> = når linje {info.toLine ?? "ut"} gikk.
                   «Rakk?» = gap ≥ gangtid + din margin ({requiredGap.toFixed(1)} min).
-                  {info.source === "fallback" && (
-                    <> Ankomst-/avgangstid vises ikke: tallene er beregnet fra
+                  {isActualDepartureSource(info.source) ? (
+                    <> Tidene er faktisk målte for dine to avganger.</>
+                  ) : (
+                    <> Klokkeslett vises ikke for denne kilden: tallene kommer fra
                     sammenlignbare naboavganger (planlagt gap ± forsinkelsesforskjell),
-                    ikke akkurat dine avganger.</>
+                    ikke fra dine egne avganger.</>
                   )}
                 </p>
               </>
@@ -2170,6 +2201,12 @@ function TripCard({
                       <div className="ml-5 text-[10px] text-amber-600 dark:text-amber-400">
                         <AlertTriangle className="h-3 w-3 inline mr-1" />
                         Kun {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
+                      </div>
+                    )}
+                    {!transferInfo.broken && transferInfo.source === "pool" && (
+                      <div className="ml-5 text-[10px] text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="h-3 w-3 inline mr-1" />
+                        Basert på sammenlignbare naboavganger, ikke dine egne — se reiseanalysen
                       </div>
                     )}
                     {/* Plan-tre (B/C/D) når overgangen kan ryke (>5 % sjanse) */}
