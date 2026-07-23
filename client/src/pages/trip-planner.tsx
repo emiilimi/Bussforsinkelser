@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { useLocation, useSearch } from "wouter";
 import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
@@ -1035,6 +1035,10 @@ type TransferInfo = {
   // forsinkelse (oppstår typisk etter manuelt bytte av avgang på et legg)
   broken: boolean;
   observations: TransferGapObservation[]; // per-dag-observasjoner, nyeste først
+  /** Begge sporene vises side om side i reiseanalysen, slik at man alltid ser
+   *  hvor mange dager estimatet for DIN avgang faktisk bygger på. */
+  actual: { days: number; source: "sj" | "aimed" | "none"; probs: TransferProbs };
+  pool: { days: number; probs: TransferProbs };
 };
 
 const OBSERVATION_TABLE_LIMIT = 10;
@@ -1075,56 +1079,72 @@ function TransferAnalysisDialog({
 
         {info.probs.default >= 0 ? (
           <div className="flex flex-col gap-1 text-xs">
-            {info.daysObserved < 5 && (
-              <div className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">
+            {/* Begge estimatene side om side, med datagrunnlag i overskriften */}
+            <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-1 items-center">
+              <span />
+              <span className="text-[10px] text-center leading-tight">
+                <span className="font-medium">Din avgang</span>
+                <span className="block text-muted-foreground/70">
+                  {info.actual.days > 0 ? `${info.actual.days} dager` : "ingen"}
+                </span>
+              </span>
+              <span className="text-[10px] text-center leading-tight">
+                <span className="font-medium">Sammenlign&shy;bare</span>
+                <span className="block text-muted-foreground/70">
+                  {info.pool.days > 0 ? `${info.pool.days} dager` : "ingen"}
+                </span>
+              </span>
+
+              {([
+                ["Med 2 min margin:", "default"],
+                [`Med ${transferMarginMin} min margin:`, "user"],
+                [`Spurt (${sprintSpeedKmh.toFixed(1)} km/t + ${SPRINT_MARGIN_SEC} sek):`, "sprint"],
+              ] as const).map(([label, key]) => (
+                <Fragment key={key}>
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="text-center">
+                    {info.actual.probs[key] >= 0
+                      ? probabilityBadge(info.actual.probs[key])
+                      : <span className="text-[10px] text-muted-foreground/50 italic">—</span>}
+                  </span>
+                  <span className="text-center">
+                    {info.pool.probs[key] >= 0
+                      ? probabilityBadge(info.pool.probs[key])
+                      : <span className="text-[10px] text-muted-foreground/50 italic">—</span>}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+
+            <div className="text-[10px] text-muted-foreground/70 mt-1 leading-snug">
+              <strong>Din avgang</strong> = dagene begge dine faktiske avganger gikk
+              {info.actual.source === "aimed" && " (matchet på rutetid, linje, stopp og retning)"}
+              {info.actual.source === "sj" && " (matchet på avgangs-ID)"}.
+              {" "}<strong>Sammenlignbare</strong> = nærmeste avgang innen ±60 min samme dag; den
+              treffer som regel din egen avgang, og gir mest ekstra data på dager din avgang ikke
+              gikk. Vi bruker{" "}
+              <strong>{info.source === "pool" ? "sammenlignbare" : "din avgang"}</strong> i badges
+              og totalen.
+            </div>
+
+            {info.actual.days > 0 && info.actual.days < SPECIFIC_MIN_DAYS && (
+              <div className="text-[10px] text-amber-600 dark:text-amber-400">
                 <AlertTriangle className="h-3 w-3 inline mr-1" />
-                Kun {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
+                Bare {info.actual.days} {info.actual.days === 1 ? "dag" : "dager"} for din egen
+                avgang — det tallet er usikkert. Flere dager gir vesentlig bedre treffsikkerhet.
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-48">Med 2 min margin:</span>
-              {probabilityBadge(info.probs.default)}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-48">Med {transferMarginMin} min margin:</span>
-              {info.probs.user >= 0
-                ? probabilityBadge(info.probs.user)
-                : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-48">
-                Spurt ({sprintSpeedKmh.toFixed(1)} km/t + {SPRINT_MARGIN_SEC} sek):
-              </span>
-              {info.probs.sprint >= 0
-                ? probabilityBadge(info.probs.sprint)
-                : <span className="text-[10px] text-muted-foreground/60 italic">ukjent</span>}
-            </div>
-            {/* Datakilde — skiller tydelig mellom DINE avganger og nabo-pool */}
-            <div className="mt-1.5">
-              {info.source === "pool" ? (
-                <div className="text-[10px] rounded border border-amber-400/50 bg-amber-50 dark:bg-amber-950/20 px-2 py-1.5 text-amber-800 dark:text-amber-300">
-                  <AlertTriangle className="h-3 w-3 inline mr-1" />
-                  <strong>Ikke dine avganger.</strong> Vi fant ikke nok historikk for akkurat
-                  disse to avgangene, så tallene bygger på {info.daysObserved}{" "}
-                  {info.daysObserved === 1 ? "dag" : "dager"} med <em>sammenlignbare</em> avganger
-                  (samme linje, stopp, retning og dagtype, innen ±60 min). Bare forsinkelsen
-                  deres er overført — planlagt gap + forskjellen i forsinkelse den dagen.
-                  Klokkeslett vises derfor ikke.
-                </div>
-              ) : (
-                <div className="text-[10px] text-muted-foreground/70 italic">
-                  Basert på {info.daysObserved} {info.daysObserved === 1 ? "dag" : "dager"} hvor
-                  begge dine avganger faktisk gikk
-                  {info.source === "sj"
-                    ? " (samme avgangs-ID)"
-                    : " (samme rutetid, linje, stopp og retning)"}
-                  . Hver dag sammenliknes faktisk ankomst med faktisk avgang.
-                </div>
-              )}
-              <a href="/metode#overgang" className="text-[10px] text-primary hover:underline">
-                Metode →
-              </a>
-            </div>
+            {info.actual.days === 0 && (
+              <div className="text-[10px] rounded border border-amber-400/50 bg-amber-50 dark:bg-amber-950/20 px-2 py-1.5 text-amber-800 dark:text-amber-300">
+                <AlertTriangle className="h-3 w-3 inline mr-1" />
+                <strong>Ingen historikk for dine egne avganger.</strong> Tallene bygger kun på
+                sammenlignbare avganger — bare forsinkelsen deres er overført (planlagt gap +
+                forskjellen i forsinkelse den dagen), så klokkeslett vises ikke.
+              </div>
+            )}
+            <a href="/metode#overgang" className="text-[10px] text-primary hover:underline">
+              Metode →
+            </a>
           </div>
         ) : (
           <p className="text-xs text-muted-foreground italic">
@@ -1707,6 +1727,8 @@ function TripCard({
           assumingOnTime: false,
           broken: true,
           observations: [],
+          actual: { days: 0, source: "none", probs: { default: -1, user: -1, sprint: -1 } },
+          pool: { days: 0, probs: { default: -1, user: -1, sprint: -1 } },
         });
         continue;
       }
@@ -1720,23 +1742,24 @@ function TripCard({
       const gaps = gapResult?.gaps ?? [];
       const source = gapResult?.source ?? "none";
 
-      const probFor = (requiredBuffer: number): number => {
-        if (!hasDelayData || gaps.length === 0) return -1;
-        return probFromGaps(gaps, requiredBuffer);
-      };
-
-      const probs: TransferProbs = {
-        default: probFor(walkTime + 2),
-        user: probFor(walkTime + transferMarginMin),
-        // Spurt: gangtiden skalert til spurt-tempo + 10 sek sikkerhetsmargin
-        sprint: probFor(sprintWalkTime + SPRINT_MARGIN_MIN),
+      // Samme tre terskler, men beregnet for et vilkårlig sett med gap —
+      // brukes både for den valgte kilden og for hvert spor hver for seg.
+      const probsFrom = (g: number[]): TransferProbs => {
+        const f = (buf: number) =>
+          !hasDelayData || g.length === 0 ? -1 : probFromGaps(g, buf);
+        return {
+          default: f(walkTime + 2),
+          user: f(walkTime + transferMarginMin),
+          // Spurt: gangtiden skalert til spurt-tempo + 10 sek sikkerhetsmargin
+          sprint: f(sprintWalkTime + SPRINT_MARGIN_MIN),
+        };
       };
 
       transfers.push({
         buffer: totalGap,
         walkTime,
         sprintWalkTime,
-        probs,
+        probs: probsFrom(gaps),
         daysObserved: gaps.length,
         source,
         fromLine: legA.line?.publicCode ?? null,
@@ -1744,6 +1767,15 @@ function TripCard({
         assumingOnTime,
         broken: false,
         observations: gapResult?.observations ?? [],
+        actual: {
+          days: gapResult?.actual.days ?? 0,
+          source: gapResult?.actual.source ?? "none",
+          probs: probsFrom(gapResult?.actual.gaps ?? []),
+        },
+        pool: {
+          days: gapResult?.pool.days ?? 0,
+          probs: probsFrom(gapResult?.pool.gaps ?? []),
+        },
       });
     }
 
@@ -2203,16 +2235,24 @@ function TripCard({
                         senere avgang på neste legg, eller en tidligere på dette.
                       </div>
                     )}
-                    {!transferInfo.broken && transferInfo.daysObserved > 0 && transferInfo.daysObserved < 5 && (
-                      <div className="ml-5 text-[10px] text-amber-600 dark:text-amber-400">
-                        <AlertTriangle className="h-3 w-3 inline mr-1" />
-                        Kun {transferInfo.daysObserved} {transferInfo.daysObserved === 1 ? "dag" : "dager"} med data — tallene er usikre
-                      </div>
-                    )}
-                    {!transferInfo.broken && transferInfo.source === "pool" && (
-                      <div className="ml-5 text-[10px] text-amber-600 dark:text-amber-400">
-                        <AlertTriangle className="h-3 w-3 inline mr-1" />
-                        Basert på sammenlignbare naboavganger, ikke dine egne — se reiseanalysen
+                    {/* Datagrunnlaget for DIN avgang vises alltid, ikke bare i dialogen */}
+                    {!transferInfo.broken && transferInfo.probs.default >= 0 && (
+                      <div className={cn(
+                        "ml-5 text-[10px]",
+                        transferInfo.actual.days === 0 || transferInfo.actual.days < SPECIFIC_MIN_DAYS
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-muted-foreground/70",
+                      )}>
+                        {(transferInfo.actual.days === 0 ||
+                          transferInfo.actual.days < SPECIFIC_MIN_DAYS) && (
+                          <AlertTriangle className="h-3 w-3 inline mr-1" />
+                        )}
+                        {transferInfo.actual.days > 0
+                          ? `${transferInfo.actual.days} ${transferInfo.actual.days === 1 ? "dag" : "dager"} med dine egne avganger`
+                          : "ingen historikk for dine egne avganger"}
+                        {transferInfo.pool.days > 0 && (
+                          <> · {transferInfo.pool.days} sammenlignbare</>
+                        )}
                       </div>
                     )}
                     {/* Plan-tre (B/C/D) når overgangen kan ryke (>5 % sjanse) */}

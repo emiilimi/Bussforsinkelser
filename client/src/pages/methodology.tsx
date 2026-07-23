@@ -282,24 +282,114 @@ export default function Methodology() {
                 samme overgang har gått 82 % av historiske dager.
               </li>
             </ol>
+            <h4 className="text-base font-semibold pt-2">
+              Å finne «samme avgang» igjen — en fallgruve
+            </h4>
             <p className="text-sm text-muted-foreground">
-              Har vi for få dager (under 5) på akkurat din avgangs-ID, faller vi tilbake
-              til statistikk per (linje, stopp, retning, dagtype) — kilden merkes i
-              visningen. Retningen leses fra hvordan den planlagte avgangen selv er
-              registrert i dataene, siden noen plattformer trafikkeres i begge retninger
-              av samme linje. I fallback-modusen sammenlikner vi{" "}
-              <strong>forsinkelser</strong>, ikke absolutte klokkeslett: for hver
-              historisk dag finner vi en sammenliknbar ankomst og avgang (nærmest i
-              rutetid, samme retning), og regner{" "}
+              Å matche din avgang mot historikken er vanskeligere enn det høres ut.{" "}
+              <strong>Skyss sin avgangs-ID er ikke stabil fra dag til dag.</strong> Den har
+              formen{" "}
               <code className="text-xs bg-muted px-1 rounded">
-                gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
+                SKY:ServiceJourney:20-198135-19135528
               </code>
-              . Grunnen: observasjonene er andre rutepassinger enn dine — nærmeste
-              med data kan ligge en halvtime unna i ruteplanen. Klokkeslettene deres
-              måler dermed gapet til en annen avgang enn den du skal rekke, ikke
-              ditt. Det eneste som kan overføres fra en naboavgang, er forsinkelsen
-              dens; vi beholder derfor ditt planlagte gap og justerer det med de
-              observerte forsinkelsene.
+              , der det midterste leddet er en datasettversjon som endres nesten hver gang
+              ruteplanen publiseres på nytt — i praksis daglig:
+            </p>
+            <pre className="text-[11px] bg-muted rounded p-2 overflow-x-auto">
+{`20. april   SKY:ServiceJourney:20-198135-19135528
+21. april   SKY:ServiceJourney:20-200353-19135528
+22. april   SKY:ServiceJourney:20-200567-19135528`}
+            </pre>
+            <p className="text-sm text-muted-foreground">
+              Vi målte at <strong>samme 10:00-avgang på linje 20 hadde 23 ulike ID-er på 35
+              dager</strong>, og at 38,9 % av alle avgangs-ID-er finnes på kun én dato. Matcher
+              man på hele ID-en, finner man derfor nesten aldri mer enn én dag — og statistikken
+              faller stille tilbake på nabo­avganger uten at noen merker det. Det{" "}
+              <em>siste</em> leddet er derimot stabilt (<code className="text-xs bg-muted px-1 rounded">19135528</code>{" "}
+              = hverdagsavgangen 10:00) og bytter bare ved en ekte ruteendring — som er ønsket,
+              siden en omlagt avgang ikke bør slås sammen med sin gamle utgave. Vi matcher derfor
+              på det siste leddet, med eksakt rutetid + linje + stopp + retning som reserve når
+              ID-en er helt fersk.
+            </p>
+
+            <h4 className="text-base font-semibold pt-2">To tall, side om side</h4>
+            <p className="text-sm text-muted-foreground">
+              I reiseanalysen viser vi begge grunnlagene samtidig, med antall dager over hver
+              kolonne, slik at du alltid ser hvor tynt eller tykt datagrunnlaget for{" "}
+              <em>din</em> avgang er:
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-2 ml-4 list-disc">
+              <li>
+                <strong>Din avgang</strong> — dagene der begge dine faktiske avganger gikk.
+                Her sammenliknes faktisk ankomst mot faktisk avgang, og vi kan vise ekte
+                klokkeslett per dag.
+              </li>
+              <li>
+                <strong>Sammenlignbare</strong> — nærmeste avgang innen ±60 min samme dag
+                (samme linje, stopp, retning, dagtype). Her sammenlikner vi{" "}
+                <strong>forsinkelser</strong>, ikke absolutte klokkeslett:{" "}
+                <code className="text-xs bg-muted px-1 rounded">
+                  gap = planlagt gap + (avgangsforsinkelse − ankomstforsinkelse)
+                </code>
+                . En naboavgang kan ligge en halvtime unna i ruteplanen, så klokkeslettet
+                dens måler gapet til en annen buss enn den du skal rekke. Det eneste som lar
+                seg overføre er forsinkelsen — derfor viser vi ingen klokkeslett for denne
+                kilden.
+              </li>
+            </ul>
+            <p className="text-sm text-muted-foreground">
+              Retningen leses fra hvordan den planlagte avgangen selv er registrert i dataene,
+              siden noen plattformer trafikkeres i begge retninger av samme linje.
+            </p>
+
+            <h4 className="text-base font-semibold pt-2">
+              Er «sammenlignbare» bedre fordi den har flere dager?
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Vi har testet det, ikke gjettet. Med{" "}
+              <em>leave-one-day-out</em>-kryssvalidering på ekte overgangspar (vanlige stopp
+              underveis på ruta, startavganger fjernet, ~250 000 evalueringer) predikerer hver
+              metode én utelatt dag om gangen og scores mot det som faktisk skjedde:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="text-xs border-collapse">
+                <thead>
+                  <tr className="text-left border-b border-border">
+                    <th className="py-1 pr-4 font-medium">Dager for din avgang</th>
+                    <th className="py-1 pr-4 font-medium">Kun din avgang</th>
+                    <th className="py-1 pr-4 font-medium">Sammenlignbare</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono">
+                  {[["3", "0.0692", "0.0546"], ["5", "0.0621", "0.0546"],
+                    ["7", "0.0593", "0.0546"], ["10", "0.0571", "0.0546"]].map((r) => (
+                    <tr key={r[0]} className="border-b border-border/50">
+                      <td className="py-1 pr-4">{r[0]}</td>
+                      <td className="py-1 pr-4">{r[1]}</td>
+                      <td className="py-1 pr-4">{r[2]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground/80">
+              Brier-score, lavere er bedre (0,25 = å alltid gjette 50 %).
+            </p>
+            <p className="text-sm text-muted-foreground">
+              To ting er verdt å merke seg. For det første: forskjellen er nesten utelukkende en{" "}
+              <strong>utvalgsstørrelse-effekt</strong>, ikke en bedre modell — kurven for din
+              egen avgang nærmer seg jevnt de sammenlignbare etter hvert som du får flere dager.
+              For det andre, og mer overraskende: «sammenlignbare» plukker faktisk{" "}
+              <strong>din egen avgang i 99,4 % av dagene</strong>, fordi den velger den nærmeste
+              rutetiden og din egen ligger på null minutters avstand. De to tallene er altså
+              stort sett samme data — forskjellen er de få ekstra dagene der din avgang ikke gikk.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Vi testet også en <em>rikere</em> pool som bruker alle naboavganger i vinduet
+              (~168 observasjoner i stedet for ~22). Den ble målbart <strong>dårligere</strong>{" "}
+              (0,0554 mot 0,0546): avganger på andre tider av døgnet har systematisk andre
+              forsinkelsesmønstre, og den skjevheten spiser opp gevinsten av flere observasjoner.
+              Mer data er altså ikke automatisk bedre — derfor holder vi oss til nærmeste avgang.
             </p>
             <p className="text-sm text-muted-foreground">
               <strong>Kjent begrensning:</strong> sammenlikningen skjer per <em>plattform</em>{" "}

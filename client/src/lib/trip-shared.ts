@@ -140,10 +140,26 @@ export type TransferGapObservation = {
  */
 export type TransferGapSource = "sj" | "aimed" | "pool" | "none";
 
+export type TransferGapTrack = {
+  gaps: number[];
+  observations: TransferGapObservation[]; // nyeste først
+  days: number;
+};
+
 export type TransferGapResult = {
-  gaps: number[];                        // gap (minutter) per historisk dag
-  observations: TransferGapObservation[]; // samme dager, nyeste først
+  // Den valgte kilden — det som driver badges og totalsannsynlighet.
+  gaps: number[];
+  observations: TransferGapObservation[];
   source: TransferGapSource;
+  /**
+   * Begge sporene beholdes alltid, slik at UI-et kan vise dem side om side.
+   * `actual` = brukerens EGNE avganger (stabil id, ev. eksakt rutetid);
+   * `pool` = ±60 min naboavganger. Backtest (STATUS.md 2026-07-23) viste at
+   * poolen i praksis plukker brukerens egen avgang når den gikk, så sporene
+   * er ofte like — forskjellen er hovedsakelig hvor mange dager de har.
+   */
+  actual: TransferGapTrack & { source: "sj" | "aimed" | "none" };
+  pool: TransferGapTrack;
 };
 
 /** Er kilden faktiske observasjoner av brukerens egen avgang? */
@@ -218,11 +234,18 @@ function midnightSafeGap(expr: string): string {
  * Enturs directionType slår vi opp retningen den PLANLAGTE avgangen selv er
  * registrert med. Ukjent SJ → COALESCE gjør vilkåret til no-op.
  */
-function dirClause(sjId: string | null): string {
+function dirClause(sjId: string | null, quayRef: string | null): string {
   if (!sjId) return "";
+  // stop_ref MÅ være med: uten den kan ikke denne korrelerte underspørringen
+  // radgruppe-prunes, og den fullskanner hver eneste ukefil. Det er
+  // sorteringsnøkkelen i by-stop-familien som gir pruningen. (Uten dette
+  // hang overgangsspørringene i praksis — se STATUS.md 2026-07-23.)
+  // Retningen er en egenskap ved avgangen, så det er trygt å slå den opp på
+  // et vilkårlig stopp avgangen betjener.
+  const quay = quayRef ? ` AND stop_ref = '${escSql(quayRef)}'` : "";
   return `AND direction_ref IS NOT DISTINCT FROM COALESCE(
     (SELECT ANY_VALUE(direction_ref) FROM delays_by_stop
-     WHERE service_journey_id = '${escSql(sjId)}'),
+     WHERE service_journey_id = '${escSql(sjId)}'${quay}),
     direction_ref)`;
 }
 
@@ -244,10 +267,6 @@ export function sjGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.arrQuayRef)}'
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
-      QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY date
-        ORDER BY ${aimedMinExpr("aimed_arrival")} + delay_arrival_min
-      ) = 1
     ),
     dep AS (
       SELECT date, ${aimedMinExpr("aimed_departure")} + delay_departure_min AS actual_dep_min
@@ -256,10 +275,6 @@ export function sjGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.depQuayRef)}'
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
-      QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY date
-        ORDER BY ${aimedMinExpr("aimed_departure")} + delay_departure_min
-      ) = 1
     )
     SELECT arr.date AS date,
            ${midnightSafeGap(gap)} AS gap,
@@ -288,11 +303,7 @@ export function aimedGapSql(s: TransferSpec): string | null {
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
         AND ${aimedMinExpr("aimed_arrival")} = ${s.arrAimedMin}
-        ${dirClause(s.arrSjId)}
-      QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY date
-        ORDER BY ${aimedMinExpr("aimed_arrival")} + delay_arrival_min
-      ) = 1
+        ${dirClause(s.arrSjId, s.arrQuayRef)}
     ),
     dep AS (
       SELECT date, ${aimedMinExpr("aimed_departure")} + delay_departure_min AS actual_dep_min
@@ -302,11 +313,7 @@ export function aimedGapSql(s: TransferSpec): string | null {
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
         AND ${aimedMinExpr("aimed_departure")} = ${s.depAimedMin}
-        ${dirClause(s.depSjId)}
-      QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY date
-        ORDER BY ${aimedMinExpr("aimed_departure")} + delay_departure_min
-      ) = 1
+        ${dirClause(s.depSjId, s.depQuayRef)}
     )
     SELECT arr.date AS date,
            ${midnightSafeGap(gap)} AS gap,
@@ -351,7 +358,7 @@ export function poolGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.arrQuayRef)}'
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
-        ${dirClause(s.arrSjId)}
+        ${dirClause(s.arrSjId, s.arrQuayRef)}
     ),
     arr AS (
       SELECT date, arr_delay FROM arr_raw
@@ -367,7 +374,7 @@ export function poolGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.depQuayRef)}'
         AND day_type = '${escSql(s.dayType)}'
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
-        ${dirClause(s.depSjId)}
+        ${dirClause(s.depSjId, s.depQuayRef)}
     ),
     dep AS (
       SELECT date, dep_delay FROM dep_raw
@@ -421,7 +428,13 @@ export async function computeTransferGap(
   if (sSql) parts.push(`SELECT 'S' AS src, date, gap, arr_min, dep_min FROM (${sSql})`);
   if (aSql) parts.push(`SELECT 'A' AS src, date, gap, arr_min, dep_min FROM (${aSql})`);
   if (pSql) parts.push(`SELECT 'P' AS src, date, gap, arr_min, dep_min FROM (${pSql})`);
-  if (parts.length === 0) return { gaps: [], observations: [], source: "none" };
+  const emptyTrack: TransferGapTrack = { gaps: [], observations: [], days: 0 };
+  if (parts.length === 0) {
+    return {
+      gaps: [], observations: [], source: "none",
+      actual: { ...emptyTrack, source: "none" }, pool: emptyTrack,
+    };
+  }
 
   const rows = (await duckQuery(parts.join("\nUNION ALL\n"), undefined, {
     family: "by-stop",
@@ -433,11 +446,40 @@ export async function computeTransferGap(
     arrActualMin: r.arr_min != null ? Number(r.arr_min) : null,
     depActualMin: r.dep_min != null ? Number(r.dep_min) : null,
   });
-  const pick = (tag: CombinedGapRow["src"]) =>
-    rows.filter((r) => r.src === tag && Number.isFinite(Number(r.gap))).map(toObs);
+  // Dedupliser til én observasjon per dato i JS i stedet for med QUALIFY i
+  // SQL-en. Nivå 1/2 kan i sjeldne tilfeller gi to rader på samme dato (samme
+  // stabile id kjørt to ganger). QUALIFY direkte på `FROM delays_by_stop` fikk
+  // DuckDB-WASM-spørringen til å aldri fullføre — den løser seg aldri, og
+  // uten feil å fange ble kortene stående på "beregner…". Poolen beholder sin
+  // QUALIFY: den ligger på en allerede materialisert CTE og har alltid virket.
+  const pick = (tag: CombinedGapRow["src"]) => {
+    const seen = new Set<string>();
+    const out: TransferGapObservation[] = [];
+    for (const r of rows) {
+      if (r.src !== tag || !Number.isFinite(Number(r.gap))) continue;
+      const o = toObs(r);
+      if (seen.has(o.date)) continue;
+      seen.add(o.date);
+      out.push(o);
+    }
+    return out;
+  };
   const bySj = pick("S");
   const byAimed = pick("A");
   const byPool = pick("P");
+
+  const newest = (o: TransferGapObservation[]) =>
+    [...o].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const track = (o: TransferGapObservation[]): TransferGapTrack => {
+    const s = newest(o);
+    return { gaps: s.map((x) => x.gap), observations: s, days: s.length };
+  };
+  // Brukerens egne avganger: stabil id foretrekkes, ellers eksakt rutetid.
+  const actualObs = bySj.length >= byAimed.length ? bySj : byAimed;
+  const actualSource: "sj" | "aimed" | "none" =
+    actualObs.length === 0 ? "none" : actualObs === bySj ? "sj" : "aimed";
+  const actual = { ...track(actualObs), source: actualSource };
+  const pool = track(byPool);
 
   let observations: TransferGapObservation[];
   let source: TransferGapSource;
@@ -458,7 +500,13 @@ export async function computeTransferGap(
     source = best.length > 0 ? (best === bySj ? "sj" : "aimed") : "none";
   }
   observations = [...observations].sort((a, b) => (a.date < b.date ? 1 : -1));
-  return { gaps: observations.map((o) => o.gap), observations, source };
+  return {
+    gaps: observations.map((o) => o.gap),
+    observations,
+    source,
+    actual,
+    pool,
+  };
 }
 
 /** Gap-fordelinger for alle overganger i et reiseforslag (sekvensielt —
