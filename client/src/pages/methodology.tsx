@@ -314,7 +314,7 @@ export default function Methodology() {
 
             <h4 className="text-base font-semibold pt-2">To tall, side om side</h4>
             <p className="text-sm text-muted-foreground">
-              I reiseanalysen viser vi begge grunnlagene samtidig, med antall dager over hver
+              I overgangsanalysen viser vi begge grunnlagene samtidig, med antall dager over hver
               kolonne, slik at du alltid ser hvor tynt eller tykt datagrunnlaget for{" "}
               <em>din</em> avgang er:
             </p>

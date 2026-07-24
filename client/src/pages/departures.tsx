@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
@@ -150,8 +151,12 @@ type SjStopStat = {
   stop_ref: string;
   p50_dep: number | null;
   p80_dep: number | null;
+  p95_dep: number | null;
   p50_arr: number | null;
   p80_arr: number | null;
+  p95_arr: number | null;
+  std_dep: number | null;
+  std_arr: number | null;
   n: number;
   source: "sj" | "line";
 };
@@ -172,6 +177,9 @@ function JourneyDetail({
   duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>;
 }) {
   const date = dateIso.slice(0, 10);
+  // Hvilke persentil-/spredningskolonner som vises per stopp. P50/P80 på som
+  // før; P95 og standardavvik er nye og også på som standard.
+  const [showPct, setShowPct] = useState({ p50: true, p80: true, p95: true, std: true });
   const { data: sj, isLoading, isError } = useQuery<SjResponse>({
     queryKey: [`/api/servicejourney/${encodeURIComponent(sjId)}?date=${date}`],
     refetchInterval: 60_000,
@@ -188,8 +196,12 @@ function JourneyDetail({
       const cols = `
         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_departure_min) AS p50_dep,
         PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_departure_min) AS p80_dep,
+        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_departure_min) AS p95_dep,
         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p50_arr,
         PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p80_arr,
+        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p95_arr,
+        STDDEV_SAMP(delay_departure_min) AS std_dep,
+        STDDEV_SAMP(delay_arrival_min)   AS std_arr,
         COUNT(*) AS n`;
       // Linjenivå først (bredest), deretter overskriv med SJ-nivå der vi har
       // nok observasjoner på akkurat denne avgangen.
@@ -226,19 +238,40 @@ function JourneyDetail({
 
   return (
     <div className="py-2 pl-8 pr-2 bg-muted/20 rounded-md mb-2">
-      <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-2 flex-wrap">
+      <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-2 flex-wrap">
         <span className="font-medium">
           Linje {sj.line?.publicCode ?? "?"} · hele reisen ({sj.calls.length} stopp)
         </span>
         <span>Rutetid</span>
         <span className="text-emerald-600">sanntid</span>
-        <span className="text-amber-500">~P50</span>
-        <span className="text-red-500/80">P80</span>
+        {showPct.p50 && <span className="text-amber-500">~P50</span>}
+        {showPct.p80 && <span className="text-red-500/80">P80</span>}
+        {showPct.p95 && <span className="text-violet-500/80">P95</span>}
+        {showPct.std && <span className="text-sky-500/80">σ</span>}
         {statMap && statMap.size > 0 && (
           <span className="italic">
             {anySj ? "statistikk for akkurat denne avgangen" : "statistikk for linjen ved hvert stopp"}
           </span>
         )}
+      </div>
+      {/* Persentil-/spredningsvelger */}
+      <div className="flex items-center gap-3 text-[10px] mb-1.5">
+        <span className="text-muted-foreground">Vis:</span>
+        {([
+          ["p50", "~P50", "text-amber-500", "Median — halvparten av avgangene er innenfor"],
+          ["p80", "P80", "text-red-500/80", "4 av 5 avganger er innenfor"],
+          ["p95", "P95", "text-violet-500/80", "19 av 20 avganger er innenfor"],
+          ["std", "σ", "text-sky-500/80", "Standardavvik — hvor mye forsinkelsen typisk varierer rundt snittet"],
+        ] as const).map(([key, label, color, title]) => (
+          <label key={key} className="flex items-center gap-1 cursor-pointer" title={title}>
+            <Checkbox
+              className="h-3 w-3"
+              checked={showPct[key]}
+              onCheckedChange={(c) => setShowPct((prev) => ({ ...prev, [key]: c === true }))}
+            />
+            <span className={cn("font-mono", color)}>{label}</span>
+          </label>
+        ))}
       </div>
       <div className="space-y-0.5">
         {sj.calls.map((c, i) => {
@@ -251,6 +284,8 @@ function JourneyDetail({
           const stat = c.quayRef ? statMap?.get(c.quayRef) : null;
           const p50 = isLast ? stat?.p50_arr : stat?.p50_dep;
           const p80 = isLast ? stat?.p80_arr : stat?.p80_dep;
+          const p95 = isLast ? stat?.p95_arr : stat?.p95_dep;
+          const std = isLast ? stat?.std_arr : stat?.std_dep;
           const isHighlight = c.quayRef != null && c.quayRef === highlightQuay;
           return (
             <div
@@ -277,12 +312,29 @@ function JourneyDetail({
               ) : (
                 <span className="w-8 text-center text-[9px] text-muted-foreground/40">—</span>
               )}
-              <span className="font-mono text-[10px] tabular-nums text-amber-500 w-12 text-right">
-                {aimed && p50 != null ? `~${fmtHM(addMinToIso(aimed, p50))}` : ""}
-              </span>
-              <span className="font-mono text-[10px] tabular-nums text-red-500/80 w-11 text-right">
-                {aimed && p80 != null ? fmtHM(addMinToIso(aimed, p80)) : ""}
-              </span>
+              {showPct.p50 && (
+                <span className="font-mono text-[10px] tabular-nums text-amber-500 w-12 text-right">
+                  {aimed && p50 != null ? `~${fmtHM(addMinToIso(aimed, p50))}` : ""}
+                </span>
+              )}
+              {showPct.p80 && (
+                <span className="font-mono text-[10px] tabular-nums text-red-500/80 w-11 text-right">
+                  {aimed && p80 != null ? fmtHM(addMinToIso(aimed, p80)) : ""}
+                </span>
+              )}
+              {showPct.p95 && (
+                <span className="font-mono text-[10px] tabular-nums text-violet-500/80 w-11 text-right">
+                  {aimed && p95 != null ? fmtHM(addMinToIso(aimed, p95)) : ""}
+                </span>
+              )}
+              {showPct.std && (
+                <span
+                  className="font-mono text-[10px] tabular-nums text-sky-500/80 w-11 text-right"
+                  title="Standardavvik — hvor mye forsinkelsen typisk varierer rundt snittet"
+                >
+                  {std != null ? `σ${std.toFixed(1)}m` : ""}
+                </span>
+              )}
             </div>
           );
         })}

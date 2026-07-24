@@ -417,6 +417,47 @@ function normalizeDate(d: unknown): string {
  * Nivå 1 og 2 velges først når de har minst SPECIFIC_MIN_DAYS dager. Poolen
  * brukes bare som siste utvei, og merkes i UI.
  */
+// DuckDB-WASM-spørringer kan henge for alltid — verifisert rotårsak
+// (2026-07-24): Cloudflare R2 sin offentlige .r2.dev-bucket svarer 429 (Too
+// Many Requests) ved høyt volum, og duckdb-wasm sin httpfs-klient ser IKKE ut
+// til å overføre den 429-en videre som en avvist promise — kallet blir
+// stående uten å verken løse seg eller feile. Reprodusert direkte: samme SQL
+// kjørt i ren Python/DuckDB mot samme R2-URL feilet raskt og tydelig med
+// "HTTP 429", mens duckdb-wasm i nettleseren hang på akkurat den spørringen.
+// Trigget denne dagen av uvanlig høyt automatisert testvolum (mange
+// sideinnlastninger på kort tid) — men samme sårbarhet kan i prinsippet
+// ramme en vanlig bruker også, så tidsavbruddet under er en generell
+// beskyttelse, ikke bare en engangsfiks.
+//
+// Siden overgangs-prefetchen kjører sekvensielt (én pattern/transfer om
+// gangen, se computeTransferGaps/gapResults-effekten i trip-planner.tsx), vil
+// ÉN hengt spørring blokkere ALLE senere reiseforslag for alltid — sett fra
+// UI-et: "beregner…" som aldri blir ferdig, og siden gapMap-nøkkelen for det
+// mønsteret aldri settes, viser "Overgangsanalyse" feilaktig "mangler
+// forsinkelsesdata" i stedet for en lasteindikator. En tidsavbrudd konverterer
+// et evig-hengende kall til en vanlig avvist promise, som fanges opp per
+// spec i computeTransferGaps og lar resten av køen fortsette.
+//
+// MERK — kjent begrensning: tidsavbruddet slutter bare å VENTE på løftet; det
+// avbryter ikke selve nettverkskallet inni duckdb-wasm sin worker. Er
+// worker-en enkelttrådet kan det avbrutte kallet fortsatt oppta den bak
+// kulissene og forsinke senere spørringer. Reduserer altså opplevd
+// "for alltid hengende UI", men reduserer ikke selve R2-belastningen.
+const GAP_QUERY_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`DuckDB-spørring tidsavbrutt etter ${ms}ms (${label})`)),
+      ms,
+    );
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 export async function computeTransferGap(
   s: TransferSpec,
   duckQuery: DuckQueryFn,
@@ -436,9 +477,11 @@ export async function computeTransferGap(
     };
   }
 
-  const rows = (await duckQuery(parts.join("\nUNION ALL\n"), undefined, {
-    family: "by-stop",
-  })) as CombinedGapRow[];
+  const rows = (await withTimeout(
+    duckQuery(parts.join("\nUNION ALL\n"), undefined, { family: "by-stop" }),
+    GAP_QUERY_TIMEOUT_MS,
+    s.key,
+  )) as CombinedGapRow[];
 
   const toObs = (r: CombinedGapRow): TransferGapObservation => ({
     date: normalizeDate(r.date),
@@ -510,14 +553,29 @@ export async function computeTransferGap(
 }
 
 /** Gap-fordelinger for alle overganger i et reiseforslag (sekvensielt —
- *  DuckDB-workeren er én tråd uansett). */
+ *  DuckDB-workeren er én tråd uansett). Feil/tidsavbrudd på ÉN overgang
+ *  fanges her og gir "none" for akkurat den — de andre overgangene i samme
+ *  reiseforslag beregnes fortsatt (i stedet for at hele reiseforslaget mister
+ *  gapMap-oppføringen sin og blir stående på "beregner…" for alltid, se
+ *  withTimeout over). */
 export async function computeTransferGaps(
   specs: TransferSpec[],
   duckQuery: DuckQueryFn,
 ): Promise<Map<string, TransferGapResult>> {
   const out = new Map<string, TransferGapResult>();
+  const emptyTrack: TransferGapTrack = { gaps: [], observations: [], days: 0 };
   for (const s of specs) {
-    out.set(s.key, await computeTransferGap(s, duckQuery));
+    try {
+      out.set(s.key, await computeTransferGap(s, duckQuery));
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn(`[trip-shared] overgangs-gap feilet/tidsavbrutt for ${s.key}:`, err);
+      }
+      out.set(s.key, {
+        gaps: [], observations: [], source: "none",
+        actual: { ...emptyTrack, source: "none" }, pool: emptyTrack,
+      });
+    }
   }
   return out;
 }

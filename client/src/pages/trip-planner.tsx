@@ -16,7 +16,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
   Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
-  Info, Database, BarChart3,
+  Info, Database, BarChart3, Loader2,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
@@ -129,7 +129,7 @@ type LegTimingResult = {
 
 // ---------------------------------------------------------------------------
 // Empirisk overgangs-suksess: SQL og typer bor nå i lib/trip-shared.ts
-// (delt med reiseanalyse-dialogen og plan-grafene). Selve beregningen kjøres
+// (delt med overgangsanalyse-dialogen og plan-grafene). Selve beregningen kjøres
 // sekvensielt for ALLE reiseforslag på sidenivå — se gap-prefetch-effekten i
 // TripPlanner.
 // ---------------------------------------------------------------------------
@@ -1016,7 +1016,7 @@ const STOP_COLLAPSE_THRESHOLD = 8;
 
 // ---------------------------------------------------------------------------
 // Overgangsinfo per transit→transit-bytte (beregnet i TripCard, vist både i
-// den kompakte inline-raden og i reiseanalyse-dialogen)
+// den kompakte inline-raden og i overgangsanalyse-dialogen)
 // ---------------------------------------------------------------------------
 
 type TransferProbs = { default: number; user: number; sprint: number };
@@ -1035,7 +1035,7 @@ type TransferInfo = {
   // forsinkelse (oppstår typisk etter manuelt bytte av avgang på et legg)
   broken: boolean;
   observations: TransferGapObservation[]; // per-dag-observasjoner, nyeste først
-  /** Begge sporene vises side om side i reiseanalysen, slik at man alltid ser
+  /** Begge sporene vises side om side i overgangsanalysen, slik at man alltid ser
    *  hvor mange dager estimatet for DIN avgang faktisk bygger på. */
   actual: { days: number; source: "sj" | "aimed" | "none"; probs: TransferProbs };
   pool: { days: number; probs: TransferProbs };
@@ -1043,23 +1043,26 @@ type TransferInfo = {
 
 const OBSERVATION_TABLE_LIMIT = 10;
 
-/** Reiseanalyse-dialog for én overgang: de tre sannsynlighetene, datakilde,
+/** Overgangsanalyse-dialog for én overgang: de tre sannsynlighetene, datakilde,
  *  og ("Vis data") de siste faktiske forekomstene av overgangen — samme idé
  *  som enkeltavgangs-tabellen i stoppanalysen. */
 function TransferAnalysisDialog({
   info,
   transferMarginMin,
   sprintSpeedKmh,
+  isPending,
   onClose,
 }: {
   info: TransferInfo;
   transferMarginMin: number;
   sprintSpeedKmh: number;
+  /** true = sidenivå-prefetchen har ikke nådd dette reiseforslaget ennå.
+   *  Uten denne kunne dialogen feilaktig vise "mangler forsinkelsesdata" for
+   *  en overgang som faktisk bare ikke er ferdig beregnet ennå. */
+  isPending: boolean;
   onClose: () => void;
 }) {
   const [showData, setShowData] = useState(false);
-  // "Rakk"-kolonnen bruker samme terskel som "Med X min margin"-raden
-  const requiredGap = info.walkTime + transferMarginMin;
   const rows = info.observations.slice(0, OBSERVATION_TABLE_LIMIT);
 
   return (
@@ -1067,12 +1070,16 @@ function TransferAnalysisDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-base">
-            Reiseanalyse — overgang
+            Overgangsanalyse
             {info.fromLine && info.toLine && <> linje {info.fromLine} → {info.toLine}</>}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Planlagt gap {info.buffer.toFixed(0)} min
-            {info.walkTime > 0 && <>, hvorav {info.walkTime.toFixed(1)} min gange</>}.
+            Planlagt margin {(info.buffer - info.walkTime).toFixed(1)} min
+            {info.walkTime > 0 ? (
+              <> utover gange ({info.walkTime.toFixed(1)} min) — {info.buffer.toFixed(0)} min gap totalt.</>
+            ) : (
+              <> (ingen gange nødvendig).</>
+            )}{" "}
             Sannsynlighetene telles opp dag for dag i historikken — ingen simulering.
           </DialogDescription>
         </DialogHeader>
@@ -1146,6 +1153,11 @@ function TransferAnalysisDialog({
               Metode →
             </a>
           </div>
+        ) : isPending ? (
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Beregner overgangsdata …
+          </p>
         ) : (
           <p className="text-xs text-muted-foreground italic">
             Mangler forsinkelsesdata for å vurdere denne overgangen.
@@ -1182,13 +1194,27 @@ function TransferAnalysisDialog({
                             {info.toLine ? `linje ${info.toLine}` : "ut"}
                           </span>
                         </th>
-                        <th className="py-1 px-2 font-medium text-right">Gap</th>
-                        <th className="py-1 px-2 font-medium text-right">Rakk?</th>
+                        <th className="py-1 px-2 font-medium text-right whitespace-nowrap">
+                          Margin
+                          <span className="block font-normal text-[10px] text-muted-foreground/70">
+                            utover gange
+                          </span>
+                        </th>
+                        <th className="py-1 px-2 font-medium text-right whitespace-nowrap">
+                          Innenfor
+                          <span className="block font-normal text-[10px] text-muted-foreground/70">
+                            din margin?
+                          </span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="font-mono">
                       {rows.map((o) => {
-                        const made = o.gap >= requiredGap;
+                        // Margin = gap utover ren gangtid — samme størrelse som
+                        // "Overgangsmargin"-filteret lenger oppe, så tallene er
+                        // direkte sammenlignbare. made = margin >= din valgte margin.
+                        const margin = o.gap - info.walkTime;
+                        const made = margin >= transferMarginMin;
                         return (
                           <tr key={o.date} className="border-t border-border/50">
                             <td className="py-1 px-2 whitespace-nowrap font-sans">
@@ -1201,7 +1227,7 @@ function TransferAnalysisDialog({
                               {o.depActualMin != null ? minutesToHM(o.depActualMin) : "—"}
                             </td>
                             <td className="py-1 px-2 text-right tabular-nums">
-                              {o.gap.toFixed(1)}m
+                              {margin >= 0 ? "+" : ""}{margin.toFixed(1)}m
                             </td>
                             <td className={cn(
                               "py-1 px-2 text-right",
@@ -1219,8 +1245,10 @@ function TransferAnalysisDialog({
                   De {rows.length} siste av {info.daysObserved}{" "}
                   {info.daysObserved === 1 ? "dag" : "dager"} med observasjoner.
                   <strong> Ankomst</strong> = når linje {info.fromLine ?? "inn"} kom fram,{" "}
-                  <strong>avgang</strong> = når linje {info.toLine ?? "ut"} gikk.
-                  «Rakk?» = gap ≥ gangtid + din margin ({requiredGap.toFixed(1)} min).
+                  <strong>avgang</strong> = når linje {info.toLine ?? "ut"} gikk.{" "}
+                  <strong>Margin</strong> = hvor mye tid du hadde utover selve gangtiden
+                  ({info.walkTime.toFixed(1)} min) — «Innenfor din margin?» sjekker om det var
+                  minst {transferMarginMin} min, samme grense som «Overgangsmargin»-filteret.
                   {isActualDepartureSource(info.source) ? (
                     <> Tidene er faktisk målte for dine to avganger.</>
                   ) : (
@@ -1635,7 +1663,7 @@ function TripCard({
   const [altOpenLeg, setAltOpenLeg] = useState<number | null>(null);
   // Legg der brukeren har utvidet den kollapsede stopplisten
   const [stopsExpandedLegs, setStopsExpandedLegs] = useState<Set<number>>(new Set());
-  // Reiseanalyse-dialog: hvilken overgang (indeks) som er åpen
+  // Overgangsanalyse-dialog: hvilken overgang (indeks) som er åpen
   const [analysisOpenIdx, setAnalysisOpenIdx] = useState<number | null>(null);
   // Legg der brukeren har åpnet "hele avgangen"-visningen (klikk på linjenr)
   const [journeyOpenLeg, setJourneyOpenLeg] = useState<number | null>(null);
@@ -2118,7 +2146,7 @@ function TripCard({
                               {p80Time}
                             </span>
                           )}
-                          {/* P95 (violet) — kun i reiseanalyse-visning */}
+                          {/* P95 (violet) — vises når P95-avkryssingen er på */}
                           {p95Time && (
                             <span className="font-mono text-[10px] text-violet-500/80 tabular-nums">
                               {p95Time}
@@ -2185,7 +2213,7 @@ function TripCard({
                   )}
                 </div>
 
-                {/* Kompakt overgangsrad — detaljene bor i reiseanalyse-dialogen */}
+                {/* Kompakt overgangsrad — detaljene bor i overgangsanalyse-dialogen */}
                 {transferInfo && (
                   <div className="py-2 px-3 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -2223,7 +2251,7 @@ function TripCard({
                           onClick={() => setAnalysisOpenIdx(transferIdx ?? null)}
                         >
                           <BarChart3 className="h-3 w-3 mr-1" />
-                          Reiseanalyse
+                          Overgangsanalyse
                         </Button>
                       )}
                     </div>
@@ -2277,12 +2305,13 @@ function TripCard({
               </div>
             );
           })}
-          {/* Reiseanalyse-dialog for valgt overgang */}
+          {/* Overgangsanalyse-dialog for valgt overgang */}
           {analysisOpenIdx != null && transferAnalysis.transfers[analysisOpenIdx] && (
             <TransferAnalysisDialog
               info={transferAnalysis.transfers[analysisOpenIdx]}
               transferMarginMin={transferMarginMin}
               sprintSpeedKmh={sprintSpeedKmh}
+              isPending={!gapMap}
               onClose={() => setAnalysisOpenIdx(null)}
             />
           )}

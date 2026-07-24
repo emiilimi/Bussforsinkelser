@@ -3,9 +3,67 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-07-23
+**Sist oppdatert**: 2026-07-24
 
-## Endringslogg — 2026-07-23: Reiseplanlegger-omarbeiding (persentilvelger, reiseanalyse-popup, plan-tre, gap-prefetch) + ET-Client-Name-rebrand
+## Endringslogg — 2026-07-24: Overgangsanalyse-fikser (henge-bug, feilmelding, ordlyd) + P95/std.avvik på avganger-siden
+
+**🔴 Rotårsak funnet for "henge"-bugen fra i går**: Cloudflare R2 sin offentlige
+`.r2.dev`-bucket svarer **429 Too Many Requests** ved høyt volum, og
+`duckdb-wasm` sin httpfs-klient ser IKKE ut til å overføre 429-en videre som
+en avvist promise — kallet blir stående uten å verken løse seg eller feile.
+Reprodusert direkte: samme SQL kjørt i ren Python/DuckDB mot samme R2-URL
+feilet raskt og tydelig med `HTTP 429`, mens `duckdb-wasm` i nettleseren hang
+på akkurat den spørringen. Trigget i dag av uvanlig høyt automatisert
+testvolum (mange sideinnlastninger på kort tid under denne økten) — men
+samme sårbarhet kan i prinsippet ramme en vanlig bruker også ved nok samtidig
+trafikk, så fiksen under er ment som generell beskyttelse, ikke bare en
+engangsløsning. **Kjent begrensning**: tidsavbruddet slutter bare å VENTE på
+løftet; det avbryter ikke selve nettverkskallet inni duckdb-wasm sin worker,
+så belastningen på R2 reduseres ikke i seg selv — bare det at UI-et står fast
+for alltid.
+
+- **Tidsavbrudd på overgangs-gap-spørringer** (`client/src/lib/trip-shared.ts`
+  `computeTransferGap`): 15 sek `withTimeout`-wrapper rundt DuckDB-kallet.
+  `computeTransferGaps` fanger tidsavbrudd/feil PER overgang (ikke per
+  reiseforslag) og setter `source: "none"` for akkurat den — resten av
+  reiseforslagets overganger beregnes fortsatt, i stedet for at hele
+  reiseforslaget mister sin `gapMap`-oppføring og blir stående på "beregner…"
+  for alltid.
+- **"Mangler forsinkelsesdata" viste feilaktig mens det egentlig lastet**:
+  `TransferAnalysisDialog` sjekket bare om sannsynligheten var beregnet, ikke
+  om sidenivå-prefetchen (`gapMap`) i det hele tatt hadde nådd dette
+  reiseforslaget ennå. Ny `isPending`-prop (`!gapMap` på kallestedet) viser nå
+  "Beregner overgangsdata …" med spinner mens man venter, og reserverer
+  "Mangler forsinkelsesdata" til det faktisk er bekreftet tomt. Verifisert i
+  nettleser: dialogen åpnet rett før prefetchen var ferdig viste riktig
+  lastetekst, ikke feilmeldingen.
+- **"Gap" oversatt til "Margin" + "Rakk?" omformulert** i «Vis data»-tabellen:
+  kolonnen viser nå `margin = gap − gangtid` (samme størrelse som
+  «Overgangsmargin»-filteret, så tallene er direkte sammenlignbare), og
+  «Rakk?» er erstattet med et to-linjers kolonnehode «Innenfor / din margin?»
+  som eksplisitt viser til margin-kolonnen ved siden av. Dialogens
+  toppseksjon endret fra "Planlagt gap X min, hvorav Y min gange" til
+  "Planlagt margin X min utover gange (Y min)".
+- **«Reiseanalyse» → «Overgangsanalyse»**: knapp, dialogtittel og
+  kommentarer i `trip-planner.tsx` samt én referanse i `methodology.tsx`
+  omdøpt — navnet beskriver bedre at funksjonen gjelder ett enkelt bytte,
+  ikke hele reisen.
+- **P95 + standardavvik på avganger-siden** (`client/src/pages/departures.tsx`
+  `JourneyDetail`): «hele reisen»-visningen har nå samme
+  avkryssingsboks-mønster som reiseplanleggeren (P50/P80/P95/σ, alle på som
+  standard). DuckDB-spørringen utvidet med `PERCENTILE_CONT(0.95)` og
+  `STDDEV_SAMP` for både avgang og ankomst. Verifisert i nettleser (lokalt
+  full-bygg, ingen R2-avhengighet): P95- og σ-kolonnene vises, og
+  av-/påslåing av P95-boksen fjerner/viser kolonnen korrekt.
+
+**Verifisert**: `tsc` og `npm run build` rene. Overgangsanalyse-dialogens
+tittel, margin-ordlyd og lasteindikator bekreftet i nettleser mot R2-data
+(Lagunen→Åsane). «Vis data»-tabellens faktiske tallinnhold (margin-kolonnen
+med ekte rader) kunne IKKE reverifiseres i denne økten — R2 var fortsatt
+429-rate-limitet ved commit-tidspunktet, mest sannsynlig fra denne øktens
+egen høye testvolum. Koden er lest gjennom og typechecker; bør sjekkes
+manuelt når R2 har roet seg (normalt innen kort tid uten videre automatisert
+trafikk).
 
 **ET-Client-Name → `emiliemoldestad-sentur`**: byttet fra `emiliemoldestad-bussprosjekt` i `functions/api/_entur.ts` (`DEFAULT_ET_CLIENT_NAME`) og de fire hardkodede stedene i `server/routes.ts` (trip/geocoder/departures/servicejourney-proxyene). Docs oppdatert (CLAUDE.md, README uendret, STATUS "gjeldende"-seksjoner). Den daterte 2026-04-12-endringen i historikken beholdt som den var.
 
