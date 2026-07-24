@@ -1929,8 +1929,13 @@ function TripCard({
               <Clock className="h-3 w-3 mr-1" />
               {formatDuration(pattern.duration)}
             </Badge>
-            {/* Transfer success probability or "Direkte" */}
-            {transferAnalysis.hasTransfers ? (
+            {/* Overgangssannsynlighet, "Gange" (ren gåtur) eller "Direkte" */}
+            {isWalkOnlyPattern(pattern) ? (
+              <Badge variant="outline" className="text-green-600 border-green-300 text-[10px] gap-1">
+                <Footprints className="h-2.5 w-2.5" />
+                Gange
+              </Badge>
+            ) : transferAnalysis.hasTransfers ? (
               transferAnalysis.overallProb >= 0 ? (
                 probabilityBadge(transferAnalysis.overallProb)
               ) : (
@@ -2552,6 +2557,13 @@ export default function TripPlanner() {
         arriveBy: arriveBy || undefined,
         transportModes: selectedModes.length > 0 ? selectedModes : undefined,
         walkSpeed: walkSpeedMs,
+        // directMode: foot → Entur tar med et rent gå-alternativ i hovedlista
+        // når det er realistisk (kort nok tur). Uten dette fikk man aldri se at
+        // det raskere/like raske alternativet var å gå, med mindre man mistet
+        // en overgang (fallback-kjeden bruker allerede directMode: foot).
+        // Entur returnerer ikke urimelig lange gåturer, så dette er trygt å
+        // alltid sende — brukerens egen ganghastighet styrer beregningen.
+        directMode: "foot",
         maximumTransfers: maxTransfers !== "any" ? parseInt(maxTransfers) : undefined,
         transferSlack: transferSlack !== "default" ? parseInt(transferSlack) : undefined,
         wheelchairAccessible: wheelchairAccessible || undefined,
