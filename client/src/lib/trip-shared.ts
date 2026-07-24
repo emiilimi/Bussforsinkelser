@@ -24,6 +24,10 @@ export type TripLeg = {
   duration: number;
   distance: number;
   intermediateQuays: Array<Quay>;
+  // Google-enkodet polylinje for leggets faktiske geometri (gate for gange,
+  // rutetrasé for kollektiv). Hentes fra Entur (`pointsOnLink { points }`) og
+  // brukes til å tegne ruten på kart. Kan mangle for enkelte legg.
+  pointsOnLink: { points: string } | null;
   serviceJourney: {
     id: string;
     passingTimes: Array<{

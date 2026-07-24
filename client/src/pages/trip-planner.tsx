@@ -16,7 +16,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
   Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
-  Info, Database, BarChart3, Loader2,
+  Info, Database, BarChart3, Loader2, Map as MapIcon,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import {
 import { formatWeekdayDateNO } from "@/lib/date-utils";
 import { PlanDelayChart } from "@/components/plan-delay-chart";
 import { ServiceJourneyDetail } from "@/components/service-journey-detail";
+import { TripRouteMap } from "@/components/trip-route-map";
 import {
   type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
@@ -1667,6 +1668,8 @@ function TripCard({
   const [analysisOpenIdx, setAnalysisOpenIdx] = useState<number | null>(null);
   // Legg der brukeren har åpnet "hele avgangen"-visningen (klikk på linjenr)
   const [journeyOpenLeg, setJourneyOpenLeg] = useState<number | null>(null);
+  // Rutekart (lat — Leaflet/kartflisene lastes først når brukeren klikker)
+  const [showMap, setShowMap] = useState(false);
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Samme spec-nøkler ("t0", "t1", ...) som sidenivå-prefetchen bruker.
@@ -1972,6 +1975,19 @@ function TripCard({
 
       {expanded && (
         <CardContent className="pt-0 space-y-3">
+          {/* Rutekart — lat, skjult til brukeren klikker "Vis kart" */}
+          <div className="flex justify-end">
+            <Button
+              variant={showMap ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setShowMap((v) => !v)}
+            >
+              <MapIcon className="h-3 w-3 mr-1" />
+              {showMap ? "Skjul kart" : "Vis kart"}
+            </Button>
+          </div>
+          {showMap && <TripRouteMap pattern={pattern} />}
           {pattern.legs.map((leg, legIdx) => {
             const lineRef = leg.line?.id ?? "";
             const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
