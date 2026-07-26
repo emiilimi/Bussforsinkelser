@@ -1670,6 +1670,8 @@ function TripCard({
   const [journeyOpenLeg, setJourneyOpenLeg] = useState<number | null>(null);
   // Rutekart (lat — Leaflet/kartflisene lastes først når brukeren klikker)
   const [showMap, setShowMap] = useState(false);
+  // Gå-legg der brukeren har åpnet «Vis veibeskrivelse» (mini-kart for gangen)
+  const [walkMapLeg, setWalkMapLeg] = useState<number | null>(null);
 
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Samme spec-nøkler ("t0", "t1", ...) som sidenivå-prefetchen bruker.
@@ -1975,19 +1977,6 @@ function TripCard({
 
       {expanded && (
         <CardContent className="pt-0 space-y-3">
-          {/* Rutekart — lat, skjult til brukeren klikker "Vis kart" */}
-          <div className="flex justify-end">
-            <Button
-              variant={showMap ? "secondary" : "outline"}
-              size="sm"
-              className="h-7 px-2 text-[11px]"
-              onClick={() => setShowMap((v) => !v)}
-            >
-              <MapIcon className="h-3 w-3 mr-1" />
-              {showMap ? "Skjul kart" : "Vis kart"}
-            </Button>
-          </div>
-          {showMap && <TripRouteMap pattern={pattern} />}
           {pattern.legs.map((leg, legIdx) => {
             const lineRef = leg.line?.id ?? "";
             const hasDelayData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef;
@@ -2002,16 +1991,36 @@ function TripCard({
               ? transferAnalysis.transfers[transferIdx] ?? null
               : null;
 
-            // Walking leg — compact display
+            // Walking leg — compact display + egen «Vis veibeskrivelse» (mini-
+            // kart zoomet på gangstrekket). Knappen vises bare når vi har
+            // geometri for gangen.
             if (leg.mode === "foot") {
               const distM = Math.round(leg.distance || 0);
+              const hasWalkGeom = !!leg.pointsOnLink && distM > 0;
+              const walkOpen = walkMapLeg === legIdx;
               return (
-                <div key={legIdx} className="flex items-center gap-2 py-1.5 px-3 text-xs text-muted-foreground">
-                  <Footprints className="h-3 w-3" />
-                  <span>
-                    Ga {distM > 0 ? `${distM}m` : ""} til {leg.toPlace.name}
-                    {leg.duration > 0 && ` (${Math.round(leg.duration / 60)} min)`}
-                  </span>
+                <div key={legIdx}>
+                  <div className="flex items-center gap-2 py-1.5 px-3 text-xs text-muted-foreground">
+                    <Footprints className="h-3 w-3 flex-shrink-0" />
+                    <span>
+                      Gå {distM > 0 ? `${distM}m` : ""} til {leg.toPlace.name}
+                      {leg.duration > 0 && ` (${Math.round(leg.duration / 60)} min)`}
+                    </span>
+                    {hasWalkGeom && (
+                      <button
+                        className="ml-auto flex items-center gap-0.5 text-[10px] text-primary hover:underline flex-shrink-0"
+                        onClick={() => setWalkMapLeg(walkOpen ? null : legIdx)}
+                      >
+                        <MapIcon className="h-2.5 w-2.5" />
+                        {walkOpen ? "Skjul veibeskrivelse" : "Vis veibeskrivelse"}
+                      </button>
+                    )}
+                  </div>
+                  {hasWalkGeom && walkOpen && (
+                    <div className="px-3">
+                      <TripRouteMap pattern={{ ...pattern, legs: [leg] }} />
+                    </div>
+                  )}
                 </div>
               );
             }
@@ -2326,6 +2335,22 @@ function TripCard({
               </div>
             );
           })}
+
+          {/* Rutekart — nederst i reiseforslaget. Lat: Leaflet/kartflisene
+              lastes først når brukeren klikker «Vis kart». */}
+          <div className="pt-1">
+            <Button
+              variant={showMap ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setShowMap((v) => !v)}
+            >
+              <MapIcon className="h-3 w-3 mr-1" />
+              {showMap ? "Skjul kart" : "Vis kart"}
+            </Button>
+            {showMap && <TripRouteMap pattern={pattern} stats={duckStats} />}
+          </div>
+
           {/* Overgangsanalyse-dialog for valgt overgang */}
           {analysisOpenIdx != null && transferAnalysis.transfers[analysisOpenIdx] && (
             <TransferAnalysisDialog

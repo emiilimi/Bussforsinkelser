@@ -752,11 +752,11 @@ export async function registerRoutes(
               transportSubmode
               fromPlace {
                 name
-                quay { id name publicCode }
+                quay { id name publicCode latitude longitude }
               }
               toPlace {
                 name
-                quay { id name publicCode }
+                quay { id name publicCode latitude longitude }
               }
               line {
                 id
@@ -772,6 +772,8 @@ export async function registerRoutes(
                 id
                 name
                 publicCode
+                latitude
+                longitude
               }
               serviceJourney {
                 id

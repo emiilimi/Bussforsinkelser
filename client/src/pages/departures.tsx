@@ -589,9 +589,23 @@ export default function Departures() {
     const byId = new Map(historicalDeps.map((r) => [r.serviceJourneyId, r]));
     return depResp!.departures.map((d) => {
       const own = d.serviceJourneyId ? byId.get(d.serviceJourneyId) : undefined;
-      return own
-        ? { ...d, expectedTime: own.expectedTime, expectedArrivalTime: own.expectedArrivalTime }
-        : d;
+      if (own) {
+        // Egne målte data finnes → faktisk avgangstid (rutetid + målt forsinkelse).
+        return {
+          ...d,
+          expectedTime: own.expectedTime,
+          expectedArrivalTime: own.expectedArrivalTime,
+          realtime: own.realtime,
+        };
+      }
+      // Ingen egne målte data for denne avgangen. Enturs expectedTime for en
+      // HISTORISK dato er IKKE en faktisk måling — uten sanntid fyller Entur
+      // den med rutetiden, så å vise den som «faktisk avgang» ville feilaktig
+      // presentere rutetid som reell avgangstid (bug funnet 2026-07-26 for en
+      // dag som ikke var ingested ennå). Behold Enturs tid kun når den faktisk
+      // ER sanntid; ellers null → vises som «ukjent».
+      if (d.realtime) return d;
+      return { ...d, expectedTime: null, expectedArrivalTime: null };
     });
   }, [enturHistoricalOk, depResp, historicalDeps]);
 

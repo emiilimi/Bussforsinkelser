@@ -11,7 +11,13 @@ import type { QueryOptions } from "@/hooks/use-parquet-query";
 // Entur trip-typer (speiler GraphQL-responsen fra /api/trip)
 // ---------------------------------------------------------------------------
 
-type Quay = { id: string; name: string; publicCode?: string | null };
+type Quay = {
+  id: string;
+  name: string;
+  publicCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
 
 export type TripLeg = {
   mode: string;
@@ -57,7 +63,14 @@ export type DuckDelayRow = {
   n: number;
 };
 
-export type StopEntry = { id: string; name: string; platform: string | null; aimedTime: string | null };
+export type StopEntry = {
+  id: string;
+  name: string;
+  platform: string | null;
+  aimedTime: string | null;
+  lat: number | null;
+  lng: number | null;
+};
 
 export type DuckQueryFn = <T = Record<string, unknown>>(
   sql: string,
@@ -88,6 +101,8 @@ export function legStops(leg: TripLeg): StopEntry[] {
     name: q.name,
     platform: q.publicCode ?? null,
     aimedTime,
+    lat: q.latitude ?? null,
+    lng: q.longitude ?? null,
   });
   return [
     leg.fromPlace.quay

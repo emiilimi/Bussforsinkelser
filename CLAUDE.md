@@ -320,13 +320,17 @@ modes: {
 **Forsinkelsesdata-begrensning**: Vi har kun delay-statistikk for **buss** (Skyss). Trikk, T-bane, tog, båt har ingen data i vår DB. UI-et må markere legs der vi mangler data.
 
 ### Kjente Bergen-stoppesteder (for testing)
+> ⚠️ NSR StopPlace-IDer slås jevnlig sammen/reassignes. Tabellen under er
+> verifisert via Entur geocoder 2026-07-26. De GAMLE IDene i denne tabellen
+> (30848/30867/30272/30946/58366) er STALE — 58366 resolver nå til «Oslo S»,
+> og 30272/30946 gir langdistanse-/båtruter, ikke Bergen. Slå alltid opp
+> ferske IDer via `/api/geocoder/autocomplete?text=...` før testing.
+
 | StopPlace | Navn | Merknad |
 |---|---|---|
-| `NSR:StopPlace:30848` | Småstrandgaten | Sentrum (IKKE Festplassen!) |
-| `NSR:StopPlace:30867` | Nygård | (IKKE Byparken!) |
-| `NSR:StopPlace:30272` | Lagunen terminal | Sør for sentrum, populært knutepunkt |
-| `NSR:StopPlace:30946` | Åsane terminal | Nord for sentrum |
-| `NSR:StopPlace:58366` | Bergen busstasjon | Hovedknutepunkt |
+| `NSR:StopPlace:59849` | Lagunen terminal | Sør for sentrum, populært knutepunkt |
+| `NSR:StopPlace:31024` | Åsane terminal | Nord for sentrum |
+| `NSR:StopPlace:62356` | Bergen busstasjon | Hovedknutepunkt |
 
 ### Test-query (for GraphQL Explorer)
 ```graphql
