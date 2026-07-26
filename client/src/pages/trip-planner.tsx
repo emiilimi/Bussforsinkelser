@@ -3190,19 +3190,19 @@ export default function TripPlanner() {
                 )}>
                   <Database className="h-3 w-3" />
                   {duckReady
-                    ? "DuckDB klar"
+                    ? "Statistikk klar"
                     : duckLoading
-                    ? "Laster DuckDB..."
+                    ? "Laster statistikk…"
                     : duckIdle
-                    ? "DuckDB starter ved søk"
-                    : "DuckDB utilgjengelig akkurat nå"}
+                    ? "Statistikk lastes ved søk"
+                    : "Statistikk utilgjengelig akkurat nå"}
                 </span>
                 {!duckReady && !duckLoading && !duckIdle && (
                   <button
                     type="button"
                     onClick={duckRetry}
                     className="text-[10px] text-primary hover:underline"
-                    title="Prøv å laste DuckDB og historiske data på nytt"
+                    title="Prøv å laste de historiske dataene på nytt"
                   >
                     Prøv igjen
                   </button>
@@ -3239,7 +3239,7 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-amber-500 font-mono">~HH:MM</span> Estimert tid
                 </p>
-                <p>Rutetid + median historisk forsinkelse (P50) for avgangen ved det aktuelle stoppet. Beregnet med DuckDB-WASM direkte i nettleseren fra ukentlige Parquet-filer.</p>
+                <p>Rutetid + median historisk forsinkelse (P50) for avgangen ved det aktuelle stoppet. Regnet ut direkte i nettleseren din fra historiske data — ingen tall sendes til en server.</p>
               </div>
 
               {/* Sannsynlighet for overgang */}
@@ -3247,7 +3247,7 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-green-600 font-mono">X%</span> Sannsynlighet for å rekke bytte
                 </p>
-                <p>Telt opp dag for dag i historikken: for hver historisk dag (med samme dagtype) der begge avgangene gikk, måler vi det faktiske gapet mellom ankomst og neste avgang, og teller hvor mange dager gapet var stort nok (inkl. din gangtid + margin). Har vi under 5 dager på akkurat din avgangs-ID, brukes statistikk per (linje, stopp, retning, dagtype) i stedet — kilden merkes i visningen. Se <a href="/metode#overgang" className="text-primary hover:underline">metodesiden</a> for detaljer.</p>
+                <p>Telt opp dag for dag i historikken: for hver historisk dag (med samme dagtype) der begge dine avganger faktisk gikk, måler vi det faktiske gapet mellom ankomst og neste avgang, og teller hvor mange dager marginen var stor nok (inkl. din gangtid). Avgangen din gjenkjennes på tvers av dager via en stabil avgangs-ID — eller eksakt rutetid når ID-en er fersk. Har vi få dager på din egen avgang, viser vi i tillegg <em>sammenlignbare</em> naboavganger; begge tallene står side om side i overgangsanalysen med antall dager, så du ser hvor sikkert grunnlaget er. Se <a href="/metode#overgang" className="text-primary hover:underline">metodesiden</a> for detaljer.</p>
               </div>
 
               {/* P80 punktlighet */}
@@ -3255,7 +3255,7 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-muted-foreground font-mono">P80</span> Punktlighet
                 </p>
-                <p>80. persentil av forsinkelsen — 80 % av de historiske turene var innenfor denne forsinkelsen. Beregnet via DuckDB-WASM fra rå observasjoner.</p>
+                <p>80. persentil av forsinkelsen — 80 % av de historiske turene var innenfor denne forsinkelsen. Regnet ut fra de rå historiske observasjonene, direkte i nettleseren din.</p>
               </div>
             </div>
 

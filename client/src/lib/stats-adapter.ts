@@ -275,6 +275,22 @@ async function apiWorstBestDays(params: URLSearchParams, order: "worst" | "best"
   if (to) rows = rows.filter((r) => r.date <= to);
   if (days && !from && !to) rows = rows.slice(-days);
 
+  // Utelat dager med åpenbart UFULLSTENDIGE data fra beste/verste-rangeringen.
+  // En dag som fortsatt ingesteres (eller der ingest ble avbrutt) har langt
+  // færre registrerte avganger enn normalt; de få som finnes er ikke et
+  // representativt utvalg, og gir typisk et misvisende «beste dag»-resultat
+  // (f.eks. 0,1 min snitt / 97 % i rute fordi bare en håndfull avganger rakk
+  // å bli lastet). Terskel: under halvparten av medianen for vinduet. En ekte
+  // dårlig dag (snø/kaos) beholder normalt avgangsvolum og filtreres derfor
+  // IKKE bort — vi filtrerer på datamengde, ikke på forsinkelse.
+  const counts = rows.map((r) => r.totalJourneys).filter((n) => n > 0).sort((a, b) => a - b);
+  if (counts.length >= 3) {
+    const median = counts[Math.floor(counts.length / 2)];
+    if (median > 0) {
+      rows = rows.filter((r) => r.totalJourneys >= 0.5 * median);
+    }
+  }
+
   rows.sort((a, b) =>
     order === "worst"
       ? (b.avgDelayMin ?? -Infinity) - (a.avgDelayMin ?? -Infinity)

@@ -154,7 +154,7 @@ export default function WorstLists() {
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-destructive" />
                 Mest forsinkede dager
-                <InfoTip>Dager rangert etter høyeste vektet snittforsinkelse i valgt tidsvindu. "Snitt" er minutter forsinkelse, "I rute" er andel ankomster ≤2 min over rutetid.</InfoTip>
+                <InfoTip>Dager rangert etter høyeste vektet snittforsinkelse i valgt tidsvindu. "Snitt" er minutter forsinkelse, "I rute" er andel ankomster ≤2 min over rutetid. Dager med åpenbart ufullstendige data (langt færre registrerte avganger enn normalt, f.eks. dagen som fortsatt lastes inn) er utelatt fra rangeringen.</InfoTip>
               </CardTitle>
               <CardDescription>Dager med høyest gjennomsnittlig forsinkelse.</CardDescription>
             </CardHeader>
@@ -201,7 +201,7 @@ export default function WorstLists() {
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-green-500" />
                 Mest punktlige dager
-                <InfoTip>Dager med lavest vektet snittforsinkelse i valgt tidsvindu.</InfoTip>
+                <InfoTip>Dager med lavest vektet snittforsinkelse i valgt tidsvindu. Dager med åpenbart ufullstendige data (langt færre registrerte avganger enn normalt, f.eks. dagen som fortsatt lastes inn) er utelatt — ellers ville en halvferdig dag med bare noen få avganger feilaktig framstå som den mest punktlige.</InfoTip>
               </CardTitle>
               <CardDescription>Dager med lavest gjennomsnittlig forsinkelse.</CardDescription>
             </CardHeader>

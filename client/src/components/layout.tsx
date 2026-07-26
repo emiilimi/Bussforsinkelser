@@ -68,7 +68,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Operatørvelgeren ligger nå øverst på sidene som filtrerer på
               operatør (se components/region-selector.tsx) — ikke i sidemenyen. */}
-          <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible no-scrollbar">
+          {/* Mobil: flex-wrap slik at ALLE navelementene er synlige (tidligere
+              en horisontal scroll-rad med skjult scrollbar → 5 av 7 lenker lå
+              usynlig utenfor skjermen). Desktop: vertikal liste som før. */}
+          <nav className="flex flex-row flex-wrap md:flex-col gap-1">
             {navItems.map((item) => {
               const isActive = location === item.href;
               return (
@@ -97,7 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
                 <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto" />
               </a>
-              <p>Historiske SIRI ET-data. Oppdateres hver natt. Kilde: ent-data-sharing-ext-prd.</p>
+              <p>Historiske sanntidsdata (SIRI ET) fra Entur. Oppdateres hver natt.</p>
               <p>Reiseplanleggeren bruker Entur sitt Journey Planner API for ruteforslag.</p>
               <p>
                 Inneholder data under{" "}
@@ -130,6 +133,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Heart className="w-3 h-3" />
               Støtt effektiv bistand
             </a>
+          </div>
+          {/* Datakilde-/lisensattribusjon på MOBIL — desktop har den samme
+              informasjonen i sidemenyen (hidden md:block over), som skjules på
+              mobil. NLOD 2.0 krever synlig attribusjon på alle skjermstørrelser. */}
+          <div className="md:hidden max-w-7xl mx-auto mt-1.5 pt-1.5 border-t border-border/50 text-center text-[10px] text-muted-foreground/80 leading-snug">
+            Historiske sanntidsdata (SIRI ET) fra Entur. Inneholder data under{" "}
+            <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+              NLOD 2.0
+            </a>
+            , distribuert av Entur AS og bearbeidet til forsinkelsesstatistikk.
           </div>
         </footer>
       )}

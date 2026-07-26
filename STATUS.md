@@ -3,7 +3,63 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-07-24
+**Sist oppdatert**: 2026-07-26
+
+## Endringslogg — 2026-07-26: Brukervennlighetstest — fikser + kjente svakheter
+
+Omfattende brukervennlighets-/sannhetsaudit av reise-bygget (branch `reise` @
+`ce7e015`, testet desktop 1280 + mobil 375). **Metodebegrensning**: skjermbilder
+og CSS-animasjoner rendrer ikke i testmiljøet (panelet komposerer ikke frames),
+så auditen brukte DOM/computed styles/tekst/nettverk/layout-mål — ikke piksler.
+
+**Fikset (pushet til reise-preview):**
+- **#1 Metodeboks utdatert (sannhet):** «Slik beregner vi tallene» på /reise
+  beskrev fortsatt det GAMLE 2-nivå overgangssystemet («under 5 dager på
+  avgangs-ID → statistikk per linje/stopp»). Omskrevet til dagens 3-nivå
+  (stabil id → eksakt rutetid → nabo-pool) + to-spors «Din avgang /
+  Sammenlignbare», i tråd med /metode.
+- **#3 Ufullstendige dager skjevfordelte beste/verste-lister (sannhet):** en
+  halvferdig ingest-dag (f.eks. 24. juli: 0,1 min / 97,6 % i rute / 1
+  kansellering) framsto som «Mest punktlige dag». `apiWorstBestDays` i
+  `stats-adapter.ts` utelater nå dager med `totalJourneys < 0.5 × median` for
+  vinduet (filtrerer på datamengde, ikke forsinkelse — ekte dårlige dager
+  beholdes). InfoTip-ene på /worst forklarer utelatelsen.
+- **#5 Mobilnav (mobil):** navigasjonen var en horisontal scroll-rad med skjult
+  scrollbar (`no-scrollbar`) — 5 av 7 lenker lå usynlig utenfor skjermen.
+  Endret til `flex-wrap` på mobil, så alle 7 er synlige.
+- **#6 Attribusjon manglet på mobil (NLOD-krav):** NLOD 2.0/Entur-attribusjonen
+  var `hidden md:block`. Lagt til en mobil-attribusjonslinje i footeren
+  (`md:hidden`), så lisens+kilde vises på alle skjermstørrelser.
+- **#8 Intern kilde lekket:** sidemenyen viste «Kilde: ent-data-sharing-ext-prd»
+  (rå BigQuery-prosjektnavn). Erstattet med «Historiske sanntidsdata (SIRI ET)
+  fra Entur.»
+- **#9 Sjargong i metodeboks:** statuspill «DuckDB klar/starter/…» → «Statistikk
+  klar/…»; «Beregnet med DuckDB-WASM fra Parquet-filer» → «Regnet ut direkte i
+  nettleseren din». Den eksplisitt merkede «Teknisk:»-fotnoten beholder
+  DuckDB/Parquet/R2-detaljene (rett sted for det).
+
+**Kjente svakheter — IKKE fikset (skrevet ned etter brukerens ønske):**
+- **#2 Dashboard «Dårligste linje: Linje `1_5` +226,2m snitt»:** urimelig
+  uteligger (3,7 timer snitt) + misdannet linje-id (`1_5` med understrek = rå
+  identifikator lekker gjennom), vist som topp-KPI uten fornuftsfilter.
+  Undergraver tillit. Bør filtreres/saneres (sannsynligvis i
+  `populate_line_names.py`/`aggregate_stats.py` eller med et
+  min-observasjons/max-snitt-filter i leaderboard).
+- **#4 Fortidsdato-søk gir misvisende tom-melding:** «Ingen reiseforslag funnet.
+  Prøv andre stoppesteder eller juster filtrene» — egentlig fordi Entur ikke
+  planlegger reiser bakover i tid. Bør si det.
+- **#7 Overgangsanalyse-dialogens sentrering på mobil — UVERIFISERT:** målinger
+  antydet at tittel/lukkeknapp lå delvis utenfor skjermen, men entré-animasjonen
+  var frosset (panelet komposerer ikke frames), så inkonklusivt. Sjekk på ekte
+  mobil.
+- **#10 Kart-attribusjonsspråk:** /map bruker engelsk «OpenStreetMap
+  contributors», rutekartet norsk «OpenStreetMap-bidragsytere». Triviell.
+- **#11 Mørk modus er død kode:** `.dark`-variabler finnes, men ingenting setter
+  klassen (ingen bryter, ingen `prefers-color-scheme`) → lys modus i praksis.
+
+**Verifisert OK i auditen:** ingen horisontal sideoverflow på noen av 7 sidene
+på mobil; /metode er korrekt og oppdatert; estimater er ærlig merket (~P50);
+tom-resultat-melding og feilbanner finnes; datafriskhet vises; rutekartet virker.
 
 ## Endringslogg — 2026-07-24: Overgangsanalyse-fikser (henge-bug, feilmelding, ordlyd) + P95/std.avvik på avganger-siden
 
