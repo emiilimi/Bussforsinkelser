@@ -4,7 +4,7 @@ import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, Line, ComposedChart } from "recharts";
-import { Clock, TrendingUp, TrendingDown, Bus, CheckCircle, XCircle } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Bus, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
@@ -14,6 +14,7 @@ import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, forma
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { DataQualityFlag, isImplausibleDelay, IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 
 type DailySummary = {
   date: string;
@@ -240,10 +241,11 @@ export default function Dashboard() {
               <div className="text-2xl font-bold truncate">
                 {worstLines[0] ? lineShortLabel(worstLines[0]) : "—"}
               </div>
-              <p className="text-xs text-destructive mt-1">
+              <p className="text-xs text-destructive mt-1 flex items-center gap-1 flex-wrap">
                 {worstLines[0]?.avgDelayMin != null
                   ? `+${worstLines[0].avgDelayMin.toFixed(1)}m snitt`
                   : ""}
+                <DataQualityFlag delayMin={worstLines[0]?.avgDelayMin} withText />
               </p>
             </CardContent>
           </Card>
@@ -336,7 +338,17 @@ export default function Dashboard() {
                 <TrendingUp className="h-5 w-5 text-destructive" />
                 <div>
                   <CardTitle>Dårligste linjer</CardTitle>
-                  <CardDescription>Høyest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.</CardDescription>
+                  <CardDescription>
+                    Høyest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.
+                    {topWorst.some((l) => isImplausibleDelay(l.avgDelayMin)) && (
+                      <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="h-3 w-3 inline mr-1" />
+                        Noen linjer her har snitt over {IMPLAUSIBLE_DELAY_MIN} min. Det er
+                        sannsynligvis datafeil (f.eks. avganger som aldri ble avsluttet i
+                        sanntidsdataene), ikke reelle forsinkelser. Vi viser tallene som de er.
+                      </span>
+                    )}
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>

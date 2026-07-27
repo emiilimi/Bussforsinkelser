@@ -21,6 +21,7 @@ import { InfoTip } from "@/components/info-tip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { DataQualityFlag } from "@/components/data-quality-flag";
 
 type DaySummary = {
   date: string;
@@ -299,7 +300,7 @@ export default function WorstLists() {
                         </button>
                       </TableCell>
                       <TableCell className="text-right text-destructive font-mono">
-                        {stop.avgDelayMin?.toFixed(1) ?? "—"}m
+                        {stop.avgDelayMin?.toFixed(1) ?? "—"}m<DataQualityFlag delayMin={stop.avgDelayMin} className="ml-1" />
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
                         {stop.stddevDelayMin?.toFixed(1) ?? "—"}m
@@ -347,7 +348,7 @@ export default function WorstLists() {
                         </button>
                       </TableCell>
                       <TableCell className="text-right text-green-600 font-mono">
-                        {stop.avgDelayMin?.toFixed(1) ?? "—"}m
+                        {stop.avgDelayMin?.toFixed(1) ?? "—"}m<DataQualityFlag delayMin={stop.avgDelayMin} className="ml-1" />
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
                         {stop.stddevDelayMin?.toFixed(1) ?? "—"}m
@@ -423,7 +424,7 @@ export default function WorstLists() {
                         ±{line.stddevDelayMin?.toFixed(1) ?? "—"}m
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
-                        {line.avgDelayMin?.toFixed(1) ?? "—"}m
+                        {line.avgDelayMin?.toFixed(1) ?? "—"}m<DataQualityFlag delayMin={line.avgDelayMin} className="ml-1" />
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
                         {line.totalCancellations?.toLocaleString("nb-NO") ?? "—"}
@@ -476,7 +477,7 @@ export default function WorstLists() {
                         ±{line.stddevDelayMin?.toFixed(1) ?? "—"}m
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
-                        {line.avgDelayMin?.toFixed(1) ?? "—"}m
+                        {line.avgDelayMin?.toFixed(1) ?? "—"}m<DataQualityFlag delayMin={line.avgDelayMin} className="ml-1" />
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground hidden sm:table-cell">
                         {line.totalCancellations?.toLocaleString("nb-NO") ?? "—"}

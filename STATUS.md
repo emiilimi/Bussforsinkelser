@@ -3,7 +3,52 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-07-26
+**Sist oppdatert**: 2026-07-27
+
+## Endringslogg — 2026-07-27: produksjonsfix (parquet-URL), Min posisjon, «mulig datafeil»-merking
+
+**🔴 Produksjonsutfall ved overgang til `parquet.sentur.no`**: `VITE_PARQUET_BASE_URL`
+hadde et etterslepende mellomrom → `https://parquet.sentur.no%20/manifest.json`
+→ `ERR_NAME_NOT_RESOLVED` på alle parquet-/manifest-kall. Eneste synlige symptom
+var «Statistikk utilgjengelig». R2-oppsettet var korrekt hele tiden (verifisert
+200 + 206 range + `Access-Control-Allow-Origin: *` + `Access-Control-Expose-Headers`).
+Fikset i kode: `PARQUET_BASE` gjør nå `.trim()` FØR skråstrek-strippingen, så et
+mellomrom i env-variabelen ikke lenger kan velte datalasting.
+**Lærdom**: env-variabler som blir til URL-er må trimmes — UI-et for
+miljøvariabler i Cloudflare Pages gjør det ikke for deg.
+
+**Kart (rutekart i reiseplanleggeren)**:
+- **Start-/målmarkører forvekslet med forsinkelsesfarge**: de var grønn/rød —
+  nøyaktig forsinkelsesskalaens ytterpunkter — så endestoppet så «forsinket» ut
+  og startstoppet «i rute», uavhengig av om vi hadde data. Nå nøytrale (hvit
+  fyll, mørk ring; mål stiplet). Dette var den faktiske årsaken til at bruker så
+  «rød» Bergen busstasjon og «grønn» start; ikke få observasjoner, som først antatt.
+- Stopp fargelegges kun ved ≥ 5 observasjoner (`MIN_OBS_FOR_COLOR`); tooltip
+  viser antall obs. og sier eksplisitt fra ved for få/ingen data.
+- Fjernet tooltip på selve rutelinjene (svart felt ved klikk).
+- Rullehjul-zoom: var helt av (`scrollWheelZoom={false}`), så desktop-brukere
+  kunne i praksis ikke zoome. Nå «klikk i kartet for å aktivere», med
+  hint-overlegg — unngår at kartet kaprer sidescrollingen i resultatlista.
+
+**Min posisjon + favoritter/nylige** (`client/src/lib/stop-history.ts`, ny):
+Stoppsøket har nedtrekksliste med «Min posisjon» (Geolocation API, norske
+feilmeldinger), favoritter (stjerne) og nylig søkte steder. Lagres i
+localStorage — **ingen innlogging, ingen server, ingen cookie-banner**: dette er
+førsteparts *funksjonell* lagring, ikke sporing. «Min posisjon» lagres bevisst
+ikke i historikken (koordinaten er ferskvare).
+
+**«Mulig datafeil»-merking** (`components/data-quality-flag.tsx`, ny):
+Etter brukerens prinsipp — *vi filtrerer ikke bort tall som ser urimelige ut, vi
+merker dem*, siden det ikke er vår vurdering å gjøre på leserens vegne.
+Forsinkelser ≥ 120 min (samme terskel som pipelinens uteligger-logging) merkes nå
+med varselikon/tekst på dashboardets «Dårligste linje»-kort, i
+dårligste-linjer-grafen, og i topplistenes stopp- og linjetabeller.
+Løser audit-punkt #2 (Linje `1_5` med +226,2 min) uten å skjule tallet.
+
+> ⚠️ **Ubesvart spenning**: filteret fra 2026-07-26 som *utelater* ufullstendige
+> ingest-dager fra beste/verste-listene er strengt tatt samme «vi bestemmer hva
+> som vises»-mønster. Det filtrerer på datamengde (ikke på om verdien ser
+> urimelig ut), men bør vurderes gjort om til en merking i stedet.
 
 ## Endringslogg — 2026-07-26: Brukervennlighetstest — fikser + kjente svakheter
 
