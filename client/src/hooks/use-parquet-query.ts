@@ -8,8 +8,14 @@ import { useDuckDB, initDuckDB, warmupDuckDB } from "./use-duckdb";
 // Eksportert: stats-adapteren henter artefaktene (stats_*.json) fra samme base.
 // ---------------------------------------------------------------------------
 
+// .trim() FØR slash-strippingen: et etterslepende mellomrom i env-variabelen
+// (lett å få med seg ved liming i Cloudflare Pages sitt UI) ble tidligere med
+// inn i URL-en som «%20», slik at vertsnavnet ble ugyldig og ALLE
+// parquet-/manifest-kall feilet med ERR_NAME_NOT_RESOLVED — uten noen synlig
+// feilmelding utover «Statistikk utilgjengelig». Skjedde i produksjon
+// 2026-07-27 ved overgangen til parquet.sentur.no.
 export const PARQUET_BASE =
-  (import.meta as any).env?.VITE_PARQUET_BASE_URL?.replace(/\/$/, "") ??
+  (import.meta as any).env?.VITE_PARQUET_BASE_URL?.trim().replace(/\/+$/, "") ||
   `${typeof window !== "undefined" ? window.location.origin : ""}/api/parquet`;
 
 // ---------------------------------------------------------------------------

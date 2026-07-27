@@ -35,6 +35,10 @@ function modeColor(mode: string): string {
   return MODE_COLORS[mode] ?? "#6b7280";
 }
 
+// Minste antall observasjoner for (stopp, linje) før vi fargelegger stoppet.
+// Samme terskel som SPECIFIC_MIN_DAYS i overgangsstatistikken.
+const MIN_OBS_FOR_COLOR = 5;
+
 // Forsinkelsesfargeskala — MÅ holdes lik `getColor` i delay-map.tsx.
 function delayColor(delay: number): string {
   if (delay < 1) return "#10b981";
@@ -56,7 +60,7 @@ function nearestIndex(coords: LatLng[], lat: number, lng: number): number {
 }
 
 type Segment = { coords: LatLng[]; color: string; dashed: boolean; label: string };
-type StopDot = { pos: LatLng; color: string; name: string; delay: number | null };
+type StopDot = { pos: LatLng; color: string; name: string; delay: number | null; n: number };
 
 /**
  * Rullehjul-zoom «klikk for å aktivere».
@@ -129,19 +133,29 @@ export function TripRouteMap({
       const canColor = MODES_WITH_DELAY_DATA.has(leg.mode) && !!lineRef && !!stats;
 
       // Stopp langs legget med koordinat + median forsinkelse.
+      //
+      // MIN_OBS: et stopp fargelegges bare når vi har nok observasjoner for
+      // akkurat (stopp, linje). Uten en slik terskel kunne ÉN enkelt
+      // observasjon gi et selvsikkert rødt punkt midt i en ellers grå rute —
+      // som så ut som en påstand om at nettopp det stoppet er dårlig, når
+      // grunnlaget i praksis var tilfeldig støy. (Rapportert av bruker:
+      // Bergen busstasjon lyste rødt på en NOR-WAY-avgang der resten av ruten
+      // manglet data.) Under terskelen behandles stoppet som «ingen data».
       const legStopList = legStops(leg);
       const anchored = legStopList
         .map((s, i) => {
           const row = canColor ? stats!.get(`${s.id}|${lineRef}`) : undefined;
           const isLast = i === legStopList.length - 1;
-          const delay = (isLast ? row?.p50_arr : row?.p50_dep) ?? null;
+          const n = row?.n ?? 0;
+          const raw = (isLast ? row?.p50_arr : row?.p50_dep) ?? null;
+          const delay = n >= MIN_OBS_FOR_COLOR ? raw : null;
           const idx = s.lat != null && s.lng != null ? nearestIndex(coords, s.lat, s.lng) : null;
-          return { name: s.name, lat: s.lat, lng: s.lng, delay, idx };
+          return { name: s.name, lat: s.lat, lng: s.lng, delay, n, idx };
         })
         .filter((a): a is typeof a & { idx: number; lat: number; lng: number } => a.idx != null)
         .sort((a, b) => a.idx - b.idx);
 
-      // Stoppprikker (farget etter forsinkelse; grå hvis ukjent).
+      // Stoppprikker (farget etter forsinkelse; grå hvis for lite/ingen data).
       for (const a of anchored) {
         if (a.delay != null) anyDelayData = true;
         stops.push({
@@ -149,6 +163,7 @@ export function TripRouteMap({
           color: a.delay != null ? delayColor(a.delay) : "#9ca3af",
           name: a.name,
           delay: a.delay,
+          n: a.n,
         });
       }
 
@@ -208,6 +223,9 @@ export function TripRouteMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-bidragsytere'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {/* Ingen tooltip på selve linjene: den ga et forstyrrende svart felt
+            ved berøring/klikk uten å tilføre noe (linjen er allerede beskrevet
+            i legg-lista over). Stoppene beholder sine tooltips. */}
         {segments.map((s, i) => (
           <Polyline
             key={i}
@@ -219,9 +237,7 @@ export function TripRouteMap({
               dashArray: s.dashed ? "1 7" : undefined,
               lineCap: "round",
             }}
-          >
-            <Tooltip sticky>{s.label}</Tooltip>
-          </Polyline>
+          />
         ))}
         {stops.map((s, i) => (
           <CircleMarker
@@ -232,20 +248,32 @@ export function TripRouteMap({
           >
             <Tooltip>
               {s.name}
-              {s.delay != null && <> · median {s.delay > 0 ? "+" : ""}{s.delay.toFixed(1)} min</>}
+              {s.delay != null ? (
+                <> · median {s.delay > 0 ? "+" : ""}{s.delay.toFixed(1)} min ({s.n} obs.)</>
+              ) : (
+                <> · {s.n > 0
+                  ? `for få observasjoner (${s.n}) til å fargelegges`
+                  : "ingen forsinkelsesdata"}</>
+              )}
             </Tooltip>
           </CircleMarker>
         ))}
+        {/* Start-/målmarkører er NØYTRALE (hvit fyll, mørk ring) — de sier
+            ingenting om forsinkelse. Tidligere var de grønn/rød, altså nøyaktig
+            de samme fargene som forsinkelsesskalaen (grønn = i rute, rød =
+            forsinket). Det fikk endestoppet til å se «rødt/forsinket» ut og
+            startstoppet «grønt/presis», selv når vi ikke hadde data for dem —
+            rapportert av bruker 2026-07-27. */}
         {origin && (
-          <CircleMarker center={origin} radius={6}
-            pathOptions={{ color: "white", weight: 2, fillColor: "#16a34a", fillOpacity: 1 }}>
-            <Tooltip>Start</Tooltip>
+          <CircleMarker center={origin} radius={7}
+            pathOptions={{ color: "#1f2937", weight: 3, fillColor: "#ffffff", fillOpacity: 1 }}>
+            <Tooltip>Start (ikke forsinkelsesfarge)</Tooltip>
           </CircleMarker>
         )}
         {dest && (
-          <CircleMarker center={dest} radius={6}
-            pathOptions={{ color: "white", weight: 2, fillColor: "#dc2626", fillOpacity: 1 }}>
-            <Tooltip>Mål</Tooltip>
+          <CircleMarker center={dest} radius={7}
+            pathOptions={{ color: "#1f2937", weight: 3, fillColor: "#ffffff", fillOpacity: 1, dashArray: "3 2" }}>
+            <Tooltip>Mål (ikke forsinkelsesfarge)</Tooltip>
           </CircleMarker>
         )}
       </MapContainer>
