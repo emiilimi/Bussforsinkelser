@@ -101,7 +101,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto" />
               </a>
               <p>Historiske sanntidsdata (SIRI ET) fra Entur. Oppdateres hver natt.</p>
-              <p>Reiseplanleggeren bruker Entur sitt Journey Planner API for ruteforslag.</p>
+              <p>
+                Reiseplanleggeren bruker Entur sitt{" "}
+                <a
+                  href="https://developer.entur.no/docs/open-services/journey-planner"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  Journey Planner API
+                </a>{" "}
+                for ruteforslag.
+              </p>
               <p>
                 Inneholder data under{" "}
                 <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
