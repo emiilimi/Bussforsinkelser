@@ -16,7 +16,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
   Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,12 @@ import { PlanDelayChart } from "@/components/plan-delay-chart";
 import { ServiceJourneyDetail } from "@/components/service-journey-detail";
 import { TripRouteMap } from "@/components/trip-route-map";
 import {
+  getRecentStops, addRecentStop, getFavoriteStops, toggleFavorite,
+  getCurrentPositionAsStop,
+} from "@/lib/stop-history";
+import {
   type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
+  type StopSearchResult,
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
   type TransferGapSource, type DuckQueryFn,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps,
@@ -41,17 +46,6 @@ import {
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type StopSearchResult = {
-  stopRef: string;
-  stopPlaceRef: string | null;
-  stopName: string;
-  label?: string;       // full label from geocoder (e.g. "Bryggen, Bergen")
-  layer?: string;       // "venue" | "address" | "street" etc.
-  lat: number | null;
-  lng: number | null;
-  quayCount?: number;
-};
 
 type TripStopStat = {
   stopRef: string;
@@ -761,6 +755,40 @@ function StopSearch({
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Favoritter/nylige leses ved åpning (ikke ved hver tast) — de endres bare
+  // som følge av brukerens egne klikk, som vi selv oppdaterer state for.
+  const [favorites, setFavorites] = useState<StopSearchResult[]>([]);
+  const [recents, setRecents] = useState<StopSearchResult[]>([]);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setFavorites(getFavoriteStops());
+      setRecents(getRecentStops());
+    }
+  }, [open]);
+
+  /** Felles utvelgelse: lukk, fyll inn navn, husk i historikk, meld oppover. */
+  function choose(stop: StopSearchResult) {
+    setQuery(stop.stopName);
+    setOpen(false);
+    setLocError(null);
+    addRecentStop(stop);
+    onSelect(stop);
+  }
+
+  async function useMyPosition() {
+    setLocating(true);
+    setLocError(null);
+    try {
+      choose(await getCurrentPositionAsStop());
+    } catch (e) {
+      setLocError(e instanceof Error ? e.message : "Kunne ikke hente posisjonen din.");
+    } finally {
+      setLocating(false);
+    }
+  }
 
   // Sync query when value changes externally (e.g. swap direction)
   useEffect(() => {
@@ -816,31 +844,142 @@ function StopSearch({
           onBlur={() => setTimeout(() => setOpen(false), 200)}
         />
       </div>
-      {open && results.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {results.map((r) => (
-            <button
-              key={r.id}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors flex items-start gap-2"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                const stop = toStopSearchResult(r);
-                setQuery(r.name);
-                setOpen(false);
-                onSelect(stop);
-              }}
-            >
-              <span className="text-xs mt-0.5 flex-shrink-0">{layerIcon(r.layer)}</span>
-              <span>
-                <span className="block">{r.name}</span>
-                {r.label !== r.name && (
-                  <span className="block text-xs text-muted-foreground">{r.label}</span>
-                )}
-              </span>
-            </button>
-          ))}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-72 overflow-y-auto">
+          {/* Min posisjon — alltid øverst */}
+          <button
+            className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center gap-2 disabled:opacity-60"
+            disabled={locating}
+            onMouseDown={(e) => { e.preventDefault(); void useMyPosition(); }}
+          >
+            {locating
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary flex-shrink-0" />
+              : <LocateFixed className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
+            <span className="text-primary font-medium">
+              {locating ? "Finner posisjonen din…" : "Min posisjon"}
+            </span>
+          </button>
+          {locError && (
+            <p className="px-3 pb-2 text-[11px] text-destructive leading-snug">{locError}</p>
+          )}
+
+          {/* Søketreff når man har skrevet noe; ellers favoritter + nylige */}
+          {debouncedQuery.length >= 2 ? (
+            results.length > 0 ? (
+              <>
+                <SectionLabel>Søketreff</SectionLabel>
+                {results.map((r) => {
+                  const stop = toStopSearchResult(r);
+                  return (
+                    <StopRow
+                      key={r.id}
+                      icon={<span className="text-xs">{layerIcon(r.layer)}</span>}
+                      title={r.name}
+                      subtitle={r.label !== r.name ? r.label : undefined}
+                      isFav={favorites.some((f) => f.stopRef === stop.stopRef)}
+                      onPick={() => choose(stop)}
+                      onToggleFav={() => setFavorites(toggleFavorite(stop))}
+                    />
+                  );
+                })}
+              </>
+            ) : (
+              <p className="px-3 py-2 text-xs text-muted-foreground">Ingen treff.</p>
+            )
+          ) : (
+            <>
+              {favorites.length > 0 && (
+                <>
+                  <SectionLabel>Favoritter</SectionLabel>
+                  {favorites.map((s) => (
+                    <StopRow
+                      key={`fav-${s.stopRef}`}
+                      icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
+                      title={s.stopName}
+                      subtitle={s.label !== s.stopName ? s.label : undefined}
+                      isFav
+                      onPick={() => choose(s)}
+                      onToggleFav={() => setFavorites(toggleFavorite(s))}
+                    />
+                  ))}
+                </>
+              )}
+              {recents.length > 0 && (
+                <>
+                  <SectionLabel>Nylig søkt</SectionLabel>
+                  {recents.map((s) => (
+                    <StopRow
+                      key={`rec-${s.stopRef}`}
+                      icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}
+                      title={s.stopName}
+                      subtitle={s.label !== s.stopName ? s.label : undefined}
+                      isFav={favorites.some((f) => f.stopRef === s.stopRef)}
+                      onPick={() => choose(s)}
+                      onToggleFav={() => setFavorites(toggleFavorite(s))}
+                    />
+                  ))}
+                </>
+              )}
+              {favorites.length === 0 && recents.length === 0 && (
+                <p className="px-3 py-2 text-xs text-muted-foreground leading-snug">
+                  Skriv for å søke etter stoppested eller adresse. Steder du velger
+                  havner her, og du kan stjernemerke favoritter.
+                </p>
+              )}
+            </>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="px-3 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+      {children}
+    </p>
+  );
+}
+
+/** Én rad i søkelista: velg stedet, eller slå favoritt av/på med stjernen. */
+function StopRow({
+  icon, title, subtitle, isFav, onPick, onToggleFav,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  isFav: boolean;
+  onPick: () => void;
+  onToggleFav: () => void;
+}) {
+  return (
+    <div className="flex items-center hover:bg-muted/50 transition-colors">
+      <button
+        className="flex-1 min-w-0 text-left px-3 py-2 text-sm flex items-start gap-2"
+        onMouseDown={(e) => { e.preventDefault(); onPick(); }}
+      >
+        <span className="mt-0.5 flex-shrink-0">{icon}</span>
+        <span className="min-w-0">
+          <span className="block truncate">{title}</span>
+          {subtitle && (
+            <span className="block text-xs text-muted-foreground truncate">{subtitle}</span>
+          )}
+        </span>
+      </button>
+      <button
+        className="px-2 py-2 flex-shrink-0"
+        title={isFav ? "Fjern favoritt" : "Lagre som favoritt"}
+        aria-label={isFav ? "Fjern favoritt" : "Lagre som favoritt"}
+        onMouseDown={(e) => { e.preventDefault(); onToggleFav(); }}
+      >
+        <Star
+          className={cn(
+            "h-3.5 w-3.5 transition-colors",
+            isFav ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40 hover:text-amber-400",
+          )}
+        />
+      </button>
     </div>
   );
 }

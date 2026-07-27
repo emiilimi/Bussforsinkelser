@@ -51,6 +51,22 @@ export type TripPattern = {
   legs: TripLeg[];
 };
 
+/**
+ * Et valgt fra-/til-punkt i reiseplanleggeren. Enten et ekte NSR-stoppested
+ * (`stopPlaceRef` satt) eller en ren koordinat (adressesøk eller «Min
+ * posisjon»), som da bæres i `stopRef` med prefikset «coords:lat,lng».
+ */
+export type StopSearchResult = {
+  stopRef: string;
+  stopPlaceRef: string | null;
+  stopName: string;
+  label?: string;       // full etikett fra geocoder, f.eks. «Bryggen, Bergen»
+  layer?: string;       // "venue" | "address" | "street" | "position"
+  lat: number | null;
+  lng: number | null;
+  quayCount?: number;
+};
+
 export type DuckDelayRow = {
   stop_ref: string;
   line_ref: string;
