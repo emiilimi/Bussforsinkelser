@@ -57,3 +57,5 @@ problemet ved å hente quay-settet fra en live Entur-spørring i stedet for
 `stop_coords`-cachen — samme tilnærming kunne vurderes for stoppanalyse.
 Krever trolig `populate_stops.py --refresh` for å friske opp cachen
 permanent. Ikke rørt nå — diskuter med Emilie før noen løsning velges.
+
+prøver å trigge en redeploy.
