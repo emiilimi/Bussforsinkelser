@@ -844,6 +844,15 @@ function StopSearch({
           onBlur={() => setTimeout(() => setOpen(false), 200)}
         />
       </div>
+      {/* Viser hvor "Min posisjon" faktisk ble tolket til å være, slik at en
+          unøyaktig posisjon er synlig med det samme (ikke bare den opake
+          teksten "Min posisjon"). */}
+      {!open && value?.layer === "position" && value.label && value.label !== value.stopName && (
+        <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 leading-snug">
+          <LocateFixed className="h-3 w-3 flex-shrink-0" />
+          {value.label}
+        </p>
+      )}
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-72 overflow-y-auto">
           {/* Min posisjon — alltid øverst */}

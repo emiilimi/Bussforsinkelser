@@ -566,6 +566,43 @@ export async function registerRoutes(
     }
   });
 
+  /**
+   * GET /api/geocoder/reverse?lat=60.39&lng=5.32
+   * Reverse-geocoder proxy — finner nærmeste sted/adresse for et koordinatpar.
+   * Brukes av "Min posisjon" for å vise hvor posisjonen faktisk ble tolket.
+   */
+  app.get("/api/geocoder/reverse", geocoderLimiter, async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: "lat/lng required" });
+    }
+    try {
+      const url = `https://api.entur.io/geocoder/v1/reverse?point.lat=${lat}&point.lon=${lng}&size=1&lang=no`;
+      const response = await fetch(url, {
+        headers: { "ET-Client-Name": "emiliemoldestad-sentur" },
+      });
+      if (!response.ok) {
+        return res.status(502).json({ error: "Geocoder error" });
+      }
+      const data: any = await response.json();
+      const f = (data.features || [])[0];
+      const result = f
+        ? {
+            id: f.properties.id,
+            name: f.properties.name,
+            label: f.properties.label,
+            layer: f.properties.layer,
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+          }
+        : null;
+      return res.json(result);
+    } catch {
+      return res.status(502).json({ error: "Geocoder unreachable" });
+    }
+  });
+
   // -----------------------------------------------------------------------
   // Trip planner — Entur Journey Planner API v3 proxy (/reise)
   // -----------------------------------------------------------------------

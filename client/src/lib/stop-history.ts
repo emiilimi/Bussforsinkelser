@@ -95,11 +95,33 @@ export function geolocationErrorMessage(err: GeolocationPositionError): string {
 }
 
 /**
+ * Slår opp koordinatet mot Enturs reverse-geocoder for å finne stedsnavnet
+ * posisjonen faktisk ble tolket til (f.eks. «Fjøsangerveien 1, Bergen»).
+ * Brukes til å vise brukeren HVOR "Min posisjon" traff, slik at en unøyaktig
+ * posisjon (feil bydel, feil by) er synlig med det samme i stedet for at
+ * "Min posisjon" bare vises som en opak etikett man må stole blindt på.
+ * Feiler stille (returnerer null) — reverse-oppslaget er en bonus, ikke en
+ * forutsetning for at "Min posisjon" skal fungere.
+ */
+async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/geocoder/reverse?lat=${lat}&lng=${lng}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.label ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Hent nåværende posisjon som et StopSearchResult.
  *
  * Krever HTTPS (sentur.no har det) og at brukeren godkjenner. Resultatet får
  * `layer: "position"` slik at UI-et kan vise det som «Min posisjon» i stedet
  * for rå koordinater, og slik at det holdes utenfor søkehistorikken.
+ * `label` fylles med det reverse-geokodede stedsnavnet (når tilgjengelig) slik
+ * at UI-et kan vise brukeren hvor posisjonen ble tolket til å være.
  */
 export function getCurrentPositionAsStop(): Promise<StopSearchResult> {
   return new Promise((resolve, reject) => {
@@ -108,13 +130,14 @@ export function getCurrentPositionAsStop(): Promise<StopSearchResult> {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
+        const resolvedLabel = await reverseGeocode(latitude, longitude);
         resolve({
           stopRef: `coords:${latitude},${longitude}`,
           stopPlaceRef: null,
           stopName: "Min posisjon",
-          label: "Min posisjon",
+          label: resolvedLabel ?? "Min posisjon",
           layer: "position",
           lat: latitude,
           lng: longitude,

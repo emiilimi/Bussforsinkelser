@@ -14,6 +14,7 @@ export const DEFAULT_ET_CLIENT_NAME = "emiliemoldestad-sentur";
 
 export const JP_V3_URL = "https://api.entur.io/journey-planner/v3/graphql";
 export const GEOCODER_URL = "https://api.entur.io/geocoder/v1/autocomplete";
+export const GEOCODER_REVERSE_URL = "https://api.entur.io/geocoder/v1/reverse";
 
 // Minimal kontekst-type så modulen er uavhengig av @cloudflare/workers-types.
 // Strukturelt kompatibel med Pages' EventContext.

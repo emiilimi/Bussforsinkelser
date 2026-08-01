@@ -149,10 +149,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               informasjonen i sidemenyen (hidden md:block over), som skjules på
               mobil. NLOD 2.0 krever synlig attribusjon på alle skjermstørrelser. */}
           <div className="md:hidden max-w-7xl mx-auto mt-1.5 pt-1.5 border-t border-border/50 text-center text-[10px] text-muted-foreground/80 leading-snug">
-            <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block mb-1 hover:opacity-80 transition-opacity">
-              <img src="/entur-logo.svg" alt="Entur" className="h-5 w-auto mx-auto" />
+            <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block align-middle mr-1 hover:opacity-80 transition-opacity">
+              <img src="/entur-logo.svg" alt="Entur" className="h-3 w-auto align-middle" />
             </a>
-            <br />
             Historiske sanntidsdata (SIRI ET) fra Entur. Inneholder data under{" "}
             <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
               NLOD 2.0
