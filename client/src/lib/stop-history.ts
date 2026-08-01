@@ -95,11 +95,13 @@ export function geolocationErrorMessage(err: GeolocationPositionError): string {
 }
 
 /**
- * Slår opp koordinatet mot Enturs reverse-geocoder for å finne stedsnavnet
- * posisjonen faktisk ble tolket til (f.eks. «Fjøsangerveien 1, Bergen»).
+ * Slår opp koordinatet mot Enturs reverse-geocoder for å finne det generelle
+ * området posisjonen ble tolket til å være i (f.eks. «Vaskerelven, Bergen»).
  * Brukes til å vise brukeren HVOR "Min posisjon" traff, slik at en unøyaktig
- * posisjon (feil bydel, feil by) er synlig med det samme i stedet for at
- * "Min posisjon" bare vises som en opak etikett man må stole blindt på.
+ * posisjon (feil bydel, feil by) er synlig med det samme i selve feltteksten
+ * i stedet for at "Min posisjon" bare vises som en opak etikett man må stole
+ * blindt på. Serveren generaliserer allerede bort spesifikke adresser/POI-navn
+ * (se generalAreaLabel i server/routes.ts / functions/api/geocoder/reverse.ts).
  * Feiler stille (returnerer null) — reverse-oppslaget er en bonus, ikke en
  * forutsetning for at "Min posisjon" skal fungere.
  */
@@ -118,10 +120,10 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
  * Hent nåværende posisjon som et StopSearchResult.
  *
  * Krever HTTPS (sentur.no har det) og at brukeren godkjenner. Resultatet får
- * `layer: "position"` slik at UI-et kan vise det som «Min posisjon» i stedet
- * for rå koordinater, og slik at det holdes utenfor søkehistorikken.
- * `label` fylles med det reverse-geokodede stedsnavnet (når tilgjengelig) slik
- * at UI-et kan vise brukeren hvor posisjonen ble tolket til å være.
+ * `layer: "position"` slik at det holdes utenfor søkehistorikken. `stopName`
+ * blir «Min posisjon (området)» når reverse-oppslaget lykkes, slik at selve
+ * søkefeltet viser hvor posisjonen traff — ikke bare den opake teksten
+ * «Min posisjon».
  */
 export function getCurrentPositionAsStop(): Promise<StopSearchResult> {
   return new Promise((resolve, reject) => {
@@ -132,12 +134,13 @@ export function getCurrentPositionAsStop(): Promise<StopSearchResult> {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const resolvedLabel = await reverseGeocode(latitude, longitude);
+        const resolvedArea = await reverseGeocode(latitude, longitude);
+        const stopName = resolvedArea ? `Min posisjon (${resolvedArea})` : "Min posisjon";
         resolve({
           stopRef: `coords:${latitude},${longitude}`,
           stopPlaceRef: null,
-          stopName: "Min posisjon",
-          label: resolvedLabel ?? "Min posisjon",
+          stopName,
+          label: stopName,
           layer: "position",
           lat: latitude,
           lng: longitude,

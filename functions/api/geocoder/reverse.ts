@@ -11,6 +11,20 @@ import {
 
 const CACHE_SECONDS = 5 * 60;
 
+/**
+ * Entur sin reverse-geocoder returnerer alltid det nærmeste PUNKTET (adresse,
+ * gate eller POI som "Elven Bar") — den har ikke egne nabolags-/bydelspunkter
+ * å reverse-matche mot (layers=coarse gir 0 treff). Vi vil ikke vise et
+ * spesifikt stedsnavn for "Min posisjon" (bare et vagt områdenavn, slik
+ * entur.no gjør), så vi bygger et generelt områdenavn fra hierarki-feltene
+ * som Entur/Pelias likevel legger på hver treff (borough/locality/county) i
+ * stedet for å bruke `properties.label` (som ville vist "Elven Bar, Bergen").
+ */
+function generalAreaLabel(props: Record<string, string | undefined>): string {
+  if (props.borough && props.locality) return `${props.borough}, ${props.locality}`;
+  return props.locality || props.county || props.label || "Ukjent sted";
+}
+
 export const onRequestOptions = () => preflight();
 
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
@@ -45,7 +59,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       ? {
           id: f.properties.id,
           name: f.properties.name,
-          label: f.properties.label,
+          label: generalAreaLabel(f.properties),
           layer: f.properties.layer,
           lat: f.geometry.coordinates[1],
           lng: f.geometry.coordinates[0],

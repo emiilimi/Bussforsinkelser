@@ -98,7 +98,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <div className="p-3 rounded-lg bg-muted/50 border border-border text-[9px] text-muted-foreground space-y-1.5">
               <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
-                <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto" />
+                <img src="/entur-logo.svg" alt="Entur" className="h-12 w-auto" />
               </a>
               <p>Historiske sanntidsdata (SIRI ET) fra Entur. Oppdateres hver natt.</p>
               <p>
@@ -150,7 +150,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               mobil. NLOD 2.0 krever synlig attribusjon på alle skjermstørrelser. */}
           <div className="md:hidden max-w-7xl mx-auto mt-1.5 pt-1.5 border-t border-border/50 text-center text-[10px] text-muted-foreground/80 leading-snug">
             <a href="https://entur.no" target="_blank" rel="noopener noreferrer" className="inline-block align-middle mr-1 hover:opacity-80 transition-opacity">
-              <img src="/entur-logo.svg" alt="Entur" className="h-3 w-auto align-middle" />
+              <img src="/entur-logo.svg" alt="Entur" className="h-6 w-auto align-middle" />
             </a>
             Historiske sanntidsdata (SIRI ET) fra Entur. Inneholder data under{" "}
             <a href="https://data.norge.no/nlod/no/2.0" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">

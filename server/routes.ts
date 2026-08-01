@@ -567,6 +567,19 @@ export async function registerRoutes(
   });
 
   /**
+   * Entur sin reverse-geocoder returnerer alltid det nærmeste PUNKTET (adresse,
+   * gate eller POI som "Elven Bar") — layers=coarse (nabolag/bydel-nivå) gir 0
+   * treff. "Min posisjon" skal vise et generelt områdenavn (som entur.no gjør),
+   * ikke et spesifikt stedsnavn, så vi bygger det fra hierarki-feltene Entur
+   * likevel legger på hvert treff (borough/locality/county) i stedet for å
+   * bruke `properties.label` (som ville vist "Elven Bar, Bergen").
+   */
+  function generalAreaLabel(props: Record<string, string | undefined>): string {
+    if (props.borough && props.locality) return `${props.borough}, ${props.locality}`;
+    return props.locality || props.county || props.label || "Ukjent sted";
+  }
+
+  /**
    * GET /api/geocoder/reverse?lat=60.39&lng=5.32
    * Reverse-geocoder proxy — finner nærmeste sted/adresse for et koordinatpar.
    * Brukes av "Min posisjon" for å vise hvor posisjonen faktisk ble tolket.
@@ -591,7 +604,7 @@ export async function registerRoutes(
         ? {
             id: f.properties.id,
             name: f.properties.name,
-            label: f.properties.label,
+            label: generalAreaLabel(f.properties),
             layer: f.properties.layer,
             lat: f.geometry.coordinates[1],
             lng: f.geometry.coordinates[0],
