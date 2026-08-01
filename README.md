@@ -67,6 +67,59 @@ npm run dev          # http://localhost:5000
 
 For nightly cron-jobb og R2-opplasting, se [CLAUDE.md](CLAUDE.md).
 
+For reise-bygget (Sen Tur) trengs ingen Python/database-oppsett — bare
+`npm install && npm run dev:reise` (se Deploy-seksjonen under for detaljer om
+hvordan reise-bygget faktisk kjører i prod/preview).
+
+---
+
+## Deploy (reise-bygget / Sen Tur)
+
+Repoet inneholder **to separate frontend-bygg** fra samme kodebase, styrt av
+`VITE_APP`:
+
+| | Full-bygget («Bussforsinkelser») | Reise-bygget («Sen Tur») |
+|---|---|---|
+| Bygg-kommando | `npm run build` | `npm run build:reise` |
+| Server | Express (`server/index.ts`), egen SQLite-DB | Ingen — statisk SPA + Cloudflare Worker som API-proxy |
+| Hosting | Railway | Cloudflare Workers (static assets + Worker-script) |
+| API-implementasjon | `server/routes.ts` (Express) | `functions/api/**/*.ts`, koblet sammen i `src/worker.ts` |
+
+### Cloudflare Workers Build — reise-bygget
+
+Konfigurert i Cloudflare-dashbordet (git-integrasjon, "Workers Builds") — **ikke** en synlig GitHub Actions-workflow i repoet:
+
+| Innstilling | Verdi |
+|---|---|
+| Build-kommando | `npm run build:reise` |
+| Deploy-kommando | `npx wrangler deploy` |
+| Version-kommando | `npx wrangler versions upload` |
+| Rot-katalog | `/` |
+
+`npm run build:reise` bygger frontend til `dist/reise/` (Vite, `VITE_APP=reise`). `wrangler deploy` bundler deretter `src/worker.ts` og laster opp `dist/reise/` som statiske assets (se `wrangler.jsonc`: worker-navn `reiseplanlegger`, `assets.directory: ./dist/reise`, SPA-fallback via `not_found_handling`).
+
+**Push til `reise`** → produksjon: [sentur.no](https://sentur.no)
+**Push til `reise-preview`** → preview: [reise-preview-reiseplanlegger.emiliemoldestad.workers.dev](https://reise-preview-reiseplanlegger.emiliemoldestad.workers.dev/reise)
+
+> ⚠️ **Viktig fallgruve**: `src/worker.ts` er en **håndrutet** Cloudflare
+> Worker, ikke Cloudflare Pages Functions med automatisk filsystem-routing.
+> Et nytt endepunkt i `functions/api/**/*.ts` blir IKKE automatisk tilgjengelig
+> — det må eksplisitt importeres og kobles til en path i `src/worker.ts`s
+> `fetch()`-handler, ellers treffer kallet catch-all-en for ukjente
+> `/api/`-stier og får 404. (Skjedde med `/api/geocoder/reverse` 2026-08-01 —
+> filen fantes og deployet gikk fint, men endepunktet svarte 404 helt til
+> routeren ble oppdatert.)
+
+<!-- TODO: bekreft med prosjekteier —
+     1) Er "reise" satt som produksjonsgren i Cloudflare Workers Builds (kjører Deploy-kommandoen),
+        og "reise-preview" som en ekstra gren som kjører Version-kommandoen? Eller motsatt/annerledes satt opp?
+     2) Er VITE_PARQUET_BASE_URL satt som build-environment-variabel i Cloudflare-dashbordet for hvert miljø
+        (prod vs. preview)? Hvilke verdier, slik at en ny utvikler kan reprodusere oppsettet?
+     3) Er ET_CLIENT_NAME overstyrt via en Cloudflare-secret, eller brukes kode-defaulten
+        ("emiliemoldestad-sentur") i alle miljøer?
+     4) Finnes det andre bindings/secrets på Worker-en (R2-binding, KV, osv.), eller hentes R2-data
+        utelukkende via en offentlig URL i nettleseren (ingen server-side binding)? -->
+
 ---
 
 ## Pipeline-oversikt
