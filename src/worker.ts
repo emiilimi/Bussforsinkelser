@@ -1,5 +1,6 @@
 import { onRequestPost as tripPost, onRequestOptions as tripOptions } from "../functions/api/trip";
 import { onRequestGet as geocoderGet, onRequestOptions as geocoderOptions } from "../functions/api/geocoder/autocomplete";
+import { onRequestGet as geocoderReverseGet, onRequestOptions as geocoderReverseOptions } from "../functions/api/geocoder/reverse";
 import { onRequestGet as departuresGet, onRequestOptions as departuresOptions } from "../functions/api/departures/[stopPlaceRef]";
 import { onRequestGet as serviceJourneyGet, onRequestOptions as serviceJourneyOptions } from "../functions/api/servicejourney/[id]";
 import type { PagesContext } from "../functions/api/_entur";
@@ -26,6 +27,12 @@ export default {
     if (path === "/api/geocoder/autocomplete") {
       if (request.method === "OPTIONS") return geocoderOptions();
       if (request.method === "GET") return geocoderGet(context);
+    }
+
+    // GET /api/geocoder/reverse
+    if (path === "/api/geocoder/reverse") {
+      if (request.method === "OPTIONS") return geocoderReverseOptions();
+      if (request.method === "GET") return geocoderReverseGet(context);
     }
 
     // GET /api/departures/:stopPlaceRef

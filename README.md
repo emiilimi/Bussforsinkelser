@@ -17,7 +17,11 @@ Se [STATUS.md](STATUS.md) for full endringslogg, [ARCHITECTURE.md](ARCHITECTURE.
 | Database | SQLite (better-sqlite3, WAL mode) |
 | Klient-analyse | DuckDB-WASM mot ukentlige Parquet-filer (P50/P80/P95 i nettleser) |
 | Pipeline | Python 3.14, pandas, google-cloud-bigquery |
-| Hosting | Railway (live, ikke promotert offentlig enda) + Cloudflare R2 (Parquet + prod-DB) |
+| Hosting | Railway (full-bygget, ikke promotert offentlig enda) + Cloudflare Worker (reise-bygget/Sen Tur) + Cloudflare R2 (Parquet + prod-DB) |
+
+**Sen Tur (reise-bygget) live-URLer**:
+- Produksjon: [sentur.no](https://sentur.no)
+- Preview: [reise-preview-reiseplanlegger.emiliemoldestad.workers.dev](https://reise-preview-reiseplanlegger.emiliemoldestad.workers.dev/reise)
 
 ---
 
