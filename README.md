@@ -17,11 +17,9 @@ Se [STATUS.md](STATUS.md) for full endringslogg, [ARCHITECTURE.md](ARCHITECTURE.
 | Database | SQLite (better-sqlite3, WAL mode) |
 | Klient-analyse | DuckDB-WASM mot ukentlige Parquet-filer (P50/P80/P95 i nettleser) |
 | Pipeline | Python 3.14, pandas, google-cloud-bigquery |
-| Hosting | Railway (full-bygget, ikke promotert offentlig enda) + Cloudflare Worker (reise-bygget/Sen Tur) + Cloudflare R2 (Parquet + prod-DB) |
+| Hosting | Railway (full-bygget, ikke promotert offentlig enda) + Cloudflare Worker (reise-bygget/Sen Tur, se [Deploy](#deploy-reise-bygget--sen-tur)) + Cloudflare R2 (Parquet + prod-DB) |
 
-**Sen Tur (reise-bygget) live-URLer**:
-- Produksjon: [sentur.no](https://sentur.no)
-- Preview: [reise-preview-reiseplanlegger.emiliemoldestad.workers.dev](https://reise-preview-reiseplanlegger.emiliemoldestad.workers.dev/reise)
+**Sen Tur (reise-bygget)**: [sentur.no](https://sentur.no) i produksjon.
 
 ---
 
@@ -98,8 +96,14 @@ Konfigurert i Cloudflare-dashbordet (git-integrasjon, "Workers Builds") — **ik
 
 `npm run build:reise` bygger frontend til `dist/reise/` (Vite, `VITE_APP=reise`). `wrangler deploy` bundler deretter `src/worker.ts` og laster opp `dist/reise/` som statiske assets (se `wrangler.jsonc`: worker-navn `reiseplanlegger`, `assets.directory: ./dist/reise`, SPA-fallback via `not_found_handling`).
 
-**Push til `reise`** → produksjon: [sentur.no](https://sentur.no)
-**Push til `reise-preview`** → preview: [reise-preview-reiseplanlegger.emiliemoldestad.workers.dev](https://reise-preview-reiseplanlegger.emiliemoldestad.workers.dev/reise)
+**`reise` er produksjonsgrenen** — push dit kjører Deploy-kommandoen (`npx wrangler deploy`) rett til [sentur.no](https://sentur.no).
+
+**Alle andre grener** (f.eks. `reise-preview`) kjører i stedet Version-kommandoen (`npx wrangler versions upload`) og får hver sin egen preview-URL automatisk, etter mønsteret `<grennavn>-reiseplanlegger.emiliemoldestad.workers.dev` — ikke en separat, fast konfigurert "preview worker". F.eks. blir `reise-preview` til [reise-preview-reiseplanlegger.emiliemoldestad.workers.dev](https://reise-preview-reiseplanlegger.emiliemoldestad.workers.dev/reise).
+
+**Build-environment-variabler** (satt i Cloudflare-dashbordet, ikke i repoet):
+- `VITE_PARQUET_BASE_URL=https://parquet.sentur.no` — samme verdi i alle miljøer (produksjon og alle branch-previews peker på samme R2-custom-domene).
+- `ET_CLIENT_NAME` — ingen override konfigurert; alle miljøer bruker kode-defaulten (`emiliemoldestad-sentur` i `functions/api/_entur.ts`).
+- Ingen andre bindings (R2, KV, osv.) på selve Worker-en — R2-dataene (Parquet + stats-JSON) hentes utelukkende client-side via den offentlige `parquet.sentur.no`-URL-en, ikke via en server-side binding.
 
 > ⚠️ **Viktig fallgruve**: `src/worker.ts` er en **håndrutet** Cloudflare
 > Worker, ikke Cloudflare Pages Functions med automatisk filsystem-routing.
@@ -109,16 +113,6 @@ Konfigurert i Cloudflare-dashbordet (git-integrasjon, "Workers Builds") — **ik
 > `/api/`-stier og får 404. (Skjedde med `/api/geocoder/reverse` 2026-08-01 —
 > filen fantes og deployet gikk fint, men endepunktet svarte 404 helt til
 > routeren ble oppdatert.)
-
-<!-- TODO: bekreft med prosjekteier —
-     1) Er "reise" satt som produksjonsgren i Cloudflare Workers Builds (kjører Deploy-kommandoen),
-        og "reise-preview" som en ekstra gren som kjører Version-kommandoen? Eller motsatt/annerledes satt opp?
-     2) Er VITE_PARQUET_BASE_URL satt som build-environment-variabel i Cloudflare-dashbordet for hvert miljø
-        (prod vs. preview)? Hvilke verdier, slik at en ny utvikler kan reprodusere oppsettet?
-     3) Er ET_CLIENT_NAME overstyrt via en Cloudflare-secret, eller brukes kode-defaulten
-        ("emiliemoldestad-sentur") i alle miljøer?
-     4) Finnes det andre bindings/secrets på Worker-en (R2-binding, KV, osv.), eller hentes R2-data
-        utelukkende via en offentlig URL i nettleseren (ingen server-side binding)? -->
 
 ---
 
