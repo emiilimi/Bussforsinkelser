@@ -15,6 +15,8 @@ import { TimeWindowPicker, type TimeWindow, windowToQuery, serializeWindow, pars
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { geolocationErrorMessage } from "@/lib/stop-history";
+import { LocateFixed, Loader2 } from "lucide-react";
 
 type MapStop = {
   stopRef: string;
@@ -37,6 +39,15 @@ function RegionRecenter({ region }: { region: string }) {
       prevRegion.current = region;
     }
   }, [region, map]);
+  return null;
+}
+
+/** Flies to the user's position whenever it changes */
+function FlyToPosition({ position }: { position: { lat: number; lng: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.flyTo([position.lat, position.lng], 15);
+  }, [position, map]);
   return null;
 }
 
@@ -107,6 +118,29 @@ export default function DelayMap() {
   const setWindow = (w: TimeWindow) => setMapWindowParam(serializeWindow(w));
   const [showFilters, setShowFilters] = useState(false);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
+
+  function locateMe() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocError("Nettleseren din støtter ikke posisjonstjenester.");
+      return;
+    }
+    setLocating(true);
+    setLocError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      (err) => {
+        setLocError(geolocationErrorMessage(err));
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
 
   const wq = windowToQuery(window);
   const queryParams = new URLSearchParams(
@@ -267,11 +301,21 @@ export default function DelayMap() {
           >
             <RegionRecenter region={region} />
             <BoundsTracker onBoundsChange={handleBoundsChange} />
+            <FlyToPosition position={userPos} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <ZoomControl position="bottomright" />
+            {userPos && (
+              <CircleMarker
+                center={[userPos.lat, userPos.lng]}
+                radius={8}
+                pathOptions={{ fillColor: "#3b82f6", fillOpacity: 1, color: "white", weight: 2 }}
+              >
+                <Popup>Din posisjon</Popup>
+              </CircleMarker>
+            )}
             {visibleStops.map((stop) => (
               <CircleMarker
                 key={stop.stopRef}
@@ -325,6 +369,27 @@ export default function DelayMap() {
               <BusLoading label="Laster stopp" scale={0.85} />
             </div>
           )}
+
+          {/* Min posisjon */}
+          <div className="absolute top-4 left-4 z-[1000]">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={locateMe}
+              disabled={locating}
+              className="h-8 text-xs shadow-lg gap-1.5"
+            >
+              {locating
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <LocateFixed className="h-3.5 w-3.5" />}
+              {locating ? "Finner posisjon…" : "Min posisjon"}
+            </Button>
+            {locError && (
+              <p className="mt-1.5 text-[10px] text-destructive bg-card/90 backdrop-blur px-2 py-1 rounded shadow-lg max-w-[220px] leading-snug">
+                {locError}
+              </p>
+            )}
+          </div>
 
           {/* Error overlay */}
           {isError && (
