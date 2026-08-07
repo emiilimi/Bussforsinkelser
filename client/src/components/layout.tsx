@@ -1,5 +1,5 @@
 import { Link, useLocation, useSearch } from "wouter";
-import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart } from "lucide-react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
@@ -27,6 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         { href: "/metode", label: "Metode", icon: BookOpen },
+        { href: "/om", label: "Om", icon: Info },
       ]
     : [
         { href: "/", label: "Dashboard", icon: BarChart3 },
@@ -134,6 +135,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <footer className="border-t border-border bg-card/30 py-2.5 px-4 md:px-8">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground text-center">
             <span>Laget av Emilie Moldestad og Claude.</span>
+            <Link href="/om" className="underline hover:text-foreground">
+              Om prosjektet
+            </Link>
             <span>Ønsker du å støtte prosjektet?</span>
             <a
               href="https://gieffektivt.no/innsamling/til-effektiv-bistand"

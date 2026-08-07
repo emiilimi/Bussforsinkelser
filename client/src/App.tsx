@@ -20,6 +20,7 @@ const DelayMap = lazy(() => import("@/pages/delay-map"));
 const TripPlanner = lazy(() => import("@/pages/trip-planner"));
 const Departures = lazy(() => import("@/pages/departures"));
 const Methodology = lazy(() => import("@/pages/methodology"));
+const About = lazy(() => import("@/pages/about"));
 
 // Enkel, lett fallback mens en rute-chunk lastes (vanligvis <1 sek).
 function RouteLoading() {
@@ -62,6 +63,7 @@ function ReiseRouter() {
       <Route path="/worst" component={WorstLists} />
       <Route path="/map" component={DelayMap} />
       <Route path="/metode" component={Methodology} />
+      <Route path="/om" component={About} />
       <Route component={NotFound} />
     </Switch>
   );
