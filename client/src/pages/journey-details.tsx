@@ -123,7 +123,7 @@ function delayColor(delay: number | null) {
 // See client/src/components/time-window-picker.tsx
 
 type JdHourlyPoint = { hour: string; avgDelay: number | null; maxAvgDelay: number | null; minAvgDelay: number | null; numSamples: number | null };
-function HourlyTooltip({ active, payload }: RechartsTooltipProps<JdHourlyPoint>) {
+function HourlyTooltip({ active, payload, periodLabel }: RechartsTooltipProps<JdHourlyPoint> & { periodLabel?: string }) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (
@@ -135,7 +135,7 @@ function HourlyTooltip({ active, payload }: RechartsTooltipProps<JdHourlyPoint>)
         {d.minAvgDelay != null && <p className="text-emerald-500">Beste dag: {d.minAvgDelay.toFixed(2)}m</p>}
       </div>
       {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{d.numSamples.toLocaleString("nb-NO")} stoppbesøk</p>}
-      <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">Verste/beste dag = høyeste/laveste dagsnitt for denne timen siste 30 dager</p>
+      <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">Verste/beste dag = høyeste/laveste dagsnitt for denne timen ({periodLabel ?? "valgt periode"})</p>
     </div>
   );
 }
@@ -779,7 +779,7 @@ export default function JourneyDetails() {
                   <div className={`text-2xl font-bold font-mono ${(avgDelay ?? 0) > 5 ? "text-destructive" : ""}`}>
                     {avgDelay != null ? `${avgDelay.toFixed(1)}m` : "—"}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Snitt siste 30 dager · {totalDepartures.toLocaleString("nb-NO")} avganger</p>
+                  <p className="text-xs text-muted-foreground mt-1">Snitt ({windowLabel(tw)}) · {totalDepartures.toLocaleString("nb-NO")} avganger</p>
                 </CardContent>
               </Card>
               <Card>
@@ -880,7 +880,7 @@ export default function JourneyDetails() {
                 <CardHeader>
                   <CardTitle>Forsinkelse etter time på dagen</CardTitle>
                   <CardDescription>
-                    Snittforsinkelse per time siste 30 dager. Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                    Snittforsinkelse per time ({windowLabel(tw)}). Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -890,7 +890,7 @@ export default function JourneyDetails() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
-                        <Tooltip content={<HourlyTooltip />} />
+                        <Tooltip content={<HourlyTooltip periodLabel={windowLabel(tw)} />} />
                         <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                         <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 4 }} isAnimationActive={false} />

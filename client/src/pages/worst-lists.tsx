@@ -4,7 +4,7 @@ import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, MapPin, MapPinOff, Trophy, Activity, Zap } from "lucide-react";
+import { CalendarDays, MapPin, MapPinOff, Trophy, Activity, Zap, AlertTriangle } from "lucide-react";
 import { formatStopName } from "@/lib/utils";
 import { formatDateNO, formatWeekdayShortNO, lineNumber } from "@/lib/date-utils";
 import { useState } from "react";
@@ -71,6 +71,9 @@ export default function WorstLists() {
 
   const { data: worstDays = [], isFetching: worstDaysFetching } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days?${join(`limit=10`, opStr, wq)}`], placeholderData: keepPreviousData });
   const { data: bestDays = [], isFetching: bestDaysFetching } = useQuery<DaySummary[]>({ queryKey: [`/api/best-days?${join(`limit=10`, opStr, wq)}`], placeholderData: keepPreviousData });
+  // Dager utelatt fra rangeringen pga. åpenbart ufullstendig ingest — vises
+  // eksplisitt i stedet for å forsvinne stille (samme prinsipp som data-quality-flag.tsx).
+  const { data: excludedDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days/excluded?${join(opStr, wq)}`], placeholderData: keepPreviousData });
   const { data: worstStops = [], isFetching: worstStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
   const { data: bestStops = [], isFetching: bestStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
   const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
@@ -147,6 +150,16 @@ export default function WorstLists() {
           </Tabs>
           <InfoTip learnMoreHref="/metode#hva-vises">Snitt = vektet gjennomsnittlig forsinkelse over dagens avganger. Kanselleringer = totalt antall avlyste avganger den dagen.</InfoTip>
         </div>
+
+        {excludedDays.length > 0 && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+            <span>
+              {excludedDays.length} {excludedDays.length === 1 ? "dag er" : "dager er"} utelatt fra rangeringen over pga. åpenbart ufullstendig innhenting (langt færre avganger enn normalt):{" "}
+              {excludedDays.map((d) => formatDateNO(d.date)).join(", ")}.
+            </span>
+          </div>
+        )}
 
         <div className="grid gap-8 md:grid-cols-2">
           {/* Worst days */}

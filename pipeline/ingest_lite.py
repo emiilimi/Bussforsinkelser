@@ -79,6 +79,18 @@ DB_PATH = os.environ.get(
 # ikke re-genereres uten å hente dagene fra BigQuery på nytt (backfill).
 RETENTION_DAYS = int(os.environ.get("JSD_RETENTION_DAYS", "14"))
 
+# Nedre grense for antall rader BigQuery skal returnere for én dag, uansett
+# operatør-utvalg. Oppdaget 2026-08-06/07: kjøringer trigget for tidlig på
+# døgnet (03:00) fikk stille bare 1-7 % av forventet radantall — BigQuerys
+# "i går"-data hadde ikke landet ennå — men skriptet avsluttet likevel med
+# exit 0 og "OK" i loggen, siden fetch_day() teknisk sett IKKE returnerte en
+# tom DataFrame. nightly_reise.ps1 fanger allerede opp ikke-null exitkoder
+# korrekt (se dens TerminatingError-håndtering), så det eneste som manglet
+# var at Python-siden faktisk signaliserer feil på mistenkelig lite data.
+# Terskelen er satt godt under minste ekte dag observert (~600 000 rader en
+# vanlig søndag) og godt over de brutte dagene (~28 000-70 000 rader).
+MIN_EXPECTED_ROWS = 300_000
+
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
     format="%(asctime)s %(levelname)s %(message)s",
@@ -282,6 +294,14 @@ def run(target_date: date, operators: list[str] | None = None) -> None:
     if df.empty:
         log.warning("Ingen rader for %s — ingenting å skrive", target_date)
         return
+
+    if len(df) < MIN_EXPECTED_ROWS:
+        raise RuntimeError(
+            f"Mistenkelig lavt radantall for {target_date}: {len(df):,} rader "
+            f"(forventet minst {MIN_EXPECTED_ROWS:,}). BigQuerys data for denne "
+            f"dagen har sannsynligvis ikke landet ennå — kjør på nytt senere i "
+            f"stedet for å skrive ufullstendige data."
+        )
 
     # Dekning måles på rådataene (før compute_delays filtrerer bort rader
     # uten sanntid) — df muteres ikke av upsert_coverage.

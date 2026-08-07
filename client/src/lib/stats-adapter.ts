@@ -263,9 +263,51 @@ async function apiSummaryTrend(params: URLSearchParams) {
   return Array.from(byDate.values()).slice(-days).map(combineDaily);
 }
 
-async function apiWorstBestDays(params: URLSearchParams, order: "worst" | "best") {
-  const summary = await fetchSummary();
-  const limit = parseInt(params.get("limit") ?? "10", 10) || 10;
+type CombinedDay = ReturnType<typeof combineDaily>;
+
+/**
+ * Terskel for "åpenbart ufullstendig dag": halvparten av medianen for
+ * gjeldende operatørfilter — men beregnet over ALLE tilgjengelige dager,
+ * IKKE bare det brukervalgte tidsvinduet. Et kort vindu (f.eks. «Siste uke»)
+ * kan ha FLERTALLET av dagene ufullstendige (skjedde faktisk 2026-08-07: 5 av
+ * 7 dager i «Siste uke» var ufullstendige pga. ingest trigget for tidlig på
+ * døgnet) — da drar de ufullstendige dagene medianen selv ned til et nivå som
+ * ikke lenger fanger opp NOEN av dem. Referansen må derfor være bredere enn
+ * vinduet som faktisk filtreres/vises.
+ */
+function completenessThreshold(summary: Summary, operators: string[]): number | null {
+  const allRows = Array.from(dailyByDate(summary, operators).values()).map(combineDaily);
+  const counts = allRows.map((r) => r.totalJourneys).filter((n) => n > 0).sort((a, b) => a - b);
+  if (counts.length < 3) return null;
+  const median = counts[Math.floor(counts.length / 2)];
+  return median > 0 ? 0.5 * median : null;
+}
+
+/**
+ * Skiller dager med åpenbart UFULLSTENDIGE data fra resten, gitt en terskel
+ * fra completenessThreshold(). En dag som fortsatt ingesteres (eller der
+ * ingest ble avbrutt) har langt færre registrerte avganger enn normalt; de få
+ * som finnes er ikke et representativt utvalg, og gir typisk et misvisende
+ * «beste dag»-resultat (f.eks. 0,1 min snitt / 97 % i rute fordi bare en
+ * håndfull avganger rakk å bli lastet). En ekte dårlig dag (snø/kaos)
+ * beholder normalt avgangsvolum og havner derfor IKKE i `excluded` — vi
+ * filtrerer på datamengde, ikke på forsinkelse.
+ *
+ * Delt mellom apiWorstBestDays og apiExcludedDays slik at UI-et kan VISE
+ * nøyaktig hvilke dager som ble utelatt (i stedet for å skjule det stille —
+ * se prinsippet i components/data-quality-flag.tsx).
+ */
+function partitionByCompleteness(rows: CombinedDay[], threshold: number | null): { complete: CombinedDay[]; excluded: CombinedDay[] } {
+  if (threshold == null) return { complete: rows, excluded: [] };
+  const complete: CombinedDay[] = [];
+  const excluded: CombinedDay[] = [];
+  for (const r of rows) {
+    (r.totalJourneys >= threshold ? complete : excluded).push(r);
+  }
+  return { complete, excluded };
+}
+
+function windowedDailyRows(summary: Summary, params: URLSearchParams): CombinedDay[] {
   const from = params.get("from");
   const to = params.get("to");
   const days = params.get("days") ? parseInt(params.get("days")!, 10) : null;
@@ -274,29 +316,30 @@ async function apiWorstBestDays(params: URLSearchParams, order: "worst" | "best"
   if (from) rows = rows.filter((r) => r.date >= from);
   if (to) rows = rows.filter((r) => r.date <= to);
   if (days && !from && !to) rows = rows.slice(-days);
+  return rows;
+}
 
-  // Utelat dager med åpenbart UFULLSTENDIGE data fra beste/verste-rangeringen.
-  // En dag som fortsatt ingesteres (eller der ingest ble avbrutt) har langt
-  // færre registrerte avganger enn normalt; de få som finnes er ikke et
-  // representativt utvalg, og gir typisk et misvisende «beste dag»-resultat
-  // (f.eks. 0,1 min snitt / 97 % i rute fordi bare en håndfull avganger rakk
-  // å bli lastet). Terskel: under halvparten av medianen for vinduet. En ekte
-  // dårlig dag (snø/kaos) beholder normalt avgangsvolum og filtreres derfor
-  // IKKE bort — vi filtrerer på datamengde, ikke på forsinkelse.
-  const counts = rows.map((r) => r.totalJourneys).filter((n) => n > 0).sort((a, b) => a - b);
-  if (counts.length >= 3) {
-    const median = counts[Math.floor(counts.length / 2)];
-    if (median > 0) {
-      rows = rows.filter((r) => r.totalJourneys >= 0.5 * median);
-    }
-  }
+async function apiWorstBestDays(params: URLSearchParams, order: "worst" | "best") {
+  const summary = await fetchSummary();
+  const limit = parseInt(params.get("limit") ?? "10", 10) || 10;
+  const threshold = completenessThreshold(summary, parseOperators(params));
 
-  rows.sort((a, b) =>
+  const { complete } = partitionByCompleteness(windowedDailyRows(summary, params), threshold);
+  complete.sort((a, b) =>
     order === "worst"
       ? (b.avgDelayMin ?? -Infinity) - (a.avgDelayMin ?? -Infinity)
       : (a.avgDelayMin ?? Infinity) - (b.avgDelayMin ?? Infinity),
   );
-  return rows.slice(0, limit);
+  return complete.slice(0, limit);
+}
+
+/** Dagene apiWorstBestDays nettopp utelot pga. åpenbart ufullstendig ingest,
+ *  nyeste først — til /api/worst-days/excluded (se partitionByCompleteness). */
+async function apiExcludedDays(params: URLSearchParams) {
+  const summary = await fetchSummary();
+  const threshold = completenessThreshold(summary, parseOperators(params));
+  const { excluded } = partitionByCompleteness(windowedDailyRows(summary, params), threshold);
+  return excluded.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 const PERIOD_TO_DAYS: Record<string, number> = { week: 7, month: 30, year: 90 };
@@ -945,6 +988,8 @@ export async function statsAdapterFetch(url: string): Promise<unknown | undefine
       return apiWorstBestDays(params, "worst");
     case "/api/best-days":
       return apiWorstBestDays(params, "best");
+    case "/api/worst-days/excluded":
+      return apiExcludedDays(params);
     case "/api/leaderboard/lines":
       return apiLeaderboardLines(params);
     case "/api/leaderboard/stops":
