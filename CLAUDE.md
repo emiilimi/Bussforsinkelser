@@ -416,6 +416,40 @@ ingest.py → journey_stop_daily (SQLite 90d)
 
 **SQL-mønster**: Queries kjøres mot `delays_by_line` eller `delays_by_stop` — velg familie ut fra spørringens primære `WHERE`-kolonne (line_ref → by-line, stop_ref → by-stop). Full-scan-spørringer (topplister, kart) kan bruke hvilken som helst.
 
+### ⚠️ Kostnadsmodell — les denne før du legger til en DuckDB-spørring
+
+Målt 2026-08-08 (dev mot R2, `by-stop`-ukefiler på 35–71 MB):
+
+| Måling | Tid |
+|---|---|
+| Første spørring etter sidelast (leser footere for 8 ukefiler) | 45,7 s |
+| Samme spørring varm | ~5 s |
+| `SELECT COUNT(*)` over 53,9 mill. rader | 1,7 s |
+| Ett enkelt `stop_ref` | 1,3 s |
+| 38 ulike `stop_ref` i én spørring | 23 s |
+
+Tre konsekvenser som styrer design:
+
+1. **Kostnaden er tilnærmet lineær i antall ulike `stop_ref`**, ikke i antall
+   rader. Hvert stopp krever egne HTTP range-kall mot hver ukefil. Spør derfor
+   kun om stoppene brukeren faktisk ser (jf. `duckPairs` i `trip-planner.tsx`,
+   som henter mellomstopp bare for UTVIDEDE kort).
+2. **Det er ett worker-tråd og én spørring om gangen.** Flere spørringer i kø
+   sulter hverandre — en `SELECT 1` ble målt liggende >17 s bak en kø på 12
+   overgangs-spørringer. Rekkefølgen betyr noe: det brukeren ser på skjermen
+   må kjøre først. Ikke fyr av spørringer for alt «i bakgrunnen» uten å tenke
+   på hva som da må vente.
+3. **Ikke blokker rendering på en DuckDB-spørring.** Vis det du har (f.eks.
+   Entur-svaret) og la statistikken fylles inn etterpå.
+
+**Avkreftet som årsak** (ikke prøv på nytt uten nye målinger): manglende row
+group-pruning — å legge `stop_ref IN (...)` foran OR-kjeden endret ingenting
+(23,8 s vs 25,1 s) — og DuckDBs `enable_object_cache` (5,0 s vs 4,9–5,2 s).
+
+**Kjent, uløst**: full statistikk i reiseplanleggeren bruker ~30 s (varm) til
+~83 s (kald sidelast). Trolig ikke løsbart med flere frontend-triks; se
+NOTES.md-punktet om forhåndsaggregerte persentiler.
+
 **npm-pakke**: `@duckdb/duckdb-wasm@1.33.1-dev42.0`
 **Python-avhengigheter**: `pip install pyarrow duckdb boto3` (for export_parquet.py / migrate_parquet_sort.py / upload_to_r2.py)
 **Status**: Implementert, inkl. R2-opplasting (reise-bygget bruker denne i produksjon; lokal serving fra `data/parquet/` er kun for full-bygget/dev).

@@ -27,6 +27,32 @@ med en egen "Vis reiseanalyse"-knapp i reiseplanleggeren
 ([trip-planner.tsx](client/src/pages/trip-planner.tsx)) eller på
 avgangssiden. Omfang og plassering i UI-et er ikke avklart.
 
+## 4. Forsinkelsesstatistikken er fortsatt treg — krever et produktvalg
+
+Reisesøket i seg selv er fikset (reiseforslag vises nå etter ~3 s i stedet for
+53,6 s — se STATUS.md 2026-08-08). Men *statistikken* på kortene bruker
+fortsatt ~30 s (varm DuckDB) til ~83 s (kald sidelast) før den er komplett.
+
+Årsaken er arkitektonisk, ikke en bug: kostnaden er lineær i antall ulike
+stopp, det er én DuckDB-worker, og det er et gulv på ~5 s per spørring mot
+35–71 MB store parquet-filer på R2. Kostnadsmodellen med målinger står i
+CLAUDE.md. To hypoteser er allerede testet og avkreftet (row group-pruning og
+`enable_object_cache`).
+
+Den mest lovende veien er et **pipeline-grep, ikke flere frontend-triks**:
+eksporter forhåndsaggregerte persentiler per `(stop_ref, line_ref)` som en
+liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
+persentiler over 54 mill. rader ved hvert søk.
+
+Det er et reelt valg, ikke bare teknikk, og bør diskuteres først:
+- Hvilke oppdelinger må forhåndsberegnes (day_type? tidsvindu? per time)?
+  Hver dimensjon multipliserer artefaktstørrelsen.
+- Per-avgang-tallene (`legTimes`, samme rute-ID) kan neppe forhåndsaggregeres
+  like enkelt — skal de fortsatt regnes live, eller droppes?
+- Tidsvindu-filteret (punkt under) trekker i motsatt retning av
+  forhåndsaggregering, siden vilkårlige datointervaller ikke kan
+  forhåndsberegnes.
+
 ---
 
 ## Rettelse av et tidligere (feil) funn i denne filen
