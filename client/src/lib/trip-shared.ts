@@ -202,6 +202,42 @@ export function isActualDepartureSource(s: TransferGapSource): boolean {
   return s === "sj" || s === "aimed";
 }
 
+/**
+ * Ferdig oppløst statistikkvindu — hvilke historiske dager som skal telle med.
+ *
+ * Som standard låses statistikken til dagtypen for reisedatoen (en onsdagsreise
+ * skal ikke plukke opp lørdagsobservasjoner). Velger brukeren et eget
+ * tidsvindu, OVERSTYRER det dagtype-låsen: da er det brukerens datovalg som
+ * definerer utvalget, og UI-et skal si «valgte datoer» i stedet for «samme
+ * dagtype». Derfor kan `dayTypes` være null samtidig som datoene er satt.
+ *
+ * Datoene løses opp av kalleren (trip-planner), siden «siste N dager» skal
+ * regnes fra ferskeste tilgjengelige data — ikke fra dagens dato, som ville
+ * gitt et tomt vindu når ingesten henger etter.
+ */
+export type ResolvedStatsWindow = {
+  /** day_type-verdier som teller med. null = ingen dagtype-begrensning. */
+  dayTypes: string[] | null;
+  dateFrom: string | null;
+  dateTo: string | null;
+};
+
+/** SQL-fragment (inkl. ledende AND) for et oppløst statistikkvindu. */
+export function statsWindowSql(w: ResolvedStatsWindow): string {
+  const parts: string[] = [];
+  if (w.dayTypes && w.dayTypes.length > 0) {
+    parts.push(`day_type IN (${w.dayTypes.map((d) => `'${escSql(d)}'`).join(", ")})`);
+  }
+  if (w.dateFrom) parts.push(`date >= '${escSql(w.dateFrom)}'`);
+  if (w.dateTo) parts.push(`date <= '${escSql(w.dateTo)}'`);
+  return parts.length > 0 ? `AND ${parts.join(" AND ")}` : "";
+}
+
+/** Vindu-fallback for specs som ikke har fått et eksplisitt vindu. */
+export function defaultWindowForDayType(dayType: string): ResolvedStatsWindow {
+  return { dayTypes: [dayType], dateFrom: null, dateTo: null };
+}
+
 export type TransferSpec = {
   key: string;                   // unik id per overgang (cache-/map-nøkkel)
   arrSjId: string | null;        // serviceJourney.id for ankommende legg
@@ -213,7 +249,15 @@ export type TransferSpec = {
   depLineRef: string | null;     // line.id for avgående legg (fallback)
   depAimedMin: number | null;    // planlagt avgang i min-siden-midnatt
   dayType: string;               // 'weekday'|'saturday'|'sunday'|'holiday'|'may17'
+  /** Overstyrer dayType-låsen når brukeren har valgt et eget tidsvindu.
+   *  Utelatt → defaultWindowForDayType(dayType). */
+  statsWindow?: ResolvedStatsWindow;
 };
+
+/** Vinduet som faktisk skal brukes for en overgangs-spec. */
+function specWindow(s: TransferSpec): string {
+  return statsWindowSql(s.statsWindow ?? defaultWindowForDayType(s.dayType));
+}
 
 export const SPECIFIC_MIN_DAYS = 5; // under dette: prøv neste matche-nivå
 
@@ -300,7 +344,7 @@ export function sjGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE ${stableSjPredicate(arrStable)}
         AND stop_ref = '${escSql(s.arrQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
     ),
     dep AS (
@@ -308,7 +352,7 @@ export function sjGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE ${stableSjPredicate(depStable)}
         AND stop_ref = '${escSql(s.depQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
     )
     SELECT arr.date AS date,
@@ -335,7 +379,7 @@ export function aimedGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE line_ref = '${escSql(s.arrLineRef)}'
         AND stop_ref = '${escSql(s.arrQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
         AND ${aimedMinExpr("aimed_arrival")} = ${s.arrAimedMin}
         ${dirClause(s.arrSjId, s.arrQuayRef)}
@@ -345,7 +389,7 @@ export function aimedGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE line_ref = '${escSql(s.depLineRef)}'
         AND stop_ref = '${escSql(s.depQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
         AND ${aimedMinExpr("aimed_departure")} = ${s.depAimedMin}
         ${dirClause(s.depSjId, s.depQuayRef)}
@@ -391,7 +435,7 @@ export function poolGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE line_ref = '${escSql(s.arrLineRef)}'
         AND stop_ref = '${escSql(s.arrQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
         ${dirClause(s.arrSjId, s.arrQuayRef)}
     ),
@@ -407,7 +451,7 @@ export function poolGapSql(s: TransferSpec): string | null {
       FROM delays_by_stop
       WHERE line_ref = '${escSql(s.depLineRef)}'
         AND stop_ref = '${escSql(s.depQuayRef)}'
-        AND day_type = '${escSql(s.dayType)}'
+        ${specWindow(s)}
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
         ${dirClause(s.depSjId, s.depQuayRef)}
     ),

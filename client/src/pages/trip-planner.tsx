@@ -1,6 +1,9 @@
 import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useParquetQuery, primeParquetMetadata, type QueryOptions } from "@/hooks/use-parquet-query";
+import {
+  useParquetQuery, primeParquetMetadata, latestAvailableDate,
+  type QueryOptions,
+} from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +23,7 @@ import {
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { cn } from "@/lib/utils";
-import { computeDayType } from "@/lib/day-type";
+import { computeDayType, DAY_TYPE_LABELS } from "@/lib/day-type";
 import { InfoTip } from "@/components/info-tip";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -38,14 +41,68 @@ import {
   type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
   type StopSearchResult,
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
-  type TransferGapSource, type DuckQueryFn,
+  type TransferGapSource, type DuckQueryFn, type ResolvedStatsWindow,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps,
   probFromGaps, isActualDepartureSource, SPECIFIC_MIN_DAYS,
+  statsWindowSql, defaultWindowForDayType,
 } from "@/lib/trip-shared";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+/**
+ * Brukerens valg i «Statistikkperiode»-filteret.
+ *
+ * `all` = ingen overstyring: statistikken låses til dagtypen for reisedatoen
+ * (en onsdagsreise ser bare onsdagsdata). Alle andre valg OVERSTYRER den
+ * låsen — da er det brukerens eget utvalg som gjelder, og UI-et sier
+ * «valgte datoer» i stedet for «samme dagtype».
+ */
+type StatsTimeWindow = {
+  type: "all" | "days" | "weekday" | "weekend" | "custom";
+  value?: number;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+/** Overstyrer brukerens valg den automatiske dagtype-låsen? */
+function windowOverridesDayType(w: StatsTimeWindow): boolean {
+  return w.type !== "all";
+}
+
+/**
+ * Gjør brukervalget om til et konkret vindu spørringene kan bruke.
+ *
+ * «Siste N dager» regnes fra FERSKESTE tilgjengelige data, ikke fra dagens
+ * dato: ingesten kjører nattlig og kan henge etter, og da ville et vindu målt
+ * fra i dag kunne bli helt tomt.
+ */
+function resolveStatsWindow(w: StatsTimeWindow, tripDayType: string): ResolvedStatsWindow {
+  switch (w.type) {
+    case "days": {
+      const latest = latestAvailableDate("by-stop") ?? new Date().toISOString().slice(0, 10);
+      const d = new Date(`${latest}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - Math.max((w.value ?? 7) - 1, 0));
+      return { dayTypes: null, dateFrom: d.toISOString().slice(0, 10), dateTo: null };
+    }
+    // Samme dagtype-inndeling som resten av siten (stats-adapter.ts).
+    case "weekday":
+      return { dayTypes: ["weekday"], dateFrom: null, dateTo: null };
+    case "weekend":
+      return { dayTypes: ["saturday", "sunday"], dateFrom: null, dateTo: null };
+    case "custom":
+      return { dayTypes: null, dateFrom: w.dateFrom || null, dateTo: w.dateTo || null };
+    case "all":
+    default:
+      return defaultWindowForDayType(tripDayType);
+  }
+}
+
+/** Stabil nøkkeldel for React Query, så et vindusbytte gir ny spørring. */
+function statsWindowKey(w: ResolvedStatsWindow): string {
+  return `${(w.dayTypes ?? []).join("+") || "-"}|${w.dateFrom ?? "-"}|${w.dateTo ?? "-"}`;
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -97,6 +154,8 @@ type LegTimingSpec = {
   kind: "dep" | "arr";
   aimedHour: number;
   dayType: string;
+  /** Brukervalgt statistikkperiode; utelatt → lås til dayType. */
+  statsWindow?: ResolvedStatsWindow;
 };
 
 type LegTimingResult = {
@@ -118,12 +177,13 @@ type LegTimingResult = {
 function legTimingSql(s: LegTimingSpec, delta?: number): string {
   const col = s.kind === "dep" ? "delay_departure_min" : "delay_arrival_min";
   const aimedCol = s.kind === "dep" ? "aimed_departure" : "aimed_arrival";
+  const win = statsWindowSql(s.statsWindow ?? defaultWindowForDayType(s.dayType));
   const where = delta != null
     ? `line_ref = '${esc(s.lineRef)}' AND stop_ref = '${esc(s.quayRef)}'
-       AND day_type = '${esc(s.dayType)}'
+       ${win}
        AND CAST(SUBSTR(${aimedCol}, 1, 2) AS INTEGER) BETWEEN ${s.aimedHour - delta} AND ${s.aimedHour + delta}`
     : `service_journey_id = '${esc(s.serviceJourneyId)}' AND stop_ref = '${esc(s.quayRef)}'
-       AND day_type = '${esc(s.dayType)}'`;
+       ${win}`;
   return `
     SELECT
       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ${col}) AS p50,
@@ -142,7 +202,11 @@ function useEstimatedLegTimes(
   return useQuery<Map<string, LegTimingResult>>({
     queryKey: [
       "duck-leg-timing",
-      ...specs.map(s => `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.dayType}`),
+      // Vinduet MÅ være med: ellers gjenbrukes gamle tall når brukeren bytter
+      // statistikkperiode (staleTime er Infinity).
+      ...specs.map(s =>
+        `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.dayType}|` +
+        statsWindowKey(s.statsWindow ?? defaultWindowForDayType(s.dayType))),
     ],
     enabled: duckReady && specs.length > 0,
     staleTime: Infinity,
@@ -273,7 +337,10 @@ function shiftPatternLeg(
  * day_type tas fra reisens planlagte avreisedato slik at f.eks. en onsdagsreise
  * bare henter hverdagsobservasjoner fra Parquet.
  */
-function buildTransferSpecsForPattern(pattern: TripPattern): TransferSpec[] {
+function buildTransferSpecsForPattern(
+  pattern: TripPattern,
+  statsWindow?: ResolvedStatsWindow,
+): TransferSpec[] {
   const tripDayType = computeDayType(pattern.expectedStartTime);
 
   // Aimed (scheduled) HH:MM at a quay from a leg's serviceJourney.passingTimes.
@@ -309,6 +376,7 @@ function buildTransferSpecsForPattern(pattern: TripPattern): TransferSpec[] {
       depLineRef: legB.line?.id ?? null,
       depAimedMin: aimedMinAtQuay(legB, depQuay, "departure"),
       dayType: tripDayType,
+      statsWindow,
     });
   }
   return out;
@@ -385,11 +453,13 @@ function useFallbackChain(opts: {
   transferMarginMin: number;
   duckReady: boolean;
   duckQuery: DuckQueryFn;
+  statsWindow: ResolvedStatsWindow;
 }) {
   const {
     enabled, transferQuayId, destination, missProb, missArrivalIso,
     missedDepartureIso, missedSjId,
     selectedModes, walkSpeedKmh, transferMarginMin, duckReady, duckQuery,
+    statsWindow,
   } = opts;
 
   return useQuery<FallbackStep[]>({
@@ -403,6 +473,7 @@ function useFallbackChain(opts: {
       missProb.toFixed(3),
       transferMarginMin,
       selectedModes.join(","),
+      statsWindowKey(statsWindow),
     ],
     enabled:
       enabled &&
@@ -431,7 +502,7 @@ function useFallbackChain(opts: {
         let makeProb = 1;
         let daysMin: number | null = null;
         if (!duckReady) return { makeProb, daysMin };
-        const specs = buildTransferSpecsForPattern(pattern);
+        const specs = buildTransferSpecsForPattern(pattern, statsWindow);
         const walks = transferWalkTimes(pattern);
         for (let t = 0; t < specs.length; t++) {
           let gaps: number[] = [];
@@ -579,9 +650,14 @@ function useTripDelayDistribution(
   pairs: Array<{ stopRef: string; lineRef: string }>,
   duckReady: boolean,
   duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
+  statsWindow: ResolvedStatsWindow,
 ) {
   return useQuery<Map<string, DuckDelayRow>>({
-    queryKey: ["duck-trip-delays", ...pairs.map(p => `${p.stopRef}|${p.lineRef}`)],
+    queryKey: [
+      "duck-trip-delays",
+      statsWindowKey(statsWindow),
+      ...pairs.map(p => `${p.stopRef}|${p.lineRef}`),
+    ],
     queryFn: async () => {
       if (pairs.length === 0) return new Map();
 
@@ -602,11 +678,18 @@ function useTripDelayDistribution(
           COUNT(*) AS n
         FROM delays_by_stop
         WHERE (${conditions})
+          ${statsWindowSql(statsWindow)}
           AND (delay_departure_min IS NOT NULL OR delay_arrival_min IS NOT NULL)
         GROUP BY stop_ref, line_ref
       `;
 
-      const rows = await duckQuery(sql, undefined, { family: "by-stop" }) as DuckDelayRow[];
+      // fromDate/toDate begrenser hvilke ukefiler som i det hele tatt åpnes —
+      // et smalt vindu gjør derfor spørringen billigere, ikke bare smalere.
+      const rows = await duckQuery(sql, undefined, {
+        family: "by-stop",
+        fromDate: statsWindow.dateFrom ?? undefined,
+        toDate: statsWindow.dateTo ?? undefined,
+      }) as DuckDelayRow[];
       const map = new Map<string, DuckDelayRow>();
       for (const row of rows) {
         map.set(`${row.stop_ref}|${row.line_ref}`, row);
@@ -1404,10 +1487,12 @@ function PlanNodeDetails({
   pattern,
   duckReady,
   duckQuery,
+  statsWindow,
 }: {
   pattern: TripPattern;
   duckReady: boolean;
   duckQuery: DuckQueryFn;
+  statsWindow: ResolvedStatsWindow;
 }) {
   // Alle stopp langs rutene (inkl. mellomstopp) — grafen trenger hele profilen.
   const pairs = useMemo(() => {
@@ -1431,7 +1516,7 @@ function PlanNodeDetails({
     return out;
   }, [pattern]);
 
-  const { data: stats } = useTripDelayDistribution(pairs, duckReady, duckQuery);
+  const { data: stats } = useTripDelayDistribution(pairs, duckReady, duckQuery, statsWindow);
 
   return (
     <div className="ml-2 mt-1 mb-1 border-l border-border pl-2 space-y-1">
@@ -1505,6 +1590,7 @@ function TransferFallbacks({
   transferMarginMin,
   duckReady,
   duckQuery,
+  statsWindow,
 }: {
   pattern: TripPattern;
   legAIdx: number;
@@ -1516,6 +1602,7 @@ function TransferFallbacks({
   transferMarginMin: number;
   duckReady: boolean;
   duckQuery: DuckQueryFn;
+  statsWindow: ResolvedStatsWindow;
 }) {
   const legA = pattern.legs[legAIdx];
 
@@ -1561,6 +1648,7 @@ function TransferFallbacks({
     transferMarginMin,
     duckReady,
     duckQuery,
+    statsWindow,
   });
 
   // Hvilken plan-node som viser graf/detaljer: "A", "0", "0-alt-1", ...
@@ -1671,6 +1759,7 @@ function TransferFallbacks({
             pattern={step.pattern}
             duckReady={duckReady}
             duckQuery={duckQuery}
+            statsWindow={statsWindow}
           />
         )}
       </div>
@@ -1713,7 +1802,7 @@ function TransferFallbacks({
           {detailsToggle("A")}
         </div>
         {openKey === "A" && (
-          <PlanNodeDetails pattern={pattern} duckReady={duckReady} duckQuery={duckQuery} />
+          <PlanNodeDetails pattern={pattern} duckReady={duckReady} duckQuery={duckQuery} statsWindow={statsWindow} />
         )}
       </div>
       {isLoading && <p className="text-xs text-muted-foreground">Beregner plan B...</p>}
@@ -1769,10 +1858,15 @@ function TripCard({
   selectedModes,
   gapMap,
   showPct,
+  statsWindow,
+  windowOverrides,
 }: {
   pattern: TripPattern;
   index: number;
   duckStats?: Map<string, DuckDelayRow>;
+  statsWindow: ResolvedStatsWindow;
+  /** Har brukeren overstyrt dagtype-låsen? Styrer ordlyd i UI-et. */
+  windowOverrides: boolean;
   transferMarginMin: number;
   walkSpeedKmh: number;
   sprintSpeedKmh: number;
@@ -1804,8 +1898,8 @@ function TripCard({
   // ---------- Build transfer specs (one per transit→transit handover) ----------
   // Samme spec-nøkler ("t0", "t1", ...) som sidenivå-prefetchen bruker.
   const transferSpecs = useMemo<TransferSpec[]>(
-    () => buildTransferSpecsForPattern(pattern),
-    [pattern],
+    () => buildTransferSpecsForPattern(pattern, statsWindow),
+    [pattern, statsWindow],
   );
 
   // Estimert avgangs-/ankomsttid spørres fortsatt bare for UTVIDEDE kort —
@@ -1824,17 +1918,17 @@ function TripCard({
       if (firstTransit) {
         const fromQuay = leg.fromPlace.quay?.id;
         if (fromQuay) {
-          specs.push({ key: "dep", serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: fromQuay, lineRef: leg.line.id, kind: "dep", aimedHour, dayType });
+          specs.push({ key: "dep", serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: fromQuay, lineRef: leg.line.id, kind: "dep", aimedHour, dayType, statsWindow });
         }
         firstTransit = false;
       }
       const toQuay = leg.toPlace.quay?.id;
       if (toQuay) {
-        specs.push({ key: `arr_${i}`, serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: toQuay, lineRef: leg.line.id, kind: "arr", aimedHour, dayType });
+        specs.push({ key: `arr_${i}`, serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: toQuay, lineRef: leg.line.id, kind: "arr", aimedHour, dayType, statsWindow });
       }
     }
     return specs;
-  }, [pattern]);
+  }, [pattern, statsWindow]);
 
   const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, duckActive, duckQuery);
 
@@ -2466,6 +2560,7 @@ function TripCard({
                           transferMarginMin={transferMarginMin}
                           duckReady={duckReady}
                           duckQuery={duckQuery}
+                          statsWindow={statsWindow}
                         />
                       )}
                   </div>
@@ -2583,8 +2678,23 @@ export default function TripPlanner() {
   // Hvilke persentil-kolonner som vises per stopp (alle på som standard)
   const [showPct, setShowPct] = useState({ p50: true, p80: true, p95: true });
 
+  // Statistikkperiode. Standard "all" = ingen overstyring, dvs. statistikken
+  // låses til dagtypen for reisedatoen.
+  const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
+
   // DuckDB-WASM for empirical percentiles
   const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
+
+  // Dagtypen for reisedatoen brukes når brukeren IKKE har overstyrt vinduet.
+  // departDate er «YYYY-MM-DD» — send den rå, ikke som tidsstempel.
+  const tripDayType = useMemo(() => computeDayType(departDate), [departDate]);
+  const resolvedStatsWindow = useMemo(
+    () => resolveStatsWindow(statsTimeWindow, tripDayType),
+    [statsTimeWindow, tripDayType],
+  );
+  const statsWindowOverrides = windowOverridesDayType(statsTimeWindow);
+  // Nøkkel for memo/effekt-avhengigheter — objektet er nytt ved hver render.
+  const statsWindowId = statsWindowKey(resolvedStatsWindow);
 
   // Derive (stopRef, lineRef) pairs for DuckDB query from current trip results.
   //
@@ -2625,7 +2735,7 @@ export default function TripPlanner() {
   }, [tripPatterns, expandedKeys]);
 
   const { data: duckData, isFetching: duckStatsFetching } =
-    useTripDelayDistribution(duckPairs, duckReady, duckQuery);
+    useTripDelayDistribution(duckPairs, duckReady, duckQuery, resolvedStatsWindow);
 
   // ---------------------------------------------------------------------------
   // Overgangs-gap for ALLE reiseforslag, beregnet sekvensielt i bakgrunnen.
@@ -2638,6 +2748,14 @@ export default function TripPlanner() {
   const gapResultsRef = useRef(gapResults);
   gapResultsRef.current = gapResults;
   const gapGen = useRef(0);
+
+  // Bytter brukeren statistikkperiode, er de ferdigberegnede gapene regnet på
+  // feil utvalg. Tøm dem, ellers ville løkken under hoppet over hvert
+  // reiseforslag den allerede hadde et (nå utdatert) svar for.
+  useEffect(() => {
+    setGapResults(new Map());
+  }, [statsWindowId]);
+
   useEffect(() => {
     if (!duckReady || tripPatterns.length === 0) return;
     // Vent til persentilene har landet. DuckDB-workeren tar én spørring om
@@ -2656,7 +2774,7 @@ export default function TripPlanner() {
         if (gapGen.current !== gen) return; // nytt søk/ny prioritering — avbryt
         const key = patternKey(p);
         if (gapResultsRef.current.has(key)) continue;
-        const specs = buildTransferSpecsForPattern(p);
+        const specs = buildTransferSpecsForPattern(p, resolvedStatsWindow);
         try {
           const m = specs.length > 0
             ? await computeTransferGaps(specs, duckQuery)
@@ -2672,7 +2790,7 @@ export default function TripPlanner() {
         }
       }
     })();
-  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching]);
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching, statsWindowId, resolvedStatsWindow]);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
@@ -3128,6 +3246,75 @@ export default function TripPlanner() {
                   </div>
                 </div>
 
+                {/* Statistikkperiode — hvilke historiske dager tallene bygger på.
+                    Alt annet enn «Samme dagtype» OVERSTYRER dagtype-låsen. */}
+                <div className="border-t pt-4">
+                  <Label className="text-xs text-muted-foreground mb-2 block flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Statistikkperiode (påvirker kun forsinkelsestallene, ikke hvilke reiser Entur foreslår)
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { type: "all" as const, label: "Samme dagtype" },
+                      { type: "days" as const, value: 7, label: "Siste 7 dager" },
+                      { type: "days" as const, value: 30, label: "Siste 30 dager" },
+                      { type: "days" as const, value: 90, label: "Siste 90 dager" },
+                      { type: "weekday" as const, label: "Ukedager" },
+                      { type: "weekend" as const, label: "Helg" },
+                      { type: "custom" as const, label: "Egne datoer" },
+                    ] as const).map((opt) => {
+                      const isActive = statsTimeWindow.type === opt.type &&
+                        (opt.type !== "days" || statsTimeWindow.value === opt.value);
+                      return (
+                        <button
+                          key={`${opt.type}-${opt.type === "days" ? opt.value : ""}`}
+                          onClick={() => {
+                            if (opt.type === "days") {
+                              setStatsTimeWindow({ type: "days", value: opt.value });
+                            } else {
+                              setStatsTimeWindow({ type: opt.type });
+                            }
+                          }}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
+                    {statsWindowOverrides
+                      ? "Du har valgt periode selv. Tallene regnes fra de valgte datoene i stedet for å låses til dagtypen for reisedatoen."
+                      : `Standard: tallene bygger kun på dager med samme dagtype som reisedatoen (${DAY_TYPE_LABELS[tripDayType] ?? tripDayType}).`}
+                  </p>
+                  {statsTimeWindow.type === "custom" && (
+                    <div className="flex gap-3 mt-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Fra dato</Label>
+                        <Input
+                          type="date"
+                          value={statsTimeWindow.dateFrom ?? ""}
+                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Til dato</Label>
+                        <Input
+                          type="date"
+                          value={statsTimeWindow.dateTo ?? ""}
+                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateTo: e.target.value }))}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -3196,6 +3383,8 @@ export default function TripPlanner() {
                 pattern={pattern}
                 index={i}
                 duckStats={duckData}
+                statsWindow={resolvedStatsWindow}
+                windowOverrides={statsWindowOverrides}
                 transferMarginMin={transferMarginMin}
                 walkSpeedKmh={walkSpeedKmh}
                 sprintSpeedKmh={sprintSpeedKmh ?? walkSpeedKmh}
@@ -3319,7 +3508,7 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-green-600 font-mono">X%</span> Sannsynlighet for å rekke bytte
                 </p>
-                <p>Telt opp dag for dag i historikken: for hver historisk dag (med samme dagtype) der begge dine avganger faktisk gikk, måler vi det faktiske gapet mellom ankomst og neste avgang, og teller hvor mange dager marginen var stor nok (inkl. din gangtid). Avgangen din gjenkjennes på tvers av dager via en stabil avgangs-ID — eller eksakt rutetid når ID-en er fersk. Har vi få dager på din egen avgang, viser vi i tillegg <em>sammenlignbare</em> naboavganger; begge tallene står side om side i overgangsanalysen med antall dager, så du ser hvor sikkert grunnlaget er. Se <a href="/metode#overgang" className="text-primary hover:underline">metodesiden</a> for detaljer.</p>
+                <p>Telt opp dag for dag i historikken: for hver historisk dag ({statsWindowOverrides ? "innenfor valgte datoer" : "med samme dagtype"}) der begge dine avganger faktisk gikk, måler vi det faktiske gapet mellom ankomst og neste avgang, og teller hvor mange dager marginen var stor nok (inkl. din gangtid). Avgangen din gjenkjennes på tvers av dager via en stabil avgangs-ID — eller eksakt rutetid når ID-en er fersk. Har vi få dager på din egen avgang, viser vi i tillegg <em>sammenlignbare</em> naboavganger; begge tallene står side om side i overgangsanalysen med antall dager, så du ser hvor sikkert grunnlaget er. Se <a href="/metode#overgang" className="text-primary hover:underline">metodesiden</a> for detaljer.</p>
               </div>
 
               {/* P80 punktlighet */}
@@ -3338,7 +3527,11 @@ export default function TripPlanner() {
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                <p><strong>Periode:</strong> Statistikken bruker hele det tilgjengelige datagrunnlaget (se antall dager over). Tallene for din egen avgang og for overgangene hentes fra dager med samme dagtype som reisedatoen du har valgt.</p>
+                <p><strong>Periode:</strong>{" "}
+                  {statsWindowOverrides
+                    ? "Du har valgt statistikkperiode selv under «Flere filtre». Alle forsinkelsestall på siden regnes fra de valgte datoene — de er ikke lenger låst til dagtypen for reisedatoen."
+                    : `Tallene bygger kun på historiske dager med samme dagtype som reisedatoen (${DAY_TYPE_LABELS[tripDayType] ?? tripDayType}), slik at f.eks. en onsdagsreise ikke blandes med lørdagsdata. Du kan overstyre dette under «Flere filtre».`}
+                </p>
               </div>
               <div className="flex items-start gap-2">
                 <Database className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />

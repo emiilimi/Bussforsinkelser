@@ -5,6 +5,35 @@
 
 **Sist oppdatert**: 2026-08-08
 
+## Endringslogg — 2026-08-08 (2): tidsvindu-filteret koblet opp + dagtype-bug
+
+**🔴 `computeDayType()` returnerte «weekday» for ALT.** Funnet mens
+tidsvindu-filteret ble koblet opp. Funksjonen gjorde `new Date(input +
+"T12:00:00")` uansett input-form; reiseplanleggeren sender Enturs
+`expectedStartTime` («2026-08-08T08:00:00+02:00»), som da ble
+«…+02:00T12:00:00» → Invalid Date → NaN i alle felt → fall-through til
+`"weekday"`. **All dagtype-filtrering i reiseplanleggeren traff dermed
+ukedagsdata uansett reisedato** — lørdags-, søndags- og 17. mai-reiser viste
+ukedagsstatistikk for både overgangssannsynlighet og per-avgang-estimater.
+Stille feil: ingen feilmelding, bare litt feil tall.
+Rettet i `lib/day-type.ts` (ren dato vs. tidsstempel parses hver for seg;
+uparsebar input kaster nå i stedet for å falle tilbake på «weekday»).
+Verifisert: Entur-formatert lørdag → `saturday`, søndag → `sunday`, 17. mai →
+`may17`, 1. juledag → `holiday`.
+
+**Tidsvindu-filteret virker nå — med overstyrings-semantikk.** Filteret skrev
+til state ingen leste. Det er nå koblet til alle spørringsveiene, og alt annet
+enn «Samme dagtype» OVERSTYRER dagtype-låsen; UI-et bytter da ordlyd til
+«valgte datoer» tre steder (filterpanel, overgangsforklaring, metodeboks).
+Nye byggeklosser: `ResolvedStatsWindow` + `statsWindowSql()` i
+`lib/trip-shared.ts`, `resolveStatsWindow()` i `trip-planner.tsx`. «Siste N
+dager» regnes fra ferskeste tilgjengelige data, ikke dagens dato (ingesten
+henger etter). `fromDate`/`toDate` sendes videre til `QueryOptions`, så et
+smalt vindu også begrenser hvilke ukefiler DuckDB åpner — filteret er dermed
+en ytelsesknapp, jf. den uløste tregheten i forrige oppføring.
+Verifisert mot data: ett stopp ga 3589 rader uten filter, 2817 med
+`day_type='weekday'`, 772 med helg — 2817 + 772 = 3589, eksakt partisjonering.
+
 ## Endringslogg — 2026-08-08: reisesøket blokkerte på statistikk (målt 53 s → 3 s)
 
 **Symptom**: «Finn reise» føltes ekstremt tregt. Målt (Lagunen→Åsane, 12

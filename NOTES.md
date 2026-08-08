@@ -54,27 +54,55 @@ Merk at det døde tidsvindu-filteret er FJERNET (2026-08-08, se punkt 5). Det
 gjør forhåndsaggregering enklere: uten vilkårlige brukervalgte datointervaller
 holder det å forhåndsberegne faste oppdelinger.
 
-## 5. Tidsvindu-filteret i reiseplanleggeren — fjernet 2026-08-08
+## 5. Tidsvindu-filteret — LØST 2026-08-08 (kort fjernet, så koblet opp)
 
 Filteret («Statistikkperiode») hadde sju knapper som skrev til `statsTimeWindow`,
-men ingen kode leste den noen gang — å endre det gjorde ingenting, samtidig som
-metodeboksen påsto at det påvirket statistikken.
+men ingen kode leste den noen gang. Det ble først fjernet, og deretter — etter
+avklaring med Emilie — koblet opp for ordentlig med **overstyrings-semantikk**:
 
-Vurdert og valgt bort å koble det opp: `legTimingSql()` og overgangs-gap-
-spørringene låser allerede `day_type` til dagtypen for reisedatoen brukeren har
-valgt. «Ukedager»/«Helg» ville derfor kunne vise selvmotsigende tall på samme
-kort (topplinjen fra reisedatoens dagtype, stopptallene fra en annen). Emilie
-valgte å fjerne hele filteret framfor å koble opp bare datointervall-delen.
+- **«Samme dagtype» (standard)**: statistikken låses til dagtypen for
+  reisedatoen, som før.
+- **Alle andre valg OVERSTYRER dagtype-låsen.** Velger du «Siste 30 dager»
+  eller egne datoer, er det datoutvalget som gjelder, og UI-et sier «valgte
+  datoer» i stedet for «samme dagtype» (tre steder: filterpanelet,
+  overgangsforklaringen og metodeboksen).
 
-Metodeboksen sier nå i stedet at statistikken bruker hele datagrunnlaget, og at
-tall for din egen avgang/overganger hentes fra dager med samme dagtype.
+Vinduet er koblet til ALLE spørringsveiene, ellers ville det vært halvsant:
+persentiler (`useTripDelayDistribution`), per-avgang (`legTimingSql`),
+overgangs-gap (alle tre nivåene i `lib/trip-shared.ts`), plan-tre-grafene
+(`PlanNodeDetails`) og plan B-kjeden (`useFallbackChain`).
 
-**Hvis det skal tilbake**: gjør det til et rent datointervall (ikke dagtype), og
-koble det til ALLE tre spørringsveiene — persentiler
-(`useTripDelayDistribution`), per-avgang (`legTimingSql`) og overgangs-gap
-(`computeTransferGaps` i `lib/trip-shared.ts`) — ellers blir det halvsant igjen.
-`QueryOptions` har allerede `fromDate`/`toDate`, som i tillegg begrenser hvilke
-ukefiler som lastes, så et smalt vindu ville også gjort statistikken raskere.
+Sentrale biter: `ResolvedStatsWindow` + `statsWindowSql()` i `lib/trip-shared.ts`
+(bygger SQL-fragmentet), `resolveStatsWindow()` i `trip-planner.tsx` (gjør
+brukervalget om til konkrete datoer/dagtyper). «Siste N dager» regnes fra
+FERSKESTE tilgjengelige data, ikke fra dagens dato — ingesten henger etter, og
+et vindu målt fra i dag kunne blitt tomt.
+
+Bonus: `fromDate`/`toDate` sendes til `QueryOptions`, som begrenser hvilke
+ukefiler DuckDB i det hele tatt åpner. Et smalt vindu gjør derfor statistikken
+raskere, ikke bare smalere — relevant gitt punkt 4.
+
+Verifisert mot data: for ett stopp ga uten filter 3589 rader, `day_type`
+weekday 2817 og helg 772 — 2817 + 772 = 3589, altså en eksakt partisjonering.
+
+## 6. computeDayType() returnerte «weekday» for ALT — rettet 2026-08-08
+
+Funnet mens tidsvindu-filteret ble koblet opp. `computeDayType()` gjorde
+`new Date(input + "T12:00:00")` uansett input-form. Kallene i reiseplanleggeren
+sender Enturs `expectedStartTime` («2026-08-08T08:00:00+02:00»), og da ble
+strengen «…+02:00T12:00:00» → **Invalid Date** → alle felt NaN → funksjonen falt
+gjennom alle sjekkene og returnerte `"weekday"`.
+
+Konsekvens: **all dagtype-filtrering i reiseplanleggeren traff ukedagsdata**,
+uansett reisedato. Lørdags-, søndags- og 17. mai-reiser viste ukedagsstatistikk
+for både overgangssannsynlighet og per-avgang-estimater. Feilen var stille —
+ingen feilmelding, bare litt feil tall.
+
+Rettet i `lib/day-type.ts`: ren dato og fullt tidsstempel parses hver for seg,
+og uparsebar input kaster nå i stedet for å falle tilbake på «weekday» (det var
+nettopp den stille fallbacken som skjulte feilen). Verifisert: Entur-formatert
+lørdag → `saturday`, søndag → `sunday`, 17. mai → `may17`, 1. juledag →
+`holiday`.
 
 ---
 

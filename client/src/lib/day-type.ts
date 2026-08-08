@@ -35,11 +35,41 @@ const MOVABLE_HOLIDAYS: ReadonlySet<string> = new Set([
 
 export type DayType = "weekday" | "saturday" | "sunday" | "holiday" | "may17";
 
-/** Compute Norwegian transit day_type from an ISO date string (YYYY-MM-DD)
- *  or a Date. Logic must match pipeline/day_type.py exactly so that
- *  client-side filters hit the same buckets the ingest produced. */
+/** Norske etiketter for visning i UI. */
+export const DAY_TYPE_LABELS: Record<DayType, string> = {
+  weekday: "ukedag",
+  saturday: "lørdag",
+  sunday: "søndag",
+  holiday: "helligdag",
+  may17: "17. mai",
+};
+
+/** Compute Norwegian transit day_type from an ISO date string (YYYY-MM-DD),
+ *  a full ISO timestamp, or a Date. Logic must match pipeline/day_type.py
+ *  exactly so that client-side filters hit the same buckets the ingest
+ *  produced.
+ *
+ *  MERK: tidligere gjorde denne `new Date(input + "T12:00:00")` uansett
+ *  input-form. For et fullt tidsstempel (som Enturs `expectedStartTime`,
+ *  «2026-08-08T08:00:00+02:00») ga det «...+02:00T12:00:00» → Invalid Date →
+ *  alle felt NaN → funksjonen falt gjennom til «weekday». Alle kallene i
+ *  reiseplanleggeren sender nettopp fullt tidsstempel, så lørdags-, søndags-
+ *  og 17. mai-reiser ble stille filtrert mot UKEDAGS-statistikk. Derfor
+ *  skiller vi nå på ren dato og tidsstempel. */
 export function computeDayType(input: string | Date): DayType {
-  const d = typeof input === "string" ? new Date(input + "T12:00:00") : input;
+  const d =
+    typeof input === "string"
+      ? /^\d{4}-\d{2}-\d{2}$/.test(input)
+        // Ren dato: midt på dagen LOKALT, så tidssone aldri flytter kalenderdagen.
+        ? new Date(`${input}T12:00:00`)
+        // Fullt tidsstempel: la Date tolke det som det er.
+        : new Date(input)
+      : input;
+  // Uparsebar input skal ikke stille bli «weekday» — det var nettopp den
+  // stille fallbacken som skjulte feilen over.
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`computeDayType: kunne ikke tolke datoen «${String(input)}»`);
+  }
   const month = d.getMonth() + 1;
   const day = d.getDate();
   if (month === 5 && day === 17) return "may17";
