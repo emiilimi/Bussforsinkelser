@@ -60,6 +60,12 @@ export default function Methodology() {
                   4. Begrensninger og kjente svakheter
                 </a>
               </li>
+              <li>
+                <a href="#teknisk" className="text-primary hover:underline">
+                  5. Teknisk referanse
+                </a>
+                <span className="text-muted-foreground"> — formler, datakjede, feller</span>
+              </li>
             </ol>
           </CardContent>
         </Card>
@@ -708,6 +714,297 @@ export default function Methodology() {
           </div>
         </section>
 
+        {/* === Nivå 5 — teknisk referanse === */}
+        <section id="teknisk" className="scroll-mt-8 space-y-6 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-primary" />
+            <h2 className="text-2xl font-bold">5. Teknisk referanse</h2>
+          </div>
+          <p className="text-muted-foreground leading-relaxed">
+            Alt regnestykket, uten forenkling: hver formel som brukes på tallene,
+            hvilken spørring som driver hvilket tall på skjermen, og fellene i
+            datagrunnlaget som har gitt feil svar før. Ment for deg som vil
+            etterprøve tallene — eller finne feil i dem.
+          </p>
+
+          {/* ---- 5.1 Formler ---- */}
+          <div id="formler" className="scroll-mt-8 space-y-3">
+            <h3 className="text-lg font-semibold">5.1 Formelsamling</h3>
+
+            <Formula
+              name="Forsinkelse"
+              expr="forsinkelse_min = (faktisk_tid − planlagt_tid) / 60"
+              where={[
+                ["faktisk_tid", "departureTime / arrivalTime fra SIRI ET"],
+                ["planlagt_tid", "aimedDepartureTime / aimedArrivalTime"],
+              ]}
+            >
+              Regnes separat for ankomst og avgang ved hvert stopp. Negativ verdi =
+              før rutetid. Der begge finnes, er det avgangsforsinkelsen som brukes
+              som «forsinkelsen ved stoppet», siden det er den som påvirker deg som
+              står og venter.
+            </Formula>
+
+            <Formula
+              name="Persentil (PERCENTILE_CONT)"
+              expr={"sorter observasjonene stigende\nposisjon = p × (n − 1)\nP = v[⌊posisjon⌋] + (posisjon − ⌊posisjon⌋) × (v[⌈posisjon⌉] − v[⌊posisjon⌋])"}
+              where={[
+                ["p", "0,50 / 0,80 / 0,95"],
+                ["n", "antall observasjoner"],
+                ["v", "sortert liste med forsinkelser"],
+              ]}
+            >
+              Lineær interpolasjon mellom nabo-observasjoner — persentilen er derfor
+              ikke nødvendigvis en verdi som faktisk er målt. Med få observasjoner
+              blir tallet ustabilt; se{" "}
+              <a href="#persentiler" className="text-primary hover:underline">seksjonen om persentiler</a>{" "}
+              for et regneeksempel.
+            </Formula>
+
+            <Formula
+              name="Overgangssannsynlighet (empirisk)"
+              expr="P(rekker) = |{ d ∈ D : gap_d ≥ gangtid + margin }| / |D|"
+              where={[
+                ["D", "historiske dager der BEGGE avgangene faktisk gikk"],
+                ["gap_d", "faktisk avgang − faktisk ankomst, den dagen"],
+                ["margin", "2 min som standard; din egen verdi hvis du endrer den"],
+              ]}
+            >
+              Ren opptelling, ikke en modell: vi antar ingen fordeling, teller bare
+              hvor ofte marginen faktisk holdt. Derfor er antall dager avgjørende for
+              hvor mye tallet er verdt, og vises alltid ved siden av.
+            </Formula>
+
+            <Formula
+              name="Gap over midnatt"
+              expr="gap = (gap < −720) ? gap + 1440 : gap"
+            >
+              En overgang som krysser midnatt gir et stort negativt gap (f.eks. −1380
+              min når du bytter 23:55 → 00:15). Grensen på −720 min (12 timer) skiller
+              det fra en ekte negativ margin.
+            </Formula>
+
+            <Formula
+              name="Naboavgang-proxy (nivå 3, «pool»)"
+              expr="gap_d = planlagt_gap + (avgangsforsinkelse_d − ankomstforsinkelse_d)"
+              where={[
+                ["planlagt_gap", "differansen i RUTETABELLEN for din reise"],
+                ["_d", "målt på nærmeste avgang innen ±60 min den dagen"],
+              ]}
+            >
+              Brukes når din egen avgang har for få dager. Merk at vi beholder{" "}
+              <em>ditt</em> planlagte gap og kun låner forsinkelsene fra naboavgangen.
+              Å sammenlikne naboavgangenes klokkeslett direkte ville målt gapet til en
+              helt annen avgang enn den du skal rekke. Derfor vises heller ikke
+              klokkeslett for denne kilden.
+            </Formula>
+
+            <Formula
+              name="Spurt-gangtid"
+              expr={"sprintRatio = ganghastighet / spurthastighet\nspurt_gangtid = gangtid × sprintRatio\nP(spurt) = P(rekker) med buffer = spurt_gangtid + 10 sek"}
+            >
+              Entur oppgir gangtiden ved din valgte ganghastighet; spurt-varianten
+              skalerer den, den måles ikke på nytt. De 10 sekundene er en fast
+              sikkerhetsmargin.
+            </Formula>
+
+            <Formula
+              name="Samlet sannsynlighet for hele reisen"
+              expr="P(hele reisen) = ∏ P(rekker overgang i)"
+            >
+              Produktet av alle overgangene i reiseforslaget. Dette forutsetter at
+              overgangene er <strong>uavhengige</strong>, noe de strengt tatt ikke er:
+              er du først forsinket, slår det gjerne ut på flere bytter samtidig.
+              Tallet er derfor et forsiktig anslag — se{" "}
+              <a href="#begrensninger" className="text-primary hover:underline">begrensninger</a>.
+              Brutte overganger (gap kortere enn ren gangtid) teller som 0.
+            </Formula>
+
+            <Formula
+              name="Sannsynlighet for å trenge plan B, C, D …"
+              expr={"P(trenger plan 1) = 1 − P(rekker overgangen)\nP(trenger plan k+1) = P(trenger plan k) × (1 − P(rekker plan k))"}
+            >
+              Kjeden kuttes når sannsynligheten faller under 5 %, etter maksimalt 4
+              ledd, eller når ren gange er raskest (gange er deterministisk og
+              avslutter kjeden).
+            </Formula>
+
+            <Formula
+              name="Estimert tid"
+              expr="estimert_tid = rutetid + P50(forsinkelse for denne avgangen ved dette stoppet)"
+            >
+              Vises som «~HH:MM». P80/P95 bruker samme uttrykk med annen persentil.
+              Finnes ikke tall for akkurat din avgang, faller vi tilbake på det
+              aggregerte tallet for (stopp, linje) — det merkes med «~» foran.
+            </Formula>
+
+            <Formula
+              name="Dwell time (stoppetid)"
+              expr="dwell_sek = avgangstid − ankomsttid,  beholdes kun når 0 ≤ dwell_sek ≤ 600"
+            >
+              Negative verdier og alt over 10 minutter forkastes som målefeil eller
+              regulering/pause, ikke ordinær av- og påstigning.
+            </Formula>
+
+            <Formula
+              name="Markørstørrelse på forsinkelseskartet"
+              expr="radius = min(10, 0,8 + log₁₀(antall_avganger) × 3,1)"
+            >
+              Logaritmisk, ellers ville noen få knutepunkter med titusenvis av
+              avganger dekket hele kartet. Rent visuelt — påvirker ingen statistikk.
+            </Formula>
+          </div>
+
+          {/* ---- 5.2 Hva driver hvilket tall ---- */}
+          <div id="kobling" className="scroll-mt-8 space-y-3 pt-2">
+            <h3 className="text-lg font-semibold">5.2 Hva driver hvilket tall</h3>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              Alle spørringene kjører i nettleseren mot Parquet-filene. Én tabellrad
+              per tall du ser på skjermen:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="py-2 pr-3 font-semibold">Tallet på skjermen</th>
+                    <th className="py-2 pr-3 font-semibold">Hvor det kommer fra</th>
+                    <th className="py-2 font-semibold">Kode</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <WiringRow
+                    ui="~P50 / P80 / P95 per stopp"
+                    source="Persentiler per (stopp, linje) over alle dager i valgt periode"
+                    file="useTripDelayDistribution()"
+                  />
+                  <WiringRow
+                    ui="Estimert avgang/ankomst øverst på kortet"
+                    source="Per-avgang-persentil matchet på stabil avgangs-ID; faller tilbake på ±1t, så ±2t, så aggregatet"
+                    file="legTimingSql()"
+                  />
+                  <WiringRow
+                    ui="Sannsynlighet for å rekke bytte"
+                    source="Dag-for-dag-opptelling, tre matchenivåer (stabil ID → eksakt rutetid → naboavganger ±60 min)"
+                    file="sjGapSql() / aimedGapSql() / poolGapSql()"
+                  />
+                  <WiringRow
+                    ui="Plan B/C/D-treet"
+                    source="Nytt Entur-søk fra byttestoppet, med samme overgangsberegning på hvert ledd"
+                    file="useFallbackChain()"
+                  />
+                  <WiringRow
+                    ui="Forsinkelse-langs-ruten-grafen"
+                    source="Samme persentiler som stopplista, men for alle stopp på ruten"
+                    file="PlanNodeDetails → PlanDelayChart"
+                  />
+                  <WiringRow
+                    ui="Antall dager i datagrunnlaget"
+                    source="COUNT(DISTINCT date) over hele det registrerte datasettet"
+                    file="«duck-data-range»"
+                  />
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Rekkefølgen er ikke tilfeldig: reiseforslagene vises så snart Entur har
+              svart, og forsinkelsestallene fylles inn etterpå. Tidligere ventet hele
+              siden på statistikken før noe som helst kom på skjermen.
+            </p>
+          </div>
+
+          {/* ---- 5.3 Datakjeden ---- */}
+          <div id="datakjede-teknisk" className="scroll-mt-8 space-y-3 pt-2">
+            <h3 className="text-lg font-semibold">5.3 Datakjeden, teknisk</h3>
+            <pre className="overflow-x-auto rounded-lg border border-border bg-muted/30 px-3 py-3 text-[11px] font-mono leading-relaxed whitespace-pre">
+{`SIRI ET (sanntid, Entur)
+  └─ BigQuery: realtime_siri_et_last_recorded
+      └─ nattlig jobb: beregner forsinkelse + dagtype per stopp-passering
+          └─ SQLite: journey_stop_daily   (rå observasjoner, 90 dager)
+              └─ ukentlige Parquet-filer (ZSTD), skrevet i TO sorteringer:
+                   …-by-line.parquet   sortert på line_ref  → linjespørringer
+                   …-by-stop.parquet   sortert på stop_ref  → stopp-/reisespørringer
+                  └─ Cloudflare R2 (offentlig, HTTP range requests)
+                      └─ DuckDB-WASM i nettleseren din
+                          └─ tallene på skjermen`}
+            </pre>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              De to sorteringene er ikke duplisering for moro skyld. Parquet lagrer
+              min/max per radgruppe, og en spørring kan bare hoppe over radgrupper
+              langs kolonnen filen faktisk er sortert på. Med feil sortering må
+              nesten hele filen lastes ned.
+            </p>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              Ingenting av det du søker på sendes til en server: reiseforslagene hentes
+              fra Entur, og all forsinkelsesstatistikk regnes ut lokalt i nettleseren
+              din mot filer som ligger åpent tilgjengelig.
+            </p>
+          </div>
+
+          {/* ---- 5.4 Feller i datagrunnlaget ---- */}
+          <div id="feller" className="scroll-mt-8 space-y-3 pt-2">
+            <h3 className="text-lg font-semibold">5.4 Feller i datagrunnlaget</h3>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              Egenskaper ved dataene som har gitt feil svar før, og som er verdt å
+              kjenne til hvis du bruker de samme kildene:
+            </p>
+
+            <Gotcha title="Avgangs-IDen er ikke stabil over tid">
+              <p>
+                Skyss' <code>serviceJourneyId</code> har formen{" "}
+                <code>SKY:ServiceJourney:&#123;linje&#125;-&#123;versjon&#125;-&#123;avgang&#125;</code>,
+                og det midterste leddet endres nesten daglig når ruteplanen
+                republiseres. Samme 10:00-avgang hadde <strong>23 ulike IDer på 35
+                dager</strong>, og 38,9 % av alle IDer finnes på bare én dato.
+              </p>
+              <p>
+                Matcher man på hele IDen, får man ~1 dags data og tror man har målt
+                noe. Vi matcher derfor på det siste leddet, som bare endres ved en
+                ekte ruteendring.
+              </p>
+            </Gotcha>
+
+            <Gotcha title="Dagtypen ble regnet feil for alle andre dager enn hverdag">
+              <p>
+                Funksjonen som bestemmer dagtype tolket et fullt tidsstempel som en
+                ugyldig dato, og falt stille tilbake på «hverdag». Resultatet var at
+                lørdags-, søndags- og 17. mai-reiser ble sammenliknet med{" "}
+                <strong>hverdagsstatistikk</strong> — uten noen feilmelding.
+              </p>
+              <p>
+                Rettet august 2026. Funksjonen kaster nå heller en feil enn å gjette,
+                nettopp fordi den stille gjetningen var det som skjulte problemet.
+              </p>
+            </Gotcha>
+
+            <Gotcha title="Stoppesteds-IDer slås sammen og gjenbrukes">
+              <p>
+                Nasjonal stoppestedsregister-IDer (<code>NSR:StopPlace:…</code>) er
+                ikke evige: steder slås sammen og får nye IDer. Et søk kan derfor peke
+                på en ID vår historikk ikke kjenner, selv om dataene finnes under den
+                gamle. Da vises «ingen data» selv om det finnes.
+              </p>
+            </Gotcha>
+
+            <Gotcha title="Manglende sanntid kan ikke skilles fra innstilte avganger">
+              <p>
+                En avgang uten sanntidsdata kan være innstilt, eller den kan ha kjørt
+                med defekt utstyr. Vi teller den ikke som «forsinket», men vi kan heller
+                ikke telle den som «kjørte». Overgangssannsynligheten regnes derfor
+                kun over dager der begge avgangene <em>faktisk rapporterte</em>.
+              </p>
+            </Gotcha>
+
+            <Gotcha title="Manglende transportmiddel betyr buss">
+              <p>
+                I feeden er <code>vehicleMode</code> ofte tom. Tom verdi tolkes som
+                buss, siden bare båt/ferje er eksplisitt merket hos Skyss. Vi har i
+                praksis forsinkelsesdata for buss og flybuss; trikk, bane, tog og båt
+                er forberedt, men har ingen observasjoner ennå.
+              </p>
+            </Gotcha>
+          </div>
+        </section>
+
         <footer className="pt-6 border-t border-border text-xs text-muted-foreground space-y-2">
           <p className="flex items-center gap-1.5">
             <ExternalLink className="w-3 h-3" />
@@ -749,6 +1046,68 @@ function Term({ name, children }: { name: string; children: React.ReactNode }) {
     <div className="border-l-2 border-primary/30 pl-3 py-1">
       <div className="font-semibold text-sm">{name}</div>
       <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{children}</p>
+    </div>
+  );
+}
+
+/** Én formel med navn, uttrykk og forklaring av hvert ledd. */
+function Formula({
+  name,
+  expr,
+  children,
+  where,
+}: {
+  name: string;
+  expr: string;
+  children: React.ReactNode;
+  where?: Array<[string, string]>;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+      <div className="font-semibold text-sm">{name}</div>
+      <pre className="overflow-x-auto rounded bg-background/70 border border-border/60 px-3 py-2 text-xs font-mono leading-relaxed whitespace-pre">
+        {expr}
+      </pre>
+      <p className="text-xs text-muted-foreground leading-relaxed">{children}</p>
+      {where && where.length > 0 && (
+        <dl className="text-xs space-y-1 pt-1">
+          {where.map(([sym, desc]) => (
+            <div key={sym} className="flex gap-2">
+              <dt className="font-mono text-primary shrink-0">{sym}</dt>
+              <dd className="text-muted-foreground">{desc}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  );
+}
+
+/** Rad i «hva driver hvilket tall»-tabellen. */
+function WiringRow({
+  ui,
+  source,
+  file,
+}: {
+  ui: string;
+  source: string;
+  file: string;
+}) {
+  return (
+    <tr className="border-b border-border/50 last:border-0 align-top">
+      <td className="py-2 pr-3 font-medium">{ui}</td>
+      <td className="py-2 pr-3 text-muted-foreground">{source}</td>
+      <td className="py-2 font-mono text-[11px] text-muted-foreground break-all">{file}</td>
+    </tr>
+  );
+}
+
+/** Et kjent felt / en fallgruve, med hva som faktisk skjedde. */
+function Gotcha({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="p-3 rounded-lg bg-muted/40 border border-border">
+      <div className="font-semibold text-sm">{title}</div>
+      <div className="text-sm text-muted-foreground mt-1 leading-relaxed space-y-2">{children}</div>
     </div>
   );
 }
