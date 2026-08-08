@@ -3,7 +3,72 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-07-27
+**Sist oppdatert**: 2026-08-08
+
+## Endringslogg — 2026-08-08: reisesøket blokkerte på statistikk (målt 53 s → 3 s)
+
+**Symptom**: «Finn reise» føltes ekstremt tregt. Målt (Lagunen→Åsane, 12
+reiseforslag): INGENTING vist på skjermen før 53,6 s.
+
+**Rotårsak**: `tripMutation.mutationFn` i `trip-planner.tsx` ventet på en
+DuckDB-spørring FØR den returnerte reiseforslagene, så `tripPatterns` ble satt
+først når statistikken var ferdig. Entur svarte på ~3 s; resten var venting.
+Spørringen var i tillegg en nesten-duplikat av persentil-spørringen
+(`useTripDelayDistribution`) — to fulle skann av samme datasett på én
+DuckDB-worker — og ga bare snitt-tall som brukes som *fallback* når
+persentilene mangler.
+
+Dette er samme klasse feil som `9125b91` (juli) ryddet opp i for
+overgangs-/tidsspørringene; den blokkerende spørringen i `mutationFn`
+overlevde den runden.
+
+**Fikset**:
+- `mutationFn` returnerer nå `{ patterns, cursors }` — ingen DuckDB. Statistikk
+  beregnes reaktivt etterpå, som for overgangs-gapene.
+- `delayStats`-state + `stats`-propen fjernet. Fallback i `estimatedTimes`
+  leser nå P50/P80 fra `duckStats` (persentil-spørringen) i stedet for snitt.
+  **Merk tallendring**: P80-fallbacken var `snitt × 1,5` (heuristikk som kun
+  fantes fordi den blokkerende spørringen ga snitt); nå brukes det faktisk
+  målte aggregerte P80-et. Fortsatt merket «~» siden det gjelder alle avganger
+  på linjen ved stoppet, ikke din spesifikke avgang.
+- `duckPairs` henter ikke lenger mellomstopp for ALLE reiseforslag på forhånd,
+  kun endepunkter (som de sammenslåtte kortene viser) + fulle stopplister for
+  UTVIDEDE kort. Målt: 38 → 17 ulike stopp for standardvisningen.
+- `placeholderData: keepPreviousData` på persentil-spørringen, så allerede
+  hentede tall ikke forsvinner mens det utvidede settet lastes.
+- Overgangs-gap-løkken venter nå på `duckStatsFetching`. Den la 12 tunge
+  spørringer i kø foran persentil-spørringen; målt ble til og med en
+  `SELECT 1` liggende >17 s bak den køen.
+- `primeParquetMetadata(family)` (ny, `use-parquet-query.ts`): leser
+  parquet-footerne når brukeren velger et stopp, så metadata-kostnaden
+  overlapper med utfylling av skjemaet. Tar familie som argument — å prime
+  begge legger en unødvendig tung spørring foran den brukeren venter på.
+
+**Resultat (målt, dev mot R2)**: reiseforslag vises etter ~3 s i stedet for
+53,6 s. Andre søk i samme økt: statistikken er der nesten umiddelbart.
+
+**⚠️ Fortsatt tregt — ikke løst**: selve statistikken bruker ~30 s (varm
+DuckDB) til ~83 s (kald sidelast) før den er komplett. Målingene som forklarer
+hvorfor:
+
+| Måling | Tid |
+|---|---|
+| Første spørring etter sidelast (leser footere for 8 ukefiler) | 45,7 s |
+| Samme spørring varm | ~5 s |
+| `SELECT COUNT(*)` over 53,9 mill. rader | 1,7 s |
+| Ett enkelt `stop_ref` | 1,3 s |
+| 38 ulike `stop_ref` | 23 s |
+
+Kostnaden er tilnærmet **lineær i antall ulike stopp** (egne HTTP range-kall
+per stopp per ukefil, serielt på én worker), med et gulv på ~5 s per spørring.
+Undersøkt og **avkreftet** som årsak: manglende row group-pruning (å legge til
+`stop_ref IN (...)` foran OR-kjeden endret ingenting: 23,8 s vs 25,1 s) og
+DuckDBs `enable_object_cache` (5,0 s vs 4,9–5,2 s). `by-stop`-ukefilene er
+35–71 MB hver.
+
+Ekte fiks krever trolig et pipeline-grep, ikke flere frontend-triks: forhånds-
+aggregerte persentiler per (stop_ref, line_ref) som en liten artefakt, slik at
+nettleseren slår opp i stedet for å regne over 54 mill. rader.
 
 ## Endringslogg — 2026-07-27: produksjonsfix (parquet-URL), Min posisjon, «mulig datafeil»-merking
 

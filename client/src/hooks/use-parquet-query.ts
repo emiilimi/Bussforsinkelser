@@ -162,6 +162,45 @@ export async function ensureParquetFilesRegistered(): Promise<void> {
   await registerFilesWithRetry(db);
 }
 
+// ---------------------------------------------------------------------------
+// Metadata-priming
+//
+// Å registrere filene koster ingenting i seg selv — DuckDB leser først
+// parquet-footerne (row group-statistikk for 35–70 MB store ukefiler) når
+// den FØRSTE spørringen planlegges. Målt mot R2: første spørring 45,7 s,
+// alle påfølgende ~5 s. Uten priming betaler brukeren de 45 sekundene rett
+// etter at de har trykket «Finn reise».
+//
+// Derfor: kjør en billig aggregat-spørring som tvinger fram footer-lesing av
+// alle registrerte filer i det brukeren gjør noe som varsler at statistikk
+// snart trengs (velger et stopp). Da overlapper kostnaden med at de fyller
+// ut resten av søket, i stedet for å ligge på den kritiske stien.
+// ---------------------------------------------------------------------------
+
+const primingPromises = new Map<DelayFamily, Promise<void>>();
+
+/**
+ * Fire-and-forget: varm opp parquet-metadata for ÉN filfamilie.
+ *
+ * Oppgi familien siden hver primer okkuperer DuckDB-workeren (som tar én
+ * spørring om gangen). Å prime begge på en side som bare bruker den ene
+ * legger en unødvendig tung spørring foran den brukeren faktisk venter på —
+ * målt gjorde det statistikken merkbart tregere når søket startet samtidig
+ * (URL-gjenoppretting) i stedet for etter at brukeren hadde fylt ut skjemaet.
+ */
+export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
+  if (primingPromises.has(family)) return;
+  const view = `delays_${family.replace("-", "_")}`;
+  const p = standaloneDuckQuery(`SELECT COUNT(*) FROM ${view}`, undefined, { family })
+    .then(() => undefined)
+    .catch(() => {
+      // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
+      // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
+      primingPromises.delete(family);
+    });
+  primingPromises.set(family, p);
+}
+
 /** Seneste dato dekket av en registrert ukefil i gitt familie (siste dag i
  *  ISO-ukens søndag — en øvre tilnærming, aldri for lav). Brukes til å regne
  *  "N dager tilbake fra ferskeste tilgjengelige data" i JS uten en egen

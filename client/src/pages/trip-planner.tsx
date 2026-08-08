@@ -1,6 +1,6 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
+import { useParquetQuery, primeParquetMetadata, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,15 +46,6 @@ import {
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type TripStopStat = {
-  stopRef: string;
-  lineRef: string;
-  avgDelayMin: number | null;
-  avgDelayArrivalMin: number | null;
-  avgDelayDepartureMin: number | null;
-  numSamples: number | null;
-};
 
 type StatsTimeWindow = {
   type: "all" | "days" | "weekday" | "weekend" | "custom";
@@ -631,6 +622,10 @@ function useTripDelayDistribution(
     },
     enabled: duckReady && pairs.length > 0,
     staleTime: Infinity,
+    // Paret-settet vokser når et kort utvides (mellomstopp kommer til), og
+    // ny nøkkel = ny spørring. Uten dette ville alle allerede hentede
+    // persentiler forsvunnet fra skjermen mens den nye kjørte.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -700,16 +695,19 @@ function legTimingTooltip(r: LegTimingResult): string {
   return "Ingen historisk data";
 }
 
-function estimateP80(avgDelay: number | null, realP80?: number | null): string | null {
-  // Use real DuckDB P80 if available
+/**
+ * P80-etikett. `realP80` er per-avgang (samme rute-ID) og vises eksakt;
+ * `aggP80` er linjens aggregerte P80 ved stoppet — også et faktisk målt
+ * persentil, men på tvers av alle avganger, så det merkes «~».
+ */
+function estimateP80(aggP80: number | null, realP80?: number | null): string | null {
   if (realP80 != null) {
     if (Math.abs(realP80) < 1) return "i rute";
     return `+${realP80.toFixed(1)}m`;
   }
-  if (avgDelay == null) return null;
-  if (avgDelay < 1) return "i rute";
-  const p80est = avgDelay * 1.5;
-  return `~+${p80est.toFixed(1)}m`;
+  if (aggP80 == null) return null;
+  if (aggP80 < 1) return "i rute";
+  return `~+${aggP80.toFixed(1)}m`;
 }
 
 /** Round to nearest 5 minutes for time input */
@@ -1765,7 +1763,6 @@ function TransferFallbacks({
 function TripCard({
   pattern,
   index,
-  stats,
   duckStats,
   transferMarginMin,
   walkSpeedKmh,
@@ -1782,7 +1779,6 @@ function TripCard({
 }: {
   pattern: TripPattern;
   index: number;
-  stats: Map<string, TripStopStat>;
   duckStats?: Map<string, DuckDelayRow>;
   transferMarginMin: number;
   walkSpeedKmh: number;
@@ -1976,13 +1972,17 @@ function TripCard({
       break;
     }
 
+    // Fallback når per-avgang-tallene (legTimes) mangler: aggregert P50 for
+    // (stopp, linje) fra duckStats. Tidligere brukte denne et snitt fra en
+    // egen DuckDB-spørring som blokkerte hele søket — median er dessuten
+    // riktigere her, siden UI-et merker estimatet som «~P50».
     const firstBusDelayDep = depResult?.p50 ?? (() => {
       for (const leg of pattern.legs) {
         if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
         const fromQuay = leg.fromPlace.quay?.id;
         if (!fromQuay) continue;
-        const stat = stats.get(`${fromQuay}|${leg.line.id}`);
-        return stat?.avgDelayDepartureMin ?? stat?.avgDelayMin ?? null;
+        const stat = duckStats?.get(`${fromQuay}|${leg.line.id}`);
+        return stat?.p50_dep ?? stat?.p50_arr ?? null;
       }
       return null;
     })();
@@ -1993,8 +1993,8 @@ function TripCard({
         if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
         const toQuay = leg.toPlace.quay?.id;
         if (!toQuay) continue;
-        const stat = stats.get(`${toQuay}|${leg.line.id}`);
-        return stat?.avgDelayArrivalMin ?? stat?.avgDelayMin ?? null;
+        const stat = duckStats?.get(`${toQuay}|${leg.line.id}`);
+        return stat?.p50_arr ?? stat?.p50_dep ?? null;
       }
       return null;
     })();
@@ -2006,9 +2006,14 @@ function TripCard({
       ? formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr))
       : null;
 
-    // P80: worst across all transit legs — from per-SJ data, fallback to server avg
+    // P80: verste over alle transitt-legg. Førstevalg er per-avgang-tallet
+    // (legTimes, samme rute-ID); ellers det aggregerte P80-et for (stopp,
+    // linje) fra duckStats — et faktisk målt persentil, ikke lenger et
+    // snitt ganget med 1,5 slik det var da snitt-tallene kom fra den
+    // blokkerende spørringen. Aggregatet gjelder alle avganger på linjen
+    // ved stoppet, ikke akkurat din, og merkes derfor «~» i UI-et.
     let worstRealP80: number | null = null;
-    let worstAvgDelay: number | null = null;
+    let worstAggP80: number | null = null;
     for (let i = 0; i < pattern.legs.length; i++) {
       const leg = pattern.legs[i];
       if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
@@ -2018,14 +2023,15 @@ function TripCard({
       }
       const toQuay = leg.toPlace.quay?.id;
       if (toQuay) {
-        const d = stats.get(`${toQuay}|${leg.line.id}`)?.avgDelayMin ?? null;
-        if (d != null && (worstAvgDelay == null || d > worstAvgDelay)) worstAvgDelay = d;
+        const stat = duckStats?.get(`${toQuay}|${leg.line.id}`);
+        const d = stat?.p80_arr ?? stat?.p80_dep ?? null;
+        if (d != null && (worstAggP80 == null || d > worstAggP80)) worstAggP80 = d;
       }
     }
-    const p80 = estimateP80(worstAvgDelay, worstRealP80);
+    const p80 = estimateP80(worstAggP80, worstRealP80);
 
     return { estDeparture, estArrival, p80, depResult, arrResult: lastArrResult };
-  }, [pattern, stats, legTimes]);
+  }, [pattern, duckStats, legTimes]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
@@ -2546,7 +2552,6 @@ export default function TripPlanner() {
   const [fromQuery, setFromQuery] = useState("");
   const [toQuery, setToQuery] = useState("");
   const [tripPatterns, setTripPatterns] = useState<TripPattern[]>([]);
-  const [delayStats, setDelayStats] = useState<Map<string, TripStopStat>>(new Map());
   const [showFilters, setShowFilters] = useState(false);
   // Entur-paginering: cursors for "tidligere avganger" / "senere avganger".
   const [pageCursors, setPageCursors] = useState<{ prev: string | null; next: string | null }>({
@@ -2591,6 +2596,47 @@ export default function TripPlanner() {
   // DuckDB-WASM for empirical percentiles
   const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
 
+  // Derive (stopRef, lineRef) pairs for DuckDB query from current trip results.
+  //
+  // Kostnaden for persentil-spørringen er tilnærmet LINEÆR i antall ulike
+  // stopp: hvert stop_ref krever sine egne HTTP range-kall mot hver ukefil på
+  // R2, og de går serielt på DuckDB-workeren. Målt: ett stopp ~1,3 s, 38 stopp
+  // ~23 s. Derfor henter vi ikke mellomstoppene for alle reiseforslag på
+  // forhånd — kun det de sammenslåtte kortene faktisk viser.
+  //
+  // Samme prinsipp som overgangs-/tidsspørringene under: regn på det brukeren
+  // ser. Målt på Lagunen→Åsane: 38 stopp → 17 for standardvisningen.
+  const duckPairs = useMemo(() => {
+    const pairs: Array<{ stopRef: string; lineRef: string }> = [];
+    const seen = new Set<string>();
+    const add = (stopRef: string | undefined, lineRef: string) => {
+      if (!stopRef) return;
+      const key = `${stopRef}|${lineRef}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      pairs.push({ stopRef, lineRef });
+    };
+    for (const p of tripPatterns) {
+      const isExpanded = expandedKeys.has(patternKey(p));
+      for (const leg of p.legs) {
+        const lineRef = leg.line?.id ?? "";
+        if (!lineRef || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+        // Endepunktene trengs alltid — kortets topplinje (estimert avgang/
+        // ankomst og P80) leser dem også når kortet er sammenslått.
+        add(leg.fromPlace.quay?.id, lineRef);
+        add(leg.toPlace.quay?.id, lineRef);
+        // Mellomstoppene vises kun i det utvidede kortet; hent dem først da.
+        if (isExpanded) {
+          for (const q of leg.intermediateQuays) add(q.id, lineRef);
+        }
+      }
+    }
+    return pairs;
+  }, [tripPatterns, expandedKeys]);
+
+  const { data: duckData, isFetching: duckStatsFetching } =
+    useTripDelayDistribution(duckPairs, duckReady, duckQuery);
+
   // ---------------------------------------------------------------------------
   // Overgangs-gap for ALLE reiseforslag, beregnet sekvensielt i bakgrunnen.
   // Utvidede kort prioriteres (typisk det øverste); resten fylles inn
@@ -2604,6 +2650,12 @@ export default function TripPlanner() {
   const gapGen = useRef(0);
   useEffect(() => {
     if (!duckReady || tripPatterns.length === 0) return;
+    // Vent til persentilene har landet. DuckDB-workeren tar én spørring om
+    // gangen, og denne løkken legger 12 tunge spørringer i kø. Kjørte den
+    // først, ble persentil-spørringen — som alle kortene viser tall fra —
+    // stående bakerst i køen: målt ble til og med en `SELECT 1` liggende
+    // >17 s. Overgangs-%-ene fylles derfor inn etter tallene, ikke foran dem.
+    if (duckStatsFetching) return;
     const gen = ++gapGen.current;
     const ordered = [...tripPatterns].sort(
       (a, b) =>
@@ -2630,42 +2682,21 @@ export default function TripPlanner() {
         }
       }
     })();
-  }, [duckReady, tripPatterns, expandedKeys, duckQuery]);
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching]);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
   // overlapper den med at brukeren fyller ut resten av søket, og statistikken
   // er (som regel) klar når reiseforslagene kommer.
   useEffect(() => {
-    if (fromStop || toStop) warmupDuckDB();
+    if (!fromStop && !toStop) return;
+    warmupDuckDB();
+    // …og les parquet-footerne med det samme. Uten dette betaler den første
+    // spørringen etter «Finn reise» hele metadata-kostnaden (målt 45 s kald
+    // mot ~5 s varm) — se primeParquetMetadata(). Kun "by-stop": alle
+    // spørringene på denne siden filtrerer på stop_ref.
+    primeParquetMetadata("by-stop");
   }, [fromStop, toStop]);
-
-  // Derive (stopRef, lineRef) pairs for DuckDB query from current trip results
-  const duckPairs = useMemo(() => {
-    const pairs: Array<{ stopRef: string; lineRef: string }> = [];
-    const seen = new Set<string>();
-    for (const p of tripPatterns) {
-      for (const leg of p.legs) {
-        const lineRef = leg.line?.id ?? "";
-        if (!lineRef || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-        const quays = [
-          leg.fromPlace.quay?.id,
-          ...leg.intermediateQuays.map((q) => q.id),
-          leg.toPlace.quay?.id,
-        ].filter(Boolean) as string[];
-        for (const q of quays) {
-          const key = `${q}|${lineRef}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            pairs.push({ stopRef: q, lineRef });
-          }
-        }
-      }
-    }
-    return pairs;
-  }, [tripPatterns]);
-
-  const { data: duckData } = useTripDelayDistribution(duckPairs, duckReady, duckQuery);
 
   // Count total DuckDB observations for transparency display
   const duckObservationCount = useMemo(() => {
@@ -2772,62 +2803,16 @@ export default function TripPlanner() {
         next: (trip?.nextPageCursor as string | undefined) ?? null,
       };
 
-      if (patterns.length === 0) {
-        return { patterns: [], stats: new Map<string, TripStopStat>(), cursors };
-      }
-
-      // 2. Collect (stopRef, lineRef) pairs — only for modes where we have data
-      const stopLinePairs = new Set<string>();
-      for (const p of patterns) {
-        for (const leg of p.legs) {
-          const lineRef = leg.line?.id ?? "";
-          if (!lineRef || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-          const quays = [
-            leg.fromPlace.quay?.id,
-            ...leg.intermediateQuays.map((q) => q.id),
-            leg.toPlace.quay?.id,
-          ].filter(Boolean) as string[];
-          for (const q of quays) {
-            stopLinePairs.add(`${q}|${lineRef}`);
-          }
-        }
-      }
-
-      // 3. Fetch delay stats
-      const stops = Array.from(stopLinePairs).map((key) => {
-        const [stopRef, lineRef] = key.split("|");
-        return { stopRef, lineRef };
-      });
-
-      let statsMap = new Map<string, TripStopStat>();
-      if (stops.length > 0 && duckReady) {
-        try {
-          const conditions = stops
-            .map((s) => `(stop_ref = '${s.stopRef.replace(/'/g, "''")}' AND line_ref = '${s.lineRef.replace(/'/g, "''")}')`)
-            .join(" OR ");
-          const cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - 91);
-          const cutoffStr = cutoff.toISOString().slice(0, 10);
-          const statsData = await duckQuery<TripStopStat>(`
-            SELECT
-              stop_ref AS stopRef,
-              line_ref AS lineRef,
-              ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
-              ROUND(AVG(delay_arrival_min), 2)   AS avgDelayArrivalMin,
-              ROUND(AVG(delay_departure_min), 2)  AS avgDelayDepartureMin,
-              COUNT(*) AS numSamples
-            FROM delays_by_stop
-            WHERE date >= '${cutoffStr}' AND (${conditions})
-            GROUP BY stop_ref, line_ref`, undefined, { family: "by-stop", fromDate: cutoffStr });
-          statsMap = new Map(statsData.map((s) => [`${s.stopRef}|${s.lineRef}`, s]));
-        } catch (err) {
-          if (import.meta.env.DEV) {
-            console.warn("[trip] DuckDB forsinkelsesdata feilet, viser reise uten statistikk:", err);
-          }
-        }
-      }
-
-      return { patterns, stats: statsMap, cursors };
+      // Forsinkelsesstatistikken hentes IKKE her. Den beregnes reaktivt av
+      // useTripDelayDistribution() så snart tripPatterns er satt — se der.
+      // Å vente på den her gjorde at reiseforslagene ikke ble vist før ALL
+      // statistikk var ferdig: Entur svarte på ~3 s, men en 51-par-spørring
+      // mot ~13 ukefiler fra R2 holdt "Leter etter reiseforslag…" oppe i
+      // nesten et minutt (målt 53 s, Lagunen→Åsane). Spørringen her var
+      // dessuten en nesten-duplikat av persentil-spørringen: to fulle skann
+      // av samme datasett på én DuckDB-worker, der denne kun ga snitt-tall
+      // som brukes som *fallback* når persentilene mangler.
+      return { patterns, cursors };
     },
     onSuccess: (data, variables) => {
       const dir = variables?.dir;
@@ -2835,15 +2820,12 @@ export default function TripPlanner() {
         // Prepend nye (tidligere) forslag; behold vår "senere"-cursor
         setTripPatterns((prev) => dedupePatterns([...data.patterns, ...prev]));
         setPageCursors((pc) => ({ prev: data.cursors.prev, next: pc.next }));
-        setDelayStats((prev) => new Map([...Array.from(prev), ...Array.from(data.stats)]));
       } else if (dir === "later") {
         setTripPatterns((prev) => dedupePatterns([...prev, ...data.patterns]));
         setPageCursors((pc) => ({ prev: pc.prev, next: data.cursors.next }));
-        setDelayStats((prev) => new Map([...Array.from(prev), ...Array.from(data.stats)]));
       } else {
         setTripPatterns(data.patterns);
         setPageCursors(data.cursors);
-        setDelayStats(data.stats);
         setExpandedKeys(
           new Set(data.patterns.length > 0 ? [patternKey(data.patterns[0])] : []),
         );
@@ -3243,7 +3225,7 @@ export default function TripPlanner() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-lg font-semibold">
                 {tripPatterns.length} reiseforslag
-                {delayStats.size > 0 && (
+                {(duckData?.size ?? 0) > 0 && (
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     med historiske forsinkelsesdata
                   </span>
@@ -3286,7 +3268,6 @@ export default function TripPlanner() {
                 key={patternKey(pattern)}
                 pattern={pattern}
                 index={i}
-                stats={delayStats}
                 duckStats={duckData}
                 transferMarginMin={transferMarginMin}
                 walkSpeedKmh={walkSpeedKmh}
