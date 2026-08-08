@@ -45,13 +45,36 @@ liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
 persentiler over 54 mill. rader ved hvert søk.
 
 Det er et reelt valg, ikke bare teknikk, og bør diskuteres først:
-- Hvilke oppdelinger må forhåndsberegnes (day_type? tidsvindu? per time)?
-  Hver dimensjon multipliserer artefaktstørrelsen.
+- Hvilke oppdelinger må forhåndsberegnes (day_type? per time?). Hver dimensjon
+  multipliserer artefaktstørrelsen.
 - Per-avgang-tallene (`legTimes`, samme rute-ID) kan neppe forhåndsaggregeres
   like enkelt — skal de fortsatt regnes live, eller droppes?
-- Tidsvindu-filteret (punkt under) trekker i motsatt retning av
-  forhåndsaggregering, siden vilkårlige datointervaller ikke kan
-  forhåndsberegnes.
+
+Merk at det døde tidsvindu-filteret er FJERNET (2026-08-08, se punkt 5). Det
+gjør forhåndsaggregering enklere: uten vilkårlige brukervalgte datointervaller
+holder det å forhåndsberegne faste oppdelinger.
+
+## 5. Tidsvindu-filteret i reiseplanleggeren — fjernet 2026-08-08
+
+Filteret («Statistikkperiode») hadde sju knapper som skrev til `statsTimeWindow`,
+men ingen kode leste den noen gang — å endre det gjorde ingenting, samtidig som
+metodeboksen påsto at det påvirket statistikken.
+
+Vurdert og valgt bort å koble det opp: `legTimingSql()` og overgangs-gap-
+spørringene låser allerede `day_type` til dagtypen for reisedatoen brukeren har
+valgt. «Ukedager»/«Helg» ville derfor kunne vise selvmotsigende tall på samme
+kort (topplinjen fra reisedatoens dagtype, stopptallene fra en annen). Emilie
+valgte å fjerne hele filteret framfor å koble opp bare datointervall-delen.
+
+Metodeboksen sier nå i stedet at statistikken bruker hele datagrunnlaget, og at
+tall for din egen avgang/overganger hentes fra dager med samme dagtype.
+
+**Hvis det skal tilbake**: gjør det til et rent datointervall (ikke dagtype), og
+koble det til ALLE tre spørringsveiene — persentiler
+(`useTripDelayDistribution`), per-avgang (`legTimingSql`) og overgangs-gap
+(`computeTransferGaps` i `lib/trip-shared.ts`) — ellers blir det halvsant igjen.
+`QueryOptions` har allerede `fromDate`/`toDate`, som i tillegg begrenser hvilke
+ukefiler som lastes, så et smalt vindu ville også gjort statistikken raskere.
 
 ---
 

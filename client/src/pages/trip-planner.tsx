@@ -47,13 +47,6 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-type StatsTimeWindow = {
-  type: "all" | "days" | "weekday" | "weekend" | "custom";
-  value?: number;
-  dateFrom?: string;
-  dateTo?: string;
-};
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -2587,9 +2580,6 @@ export default function TripPlanner() {
   const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach"]);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
 
-  // Statistics time window filter
-  const [statsTimeWindow, setStatsTimeWindow] = useState<StatsTimeWindow>({ type: "all" });
-
   // Hvilke persentil-kolonner som vises per stopp (alle på som standard)
   const [showPct, setShowPct] = useState({ p50: true, p80: true, p95: true });
 
@@ -3138,69 +3128,6 @@ export default function TripPlanner() {
                   </div>
                 </div>
 
-                {/* Statistics time window filter */}
-                <div className="border-t pt-4">
-                  <Label className="text-xs text-muted-foreground mb-2 block flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    Statistikkperiode (pavirker kun forsinkelsesdata, ikke reiseforslag)
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {([
-                      { type: "all" as const, label: "Alle data" },
-                      { type: "days" as const, value: 7, label: "Siste 7 dager" },
-                      { type: "days" as const, value: 30, label: "Siste 30 dager" },
-                      { type: "days" as const, value: 90, label: "Siste 90 dager" },
-                      { type: "weekday" as const, label: "Ukedager" },
-                      { type: "weekend" as const, label: "Helg" },
-                      { type: "custom" as const, label: "Egne datoer" },
-                    ] as const).map((opt) => {
-                      const isActive = statsTimeWindow.type === opt.type &&
-                        (opt.type !== "days" || statsTimeWindow.value === opt.value);
-                      return (
-                        <button
-                          key={`${opt.type}-${opt.type === "days" ? opt.value : ""}`}
-                          onClick={() => {
-                            if (opt.type === "days") {
-                              setStatsTimeWindow({ type: "days", value: opt.value });
-                            } else {
-                              setStatsTimeWindow({ type: opt.type });
-                            }
-                          }}
-                          className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                            isActive
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
-                          )}
-                        >
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {statsTimeWindow.type === "custom" && (
-                    <div className="flex gap-3 mt-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Fra dato</Label>
-                        <Input
-                          type="date"
-                          value={statsTimeWindow.dateFrom ?? ""}
-                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Til dato</Label>
-                        <Input
-                          type="date"
-                          value={statsTimeWindow.dateTo ?? ""}
-                          onChange={(e) => setStatsTimeWindow((prev) => ({ ...prev, dateTo: e.target.value }))}
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
@@ -3411,7 +3338,7 @@ export default function TripPlanner() {
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                <p><strong>Tidsvindu-filter:</strong> Påvirker kun forsinkelsesstatistikken, ikke reiseforslagene fra Entur.</p>
+                <p><strong>Periode:</strong> Statistikken bruker hele det tilgjengelige datagrunnlaget (se antall dager over). Tallene for din egen avgang og for overgangene hentes fra dager med samme dagtype som reisedatoen du har valgt.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Database className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
