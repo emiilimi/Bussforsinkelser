@@ -179,6 +179,11 @@ export async function ensureParquetFilesRegistered(): Promise<void> {
 
 const primingPromises = new Map<DelayFamily, Promise<void>>();
 
+// Faktisk siste datadag per familie, målt med MAX(date). Se
+// latestDataDate() under for hvorfor dette ikke kan utledes fra filnavnet.
+const measuredLatestDate = new Map<DelayFamily, string>();
+const latestDateListeners = new Set<() => void>();
+
 /**
  * Fire-and-forget: varm opp parquet-metadata for ÉN filfamilie.
  *
@@ -187,18 +192,59 @@ const primingPromises = new Map<DelayFamily, Promise<void>>();
  * legger en unødvendig tung spørring foran den brukeren faktisk venter på —
  * målt gjorde det statistikken merkbart tregere når søket startet samtidig
  * (URL-gjenoppretting) i stedet for etter at brukeren hadde fylt ut skjemaet.
+ *
+ * Spørringen henter samtidig MAX(date). Begge deler besvares fra parquetens
+ * row group-statistikk, så det koster ikke mer enn COUNT(*) alene — og det gir
+ * oss den faktiske siste datadagen tidlig, uten en egen spørring i kø.
  */
 export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
   if (primingPromises.has(family)) return;
   const view = `delays_${family.replace("-", "_")}`;
-  const p = standaloneDuckQuery(`SELECT COUNT(*) FROM ${view}`, undefined, { family })
-    .then(() => undefined)
+  const p = standaloneDuckQuery<{ n: number; mx: string | null }>(
+    `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`,
+    undefined,
+    { family },
+  )
+    .then((rows) => {
+      const mx = rows[0]?.mx;
+      if (mx) {
+        measuredLatestDate.set(family, String(mx));
+        for (const l of Array.from(latestDateListeners)) l();
+      }
+    })
     .catch(() => {
       // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
       // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
       primingPromises.delete(family);
     });
   primingPromises.set(family, p);
+}
+
+/**
+ * Den FAKTISKE siste datadagen (MAX(date)), eller null før priming er ferdig.
+ *
+ * Bruk denne — ikke latestAvailableDate() — som ankerpunkt for «N dager
+ * tilbake». latestAvailableDate() utleder datoen fra filnavnet og returnerer
+ * ukefilens SØNDAG, som kan ligge opptil seks dager etter siste faktiske
+ * datadag (ingesten skriver gårsdagen, og ukefilen finnes fra ukas første
+ * ingest). Som ankerpunkt skyver den vindusstarten like langt fram og gir
+ * stille færre dager enn brukeren ba om — målt 9. august 2026 (data t.o.m.
+ * 7. august) ga «Siste 7 dager» bare 5 dager, og tidlig i uka ned mot 1.
+ */
+export function latestDataDate(family: DelayFamily = DEFAULT_FAMILY): string | null {
+  return measuredLatestDate.get(family) ?? null;
+}
+
+/** React-hook: siste datadag, oppdateres når primingen lander. */
+export function useLatestDataDate(family: DelayFamily = DEFAULT_FAMILY): string | null {
+  const [value, setValue] = useState<string | null>(() => latestDataDate(family));
+  useEffect(() => {
+    const listener = () => setValue(latestDataDate(family));
+    latestDateListeners.add(listener);
+    listener(); // kan ha landet mellom render og effekt
+    return () => { latestDateListeners.delete(listener); };
+  }, [family]);
+  return value;
 }
 
 /** Seneste dato dekket av en registrert ukefil i gitt familie (siste dag i

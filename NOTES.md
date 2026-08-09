@@ -104,6 +104,48 @@ nettopp den stille fallbacken som skjulte feilen). Verifisert: Entur-formatert
 lørdag → `saturday`, søndag → `sunday`, 17. mai → `may17`, 1. juledag →
 `holiday`.
 
+## 7b. latestAvailableDate() er et FILNAVN-anslag — ikke bruk det som ankerpunkt
+
+Rettet i reiseplanleggeren 2026-08-09, men fellen ligger fortsatt i koden og
+gjelder andre sider.
+
+`latestAvailableDate()` (`hooks/use-parquet-query.ts`) leser ikke data. Den tar
+nyeste registrerte ukefil og returnerer den ISO-ukens SØNDAG. Kommentaren kaller
+det «en øvre tilnærming, aldri for lav» — altså: verdien er alltid lik eller
+SENERE enn siste faktiske datadag. Den er gratis (ingen DuckDB-spørring), som er
+hele poenget med den.
+
+Men som ankerpunkt for «N dager tilbake» er «for høy» nettopp feil retning:
+`fra = anker − (N−1)`, så et anker som ligger for sent skyver vindusstarten like
+langt fram og gir stille FÆRRE dager enn brukeren ba om.
+
+Avviket er (ukas søndag − i går) og svinger gjennom uka:
+
+| Søkedag | Avvik | Faktiske dager du får av «Siste 7 dager» |
+|---|---|---|
+| mandag | 0 | 7 |
+| tirsdag (ny ukefil dukker opp) | 6 | **1** |
+| onsdag | 5 | 2 |
+| … | … | … |
+| søndag | 1 | 6 |
+
+Målt søndag 9. august 2026 (data t.o.m. 7. august): anker ble 9. august, «Siste
+7 dager» ga 3.–7. august = 5 dager.
+
+**Fikset i reiseplanleggeren** ved å måle datoen i stedet: `primeParquetMetadata()`
+henter nå `MAX(date)` sammen med `COUNT(*)` (samme spørring, samme kostnad —
+begge besvares fra row group-statistikk), lagrer den, og `useLatestDataDate()`
+eksponerer den. `resolveStatsWindow()` bruker den målte datoen og faller bare
+tilbake på filnavn-anslaget i det korte vinduet før primingen har landet
+(selvkorrigerende: etiketten gikk fra «3. aug.» til «1. aug.» da målingen kom).
+
+**IKKE fikset andre steder**: `daysAgoFromLatest()` i `lib/stats-adapter.ts` har
+nøyaktig samme feil for dashboard/topplister/kart-vinduene. Det er ikke bare å
+kalle `latestDataDate()` der, siden primingen foreløpig kun kjøres på
+reiseplanleggeren — de sidene måtte enten prime selv eller måle `MAX(date)`
+separat. Verst utslag for korte vinduer (7 dager); et 90-dagersvindu merker det
+knapt.
+
 ## 7. «Min buss, mitt stopp» — rapport-prototype, IKKE bygget som funksjon ennå
 
 Utforsket 2026-08 som svar på ønske om mer avansert analyse: en personlig

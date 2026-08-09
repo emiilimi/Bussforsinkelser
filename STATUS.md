@@ -3,7 +3,38 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-08
+**Sist oppdatert**: 2026-08-09
+
+## Endringslogg — 2026-08-09: «Siste N dager» ankret på feil dato
+
+`resolveStatsWindow()` brukte `latestAvailableDate()` som ankerpunkt for
+«Siste N dager». Den funksjonen leser ikke data — den tar nyeste ukefil og
+returnerer ISO-ukens SØNDAG, altså en dato som kan ligge opptil seks dager
+ETTER siste faktiske datadag. Siden `fra = anker − (N−1)`, skjøv det
+vindusstarten like langt fram og ga stille færre dager enn brukeren ba om.
+
+Målt søndag 9. august (data t.o.m. 7. august): «Siste 7 dager» ga 3.–7. august
+= 5 dager. Avviket er (ukas søndag − i går) og svinger gjennom uka: 0 på
+mandag, 6 på tirsdag (så «Siste 7 dager» = 1 dags data), ned til 1 på søndag.
+
+**Fikset**: `primeParquetMetadata()` henter nå `MAX(date)` sammen med
+`COUNT(*)` — samme spørring, samme kostnad, begge besvares fra parquetens row
+group-statistikk — og lagrer den. Ny `useLatestDataDate()`-hook eksponerer den,
+og `resolveStatsWindow()` ankrer på den målte datoen. Filnavn-anslaget brukes
+kun i det korte vinduet før primingen lander, og retter seg selv når den kommer
+(verifisert: etiketten gikk fra «3. aug.» til «1. aug.»).
+
+Filterpanelet viser nå også hvilket vindu som FAKTISK brukes («…regnes fra
+f.o.m. 1. aug.»), slik at det kan etterprøves i stedet for å måtte stoles på.
+
+**Samme feil finnes fortsatt i `daysAgoFromLatest()`** (`lib/stats-adapter.ts`)
+for dashboard/topplister/kart — se NOTES.md punkt 7b for hvorfor den ikke bare
+kunne rettes med samme grep.
+
+> ℹ️ **Observert samtidig**: R2 hadde data t.o.m. 7. august da dette ble
+> skrevet 9. august. Nattlig ingest skriver gårsdagen, så 8. august skulle vært
+> der. Verifisert direkte mot R2 (`MAX(date) = 2026-08-07`, 49 dager,
+> 55,1 mill. rader). Sjekk om nattjobben eller `upload_to_r2.py` feilet.
 
 ## Endringslogg — 2026-08-08 (2): tidsvindu-filteret koblet opp + dagtype-bug
 

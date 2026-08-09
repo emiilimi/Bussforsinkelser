@@ -1,7 +1,7 @@
 import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
-  useParquetQuery, primeParquetMetadata, latestAvailableDate,
+  useParquetQuery, primeParquetMetadata, latestAvailableDate, useLatestDataDate,
   type QueryOptions,
 } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
@@ -77,11 +77,25 @@ function windowOverridesDayType(w: StatsTimeWindow): boolean {
  * «Siste N dager» regnes fra FERSKESTE tilgjengelige data, ikke fra dagens
  * dato: ingesten kjører nattlig og kan henge etter, og da ville et vindu målt
  * fra i dag kunne bli helt tomt.
+ *
+ * `latestDataDate` skal være den FAKTISKE siste datadagen (MAX(date)).
+ * Fallbacken `latestAvailableDate()` utleder datoen fra FILNAVNET og gir
+ * ukefilens søndag — en dato som kan ligge opptil seks dager ETTER siste
+ * faktiske datadag. Som ankerpunkt her ville den skjøvet vindusstarten like
+ * langt fram og stille gitt færre dager enn brukeren ba om: målt søndag
+ * 9. august 2026 (data til 7. august) ga «Siste 7 dager» bare 5 dagers data,
+ * og tidlig i uka ned mot 1. Derfor brukes den målte datoen når vi har den,
+ * og filnavn-tilnærmingen kun i det korte vinduet før MAX(date) har landet.
  */
-function resolveStatsWindow(w: StatsTimeWindow, tripDayType: string): ResolvedStatsWindow {
+function resolveStatsWindow(
+  w: StatsTimeWindow,
+  tripDayType: string,
+  latestDataDate: string | null,
+): ResolvedStatsWindow {
   switch (w.type) {
     case "days": {
-      const latest = latestAvailableDate("by-stop") ?? new Date().toISOString().slice(0, 10);
+      const latest =
+        latestDataDate ?? latestAvailableDate("by-stop") ?? new Date().toISOString().slice(0, 10);
       const d = new Date(`${latest}T00:00:00Z`);
       d.setUTCDate(d.getUTCDate() - Math.max((w.value ?? 7) - 1, 0));
       return { dayTypes: null, dateFrom: d.toISOString().slice(0, 10), dateTo: null };
@@ -102,6 +116,31 @@ function resolveStatsWindow(w: StatsTimeWindow, tripDayType: string): ResolvedSt
 /** Stabil nøkkeldel for React Query, så et vindusbytte gir ny spørring. */
 function statsWindowKey(w: ResolvedStatsWindow): string {
   return `${(w.dayTypes ?? []).join("+") || "-"}|${w.dateFrom ?? "-"}|${w.dateTo ?? "-"}`;
+}
+
+/** «3. aug.» — kort norsk dato for vindusetiketter. */
+function shortDateNO(iso: string): string {
+  const d = new Date(`${iso}T12:00:00`);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
+}
+
+/**
+ * Menneskelig beskrivelse av vinduet som FAKTISK brukes. Vises i filterpanelet
+ * slik at «Siste 7 dager» kan etterprøves mot en konkret startdato — vinduet
+ * regnes fra siste datadag, ikke fra i dag, og de to er sjelden like.
+ */
+function describeWindow(w: ResolvedStatsWindow): string {
+  if (w.dayTypes && w.dayTypes.length > 0) {
+    return w.dayTypes.length === 1 && w.dayTypes[0] === "weekday"
+      ? "alle ukedager i datagrunnlaget"
+      : "alle lørdager og søndager i datagrunnlaget";
+  }
+  if (w.dateFrom && w.dateTo) return `${shortDateNO(w.dateFrom)}–${shortDateNO(w.dateTo)}`;
+  if (w.dateFrom) return `f.o.m. ${shortDateNO(w.dateFrom)}`;
+  if (w.dateTo) return `t.o.m. ${shortDateNO(w.dateTo)}`;
+  return "hele datagrunnlaget";
 }
 
 // ---------------------------------------------------------------------------
@@ -2685,12 +2724,38 @@ export default function TripPlanner() {
   // DuckDB-WASM for empirical percentiles
   const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
 
+  // Datagrunnlagets omfang — vises i metodeboksen slik at "N dager" i
+  // statistikken alltid kan sjekkes mot hva som faktisk er lastet. Ligger
+  // FØR vindusberegningen fordi `max` er den eneste kilden vi har til den
+  // FAKTISKE siste datadagen — se resolveStatsWindow().
+  const { data: dataRange } = useQuery<{ days: number; min: string; max: string } | null>({
+    queryKey: ["duck-data-range"],
+    enabled: duckReady,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const rows = await duckQuery(
+        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
+      );
+      const r = rows[0] as { days: number; mind: string; maxd: string } | undefined;
+      return r && Number(r.days) > 0
+        ? { days: Number(r.days), min: String(r.mind), max: String(r.maxd) }
+        : null;
+    },
+  });
+
+  // Faktisk siste datadag, målt under metadata-primingen. Ankerpunkt for
+  // «Siste N dager» — se resolveStatsWindow(). dataRange (COUNT(DISTINCT date)
+  // over 54 mill. rader) gir samme dato, men lander typisk ikke før lenge
+  // etter at brukeren kan ha valgt periode, så den brukes bare som backup.
+  const measuredLatest = useLatestDataDate("by-stop");
+
   // Dagtypen for reisedatoen brukes når brukeren IKKE har overstyrt vinduet.
   // departDate er «YYYY-MM-DD» — send den rå, ikke som tidsstempel.
   const tripDayType = useMemo(() => computeDayType(departDate), [departDate]);
+  const latestDataDay = measuredLatest ?? dataRange?.max ?? null;
   const resolvedStatsWindow = useMemo(
-    () => resolveStatsWindow(statsTimeWindow, tripDayType),
-    [statsTimeWindow, tripDayType],
+    () => resolveStatsWindow(statsTimeWindow, tripDayType, latestDataDay),
+    [statsTimeWindow, tripDayType, latestDataDay],
   );
   const statsWindowOverrides = windowOverridesDayType(statsTimeWindow);
   // Nøkkel for memo/effekt-avhengigheter — objektet er nytt ved hver render.
@@ -2815,23 +2880,6 @@ export default function TripPlanner() {
     }
     return total;
   }, [duckData]);
-
-  // Datagrunnlagets omfang — vises i metodeboksen slik at "N dager" i
-  // statistikken alltid kan sjekkes mot hva som faktisk er lastet.
-  const { data: dataRange } = useQuery<{ days: number; min: string; max: string } | null>({
-    queryKey: ["duck-data-range"],
-    enabled: duckReady,
-    staleTime: Infinity,
-    queryFn: async () => {
-      const rows = await duckQuery(
-        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
-      );
-      const r = rows[0] as { days: number; mind: string; maxd: string } | undefined;
-      return r && Number(r.days) > 0
-        ? { days: Number(r.days), min: String(r.mind), max: String(r.maxd) }
-        : null;
-    },
-  });
 
   function toggleMode(mode: string) {
     setSelectedModes((prev) =>
@@ -3289,7 +3337,7 @@ export default function TripPlanner() {
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
                     {statsWindowOverrides
-                      ? "Du har valgt periode selv. Tallene regnes fra de valgte datoene i stedet for å låses til dagtypen for reisedatoen."
+                      ? <>Du har valgt periode selv — tallene regnes fra {describeWindow(resolvedStatsWindow)} i stedet for å låses til dagtypen for reisedatoen.</>
                       : `Standard: tallene bygger kun på dager med samme dagtype som reisedatoen (${DAY_TYPE_LABELS[tripDayType] ?? tripDayType}).`}
                   </p>
                   {statsTimeWindow.type === "custom" && (
