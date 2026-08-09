@@ -1,0 +1,554 @@
+<meta charset="utf-8">
+<title>Min buss, mitt stopp — Linje 20 @ Krohnsminde</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6; /* blue */
+    --series-2:       #eb6834; /* orange */
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #d03b3b;
+    --good-text:      #006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --good:           #0ca30c;
+      --warning:        #fab219;
+      --critical:       #e66767;
+      --good-text:      #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #e66767;
+    --good-text:      #0ca30c;
+  }
+
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  * { box-sizing: border-box; }
+
+  .header { margin-bottom: 20px; }
+  .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .line-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--series-1); color: #fff; font-weight: 700; font-size: 15px;
+    min-width: 34px; height: 34px; border-radius: 8px; padding: 0 8px;
+  }
+  .header h1 { font-size: 22px; margin: 0; font-weight: 700; }
+  .header .sub { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+  .prototype-note {
+    background: var(--surface-1); border: 1px dashed var(--border); border-radius: 10px;
+    padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); margin-top: 14px; line-height: 1.5;
+  }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+  @media (max-width: 640px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat-tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 14px 12px;
+  }
+  .stat-tile .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .stat-tile .value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat-tile .delta { font-size: 11.5px; margin-top: 4px; color: var(--text-secondary); }
+  .stat-tile .delta.good { color: var(--good-text); }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 18px 14px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 2px; font-weight: 700; }
+  .card .card-sub { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5; }
+  .card .finding {
+    font-size: 13px; color: var(--text-primary); background: color-mix(in srgb, var(--series-1) 8%, transparent);
+    border-left: 3px solid var(--series-1); padding: 8px 12px; border-radius: 6px; margin-top: 10px; line-height: 1.55;
+  }
+  .card .finding.warn { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .card .finding.crit { border-left-color: var(--critical); background: color-mix(in srgb, var(--critical) 10%, transparent); }
+
+  .legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--text-secondary); margin-top: 6px; flex-wrap: wrap; }
+  .legend .item { display: flex; align-items: center; gap: 5px; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend .line-swatch { width: 12px; height: 2px; border-radius: 1px; }
+
+  svg text { fill: var(--text-muted); font-size: 10.5px; font-family: inherit; }
+  .axis-line { stroke: var(--baseline); stroke-width: 1; }
+  .gridline { stroke: var(--gridline); stroke-width: 1; }
+  .bar { fill: var(--series-1); }
+  .bar.hot { fill: var(--series-2); }
+  .bar-2 { fill: var(--series-2); }
+
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: var(--text-primary); color: var(--surface-1);
+    font-size: 11.5px; padding: 6px 9px; border-radius: 6px; line-height: 1.4;
+    opacity: 0; transition: opacity 0.08s; white-space: nowrap;
+  }
+
+  .callout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  @media (max-width: 640px) { .callout-grid { grid-template-columns: 1fr; } }
+
+  table.dep-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  table.dep-table th, table.dep-table td { padding: 3px 8px; text-align: right; }
+  table.dep-table th:first-child, table.dep-table td:first-child { text-align: left; }
+  table.dep-table th { color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--gridline); }
+  table.dep-table td.num { font-variant-numeric: tabular-nums; }
+
+  footer.report-footer { font-size: 11.5px; color: var(--text-muted); text-align: center; margin-top: 24px; line-height: 1.6; }
+</style>
+
+<div class="viz-root" id="app">
+
+  <div class="header">
+    <div class="badge-row">
+      <span class="line-badge">20</span>
+      <div>
+        <h1>Min buss, mitt stopp</h1>
+        <div class="sub">Krohnsminde &middot; retning sentrum &amp; retning Storavatnet &middot; 46 dager med data</div>
+      </div>
+    </div>
+    <div class="prototype-note">
+      <strong>Dette er en prototype</strong> bygget på ekte historiske data fra databasen (ikke ferdig funksjon i appen ennå) &mdash;
+      for å vise hva slags analyse og grafer en "min buss, mitt stopp"-rapport kan inneholde.
+      Data dekker <strong>18. april&ndash;23. mai</strong> og <strong>20. juli&ndash;2. august 2026</strong> (46 dager, 3&nbsp;875 avganger) &mdash;
+      det er et hull i midten fordi den eldre analyse-databasen ikke oppdateres lenger og den nye kun holder 14 dager rå historikk.
+    </div>
+  </div>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="card">
+    <h2>Hvor forsinket blir jeg egentlig?</h2>
+    <div class="card-sub">Fordeling av forsinkelse ved avgang, alle 3&nbsp;875 observerte avganger. Stiplet linje = median, prikker = P80/P95.</div>
+    <svg id="histChart" width="100%" height="220" viewBox="0 0 820 220" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend">
+      <div class="item"><span class="swatch" style="background:var(--series-1)"></span> Antall avganger per forsinkelses-intervall</div>
+    </div>
+    <div class="finding">
+      <strong>Bare 9,6&nbsp;% av avgangene er presise eller tidlige</strong> &mdash; men 68&nbsp;% holder seg innenfor 3 minutter, så
+      "litt sent, sjelden mye sent" er en god oppsummering. Median er 1,9&nbsp;min; 1 av 20 avganger (P95) er 8+ min sen.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Klokkeslett spiller stor rolle</h2>
+    <div class="card-sub">Gjennomsnittlig forsinkelse per avgangstime på døgnet. Verste time er markert.</div>
+    <svg id="hourChart" width="100%" height="200" viewBox="0 0 820 200" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="finding warn">
+      <strong>Kl. 15 er verst</strong> &mdash; gjennomsnittlig 5,4 min forsinkelse, mer enn dobbelt så mye som midt på formiddagen.
+      Skoleslutt/ettermiddagsrush treffer denne ruta hardt. Tidlig morgen (kl. 5&ndash;6) og sen kveld er tryggest.
+    </div>
+  </div>
+
+  <div class="callout-grid">
+    <div class="card" style="margin-bottom:0">
+      <h2>Ukedag har noe å si</h2>
+      <div class="card-sub">Snittforsinkelse per ukedag.</div>
+      <svg id="weekdayChart" width="100%" height="180" viewBox="0 0 380 180" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="finding">
+        <strong>Fredag er best, søndag verst.</strong> Onsdag skiller seg ut som verste hverdag &mdash; ikke en åpenbar
+        grunn i dataene, verdt å følge med på.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <h2>Linje 20 vs. linje 27</h2>
+      <div class="card-sub">Begge stopper på Krohnsminde &mdash; hvem er mest presis herfra?</div>
+      <svg id="lineCompChart" width="100%" height="180" viewBox="0 0 380 180" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="finding">
+        <strong>Linje 20 vinner klart</strong> &mdash; linje 27 er i snitt 1,1 min mer forsinket herfra (3,7 vs. 2,6 min).
+        Har du et valg mellom de to, er 20-eren det sikrere kortet.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Trend over tid</h2>
+    <div class="card-sub">Daglig snittforsinkelse, 18. april&ndash;2. august (bruddet i midten er et datahull, ikke en rolig periode).</div>
+    <svg id="trendChart" width="100%" height="220" viewBox="0 0 820 220" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="finding crit">
+      <strong>17. mai stikker seg voldsomt ut</strong> &mdash; 7,4 min snittforsinkelse, mer enn tre ganger normalen, med
+      enkeltavganger opptil 28 minutter sene midt på formiddagen (togvent/folkemengder rundt paraden). Skal du med bussen
+      herfra en 17. mai, planlegg med god margin.
+    </div>
+    <div class="finding">
+      <strong>Sommer er tydelig bedre enn vår</strong> &mdash; juli/august-ukene ligger nesten gjennomgående under 2 min snitt,
+      mot 2&ndash;4 min i april/mai. Mindre trafikk og skoleferie gir en roligere rute.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Bygger forsinkelsen seg opp langs ruta?</h2>
+    <div class="card-sub">Snittforsinkelse per stopp, i rekkefølge langs linje 20 (retning sentrum). Krohnsminde er uthevet.</div>
+    <svg id="routeChart" width="100%" height="240" viewBox="0 0 820 240" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="finding warn">
+      <strong>Ja, delvis.</strong> Det er en klar oppadgående trend (korrelasjon +0,53) fra starten på Storavatnet
+      til enden av ruta &mdash; bussen samler på seg forsinkelse underveis. Krohnsminde ligger på stopp 22 av 42,
+      med 1,7 min snitt &mdash; høyere enn linje 20 sitt systemsnitt (1,8 min) er faktisk omtrent likt her, men merk at
+      denne bussen allerede har vært innom 21 stopp og en del rushtrafikk før den når deg.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>En vanlig dag vs. 17. mai</h2>
+    <div class="card-sub">Faktiske avganger og forsinkelse, minutt for minutt &mdash; 22. juli (helt normal dag) mot 17. mai (parade-dagen).</div>
+    <svg id="dayCompChart" width="100%" height="240" viewBox="0 0 820 240" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend">
+      <div class="item"><span class="swatch" style="background:var(--series-1)"></span> 22. juli (vanlig dag)</div>
+      <div class="item"><span class="swatch" style="background:var(--series-2)"></span> 17. mai (parade)</div>
+    </div>
+  </div>
+
+  <footer class="report-footer">
+    Data: SIRI ET sanntid (Entur), linje SKY:Line:20, stopp NSR:Quay:50164/50165 (Krohnsminde). Kun buss/flybuss har forsinkelsesdata.<br>
+    Kansellerte avganger kan ikke skilles direkte fra "manglende sanntid" i dette datasettet &mdash; ingen ekstreme uteliggere (&gt;120 min) funnet på dette stoppet.
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = {"daily": [{"date": "2026-04-18", "mean": 2.29, "median": 1.99, "count": 64}, {"date": "2026-04-19", "mean": 1.42, "median": 1.01, "count": 32}, {"date": "2026-04-20", "mean": 2.95, "median": 1.55, "count": 113}, {"date": "2026-04-21", "mean": 3.01, "median": 1.78, "count": 116}, {"date": "2026-04-22", "mean": 4.09, "median": 1.64, "count": 116}, {"date": "2026-04-23", "mean": 2.29, "median": 1.47, "count": 110}, {"date": "2026-04-24", "mean": 1.63, "median": 1.15, "count": 115}, {"date": "2026-04-25", "mean": 2.87, "median": 2.34, "count": 66}, {"date": "2026-04-26", "mean": 2.24, "median": 1.71, "count": 30}, {"date": "2026-04-27", "mean": 2.2, "median": 1.67, "count": 112}, {"date": "2026-04-28", "mean": 2.31, "median": 1.8, "count": 83}, {"date": "2026-04-29", "mean": 3.08, "median": 2.01, "count": 114}, {"date": "2026-04-30", "mean": 4.27, "median": 2.56, "count": 114}, {"date": "2026-05-01", "mean": 1.33, "median": 1.28, "count": 31}, {"date": "2026-05-02", "mean": 2.09, "median": 1.7, "count": 65}, {"date": "2026-05-03", "mean": 1.85, "median": 1.9, "count": 31}, {"date": "2026-05-04", "mean": 2.72, "median": 1.92, "count": 116}, {"date": "2026-05-05", "mean": 2.71, "median": 1.58, "count": 113}, {"date": "2026-05-06", "mean": 1.86, "median": 1.4, "count": 116}, {"date": "2026-05-07", "mean": 2.28, "median": 1.96, "count": 116}, {"date": "2026-05-08", "mean": 2.86, "median": 2.1, "count": 113}, {"date": "2026-05-10", "mean": 3.31, "median": 2.88, "count": 31}, {"date": "2026-05-11", "mean": 2.86, "median": 2.48, "count": 116}, {"date": "2026-05-12", "mean": 3.47, "median": 2.47, "count": 117}, {"date": "2026-05-13", "mean": 3.81, "median": 3.12, "count": 115}, {"date": "2026-05-14", "mean": 3.52, "median": 3.68, "count": 32}, {"date": "2026-05-15", "mean": 2.02, "median": 1.68, "count": 116}, {"date": "2026-05-16", "mean": 4.08, "median": 4.03, "count": 66}, {"date": "2026-05-17", "mean": 7.35, "median": 5.78, "count": 32}, {"date": "2026-05-18", "mean": 2.47, "median": 1.9, "count": 114}, {"date": "2026-05-19", "mean": 3.55, "median": 2.59, "count": 116}, {"date": "2026-05-20", "mean": 3.33, "median": 2.8, "count": 115}, {"date": "2026-05-21", "mean": 3.0, "median": 2.81, "count": 114}, {"date": "2026-05-22", "mean": 2.53, "median": 2.17, "count": 111}, {"date": "2026-05-23", "mean": 3.57, "median": 3.5, "count": 63}, {"date": "2026-07-20", "mean": 1.23, "median": 0.92, "count": 77}, {"date": "2026-07-21", "mean": 0.95, "median": 0.66, "count": 78}, {"date": "2026-07-22", "mean": 1.22, "median": 0.88, "count": 76}, {"date": "2026-07-23", "mean": 1.61, "median": 1.04, "count": 78}, {"date": "2026-07-24", "mean": 1.43, "median": 0.52, "count": 76}, {"date": "2026-07-25", "mean": 1.17, "median": 0.82, "count": 47}, {"date": "2026-07-26", "mean": 2.92, "median": 2.24, "count": 32}, {"date": "2026-07-27", "mean": 1.48, "median": 1.08, "count": 77}, {"date": "2026-07-28", "mean": 1.72, "median": 1.23, "count": 79}, {"date": "2026-07-30", "mean": 1.97, "median": 1.48, "count": 79}, {"date": "2026-08-02", "mean": 2.96, "median": 2.88, "count": 32}], "hourly": [{"hour": 0, "mean": 0.83, "median": 0.55, "count": 68}, {"hour": 5, "mean": 0.22, "median": 0.27, "count": 22}, {"hour": 6, "mean": 1.53, "median": 1.18, "count": 187}, {"hour": 7, "mean": 2.28, "median": 1.55, "count": 257}, {"hour": 8, "mean": 3.47, "median": 2.33, "count": 238}, {"hour": 9, "mean": 2.17, "median": 1.43, "count": 240}, {"hour": 10, "mean": 1.95, "median": 1.42, "count": 251}, {"hour": 11, "mean": 2.28, "median": 1.78, "count": 254}, {"hour": 12, "mean": 2.22, "median": 1.93, "count": 250}, {"hour": 13, "mean": 2.4, "median": 2.0, "count": 252}, {"hour": 14, "mean": 3.33, "median": 2.98, "count": 251}, {"hour": 15, "mean": 5.42, "median": 4.45, "count": 263}, {"hour": 16, "mean": 4.37, "median": 2.46, "count": 262}, {"hour": 17, "mean": 2.73, "median": 2.07, "count": 159}, {"hour": 18, "mean": 2.05, "median": 1.53, "count": 161}, {"hour": 19, "mean": 1.81, "median": 1.72, "count": 158}, {"hour": 20, "mean": 2.11, "median": 1.84, "count": 160}, {"hour": 21, "mean": 2.18, "median": 2.23, "count": 158}, {"hour": 22, "mean": 2.4, "median": 1.97, "count": 147}, {"hour": 23, "mean": 1.29, "median": 1.05, "count": 137}], "weekday": [{"weekday": "Monday", "mean": 2.37, "median": 1.73, "count": 725}, {"weekday": "Tuesday", "mean": 2.67, "median": 1.76, "count": 702}, {"weekday": "Wednesday", "mean": 3.0, "median": 2.02, "count": 652}, {"weekday": "Thursday", "mean": 2.71, "median": 1.92, "count": 643}, {"weekday": "Friday", "mean": 2.09, "median": 1.62, "count": 562}, {"weekday": "Saturday", "mean": 2.75, "median": 2.32, "count": 371}, {"weekday": "Sunday", "mean": 3.17, "median": 2.25, "count": 220}], "histogram": [{"bin_start": -6.0, "bin_end": -4.0, "count": 0}, {"bin_start": -4.0, "bin_end": -2.0, "count": 16}, {"bin_start": -2.0, "bin_end": 0.0, "count": 357}, {"bin_start": 0.0, "bin_end": 2.0, "count": 1677}, {"bin_start": 2.0, "bin_end": 4.0, "count": 1015}, {"bin_start": 4.0, "bin_end": 6.0, "count": 431}, {"bin_start": 6.0, "bin_end": 8.0, "count": 179}, {"bin_start": 8.0, "bin_end": 10.0, "count": 75}, {"bin_start": 10.0, "bin_end": 12.0, "count": 45}, {"bin_start": 12.0, "bin_end": 14.0, "count": 24}, {"bin_start": 14.0, "bin_end": 16.0, "count": 19}, {"bin_start": 16.0, "bin_end": 18.0, "count": 8}, {"bin_start": 18.0, "bin_end": 20.0, "count": 9}, {"bin_start": 20.0, "bin_end": 22.0, "count": 2}, {"bin_start": 22.0, "bin_end": 24.0, "count": 2}, {"bin_start": 24.0, "bin_end": 26.0, "count": 5}, {"bin_start": 26.0, "bin_end": 28.0, "count": 6}, {"bin_start": 28.0, "bin_end": 30.0, "count": 5}], "overall": {"mean": 2.63, "median": 1.87, "p80": 4.08, "p95": 8.13, "pct_ontime": 9.6, "pct_within3": 67.8, "pct_over5": 13.8, "pct_over10": 3.2, "n": 3875, "n_days": 46}, "by_direction": {"1": {"mean": 2.93, "median": 2.03, "count": 1943}, "2": {"mean": 2.32, "median": 1.7, "count": 1932}}, "by_daytype": {"holiday": {"mean": 2.45, "median": 1.88, "count": 63}, "may17": {"mean": 7.35, "median": 5.78, "count": 32}, "saturday": {"mean": 2.75, "median": 2.32, "count": 371}, "sunday": {"mean": 2.45, "median": 2.0, "count": 188}, "weekday": {"mean": 2.58, "median": 1.77, "count": 3221}}, "may17_departures": [{"direction_ref": "1", "aimed_departure": "06:35", "delay_departure_min": 3.25}, {"direction_ref": "2", "aimed_departure": "06:46", "delay_departure_min": 3.78}, {"direction_ref": "2", "aimed_departure": "07:16", "delay_departure_min": 4.4}, {"direction_ref": "1", "aimed_departure": "07:35", "delay_departure_min": 5.7}, {"direction_ref": "2", "aimed_departure": "08:16", "delay_departure_min": 6.2}, {"direction_ref": "1", "aimed_departure": "08:35", "delay_departure_min": 10.23}, {"direction_ref": "2", "aimed_departure": "09:16", "delay_departure_min": 12.25}, {"direction_ref": "1", "aimed_departure": "09:35", "delay_departure_min": 19.92}, {"direction_ref": "2", "aimed_departure": "10:16", "delay_departure_min": 27.93}, {"direction_ref": "1", "aimed_departure": "10:35", "delay_departure_min": 15.2}, {"direction_ref": "2", "aimed_departure": "11:16", "delay_departure_min": 13.9}, {"direction_ref": "1", "aimed_departure": "11:34", "delay_departure_min": 9.15}, {"direction_ref": "2", "aimed_departure": "12:16", "delay_departure_min": 4.63}, {"direction_ref": "1", "aimed_departure": "12:35", "delay_departure_min": 1.62}, {"direction_ref": "2", "aimed_departure": "13:17", "delay_departure_min": 5.85}, {"direction_ref": "1", "aimed_departure": "13:35", "delay_departure_min": 7.08}, {"direction_ref": "2", "aimed_departure": "14:17", "delay_departure_min": 5.28}, {"direction_ref": "1", "aimed_departure": "14:35", "delay_departure_min": 1.43}, {"direction_ref": "2", "aimed_departure": "15:17", "delay_departure_min": 4.62}, {"direction_ref": "2", "aimed_departure": "16:17", "delay_departure_min": 6.82}, {"direction_ref": "1", "aimed_departure": "16:35", "delay_departure_min": 7.55}, {"direction_ref": "2", "aimed_departure": "17:17", "delay_departure_min": 2.73}, {"direction_ref": "1", "aimed_departure": "17:35", "delay_departure_min": 1.87}, {"direction_ref": "2", "aimed_departure": "18:17", "delay_departure_min": 4.07}, {"direction_ref": "1", "aimed_departure": "18:35", "delay_departure_min": 3.02}, {"direction_ref": "2", "aimed_departure": "19:17", "delay_departure_min": 7.52}, {"direction_ref": "1", "aimed_departure": "19:35", "delay_departure_min": 5.52}, {"direction_ref": "2", "aimed_departure": "20:16", "delay_departure_min": 5.28}, {"direction_ref": "1", "aimed_departure": "20:35", "delay_departure_min": 5.7}, {"direction_ref": "2", "aimed_departure": "21:16", "delay_departure_min": 9.23}, {"direction_ref": "1", "aimed_departure": "21:35", "delay_departure_min": 6.05}, {"direction_ref": "2", "aimed_departure": "22:16", "delay_departure_min": 7.27}], "normal_day_departures": [{"direction_ref": "2", "aimed_departure": "00:03", "delay_departure_min": 0.0}, {"direction_ref": "1", "aimed_departure": "00:09", "delay_departure_min": 0.88}, {"direction_ref": "1", "aimed_departure": "00:39", "delay_departure_min": 3.0}, {"direction_ref": "2", "aimed_departure": "06:00", "delay_departure_min": 0.08}, {"direction_ref": "1", "aimed_departure": "06:21", "delay_departure_min": 3.58}, {"direction_ref": "2", "aimed_departure": "06:30", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "06:41", "delay_departure_min": 2.67}, {"direction_ref": "2", "aimed_departure": "06:50", "delay_departure_min": 0.92}, {"direction_ref": "1", "aimed_departure": "06:56", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "07:12", "delay_departure_min": 2.82}, {"direction_ref": "2", "aimed_departure": "07:20", "delay_departure_min": -0.55}, {"direction_ref": "1", "aimed_departure": "07:42", "delay_departure_min": 0.17}, {"direction_ref": "2", "aimed_departure": "08:05", "delay_departure_min": 0.07}, {"direction_ref": "1", "aimed_departure": "08:12", "delay_departure_min": 0.88}, {"direction_ref": "2", "aimed_departure": "08:35", "delay_departure_min": 0.07}, {"direction_ref": "1", "aimed_departure": "08:42", "delay_departure_min": 0.53}, {"direction_ref": "2", "aimed_departure": "09:05", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "09:12", "delay_departure_min": 0.87}, {"direction_ref": "2", "aimed_departure": "09:35", "delay_departure_min": 0.73}, {"direction_ref": "1", "aimed_departure": "09:42", "delay_departure_min": -0.4}, {"direction_ref": "2", "aimed_departure": "10:05", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "10:12", "delay_departure_min": 1.42}, {"direction_ref": "2", "aimed_departure": "10:35", "delay_departure_min": 1.63}, {"direction_ref": "1", "aimed_departure": "10:42", "delay_departure_min": 0.88}, {"direction_ref": "2", "aimed_departure": "11:05", "delay_departure_min": 0.35}, {"direction_ref": "1", "aimed_departure": "11:12", "delay_departure_min": 1.33}, {"direction_ref": "2", "aimed_departure": "11:35", "delay_departure_min": 2.4}, {"direction_ref": "1", "aimed_departure": "11:42", "delay_departure_min": 1.38}, {"direction_ref": "2", "aimed_departure": "12:05", "delay_departure_min": 1.67}, {"direction_ref": "1", "aimed_departure": "12:12", "delay_departure_min": 0.3}, {"direction_ref": "2", "aimed_departure": "12:35", "delay_departure_min": 2.95}, {"direction_ref": "1", "aimed_departure": "12:42", "delay_departure_min": 0.07}, {"direction_ref": "2", "aimed_departure": "13:05", "delay_departure_min": 0.77}, {"direction_ref": "1", "aimed_departure": "13:13", "delay_departure_min": 2.42}, {"direction_ref": "2", "aimed_departure": "13:35", "delay_departure_min": 3.63}, {"direction_ref": "1", "aimed_departure": "13:43", "delay_departure_min": 0.02}, {"direction_ref": "2", "aimed_departure": "14:05", "delay_departure_min": 2.05}, {"direction_ref": "1", "aimed_departure": "14:13", "delay_departure_min": 2.1}, {"direction_ref": "2", "aimed_departure": "14:35", "delay_departure_min": 3.65}, {"direction_ref": "1", "aimed_departure": "14:43", "delay_departure_min": 0.9}, {"direction_ref": "2", "aimed_departure": "15:08", "delay_departure_min": 0.98}, {"direction_ref": "1", "aimed_departure": "15:13", "delay_departure_min": 2.4}, {"direction_ref": "2", "aimed_departure": "15:38", "delay_departure_min": 0.07}, {"direction_ref": "1", "aimed_departure": "15:43", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "15:58", "delay_departure_min": 0.05}, {"direction_ref": "2", "aimed_departure": "16:08", "delay_departure_min": -0.48}, {"direction_ref": "1", "aimed_departure": "16:13", "delay_departure_min": 1.9}, {"direction_ref": "2", "aimed_departure": "16:38", "delay_departure_min": 0.02}, {"direction_ref": "1", "aimed_departure": "16:43", "delay_departure_min": 4.83}, {"direction_ref": "2", "aimed_departure": "16:49", "delay_departure_min": 1.2}, {"direction_ref": "2", "aimed_departure": "17:04", "delay_departure_min": 3.1}, {"direction_ref": "1", "aimed_departure": "17:10", "delay_departure_min": 3.27}, {"direction_ref": "2", "aimed_departure": "17:34", "delay_departure_min": 0.0}, {"direction_ref": "1", "aimed_departure": "17:40", "delay_departure_min": 4.47}, {"direction_ref": "2", "aimed_departure": "18:04", "delay_departure_min": -0.75}, {"direction_ref": "1", "aimed_departure": "18:40", "delay_departure_min": 0.02}, {"direction_ref": "2", "aimed_departure": "19:04", "delay_departure_min": 1.23}, {"direction_ref": "1", "aimed_departure": "19:10", "delay_departure_min": 0.68}, {"direction_ref": "2", "aimed_departure": "19:34", "delay_departure_min": 0.65}, {"direction_ref": "1", "aimed_departure": "19:40", "delay_departure_min": -0.2}, {"direction_ref": "2", "aimed_departure": "20:04", "delay_departure_min": 1.87}, {"direction_ref": "1", "aimed_departure": "20:10", "delay_departure_min": 2.67}, {"direction_ref": "2", "aimed_departure": "20:34", "delay_departure_min": 1.17}, {"direction_ref": "1", "aimed_departure": "20:40", "delay_departure_min": 0.13}, {"direction_ref": "2", "aimed_departure": "21:04", "delay_departure_min": -0.1}, {"direction_ref": "1", "aimed_departure": "21:10", "delay_departure_min": 0.68}, {"direction_ref": "2", "aimed_departure": "21:34", "delay_departure_min": 1.63}, {"direction_ref": "1", "aimed_departure": "21:40", "delay_departure_min": 3.52}, {"direction_ref": "2", "aimed_departure": "22:03", "delay_departure_min": 2.42}, {"direction_ref": "1", "aimed_departure": "22:10", "delay_departure_min": 1.05}, {"direction_ref": "2", "aimed_departure": "22:33", "delay_departure_min": 2.7}, {"direction_ref": "1", "aimed_departure": "22:39", "delay_departure_min": 0.73}, {"direction_ref": "2", "aimed_departure": "23:03", "delay_departure_min": 0.32}, {"direction_ref": "1", "aimed_departure": "23:09", "delay_departure_min": -1.08}, {"direction_ref": "2", "aimed_departure": "23:33", "delay_departure_min": 0.22}, {"direction_ref": "1", "aimed_departure": "23:39", "delay_departure_min": 4.95}], "line20_networkwide": {"mean": 1.77, "median": 0.95, "n": 147106}, "line27_at_krohn": {"mean": 3.71, "median": 2.87, "n": 4822}, "route_position": [{"stop_sequence": 1, "stop_name": "Storavatnet terminal", "mean": 0.68, "count": 360}, {"stop_sequence": 2, "stop_name": "Frieda Fasmer", "mean": 1.41, "count": 363}, {"stop_sequence": 3, "stop_name": "Loddefjorddalen", "mean": 1.05, "count": 362}, {"stop_sequence": 4, "stop_name": "Loddefjord terminal", "mean": 1.97, "count": 362}, {"stop_sequence": 5, "stop_name": "Bjørndalsbakken", "mean": 2.19, "count": 364}, {"stop_sequence": 6, "stop_name": "Tennebekk", "mean": 2.04, "count": 362}, {"stop_sequence": 7, "stop_name": "Lyngbø", "mean": 0.76, "count": 364}, {"stop_sequence": 8, "stop_name": "Lyderhornsveien", "mean": 1.11, "count": 365}, {"stop_sequence": 9, "stop_name": "Nygård kirke", "mean": 0.87, "count": 362}, {"stop_sequence": 10, "stop_name": "Kringsjå", "mean": 0.63, "count": 362}, {"stop_sequence": 11, "stop_name": "Holen", "mean": 1.27, "count": 366}, {"stop_sequence": 12, "stop_name": "Laksevåg senter", "mean": 1.27, "count": 366}, {"stop_sequence": 13, "stop_name": "Laksevåg", "mean": 1.32, "count": 365}, {"stop_sequence": 14, "stop_name": "Damsgård hovedgård", "mean": 1.19, "count": 366}, {"stop_sequence": 15, "stop_name": "Carl Konows gate", "mean": 1.21, "count": 366}, {"stop_sequence": 16, "stop_name": "Gyldenpris Nord", "mean": 1.4, "count": 366}, {"stop_sequence": 17, "stop_name": "Gyldenprisveien", "mean": 1.48, "count": 366}, {"stop_sequence": 18, "stop_name": "Lotheveien", "mean": 1.33, "count": 366}, {"stop_sequence": 19, "stop_name": "Michael Krohns gate", "mean": 1.04, "count": 367}, {"stop_sequence": 20, "stop_name": "Lien sør", "mean": 0.9, "count": 368}, {"stop_sequence": 21, "stop_name": "Solheimsviken", "mean": 0.87, "count": 365}, {"stop_sequence": 22, "stop_name": "Krohnsminde", "mean": 1.74, "count": 367}, {"stop_sequence": 23, "stop_name": "Hunstadsvingen", "mean": 1.56, "count": 360}, {"stop_sequence": 24, "stop_name": "Haukelandsveien", "mean": 1.63, "count": 367}, {"stop_sequence": 25, "stop_name": "Fridalen", "mean": 1.28, "count": 367}, {"stop_sequence": 26, "stop_name": "Langhaugen", "mean": 1.44, "count": 365}, {"stop_sequence": 27, "stop_name": "Hagerups vei", "mean": 1.88, "count": 366}, {"stop_sequence": 28, "stop_name": "Landåstorget", "mean": 2.03, "count": 366}, {"stop_sequence": 29, "stop_name": "Erleveien", "mean": 1.62, "count": 367}, {"stop_sequence": 30, "stop_name": "Wiers-Jenssens vei", "mean": 2.23, "count": 367}, {"stop_sequence": 31, "stop_name": "Mannsverk", "mean": 2.11, "count": 368}, {"stop_sequence": 32, "stop_name": "Bolstad", "mean": 1.74, "count": 367}, {"stop_sequence": 33, "stop_name": "Henrik Jægers vei", "mean": 1.93, "count": 364}, {"stop_sequence": 34, "stop_name": "Kolstibotn", "mean": 1.48, "count": 367}, {"stop_sequence": 35, "stop_name": "Birkelundstoppen", "mean": 1.51, "count": 352}, {"stop_sequence": 36, "stop_name": "Birkelundsbakken", "mean": 1.34, "count": 365}, {"stop_sequence": 37, "stop_name": "Birkelundsbakken sør", "mean": 1.78, "count": 366}, {"stop_sequence": 38, "stop_name": "Fantoft stavkirke", "mean": 1.47, "count": 365}, {"stop_sequence": 39, "stop_name": "Paradis", "mean": 2.36, "count": 367}, {"stop_sequence": 40, "stop_name": "Tveiteråsskiftet", "mean": 2.21, "count": 366}, {"stop_sequence": 41, "stop_name": "Hopsbro", "mean": 2.16, "count": 367}, {"stop_sequence": 42, "stop_name": "Hopstangen", "mean": 1.95, "count": 367}]};
+
+const tooltip = document.getElementById("tooltip");
+function showTip(evt, html) {
+  tooltip.innerHTML = html;
+  tooltip.style.opacity = "1";
+  tooltip.style.left = (evt.clientX + 14) + "px";
+  tooltip.style.top = (evt.clientY - 10) + "px";
+}
+function hideTip() { tooltip.style.opacity = "0"; }
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function css(varName) {
+  return getComputedStyle(document.getElementById("app")).getPropertyValue(varName).trim();
+}
+
+// ---------------------------------------------------------------------------
+// Stat tiles
+// ---------------------------------------------------------------------------
+function renderStats() {
+  const o = DATA.overall;
+  const rowEl = document.getElementById("statRow");
+  const tiles = [
+    { label: "Median forsinkelse", value: o.median.toFixed(1).replace(".", ",") + " min", delta: "P80: " + o.p80.toFixed(1).replace(".", ",") + " min" },
+    { label: "Innenfor 3 min", value: o.pct_within3.toFixed(0) + " %", delta: o.pct_over10.toFixed(1).replace(".", ",") + " % er 10+ min sen" },
+    { label: "Presis/tidlig", value: o.pct_ontime.toFixed(1).replace(".", ",") + " %", delta: "sjelden, men vanlig å være «litt» sen" },
+    { label: "vs. linje 20-snitt", value: "+" + (o.mean - DATA.line20_networkwide.mean).toFixed(1).replace(".", ",") + " min", delta: "dette stoppet er verre enn et typisk stopp på linja" },
+  ];
+  tiles.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "stat-tile";
+    div.innerHTML = `<div class="label">${t.label}</div><div class="value">${t.value}</div><div class="delta">${t.delta}</div>`;
+    rowEl.appendChild(div);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Histogram
+// ---------------------------------------------------------------------------
+function renderHistogram() {
+  const svg = document.getElementById("histChart");
+  const W = 820, H = 220, padL = 34, padR = 10, padT = 10, padB = 28;
+  const bins = DATA.histogram;
+  const maxCount = Math.max(...bins.map(b => b.count));
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const barGap = 2;
+  const barW = plotW / bins.length - barGap;
+
+  // gridlines
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const y = padT + plotH - (i / ticks) * plotH;
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y, y2: y, class: "gridline" }));
+    const label = Math.round((i / ticks) * maxCount);
+    const t = el("text", { x: padL - 6, y: y + 3, "text-anchor": "end" });
+    t.textContent = label;
+    svg.appendChild(t);
+  }
+  svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH, class: "axis-line" }));
+
+  bins.forEach((b, i) => {
+    const x = padL + i * (plotW / bins.length) + barGap / 2;
+    const h = (b.count / maxCount) * plotH;
+    const y = padT + plotH - h;
+    const isNegative = b.bin_start < 0;
+    const rect = el("rect", {
+      x, y, width: barW, height: Math.max(h, 0.5),
+      rx: 3, ry: 3,
+      class: isNegative ? "bar-2" : "bar",
+    });
+    rect.addEventListener("mousemove", (e) => showTip(e, `${b.bin_start}&ndash;${b.bin_end} min<br><strong>${b.count}</strong> avganger`));
+    rect.addEventListener("mouseleave", hideTip);
+    svg.appendChild(rect);
+    if (i % 3 === 0) {
+      const t = el("text", { x: x + barW / 2, y: padT + plotH + 16, "text-anchor": "middle" });
+      t.textContent = b.bin_start;
+      svg.appendChild(t);
+    }
+  });
+
+  // percentile markers
+  const xScale = (min) => padL + ((min - bins[0].bin_start) / (bins[bins.length - 1].bin_end - bins[0].bin_start)) * plotW;
+  [["median", DATA.overall.median, "Median"], ["p80", DATA.overall.p80, "P80"], ["p95", DATA.overall.p95, "P95"]].forEach(([_, v, label]) => {
+    const x = xScale(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: padT, y2: padT + plotH, stroke: css("--text-muted"), "stroke-width": 1.5, "stroke-dasharray": "3,3" }));
+    const t = el("text", { x: x, y: padT - 2, "text-anchor": "middle", fill: css("--text-secondary") });
+    t.textContent = label;
+    t.style.fontWeight = "600";
+    svg.appendChild(t);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Generic bar chart (hourly / weekday)
+// ---------------------------------------------------------------------------
+function renderBarChart(svgId, data, xKey, yKey, opts) {
+  opts = opts || {};
+  const svg = document.getElementById(svgId);
+  const W = parseFloat(svg.getAttribute("viewBox").split(" ")[2]);
+  const H = parseFloat(svg.getAttribute("viewBox").split(" ")[3]);
+  const padL = 30, padR = 10, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const maxVal = opts.maxVal || Math.max(...data.map(d => d[yKey])) * 1.15;
+  const barGap = data.length > 15 ? 2 : 8;
+  const barW = Math.min(24, plotW / data.length - barGap);
+  const slotW = plotW / data.length;
+
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const y = padT + plotH - (i / ticks) * plotH;
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y, y2: y, class: "gridline" }));
+    const t = el("text", { x: padL - 6, y: y + 3, "text-anchor": "end" });
+    t.textContent = ((i / ticks) * maxVal).toFixed(1);
+    svg.appendChild(t);
+  }
+  svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH, class: "axis-line" }));
+
+  data.forEach((d, i) => {
+    const val = d[yKey];
+    const x = padL + i * slotW + (slotW - barW) / 2;
+    const h = (val / maxVal) * plotH;
+    const y = padT + plotH - h;
+    const isHot = opts.hotIf && opts.hotIf(d);
+    const rect = el("rect", { x, y, width: barW, height: Math.max(h, 1), rx: 4, ry: 4, class: isHot ? "bar hot" : (opts.colorClass || "bar") });
+    rect.addEventListener("mousemove", (e) => showTip(e, opts.tooltip ? opts.tooltip(d) : `${d[xKey]}: ${val}`));
+    rect.addEventListener("mouseleave", hideTip);
+    svg.appendChild(rect);
+    if (!opts.skipLabel || !opts.skipLabel(i)) {
+      const t = el("text", { x: x + barW / 2, y: padT + plotH + 16, "text-anchor": "middle" });
+      t.textContent = opts.xLabel ? opts.xLabel(d) : d[xKey];
+      svg.appendChild(t);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Line chart (trend / route position) with optional gap breaks & annotations
+// ---------------------------------------------------------------------------
+function renderLineChart(svgId, data, xKey, yKey, opts) {
+  opts = opts || {};
+  const svg = document.getElementById(svgId);
+  const W = parseFloat(svg.getAttribute("viewBox").split(" ")[2]);
+  const H = parseFloat(svg.getAttribute("viewBox").split(" ")[3]);
+  const padL = 32, padR = 14, padT = 16, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const maxVal = opts.maxVal || Math.max(...data.map(d => d[yKey])) * 1.1;
+  const n = data.length;
+  const xScale = (i) => padL + (i / (n - 1)) * plotW;
+  const yScale = (v) => padT + plotH - (v / maxVal) * plotH;
+
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const y = padT + plotH - (i / ticks) * plotH;
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y, y2: y, class: "gridline" }));
+    const t = el("text", { x: padL - 6, y: y + 3, "text-anchor": "end" });
+    t.textContent = ((i / ticks) * maxVal).toFixed(1);
+    svg.appendChild(t);
+  }
+  svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH, class: "axis-line" }));
+
+  // break into contiguous segments if a gap-detector is provided
+  const segments = [];
+  let cur = [0];
+  for (let i = 1; i < n; i++) {
+    if (opts.isGap && opts.isGap(data[i - 1], data[i])) {
+      segments.push(cur);
+      cur = [i];
+    } else {
+      cur.push(i);
+    }
+  }
+  segments.push(cur);
+
+  segments.forEach(seg => {
+    let d = "";
+    seg.forEach((i, j) => {
+      const x = xScale(i), y = yScale(data[i][yKey]);
+      d += (j === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1) + " ";
+    });
+    svg.appendChild(el("path", { d, fill: "none", stroke: css("--series-1"), "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+  });
+
+  // dashed connector across the gap(s)
+  for (let s = 0; s < segments.length - 1; s++) {
+    const iEnd = segments[s][segments[s].length - 1];
+    const iStart = segments[s + 1][0];
+    const x1 = xScale(iEnd), y1 = yScale(data[iEnd][yKey]);
+    const x2 = xScale(iStart), y2 = yScale(data[iStart][yKey]);
+    svg.appendChild(el("line", { x1, y1, x2, y2, stroke: css("--text-muted"), "stroke-width": 1.5, "stroke-dasharray": "4,4" }));
+    const midx = (x1 + x2) / 2;
+    const t = el("text", { x: midx, y: padT + 10, "text-anchor": "middle", fill: css("--text-muted") });
+    t.textContent = opts.gapLabel || "datahull";
+    svg.appendChild(t);
+  }
+
+  // hover dots + hit targets
+  data.forEach((d, i) => {
+    const x = xScale(i), y = yScale(d[yKey]);
+    const isAnnotated = opts.annotateIf && opts.annotateIf(d);
+    if (isAnnotated) {
+      svg.appendChild(el("circle", { cx: x, cy: y, r: 5, fill: css("--series-2"), stroke: css("--surface-1"), "stroke-width": 2 }));
+      const t = el("text", { x, y: y - 10, "text-anchor": "middle", fill: css("--text-primary") });
+      t.style.fontWeight = "700";
+      t.textContent = opts.annotateLabel ? opts.annotateLabel(d) : "";
+      svg.appendChild(t);
+    }
+    const hit = el("circle", { cx: x, cy: y, r: 8, fill: "transparent" });
+    hit.addEventListener("mousemove", (e) => showTip(e, opts.tooltip ? opts.tooltip(d) : `${d[xKey]}: ${d[yKey]}`));
+    hit.addEventListener("mouseleave", hideTip);
+    svg.appendChild(hit);
+    if (opts.showXLabel && opts.showXLabel(d, i)) {
+      const t = el("text", { x, y: padT + plotH + 16, "text-anchor": "middle" });
+      t.textContent = opts.xLabel ? opts.xLabel(d) : d[xKey];
+      svg.appendChild(t);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Day comparison: individual departures, normal vs 17. mai
+// ---------------------------------------------------------------------------
+function renderDayComparison() {
+  const svg = document.getElementById("dayCompChart");
+  const W = 820, H = 240, padL = 34, padR = 14, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const toMinutes = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+  const all = DATA.normal_day_departures.concat(DATA.may17_departures);
+  const maxDelay = Math.max(...all.map(d => d.delay_departure_min)) * 1.15;
+  const minTime = 0, maxTime = 24 * 60;
+
+  const xScale = (t) => padL + (t / maxTime) * plotW;
+  const yScale = (v) => padT + plotH - (Math.max(v, 0) / maxDelay) * plotH;
+
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const y = padT + plotH - (i / ticks) * plotH;
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y, y2: y, class: "gridline" }));
+    const t = el("text", { x: padL - 6, y: y + 3, "text-anchor": "end" });
+    t.textContent = ((i / ticks) * maxDelay).toFixed(0);
+    svg.appendChild(t);
+  }
+  svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH, class: "axis-line" }));
+  [6, 9, 12, 15, 18, 21].forEach(h => {
+    const x = xScale(h * 60);
+    const t = el("text", { x, y: padT + plotH + 16, "text-anchor": "middle" });
+    t.textContent = h + ":00";
+    svg.appendChild(t);
+  });
+
+  function plotSeries(list, colorVar) {
+    list.slice().sort((a, b) => toMinutes(a.aimed_departure) - toMinutes(b.aimed_departure));
+    list.forEach(d => {
+      const x = xScale(toMinutes(d.aimed_departure));
+      const y = yScale(d.delay_departure_min);
+      const c = el("circle", { cx: x, cy: y, r: 4, fill: css(colorVar), stroke: css("--surface-1"), "stroke-width": 1.5 });
+      c.addEventListener("mousemove", (e) => showTip(e, `${d.aimed_departure}<br><strong>${d.delay_departure_min.toFixed(1)} min</strong> forsinket`));
+      c.addEventListener("mouseleave", hideTip);
+      svg.appendChild(c);
+    });
+  }
+  plotSeries(DATA.normal_day_departures, "--series-1");
+  plotSeries(DATA.may17_departures, "--series-2");
+}
+
+renderStats();
+renderHistogram();
+renderBarChart("hourChart", DATA.hourly, "hour", "mean", {
+  hotIf: (d) => d.hour === 15,
+  xLabel: (d) => d.hour,
+  skipLabel: (i) => i % 2 === 1,
+  tooltip: (d) => `Kl. ${d.hour}:00<br><strong>${d.mean.toFixed(1)} min</strong> snitt (${d.count} avg.)`,
+});
+renderBarChart("weekdayChart", DATA.weekday, "weekday", "mean", {
+  xLabel: (d) => ({ Monday: "Man", Tuesday: "Tir", Wednesday: "Ons", Thursday: "Tor", Friday: "Fre", Saturday: "Lør", Sunday: "Søn" })[d.weekday],
+  hotIf: (d) => d.weekday === "Sunday",
+  tooltip: (d) => `${d.weekday}<br><strong>${d.mean.toFixed(1)} min</strong> snitt`,
+});
+renderBarChart("lineCompChart", [
+  { label: "Linje 20", mean: DATA.overall.mean },
+  { label: "Linje 27", mean: DATA.line27_at_krohn.mean },
+], "label", "mean", {
+  maxVal: 4.5,
+  hotIf: (d) => d.label === "Linje 27",
+  tooltip: (d) => `${d.label}<br><strong>${d.mean.toFixed(1)} min</strong> snitt ved Krohnsminde`,
+});
+renderLineChart("trendChart", DATA.daily, "date", "mean", {
+  isGap: (a, b) => (new Date(b.date) - new Date(a.date)) > 1000 * 60 * 60 * 24 * 5,
+  gapLabel: "8 uker uten data",
+  annotateIf: (d) => d.date === "2026-05-17",
+  annotateLabel: () => "17. mai",
+  showXLabel: (d, i) => i % 6 === 0,
+  xLabel: (d) => d.date.slice(5),
+  tooltip: (d) => `${d.date}<br><strong>${d.mean.toFixed(1)} min</strong> snitt (${d.count} avg.)`,
+});
+renderLineChart("routeChart", DATA.route_position, "stop_name", "mean", {
+  annotateIf: (d) => d.stop_name === "Krohnsminde",
+  annotateLabel: () => "Krohnsminde",
+  showXLabel: (d, i) => i % 6 === 0,
+  xLabel: (d) => d.stop_sequence,
+  tooltip: (d) => `${d.stop_sequence}. ${d.stop_name}<br><strong>${d.mean.toFixed(1)} min</strong> snitt`,
+});
+renderDayComparison();
+</script>

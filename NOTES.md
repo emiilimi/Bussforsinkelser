@@ -104,6 +104,41 @@ nettopp den stille fallbacken som skjulte feilen). Verifisert: Entur-formatert
 lørdag → `saturday`, søndag → `sunday`, 17. mai → `may17`, 1. juledag →
 `holiday`.
 
+## 7. «Min buss, mitt stopp» — rapport-prototype, IKKE bygget som funksjon ennå
+
+Utforsket 2026-08 som svar på ønske om mer avansert analyse: en personlig
+"min buss, mitt stopp"-rapport med faktiske plott (forsinkelsesfordeling,
+time-/ukedagsprofil, trend over tid, forsinkelse langs ruten, linje-mot-linje
+sammenligning). Prototypen bruker ekte historiske data (linje 20 ved
+Krohnsminde, kombinert fra `data/bussforsinkelser.db` og `data/reise.db`,
+46 dager) — ikke påfunnet tall — for å vise hva slags innsikt en slik rapport
+kunne gi.
+
+**Lagret**: [`prototypes/min-buss-mitt-stopp.html`](prototypes/min-buss-mitt-stopp.html)
+(selvstendig HTML, åpnes direkte i nettleser — samme fil som ble delt som
+Artifact i samtalen). Datauttrekks-scriptene som genererte tallene er ikke
+lagret (kjørt ad-hoc mot begge SQLite-basene); må re-kjøres fra rådata om
+prototypen skal oppdateres.
+
+**Emilies tilbakemelding — IKKE løst, diskuter før noe bygges for ekte**:
+- Ser "litt for AI-ete" ut — sannsynligvis fargevalg/typografi fra
+  dataviz-skillets generiske referansepalett, ikke Sen Turs faktiske
+  visuelle språk (shadcn/ui-komponenter, eksisterende Tailwind-tokens/
+  fargebruk fra resten av appen).
+- Inkonsistent med resten av siden — samme årsak; bør bygges med appens egne
+  komponenter (`Card`, `CardContent` osv.) i stedet for frittstående HTML/CSS
+  neste gang.
+- Mangler transparens — trolig at datakvalitet/metodikk-forbeholdene (datahull,
+  ingen kanselleringsdeteksjon, to-database-sammenslåing) sto som løse
+  bildetekster i stedet for å følge appens etablerte mønstre for dette
+  (InfoTip, `DataQualityFlag`, lenker til `/metode` — se "flagg, ikke skjul"-
+  prinsippet brukt i `components/data-quality-flag.tsx`).
+
+Åpent spørsmål for en eventuell ekte implementasjon: datakilde bør trolig være
+14-ukers Parquet-arkivet via DuckDB-WASM (samme mekanisme som
+`delay-percentiles.tsx` allerede bruker), ikke SQLite direkte — gir mer
+historikk uten server-rundtur. Ikke startet.
+
 ---
 
 ## Rettelse av et tidligere (feil) funn i denne filen
