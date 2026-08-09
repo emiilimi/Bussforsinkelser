@@ -132,19 +132,22 @@ Avviket er (ukas søndag − i går) og svinger gjennom uka:
 Målt søndag 9. august 2026 (data t.o.m. 7. august): anker ble 9. august, «Siste
 7 dager» ga 3.–7. august = 5 dager.
 
-**Fikset i reiseplanleggeren** ved å måle datoen i stedet: `primeParquetMetadata()`
-henter nå `MAX(date)` sammen med `COUNT(*)` (samme spørring, samme kostnad —
-begge besvares fra row group-statistikk), lagrer den, og `useLatestDataDate()`
-eksponerer den. `resolveStatsWindow()` bruker den målte datoen og faller bare
-tilbake på filnavn-anslaget i det korte vinduet før primingen har landet
-(selvkorrigerende: etiketten gikk fra «3. aug.» til «1. aug.» da målingen kom).
+**LØST i roten 2026-08-09**: manifestet oppgir nå `maxDate` per fil, lest av
+`upload_to_r2.py` fra parquetens radgruppe-statistikk (metadata-only: 6–23 ms
+for en 50–70 MB fil). `latestAvailableDate()` bruker den når den finnes, og
+faller bare tilbake på filnavn-utledningen for et manifest fra før feltet
+fantes. Feltet er valgfritt i begge ender, så gammel/ny klient og gammelt/nytt
+manifest virker i alle fire kombinasjoner.
 
-**IKKE fikset andre steder**: `daysAgoFromLatest()` i `lib/stats-adapter.ts` har
-nøyaktig samme feil for dashboard/topplister/kart-vinduene. Det er ikke bare å
-kalle `latestDataDate()` der, siden primingen foreløpig kun kjøres på
-reiseplanleggeren — de sidene måtte enten prime selv eller måle `MAX(date)`
-separat. Verst utslag for korte vinduer (7 dager); et 90-dagersvindu merker det
-knapt.
+Fordi `daysAgoFromLatest()` i `lib/stats-adapter.ts` kaller samme funksjon, ble
+dashboard/topplister/kart riktig uten endringer der — det var nettopp derfor
+manifest-varianten ble valgt framfor å måle `MAX(date)` per side.
+
+Et tidligere, mer lokalt forsøk ligger fortsatt i koden som ekstra sikring:
+`primeParquetMetadata()` henter `MAX(date)` sammen med `COUNT(*)` (samme
+spørring, samme kostnad) og `useLatestDataDate()` eksponerer den. Rekkefølgen i
+`resolveStatsWindow()` er målt → manifest → filnavn. Den kan fjernes når alle
+manifester i omløp har `maxDate`.
 
 ## 7. «Min buss, mitt stopp» — rapport-prototype, IKKE bygget som funksjon ennå
 
