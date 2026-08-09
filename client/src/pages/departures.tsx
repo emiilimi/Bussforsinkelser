@@ -8,8 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
-import { Search, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { Search, Clock, AlertCircle, Loader2, Star, MapPin } from "lucide-react";
 import { ModeIcon } from "@/components/mode-icon";
+import { SectionLabel, StopRow, FavoriteToggle } from "@/components/stop-picker";
+import {
+  getFavoriteStops, toggleFavorite, getRecentStops, addRecentStop,
+} from "@/lib/stop-history";
+import type { StopSearchResult } from "@/lib/trip-shared";
 import { cn, formatStopName } from "@/lib/utils";
 import { REGION_OPERATOR, type Region } from "@/lib/RegionContext";
 import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
@@ -387,6 +392,48 @@ export default function Departures() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
   const [showResults, setShowResults] = useState(false);
+
+  // Favoritter og nylig søkte stopp deles med reiseplanleggeren (samme
+  // localStorage-nøkler i lib/stop-history.ts), så et stopp du stjernemerker
+  // ett sted dukker opp begge steder.
+  const [favorites, setFavorites] = useState<StopSearchResult[]>([]);
+  const [recents, setRecents] = useState<StopSearchResult[]>([]);
+  useEffect(() => {
+    setFavorites(getFavoriteStops());
+    setRecents(getRecentStops());
+  }, []);
+
+  /** Avgangssidens stopp → formen favorittlista lagrer. */
+  const asStopResult = (ref: string, name: string): StopSearchResult => ({
+    stopRef: ref,
+    stopPlaceRef: ref.startsWith("NSR:StopPlace:") ? ref : null,
+    stopName: name,
+    label: name,
+    layer: "venue",
+    lat: null,
+    lng: null,
+  });
+
+  /** Felles vei inn når et stopp velges — fra søketreff, favoritt eller nylig.
+   *  rawName kan være null fra søket; formatStopName gir da et brukbart navn. */
+  function chooseStop(ref: string, rawName: string | null) {
+    const name = formatStopName(rawName, ref);
+    setSelectedStop({ ref, name });
+    setQuery(name);
+    setShowResults(false);
+    addRecentStop(asStopResult(ref, name));
+    setRecents(getRecentStops());
+    // Oppdater URL-en (for refresh/deling) — behold ev. andre parametre
+    // (operator/minutes/mode) som allerede står der.
+    const params = new URLSearchParams(search);
+    params.set("stop", ref);
+    params.set("name", name);
+    navigate(`/avganger?${params.toString()}`);
+  }
+
+  const isFav = (ref: string) => favorites.some((f) => f.stopRef === ref);
+  const flipFavorite = (ref: string, name: string) =>
+    setFavorites(toggleFavorite(asStopResult(ref, name)));
   const [minutesParam, setMinutesParam] = useUrlParam("minutes", "90");
   const minutes = Number(minutesParam) || 90;
   const setMinutes = (n: number) => setMinutesParam(String(n));
@@ -698,33 +745,70 @@ export default function Departures() {
                 onFocus={() => setShowResults(true)}
                 onBlur={() => setTimeout(() => setShowResults(false), 150)}
               />
-              {showResults && searchResults.length > 0 && (
-                <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
-                  {searchResults.map((r) => {
-                    const name = formatStopName(r.stopName, r.stopRef);
-                    return (
-                      <button
-                        key={r.stopRef}
-                        className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
-                        onMouseDown={() => {
-                          setSelectedStop({ ref: r.stopRef, name });
-                          setQuery(name);
-                          setShowResults(false);
-                          // Oppdater URL-en (for refresh/deling) — behold ev. andre
-                          // parametre (operator/minutes/mode) som allerede står der.
-                          const params = new URLSearchParams(search);
-                          params.set("stop", r.stopRef);
-                          params.set("name", name);
-                          navigate(`/avganger?${params.toString()}`);
-                        }}
-                      >
-                        <div className="font-medium">{name}</div>
-                        {r.platformCodes && (
-                          <div className="text-xs text-muted-foreground">Plattformer: {r.platformCodes}</div>
-                        )}
-                      </button>
-                    );
-                  })}
+              {showResults && (
+                <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-72 overflow-y-auto">
+                  {debouncedQuery.length >= 2 ? (
+                    searchResults.length > 0 ? (
+                      <>
+                        <SectionLabel>Søketreff</SectionLabel>
+                        {searchResults.map((r) => {
+                          const name = formatStopName(r.stopName, r.stopRef);
+                          return (
+                            <StopRow
+                              key={r.stopRef}
+                              icon={<MapPin className="h-3.5 w-3.5 text-muted-foreground" />}
+                              title={name}
+                              subtitle={r.platformCodes ? `Plattformer: ${r.platformCodes}` : undefined}
+                              isFav={isFav(r.stopRef)}
+                              onPick={() => chooseStop(r.stopRef, r.stopName)}
+                              onToggleFav={() => flipFavorite(r.stopRef, name)}
+                            />
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">Ingen treff.</p>
+                    )
+                  ) : (
+                    <>
+                      {favorites.length > 0 && (
+                        <>
+                          <SectionLabel>Favoritter</SectionLabel>
+                          {favorites.map((s) => (
+                            <StopRow
+                              key={`fav-${s.stopRef}`}
+                              icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
+                              title={s.stopName}
+                              isFav
+                              onPick={() => chooseStop(s.stopRef, s.stopName)}
+                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
+                            />
+                          ))}
+                        </>
+                      )}
+                      {recents.length > 0 && (
+                        <>
+                          <SectionLabel>Nylig søkt</SectionLabel>
+                          {recents.map((s) => (
+                            <StopRow
+                              key={`rec-${s.stopRef}`}
+                              icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}
+                              title={s.stopName}
+                              isFav={isFav(s.stopRef)}
+                              onPick={() => chooseStop(s.stopRef, s.stopName)}
+                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
+                            />
+                          ))}
+                        </>
+                      )}
+                      {favorites.length === 0 && recents.length === 0 && (
+                        <p className="px-3 py-2 text-xs text-muted-foreground leading-snug">
+                          Skriv for å søke etter et stoppested. Stoppene du velger havner
+                          her, og du kan stjernemerke favoritter.
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -795,9 +879,21 @@ export default function Departures() {
         {stopRef && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{(isHistorical ? selectedStop?.name : depResp?.stopName) ?? selectedStop?.name ?? "Avganger"}</span>
-                {(isHistorical ? historicalLoading : depLoading) && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+              <CardTitle className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate">
+                  {(isHistorical ? selectedStop?.name : depResp?.stopName) ?? selectedStop?.name ?? "Avganger"}
+                </span>
+                <span className="flex items-center gap-2 flex-shrink-0">
+                  {(isHistorical ? historicalLoading : depLoading) && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                  {/* Favoritt-knappen står her fordi det er her du faktisk er når
+                      du bestemmer deg for at stoppet er verdt å lagre. */}
+                  {selectedStop && (
+                    <FavoriteToggle
+                      isFav={isFav(selectedStop.ref)}
+                      onToggle={() => flipFavorite(selectedStop.ref, selectedStop.name)}
+                    />
+                  )}
+                </span>
               </CardTitle>
               <CardDescription className="flex items-center gap-1.5">
                 <span>

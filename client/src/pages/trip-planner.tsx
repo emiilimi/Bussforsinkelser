@@ -22,6 +22,7 @@ import {
   Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
+import { SectionLabel, StopRow } from "@/components/stop-picker";
 import { cn } from "@/lib/utils";
 import { computeDayType, DAY_TYPE_LABELS } from "@/lib/day-type";
 import { InfoTip } from "@/components/info-tip";
@@ -1054,55 +1055,8 @@ function StopSearch({
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="px-3 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
-      {children}
-    </p>
-  );
-}
-
-/** Én rad i søkelista: velg stedet, eller slå favoritt av/på med stjernen. */
-function StopRow({
-  icon, title, subtitle, isFav, onPick, onToggleFav,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  isFav: boolean;
-  onPick: () => void;
-  onToggleFav: () => void;
-}) {
-  return (
-    <div className="flex items-center hover:bg-muted/50 transition-colors">
-      <button
-        className="flex-1 min-w-0 text-left px-3 py-2 text-sm flex items-start gap-2"
-        onMouseDown={(e) => { e.preventDefault(); onPick(); }}
-      >
-        <span className="mt-0.5 flex-shrink-0">{icon}</span>
-        <span className="min-w-0">
-          <span className="block truncate">{title}</span>
-          {subtitle && (
-            <span className="block text-xs text-muted-foreground truncate">{subtitle}</span>
-          )}
-        </span>
-      </button>
-      <button
-        className="px-2 py-2 flex-shrink-0"
-        title={isFav ? "Fjern favoritt" : "Lagre som favoritt"}
-        aria-label={isFav ? "Fjern favoritt" : "Lagre som favoritt"}
-        onMouseDown={(e) => { e.preventDefault(); onToggleFav(); }}
-      >
-        <Star
-          className={cn(
-            "h-3.5 w-3.5 transition-colors",
-            isFav ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40 hover:text-amber-400",
-          )}
-        />
-      </button>
-    </div>
-  );
-}
+// SectionLabel og StopRow bor nå i components/stop-picker.tsx, delt med
+// «Avganger og stopp» slik at stjernen ser og oppfører seg likt begge steder.
 
 // ---------------------------------------------------------------------------
 // Per-leg alternative departures ("Bytt avgang" — som på entur.no)
