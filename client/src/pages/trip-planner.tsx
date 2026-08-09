@@ -79,13 +79,13 @@ function windowOverridesDayType(w: StatsTimeWindow): boolean {
  * fra i dag kunne bli helt tomt.
  *
  * `latestDataDate` skal være den FAKTISKE siste datadagen (MAX(date)).
- * Fallbacken `latestAvailableDate()` utleder datoen fra FILNAVNET og gir
- * ukefilens søndag — en dato som kan ligge opptil seks dager ETTER siste
- * faktiske datadag. Som ankerpunkt her ville den skjøvet vindusstarten like
- * langt fram og stille gitt færre dager enn brukeren ba om: målt søndag
- * 9. august 2026 (data til 7. august) ga «Siste 7 dager» bare 5 dagers data,
- * og tidlig i uka ned mot 1. Derfor brukes den målte datoen når vi har den,
- * og filnavn-tilnærmingen kun i det korte vinduet før MAX(date) har landet.
+ * `latestAvailableDate()` gir nå normalt det samme, siden manifestet oppgir
+ * `maxDate` per fil. Kun for et manifest fra før det feltet fantes faller den
+ * tilbake på å utlede datoen fra FILNAVNET, og da blir den ukefilens søndag —
+ * opptil seks dager ETTER siste faktiske datadag. Som ankerpunkt ville det
+ * skjøvet vindusstarten like langt fram og stille gitt færre dager enn
+ * brukeren ba om (målt 9. august 2026: «Siste 7 dager» ga 5 dager, og tidlig
+ * i uka ned mot 1). Rekkefølgen under er derfor målt → manifest → filnavn.
  */
 function resolveStatsWindow(
   w: StatsTimeWindow,

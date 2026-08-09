@@ -163,13 +163,53 @@ def newest_parquet_files(parquet_dir: Path) -> list[Path]:
     return sorted(f for w in weeks for f in by_week[w])
 
 
+def max_date_of_file(path: Path) -> str | None:
+    """Siste dato i en parquet-fil, lest fra radgruppe-statistikken.
+
+    Leser KUN metadata (min/max per radgruppe), ikke radene — går på
+    millisekunder selv for en 70 MB fil. Returnerer None hvis filen mangler
+    statistikk for date-kolonnen, slik at manifestet heller utelater feltet
+    enn å oppgi noe feil."""
+    try:
+        import pyarrow.parquet as pq
+
+        md = pq.ParquetFile(path).metadata
+        col = md.schema.names.index("date")
+        best: str | None = None
+        for rg in range(md.num_row_groups):
+            stats = md.row_group(rg).column(col).statistics
+            if stats is None or stats.max is None:
+                continue
+            value = str(stats.max)
+            if best is None or value > best:
+                best = value
+        return best
+    except Exception as exc:  # noqa: BLE001 — manifestet skal aldri velte på dette
+        log.warning("  Kunne ikke lese maxDate fra %s: %s", path.name, exc)
+        return None
+
+
 def generate_manifest(parquet_dir: Path) -> list[dict]:
-    """Returner sortert liste over {name, md5} for .parquet-filer (nyeste KEEP_WEEKS).
+    """Returner sortert liste over {name, md5, maxDate} for .parquet-filer
+    (nyeste KEEP_WEEKS).
 
     md5 brukes av klienten som cache-buster (?v=md5) slik at nettleseren
     henter fersk fil når innholdet endres, selv om filnavnet er det samme
-    (ukefiler overskrives daglig med nye dager)."""
-    return [{"name": f.name, "md5": md5_of_file(f)} for f in newest_parquet_files(parquet_dir)]
+    (ukefiler overskrives daglig med nye dager).
+
+    maxDate er siste dato i filen. Klienten trenger den for å regne «siste N
+    dager» riktig: uten den må den gjette ut fra FILNAVNET og bruke ISO-ukens
+    søndag, som kan ligge opptil seks dager etter siste faktiske datadag — og
+    da blir vinduet stille for kort (se hooks/use-parquet-query.ts). Feltet er
+    valgfritt for klienten, så et gammelt manifest uten det fungerer som før."""
+    out: list[dict] = []
+    for f in newest_parquet_files(parquet_dir):
+        entry: dict = {"name": f.name, "md5": md5_of_file(f)}
+        max_date = max_date_of_file(f)
+        if max_date:
+            entry["maxDate"] = max_date
+        out.append(entry)
+    return out
 
 
 def main():

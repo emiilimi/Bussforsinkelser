@@ -40,9 +40,20 @@ const DEFAULT_FAMILY: DelayFamily = "by-stop";
 // Manifest entries: plain filename (local Express) or { name, md5 } (R2).
 // md5 brukes som cache-buster: ukefiler overskrives daglig med samme navn,
 // så uten ?v=md5 kan nettleseren servere gårsdagens bytes fra HTTP-cache.
-type ManifestEntry = string | { name: string; md5?: string };
+// maxDate: siste dato i filen, skrevet av pipelinen fra parquetens
+// radgruppe-statistikk. Valgfri — et manifest fra før dette feltet fantes
+// fungerer som før (se latestAvailableDate).
+type ManifestEntry = string | { name: string; md5?: string; maxDate?: string };
 
-type RegisteredFile = { url: string; family: DelayFamily; week: string; fromIso: string; toIso: string };
+type RegisteredFile = {
+  url: string;
+  family: DelayFamily;
+  week: string;
+  fromIso: string;
+  toIso: string;
+  /** Faktisk siste dato i filen, når manifestet oppgir den. */
+  maxDate?: string;
+};
 
 // name → registered file info (both families share this map)
 const registeredFiles = new Map<string, RegisteredFile>();
@@ -107,6 +118,7 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
   for (const entry of entries) {
     const name = typeof entry === "string" ? entry : entry.name;
     const md5 = typeof entry === "string" ? undefined : entry.md5;
+    const maxDate = typeof entry === "string" ? undefined : entry.maxDate;
     const parsed = parseFileName(name);
     if (!parsed) continue; // ukjent/gammelt filnavn-format — ignorer
     const url = md5
@@ -127,7 +139,7 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
     // Full absolute URL — DuckDB worker runs from a blob: origin and
     // cannot resolve relative paths.
     await db.registerFileURL(name, url, 4 /* DuckDBDataProtocol.HTTP */, false);
-    registeredFiles.set(name, { url, family: parsed.family, week: parsed.week, fromIso, toIso });
+    registeredFiles.set(name, { url, family: parsed.family, week: parsed.week, fromIso, toIso, maxDate });
   }
 }
 
@@ -247,18 +259,31 @@ export function useLatestDataDate(family: DelayFamily = DEFAULT_FAMILY): string 
   return value;
 }
 
-/** Seneste dato dekket av en registrert ukefil i gitt familie (siste dag i
- *  ISO-ukens søndag — en øvre tilnærming, aldri for lav). Brukes til å regne
- *  "N dager tilbake fra ferskeste tilgjengelige data" i JS uten en egen
- *  DuckDB-spørring (erstatter det tidligere MAX(date)-underspørringsmønsteret
- *  mot den nå fjernede generiske "delays"-viewen). */
+/**
+ * Seneste dato vi har data for i gitt familie. Gratis (ingen DuckDB-spørring)
+ * — leses av manifestet som allerede er hentet.
+ *
+ * Bruker `maxDate` fra manifestet når pipelinen har skrevet den: da er dette
+ * den FAKTISKE siste datadagen, og trygg å bruke som ankerpunkt for «siste N
+ * dager».
+ *
+ * Uten `maxDate` (manifest fra før feltet fantes) faller vi tilbake på ISO-
+ * ukens søndag utledet av FILNAVNET. Det er en øvre tilnærming — aldri for
+ * lav, men potensielt opptil seks dager FOR HØY, siden ukefilen finnes fra
+ * ukas første ingest mens dataene bare rekker til i går. Som ankerpunkt for
+ * «fra = anker − (N−1)» skyver det vindusstarten like langt fram og gir
+ * stille færre dager enn brukeren ba om (målt 9. august 2026: «siste 7 dager»
+ * ga 5). Derfor foretrekkes maxDate alltid når den finnes.
+ */
 export function latestAvailableDate(family: DelayFamily = DEFAULT_FAMILY): string | null {
-  let max: string | null = null;
+  let measured: string | null = null;
+  let approximated: string | null = null;
   for (const f of Array.from(registeredFiles.values())) {
     if (f.family !== family) continue;
-    if (max === null || f.toIso > max) max = f.toIso;
+    if (f.maxDate && (measured === null || f.maxDate > measured)) measured = f.maxDate;
+    if (approximated === null || f.toIso > approximated) approximated = f.toIso;
   }
-  return max;
+  return measured ?? approximated;
 }
 
 /** Filer for én familie, ev. begrenset til uker som overlapper [fromDate, toDate]. */

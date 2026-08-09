@@ -2,8 +2,18 @@
 # Registrer de to nattlige pipeline-jobbene i Windows Task Scheduler.
 # Kjor en gang:  powershell -ExecutionPolicy Bypass -File scripts/register_tasks.ps1
 #
-#   Bussforsinkelser Reise nightly   06:30 hver dag   (AKTIV)
+#   Bussforsinkelser Reise nightly   06:00 hver dag   (AKTIV)
 #   Bussforsinkelser Full nightly    07:00 hver dag   (DEAKTIVERT - se under)
+#
+# TIDSPUNKT (9. august 2026): kjoringen la lenge pa 03:00 (endret manuelt i
+# Task Scheduler 24. juli, uten at dette skriptet ble oppdatert - skriptet sa
+# 06:30, oppgaven kjorte 03:00). Det er FOR TIDLIG: BigQuery har ofte ikke
+# landet gardagens data enda, og ingest_lite.py sin vaktbikkje avbryter da
+# med "Mistenkelig lavt radantall" i stedet for a skrive en halv dag.
+# Observert: 03:00-kjoringer fikk 32 000-70 000 rader, mens kjoringer kl.
+# 11:21 og 23:01 fikk 1,3 millioner. Satt til 06:00 + automatisk nytt forsok
+# hver 2. time (inntil 3 ganger), slik at en for tidlig kjoring retter seg
+# selv i stedet for a kreve manuell opprydding.
 #
 # Jobbene kjorer som deg, kun nar du er logget inn. Var PC-en av/i dvale
 # kl. 06:30, kjores jobben sa snart den far sjansen (StartWhenAvailable).
@@ -41,7 +51,9 @@ $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Hours 3) `
     -MultipleInstances IgnoreNew `
     -DontStopIfGoingOnBatteries `
-    -AllowStartIfOnBatteries
+    -AllowStartIfOnBatteries `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Hours 2)
 
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType S4U -RunLevel Limited
 
@@ -59,7 +71,7 @@ function Register-PipelineTask {
 }
 
 Write-Host "Registrerer pipeline-jobber for repo: $repo"
-Register-PipelineTask -Name "Bussforsinkelser Reise nightly" -Script "nightly_reise.ps1" -At "06:30" -Enabled $true
+Register-PipelineTask -Name "Bussforsinkelser Reise nightly" -Script "nightly_reise.ps1" -At "06:00" -Enabled $true
 # Full-jobben registreres deaktivert: den fulle basen vokser ubegrenset og
 # disken er nesten full (slett data/bussforsinkelser_prod.db forst).
 Register-PipelineTask -Name "Bussforsinkelser Full nightly" -Script "nightly_full.ps1" -At "07:00" -Enabled $false
