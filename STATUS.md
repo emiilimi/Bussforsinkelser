@@ -31,10 +31,46 @@ f.o.m. 1. aug.»), slik at det kan etterprøves i stedet for å måtte stoles p�
 for dashboard/topplister/kart — se NOTES.md punkt 7b for hvorfor den ikke bare
 kunne rettes med samme grep.
 
-> ℹ️ **Observert samtidig**: R2 hadde data t.o.m. 7. august da dette ble
-> skrevet 9. august. Nattlig ingest skriver gårsdagen, så 8. august skulle vært
-> der. Verifisert direkte mot R2 (`MAX(date) = 2026-08-07`, 49 dager,
-> 55,1 mill. rader). Sjekk om nattjobben eller `upload_to_r2.py` feilet.
+### Oppfølging samme dag: maxDate i manifestet, nattjobb-tid, og 8. aug. hentet inn
+
+**Rotårsaken fikset ordentlig**: manifestet oppgir nå `maxDate` per fil
+(`upload_to_r2.py`, lest fra parquetens radgruppe-statistikk — metadata-only,
+målt 6–23 ms per 50–70 MB fil, hele manifestet 1,9 s). `latestAvailableDate()`
+bruker den, og faller kun tilbake på filnavn-utledningen for manifester fra før
+feltet fantes. Feltet er valgfritt i begge ender, så gammel/ny klient mot
+gammelt/nytt manifest virker i alle fire kombinasjoner.
+
+Siden `daysAgoFromLatest()` i `stats-adapter.ts` kaller samme funksjon, ble
+dashboard/topplister/kart riktig **uten endringer der** — derfor ble
+manifest-varianten valgt framfor å måle `MAX(date)` per side.
+
+Verifisert etter kjøring: manifestet på R2 har `maxDate` på alle 16 filer, og
+klienten leser `latestAvailableDate() = 2026-08-08` (ikke filnavn-anslaget
+2026-08-09). «Siste 7 dager» ankrer nå på 2. aug. → 2.–8. aug. = 7 hele dager.
+
+**Nattjobben kjørte 03:00, ikke 06:30 som `register_tasks.ps1` sa** — endret
+manuelt i Task Scheduler 24. juli uten at skriptet ble oppdatert, så repo og
+maskin hadde drevet fra hverandre. 03:00 er for tidlig: BigQuery har ofte ikke
+landet gårsdagen, og vaktbikkja avbryter. Observert: 03:00-kjøringer fikk
+32 000–70 000 rader, mens 11:21 og 23:01 fikk 1,3 mill.
+Skriptet setter nå **06:00 + RestartCount 3 / RestartInterval 2t**, så en for
+tidlig kjøring retter seg selv.
+> ⚠️ **Krever manuelt steg**: selve oppgaven må registreres på nytt fra en
+> ADMIN-PowerShell (`scripts/register_tasks.ps1`). Oppgaven bruker S4U-
+> prinsipal, så endring uten elevering gir «Ingen tilgang». Inntil det er
+> gjort kjører den fortsatt 03:00. Merk også at 06:00 er et anslag — tidligste
+> *bekreftet* vellykkede kjøring er 11:21; det er retry-en som gjør den robust.
+
+**8. august hentet inn** (kjørt manuelt 16:34–17:05): 867 365 rader fra BQ,
+830 819 skrevet, `day_type=saturday`, sanntidsdekning 96,5 %. Datagrunnlaget
+er nå 19. juni → 8. august uten hull. Kontrollert per dag mot R2:
+
+| 3. aug | 4. aug | 5. aug | 6. aug | 7. aug | 8. aug (lør) |
+|---|---|---|---|---|---|
+| 1 231 537 | 1 228 455 | 1 232 229 | 1 232 489 | 1 240 560 | 830 819 |
+
+(Lørdager ligger normalt på ~850 000 og søndager ~610 000 — de lave
+helgetallene er ekte, ikke hull.)
 
 ## Endringslogg — 2026-08-08 (2): tidsvindu-filteret koblet opp + dagtype-bug
 
