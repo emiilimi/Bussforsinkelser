@@ -25,11 +25,24 @@ const LABELS: Record<VehicleMode, string> = {
 };
 
 /**
- * Modes for which we have historic delay statistics in the DB.
- * Bus + coach (flybuss) come from Skyss SIRI ET.
- * Ferry routes are now also ingested (Skyss uses vehicleMode='ferry').
+ * Modes we actually have historic delay statistics for.
+ *
+ * Målt på R2 (uke 31–32 2026): bus 14,4 mill. rader, rail 150 793,
+ * ferry 98 741, tram 14 940 — altså har tog, båt og bybane ekte tall, bare
+ * langt færre enn buss. Settet sa tidligere {bus, coach, ferry} og skjulte
+ * dermed statistikk vi faktisk hadde.
+ *
+ * BEGGE båt-navnene må stå her: sanntidsfeeden (og parqueten) bruker `ferry`,
+ * mens Entur Journey Planner returnerer `water` for de samme rutene. Dette
+ * settet sammenliknes mot Enturs `leg.mode`, så uten `water` ble båt vist som
+ * «ingen data» selv når dataene fantes.
+ *
+ * `coach` beholdes fordi Entur bruker den for ekspressbuss; i våre egne data
+ * ligger de under `bus`.
  */
-export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>(["bus", "coach", "ferry"]);
+export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>([
+  "bus", "coach", "ferry", "water", "rail", "tram",
+]);
 
 export function modeLabel(mode: string | null | undefined): string {
   if (!mode) return LABELS.bus;

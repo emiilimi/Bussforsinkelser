@@ -994,12 +994,33 @@ export default function Methodology() {
               </p>
             </Gotcha>
 
-            <Gotcha title="Manglende transportmiddel betyr buss">
+            <Gotcha title="Transportmiddelet heter ikke det samme overalt">
               <p>
-                I feeden er <code>vehicleMode</code> ofte tom. Tom verdi tolkes som
-                buss, siden bare båt/ferje er eksplisitt merket hos Skyss. Vi har i
-                praksis forsinkelsesdata for buss og flybuss; trikk, bane, tog og båt
-                er forberedt, men har ingen observasjoner ennå.
+                Sanntidsfeeden og reiseplanleggeren bruker ulike ord om samme
+                ting. Båtruter kommer som <code>ferry</code> i sanntidsdataene,
+                men som <code>water</code> fra Entur Journey Planner. Matcher man
+                bare det ene, ser båt ut som «ingen data» selv om dataene finnes —
+                og det er nettopp båt vi har mest av utenom buss.
+              </p>
+              <p>
+                Er <code>vehicleMode</code> tom, tolkes den som buss. Det gjør at
+                ekspressbusser og lignende havner i buss-sekken framfor å få egen
+                merkelapp.
+              </p>
+            </Gotcha>
+
+            <Gotcha title="Hvor mye data finnes per transportmiddel">
+              <p>
+                Vi henter fra <strong>alle operatørene</strong> i SIRI ET-feeden —
+                23 av dem i skrivende stund, der Ruter er størst, ikke Skyss.
+                Fordelingen er likevel skjev: målt over to uker i august 2026 var
+                det ca. 14,4 millioner buss-observasjoner mot 151 000 tog,
+                99 000 båt og 15 000 bybane.
+              </p>
+              <p>
+                Tog, båt og bybane har altså ekte tall, men fra langt færre linjer
+                og avganger. Antall observasjoner står alltid ved siden av tallet —
+                det er den beste pekepinnen på hvor mye vekt du bør legge på det.
               </p>
             </Gotcha>
           </div>

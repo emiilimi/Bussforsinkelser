@@ -193,9 +193,37 @@ Lagres som kolonne på `journey_stop_daily`, `worst_days`, og som del av PK på 
 
 Backend filtrerer via `?dayType=weekday`, `?dayType=weekday,saturday`, eller `?dayType=all` (default = ingen filter) på `/api/line/:ref`, `/api/journey`, `/api/stop/:ref`, `/api/worst-days`. `getJourneyProfile()` faller tilbake til `journey_stop_daily` når filter er satt (siden `journey_stop_weekly` ikke har day_type). Frontend bruker det ikke ennå.
 
-## Multimodal (april 2026)
+## Multimodal (oppdatert 2026-08-09 mot faktiske data)
 
-`INCLUDED_MODES = {bus, coach, tram, metro, rail, water}` (definert både i `pipeline/ingest.py` og `server/storage.ts`). Bus-only-filtre er fjernet fra alle aggregeringer. `client/src/components/mode-icon.tsx` har `<ModeIcon>`-komponent og `MODES_WITH_DELAY_DATA = {bus, coach}` — Skyss SIRI ET feed dekker buss + flybuss; tram/metro/rail/water er forberedt men har ingen rader ennå.
+`INCLUDED_MODES = {bus, coach, tram, metro, rail, water}` (definert både i `pipeline/ingest.py` og `server/storage.ts`). Bus-only-filtre er fjernet fra alle aggregeringer. `client/src/components/mode-icon.tsx` har `<ModeIcon>` og `MODES_WITH_DELAY_DATA`.
+
+**Vi henter ALLE operatører, ikke bare Skyss.** Målt på R2 for uke 31–32 2026:
+23 operatør-prefikser, der RUT (5,0 mill. rader) er større enn SKY (1,9 mill.).
+Så ikke bruk Skyss som utgangspunkt når du beskriver datagrunnlaget.
+
+Faktisk `vehicle_mode`-fordeling samme periode:
+
+| mode | rader | linjer |
+|---|---|---|
+| `bus` | 14 422 117 | 1445 |
+| `rail` | 150 793 | 34 |
+| `ferry` | 98 741 | 141 |
+| `tram` | 14 940 | 1 |
+
+Altså: **tog, båt og trikk HAR observasjoner** — påstanden om at de «er
+forberedt men har ingen rader ennå» var feil og ble gjentatt i flere dokumenter.
+
+**Navnefelle — `ferry` vs `water`**: SIRI ET-feeden (og dermed vår parquet)
+bruker `ferry`, mens Entur Journey Planner returnerer `water` for de samme
+båtrutene. Sammenlikner du Entur-legg mot vår `MODES_WITH_DELAY_DATA` må
+BEGGE med, ellers ser båt ut som «ingen data» selv om dataene finnes.
+
+**`coach`**: finnes ikke som egen verdi i dataene våre (ekspressbusser ligger
+under `bus`), men Entur bruker `coach` i reiseforslag. `mode-icon.tsx` merker
+den «Flybuss» — misvisende, `coach` er ekspress-/langdistansebuss generelt.
+
+`vehicleMode = NULL` → `fillna("bus")` i `compute_delays()` (`ingest.py`, som
+`ingest_lite.py` gjenbruker). Det gjelder generelt, ikke bare Skyss.
 
 ---
 
@@ -222,7 +250,10 @@ Backend filtrerer via `?dayType=weekday`, `?dayType=weekday,saturday`, eller `?d
   SISTE ledd** (`stableSjId()` i `lib/trip-shared.ts`) — det bytter kun ved ekte
   ruteendring. Å matche på hele id-en gir ~1 dag og feiler stille. Se STATUS.md
   2026-07-23 for hvordan dette gjorde all overgangsstatistikk pool-basert.
-- `vehicleMode = NULL` → buss. Koden bruker `fillna("bus")`. Kun ferge er eksplisitt tagget.
+- `vehicleMode = NULL` → buss (`fillna("bus")`). Dette er GENERELL kode, ikke
+  Skyss-spesifikt. Se «Multimodal» over for faktisk mode-fordeling — påstanden
+  om at «kun ferge er eksplisitt tagget» stemte ikke: også `rail` og `tram`
+  kommer tagget.
 - `stopPointName` alltid NULL → navn fra `stop_coords` via BQ + GTFS
 - Ghost-linjer (1200, 3260) har numeriske Rutebanken-IDs → filtreres av `NSR:`-sjekken
 - Dwell time filtrert: [0, 600] sek (rejects negative + >10min)

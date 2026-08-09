@@ -17,8 +17,8 @@ import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { useLocation, useSearch } from "wouter";
 import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
-  ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship,
-  Accessibility, ArrowDownUp, ArrowUpDown, Plane, Calendar,
+  ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
+  Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
   Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
@@ -159,13 +159,20 @@ const MODE_LABELS: Record<string, string> = {
   scooter_rental: "Elsparkesykkel",
 };
 
+// Ikonene her skal stemme med components/mode-icon.tsx. Denne tabellen hadde
+// `coach: Plane`, så ekspressbusser fikk FLYSYMBOL i reiseforslagene mens
+// samme mode ble tegnet som buss ellers på siden. `coach` er ekspress-/
+// langdistansebuss (Entur bruker den også for flybuss) — den kjører på veien,
+// og skal ha buss-ikon. `ferry` er med fordi sanntidsdataene kaller båt det,
+// mens Entur sier `water`.
 const MODE_ICONS: Record<string, typeof Bus> = {
   bus: Bus,
-  tram: Train,
+  coach: Bus,
+  tram: TramFront,
+  metro: TramFront,
   rail: Train,
-  metro: Train,
   water: Ship,
-  coach: Plane,
+  ferry: Ship,
   foot: Footprints,
 };
 
