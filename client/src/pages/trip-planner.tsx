@@ -840,8 +840,30 @@ function roundedNow(): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+/**
+ * Dagens dato LOKALT.
+ *
+ * Brukte tidligere `toISOString().slice(0, 10)`, som er UTC: mellom midnatt og
+ * kl. 02 norsk sommertid ga det GÅRSDAGENS dato som standardverdi i
+ * datofeltet.
+ */
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
+ * Ligger valgt avreisetidspunkt bak oss?
+ *
+ * Brukes som «er dette gammelt heller enn bevisst valgt?»-test. Man planlegger
+ * ikke en reise bakover i tid, så et passert tidspunkt er praktisk talt alltid
+ * en verdi som har blitt stående — fra en gammel URL eller en fane som har
+ * ligget åpen. Et tidspunkt FRAM i tid røres aldri, så den som planlegger
+ * morgendagens reise beholder valget sitt.
+ */
+function isPastDeparture(date: string, time: string): boolean {
+  const t = new Date(`${date}T${time}:00`).getTime();
+  return Number.isFinite(t) && t < Date.now();
 }
 
 // ---------------------------------------------------------------------------
@@ -2654,6 +2676,55 @@ export default function TripPlanner() {
   const [departDate, setDepartDate] = useState(todayISO());
   const [departTime, setDepartTime] = useState(roundedNow());
   const [arriveBy, setArriveBy] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Frisk opp avreisetidspunktet når du kommer TILBAKE til siden
+  //
+  // Problemet: en fane som har ligget åpen siden i går (eller en gammel URL)
+  // beholder gamle dato/tid, og «Finn reise» søker da stille etter en reise
+  // som allerede har gått.
+  //
+  // Løsningen skal IKKE være en klokke som tikker mens du sitter og justerer
+  // søket — det ville flyttet tidspunktet under hendene på deg. Derfor kun to
+  // utløsere, begge «du kom nettopp tilbake»:
+  //   1. Siden monteres / URL gjenopprettes (håndtert i URL-effekten under).
+  //   2. Fanen/vinduet får fokus igjen etter å ha vært borte en stund.
+  // I tillegg kreves det at tidspunktet FAKTISK er passert. Har du satt en
+  // dato fram i tid, står den — uansett hvor lenge du var borte.
+  // ---------------------------------------------------------------------------
+  const departRef = useRef({ date: departDate, time: departTime });
+  departRef.current = { date: departDate, time: departTime };
+  useEffect(() => {
+    // Kort nok til at et raskt bytte til en annen fane ikke etterlater et
+    // passert tidspunkt, langt nok til at et blikk bort ikke rører noe.
+    const AWAY_MS = 60_000;
+    let awaySince: number | null = null;
+
+    const leaving = () => { if (awaySince == null) awaySince = Date.now(); };
+    const returning = () => {
+      const away = awaySince == null ? 0 : Date.now() - awaySince;
+      awaySince = null;
+      if (away < AWAY_MS) return;
+      const { date, time } = departRef.current;
+      if (!isPastDeparture(date, time)) return; // fram i tid = bevisst valg
+      setDepartDate(todayISO());
+      setDepartTime(roundedNow());
+    };
+
+    const onVisibility = () =>
+      document.visibilityState === "hidden" ? leaving() : returning();
+
+    // visibilitychange dekker fanebytte/minimering; blur/focus fanger i
+    // tillegg bytte til et annet program der fanen forblir «synlig».
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("blur", leaving);
+    window.addEventListener("focus", returning);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("blur", leaving);
+      window.removeEventListener("focus", returning);
+    };
+  }, []);
   const [walkSpeedKmh, setWalkSpeedKmh] = useState(5);
   // Probability-only filters (don't affect Entur routing):
   // - transferMarginMin: extra buffer the user wants on top of pure walk time (e.g. 5 min)
@@ -2964,8 +3035,13 @@ export default function TripPlanner() {
     const time = params.get("time");
     if (from) { setFromStop(from); setFromQuery(from.stopName); }
     if (to) { setToStop(to); setToQuery(to.stopName); }
-    if (date) setDepartDate(date);
-    if (time) setDepartTime(time);
+    // Dato/tid fra URL-en gjenopprettes KUN hvis tidspunktet ikke er passert.
+    // Sidemenyen husker den fulle URL-en per side (lib/nav-memory.ts), så
+    // «Reiseplanlegger»-lenken tar deg tilbake med gårsdagens dato i
+    // parameterne. Da er «nå» riktigere enn det som står der.
+    const restoredIsPast = date != null && isPastDeparture(date, time ?? departTime);
+    if (date && !restoredIsPast) setDepartDate(date);
+    if (time && !restoredIsPast) setDepartTime(time);
     if (params.get("arriveBy") === "1") setArriveBy(true);
     if (from && to) {
       // setState er async — vent til neste tick slik at fromStop/toStop
