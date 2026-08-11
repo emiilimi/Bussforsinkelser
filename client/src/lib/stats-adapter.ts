@@ -15,6 +15,7 @@ import {
   PARQUET_BASE, standaloneDuckQuery, ensureParquetFilesRegistered, latestAvailableDate,
   type DelayFamily,
 } from "@/hooks/use-parquet-query";
+import { computeDayType } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // Artefakt-typer
@@ -275,12 +276,59 @@ type CombinedDay = ReturnType<typeof combineDaily>;
  * ikke lenger fanger opp NOEN av dem. Referansen må derfor være bredere enn
  * vinduet som faktisk filtreres/vises.
  */
-function completenessThreshold(summary: Summary, operators: string[]): number | null {
+/**
+ * Terskler PER DAGTYPE, ikke én felles.
+ *
+ * En felles terskel sammenlikner søndag med ukedag, og søndagsrutene er
+ * legitimt mye tynnere enn hverdagsrutene. Målt for Skyss: median over alle
+ * dager 321 984 → terskel 160 992, mens ALLE sju søndagene lå på 128 816–
+ * 159 246. Resultatet var at hver eneste søndag ble kastet ut av
+ * rangeringene, med beskjed til brukeren om «åpenbart ufullstendig
+ * innhenting» — altså en påstand om datafeil der dataene var komplette.
+ *
+ * Nå måles hver dag mot medianen for SIN egen dagtype. Helligdager og 17. mai
+ * kjører søndagsruter, så de faller tilbake på søndagsmedianen når de har for
+ * få egne observasjoner til en egen median.
+ */
+type Thresholds = { byDayType: Map<string, number>; fallback: number | null };
+
+const DAY_TYPE_FALLBACK: Record<string, string> = { holiday: "sunday", may17: "sunday" };
+const MIN_DAYS_FOR_MEDIAN = 3;
+
+function medianOf(counts: number[]): number | null {
+  if (counts.length === 0) return null;
+  const sorted = [...counts].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+function completenessThreshold(summary: Summary, operators: string[]): Thresholds {
   const allRows = Array.from(dailyByDate(summary, operators).values()).map(combineDaily);
-  const counts = allRows.map((r) => r.totalJourneys).filter((n) => n > 0).sort((a, b) => a - b);
-  if (counts.length < 3) return null;
-  const median = counts[Math.floor(counts.length / 2)];
-  return median > 0 ? 0.5 * median : null;
+  const groups = new Map<string, number[]>();
+  const all: number[] = [];
+  for (const r of allRows) {
+    if (r.totalJourneys <= 0) continue;
+    all.push(r.totalJourneys);
+    const dt = computeDayType(r.date);
+    const list = groups.get(dt);
+    if (list) list.push(r.totalJourneys);
+    else groups.set(dt, [r.totalJourneys]);
+  }
+  const globalMedian = all.length >= MIN_DAYS_FOR_MEDIAN ? medianOf(all) : null;
+
+  const byDayType = new Map<string, number>();
+  for (const [dayType, counts] of Array.from(groups.entries())) {
+    let basis = counts.length >= MIN_DAYS_FOR_MEDIAN ? counts : null;
+    if (!basis) {
+      // For få egne dager (typisk helligdag) — lån fra en dagtype med samme
+      // ruteomfang før vi eventuelt faller tilbake på alle dager.
+      const fb = DAY_TYPE_FALLBACK[dayType];
+      const fbCounts = fb ? groups.get(fb) : undefined;
+      if (fbCounts && fbCounts.length >= MIN_DAYS_FOR_MEDIAN) basis = fbCounts;
+    }
+    const median = basis ? medianOf(basis) : null;
+    if (median != null && median > 0) byDayType.set(dayType, 0.5 * median);
+  }
+  return { byDayType, fallback: globalMedian != null && globalMedian > 0 ? 0.5 * globalMedian : null };
 }
 
 /**
@@ -297,12 +345,14 @@ function completenessThreshold(summary: Summary, operators: string[]): number | 
  * nøyaktig hvilke dager som ble utelatt (i stedet for å skjule det stille —
  * se prinsippet i components/data-quality-flag.tsx).
  */
-function partitionByCompleteness(rows: CombinedDay[], threshold: number | null): { complete: CombinedDay[]; excluded: CombinedDay[] } {
-  if (threshold == null) return { complete: rows, excluded: [] };
+function partitionByCompleteness(rows: CombinedDay[], thresholds: Thresholds): { complete: CombinedDay[]; excluded: CombinedDay[] } {
   const complete: CombinedDay[] = [];
   const excluded: CombinedDay[] = [];
   for (const r of rows) {
-    (r.totalJourneys >= threshold ? complete : excluded).push(r);
+    const limit = thresholds.byDayType.get(computeDayType(r.date)) ?? thresholds.fallback;
+    // Ingen brukbar referanse (for lite historikk) → behold dagen. Å utelate
+    // den ville vært å påstå datafeil vi ikke har grunnlag for.
+    (limit == null || r.totalJourneys >= limit ? complete : excluded).push(r);
   }
   return { complete, excluded };
 }

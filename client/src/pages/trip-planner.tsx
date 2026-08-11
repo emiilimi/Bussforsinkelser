@@ -3143,13 +3143,29 @@ export default function TripPlanner() {
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Tid</Label>
-                <Input
-                  type="time"
-                  value={departTime}
-                  onChange={(e) => setDepartTime(e.target.value)}
-                  className="h-9 text-sm"
-                  step="300"
-                />
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="time"
+                    value={departTime}
+                    onChange={(e) => setDepartTime(e.target.value)}
+                    className="h-9 text-sm min-w-0 flex-1"
+                    step="300"
+                  />
+                  {/* «Nå» hopper tilbake til dagens dato og klokka nå — nyttig
+                      når du har bladd fram i tid og vil tilbake til start. */}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-9 flex-shrink-0 px-2.5"
+                    title="Sett dato og tid til nå"
+                    onClick={() => {
+                      setDepartDate(todayISO());
+                      setDepartTime(roundedNow());
+                    }}
+                  >
+                    Nå
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Retning</Label>
@@ -3159,7 +3175,9 @@ export default function TripPlanner() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="depart">Avgang</SelectItem>
-                    <SelectItem value="arrive">Ankomst</SelectItem>
+                    {/* «Ankomst før»: tidspunktet er en frist du skal rekke,
+                        ikke når du ønsker å ankomme. */}
+                    <SelectItem value="arrive">Ankomst før</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
