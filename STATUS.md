@@ -3,7 +3,43 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-09
+**Sist oppdatert**: 2026-08-12
+
+## Endringslogg — 2026-08-12: to nattjobb-feil på rad, og en frist som var i ferd med å ryke
+
+Nattjobben feilet to ganger 12. august, av to ULIKE årsaker. 11. august manglet
+derfor på R2 til den ble hentet inn manuelt.
+
+**1. Hang i BigQuery-hentingen (08:04-kjøringen).** `ingest_lite.py` blokkerte i
+en socket-lesing uten å motta en eneste rad, og ble drept av 90-minutters
+vakten. Wall-clock var 178 min for en 90-minutters frist — pollingløkka kan
+ikke telle mens maskinen sover, så PC-en sov nesten sikkert midt i hentingen og
+HTTPS-forbindelsen døde stille. Ingen kodefeil; miljø.
+
+**2. `aggregate_stats.py` drept på 15-minutters fristen (11:15-kjøringen).**
+Steget hang IKKE — det holdt på (`stats_stops_map.json` ble ferdig 11:54) — men
+det har vokst forbi fristen. Målt over åtte kjøringer: 454, 631, 532, 775, 794,
+799, 818 og 842 sekunder. Steget har altså ligget rundt 800 s i ukevis, under
+ett minutt fra 900 s-grensa hver eneste natt, mens kommentaren i skriptet påsto
+«aggregate ~1 min». Fristen er hevet til 45 min, og alle fire tallene i
+kommentaren er erstattet med målte verdier.
+
+**Innhenting**: ingest + export lyktes i kjøring 2 og lå allerede på disk, så
+bare `aggregate_stats.py` + `upload_to_r2.py --prune` ble kjørt på nytt (ingen
+ny BigQuery-henting). Verifisert etterpå: R2 `maxDate = 2026-08-11`, 18 filer
+alle med maxDate, og ingen hull:
+
+| 8. aug (lør) | 9. aug (søn) | 10. aug | 11. aug |
+|---|---|---|---|
+| 830 819 | 603 765 | 1 436 473 | 1 427 971 |
+
+> ⚠️ **RestartCount/RestartInterval på Task Scheduler-oppgaven redder ikke
+> disse feilene.** Oppgaven avslutter med exit 1, og restart-on-failure gjelder
+> uventet terminering — ikke exitkode. `NextRun` hoppet rett til neste døgn.
+> Ekte selvreparasjon må ligge INNE i `nightly_reise.ps1` (nytt forsøk på
+> steget etter en pause). Ikke gjort ennå.
+
+## Endringslogg — 2026-08-09
 
 ## Endringslogg — 2026-08-09: «Siste N dager» ankret på feil dato
 
