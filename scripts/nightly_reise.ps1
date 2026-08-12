@@ -87,11 +87,21 @@ Start-Transcript -Path ("logs/reise-{0}.log" -f (Get-Date -Format "yyyy-MM-dd"))
 try {
     Write-Host ("=== Reise nightly: {0} ===" -f (Get-Date -Format "yyyy-MM-dd HH:mm")) -ForegroundColor Cyan
 
-    # Frister med god margin over observert varighet (ingest ~15-35 min normalt,
-    # export ~5 min, aggregate ~1 min, upload ~1-2 min avhengig av nett).
+    # Frister med god margin over observert varighet. Tallene under er malt fra
+    # loggene (august 2026), ikke gjettet:
+    #   ingest    ~10-25 min   (BigQuery-henting + skriving)
+    #   export    ~2-5 min
+    #   aggregate ~13-14 min   (454-842 s malt over atte kjoringer)
+    #   upload    ~2-3 min
+    #
+    # 12. august 2026: aggregate-steget ble DREPT pa 15 min. Det hang ikke - det
+    # holdt pa (stats_stops_map.json ble ferdig 11:54), men steget hadde vokst
+    # forbi fristen. Kommentaren her sa "aggregate ~1 min", som aldri stemte med
+    # loggene: steget har ligget rundt 800 s i ukevis, altsa under ett minutt fra
+    # a ryke hver eneste natt. Datasettet vokser, sa fristen ma ha ekte slingring.
     Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90
     Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 15
+    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 45
     Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20
 
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
