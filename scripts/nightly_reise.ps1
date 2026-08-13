@@ -35,7 +35,15 @@ $env:R2_ENV_FILE   = "r2.reise.env"
 # $env:JSD_RETENTION_DAYS = "14"    # default; hev midlertidig ved behov
 # $env:PARQUET_KEEP_WEEKS = "14"    # default; antall uker i manifest/bucket
 
-function Invoke-PythonStep {
+# Tidsbudsjett for HELE kjoringen, inkludert nye forsok. Task Scheduler dreper
+# oppgaven ved ExecutionTimeLimit (se register_tasks.ps1); starter vi et nytt
+# forsok rett for den grensa, blir vi drept midt i steget i stedet for a
+# avslutte ryddig med en logg som forklarer hva som skjedde. Derfor startes et
+# nytt forsok bare hvis BADE ventetiden og hele neste forsok far plass.
+$script:RunStarted = Get-Date
+$script:RetryBudgetMinutes = 300
+
+function Invoke-PythonStepOnce {
     param(
         [string]$ScriptPath,
         [string[]]$ExtraArgs = @(),
@@ -81,6 +89,64 @@ function Invoke-PythonStep {
     }
 }
 
+<#
+.SYNOPSIS
+Kjor et pipeline-steg, med nye forsok ved feil.
+
+.DESCRIPTION
+Bakgrunn (12. august 2026): nattjobben feilet to ganger samme dogn - forst
+hang ingest_lite.py i en socket-lesing (PC-en sov trolig midt i
+BigQuery-hentingen), deretter ble aggregate_stats.py drept pa en for kort
+frist. Begge ville blitt reddet av et nytt forsok; begge krevde i stedet
+manuell opprydding.
+
+RestartCount/RestartInterval pa selve Task Scheduler-oppgaven hjelper IKKE
+her: den gjelder uventet terminering, ikke et skript som avslutter med
+exitkode 1 slik dette gjor. Derfor ma gjentakelsen ligge her, i skriptet.
+
+Bade "drept pa frist" og "exit != 0" regnes som feil verdt a prove pa nytt.
+Det dekker de tre feiltypene vi faktisk har sett: hang, for kort frist, og
+vaktbikkja i ingest_lite.py som avbryter fordi BigQuery ikke har landet
+gardagens data enda (der hjelper det a vente og prove igjen).
+#>
+function Invoke-PythonStep {
+    param(
+        [string]$ScriptPath,
+        [string[]]$ExtraArgs = @(),
+        [int]$TimeoutMinutes,
+        [int]$Retries = 0,
+        [int]$RetryDelayMinutes = 10
+    )
+    $attempt = 0
+    while ($true) {
+        try {
+            Invoke-PythonStepOnce -ScriptPath $ScriptPath -ExtraArgs $ExtraArgs -TimeoutMinutes $TimeoutMinutes
+            if ($attempt -gt 0) {
+                Write-Host ("  [retry] {0} gikk gjennom pa forsok {1}." -f $ScriptPath, ($attempt + 1)) -ForegroundColor Green
+            }
+            return
+        }
+        catch {
+            $attempt++
+            $message = $_.Exception.Message
+            if ($attempt -gt $Retries) { throw }
+
+            # Ma bade ventetiden OG hele neste forsok fa plass i budsjettet.
+            $elapsed = ((Get-Date) - $script:RunStarted).TotalMinutes
+            $needed = $RetryDelayMinutes + $TimeoutMinutes
+            if (($elapsed + $needed) -ge $script:RetryBudgetMinutes) {
+                throw ("{0} feilet, og det er ikke rom for et nytt forsok innenfor tidsbudsjettet ({1} min brukt av {2}). Opprinnelig feil: {3}" -f `
+                    $ScriptPath, [int]$elapsed, $script:RetryBudgetMinutes, $message)
+            }
+
+            Write-Host ("  [retry] {0} feilet (forsok {1} av {2}): {3}" -f `
+                $ScriptPath, $attempt, ($Retries + 1), $message) -ForegroundColor Yellow
+            Write-Host ("  [retry] Venter {0} min for nytt forsok ..." -f $RetryDelayMinutes) -ForegroundColor Yellow
+            Start-Sleep -Seconds ($RetryDelayMinutes * 60)
+        }
+    }
+}
+
 New-Item -ItemType Directory -Force -Path "logs" | Out-Null
 Start-Transcript -Path ("logs/reise-{0}.log" -f (Get-Date -Format "yyyy-MM-dd")) -Append
 
@@ -99,10 +165,15 @@ try {
     # forbi fristen. Kommentaren her sa "aggregate ~1 min", som aldri stemte med
     # loggene: steget har ligget rundt 800 s i ukevis, altsa under ett minutt fra
     # a ryke hver eneste natt. Datasettet vokser, sa fristen ma ha ekte slingring.
-    Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90
-    Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 45
-    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20
+    # Ingest far lengst ventetid: nar den feiler er det som regel enten fordi
+    # BigQuery ikke har landet gardagens data enda (da hjelper det a vente),
+    # eller fordi forbindelsen dode mens PC-en sov (da hjelper det a prove pa
+    # nytt). De tre siste stegene feiler stort sett forbigaende, sa der holder
+    # det med ett raskt nytt forsok.
+    Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90 -Retries 2 -RetryDelayMinutes 20
+    Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
+    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 45 -Retries 1 -RetryDelayMinutes 5
+    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20 -Retries 2 -RetryDelayMinutes 5
 
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }

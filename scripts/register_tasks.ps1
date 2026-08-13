@@ -46,9 +46,19 @@
 $ErrorActionPreference = "Stop"
 $repo = Split-Path $PSScriptRoot -Parent
 
+# ExecutionTimeLimit 6t (var 3t): nightly_reise.ps1 gjor na nye forsok selv ved
+# feil, med et internt tidsbudsjett pa 300 min. Blir oppgavens grense staende pa
+# 3 timer, blir kjoringen drept MIDT i et nytt forsok i stedet for a avslutte
+# ryddig med en logg som forklarer hva som gikk galt. En normal kjoring tar
+# ~45 min - grensa er en sikkerhetsventil, ikke en forventning.
+#
+# MERK: RestartCount/RestartInterval under redder IKKE en kjoring som avslutter
+# med exitkode 1 (restart-on-failure gjelder uventet terminering). Det var
+# derfor gjentakelsen matte inn i selve skriptet. Innstillingene beholdes for
+# tilfellene de faktisk dekker (prosessen doer uventet, PC-en slas av midt i).
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
-    -ExecutionTimeLimit (New-TimeSpan -Hours 3) `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 6) `
     -MultipleInstances IgnoreNew `
     -DontStopIfGoingOnBatteries `
     -AllowStartIfOnBatteries `
