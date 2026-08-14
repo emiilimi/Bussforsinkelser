@@ -293,6 +293,25 @@ export default function JourneyDetails() {
     queryKey: [`/api/lines/all${opStr ? `?${opStr}` : ""}`],
   });
 
+  // Bytter du operatør, hører den analyserte linja plutselig til en annen
+  // operatør enn den du ser på. Uten dette ble HELE analysen stående: valgte
+  // du Avinor mens linje 20 var analysert, viste nedtrekket en flylinje og
+  // overskriften «Avinor (fly)», mens tallene og retningsknappene fortsatt
+  // var linje 20 sine (Storavatnet ↔ Nesttun). Ingenting sa fra.
+  //
+  // Vi tømmer bare når lista faktisk er lastet og linja ikke finnes i den —
+  // ellers ville et tomt mellomresultat under lasting nullstilt et gyldig valg.
+  useEffect(() => {
+    if (!fetchedLine || allLines.length === 0) return;
+    if (allLines.some((l) => l.lineRef === fetchedLine)) return;
+    setFetchedLine("");
+    setSelectedLine("");
+    setSelectedJourney(null);
+    setDirection("all");
+    setStopProfileDir("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allLines, fetchedLine]);
+
   const lineStatsUrl = fetchedLine
     ? `/api/line/${encodeURIComponent(fetchedLine)}?${wq}${direction !== "all" ? `&direction=${direction}` : ""}`
     : null;

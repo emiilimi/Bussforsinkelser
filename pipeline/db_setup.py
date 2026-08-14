@@ -16,10 +16,10 @@ DB_PATH = os.environ.get(
 
 SCHEMA = """
 -- One row per operator per vehicle mode per calendar date (multimodal: bus, coach,
--- tram, metro, rail, water — all SIRI ET modes with realtime data).
+-- tram, metro, rail, water, ferry, air — all SIRI ET modes with realtime data).
 -- operator: e.g. 'SKY', 'RUT', 'ATB' — allows multi-region support.
--- vehicle_mode: 'bus', 'coach', 'tram', 'metro', 'rail', 'water' — enables
---   per-modus dashboard cards and aggregation across all modes.
+-- vehicle_mode: 'bus', 'coach', 'tram', 'metro', 'rail', 'water', 'ferry', 'air' —
+--   enables per-modus dashboard cards and aggregation across all modes.
 CREATE TABLE IF NOT EXISTS daily_summary (
     date                TEXT    NOT NULL,
     operator            TEXT    NOT NULL DEFAULT 'SKY',

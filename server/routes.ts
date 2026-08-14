@@ -62,7 +62,7 @@ function parseOperator(raw: unknown, fallback = "SKY"): string {
  */
 const VALID_OPERATORS = new Set([
   "SKY", "MOR", "INN", "OST", "RUT", "KOL", "VYG", "TRO", "BRA", "FIN",
-  "NOR", "AKT", "ATB", "BNR", "NBU", "FLI", "FLT", "GOA", "VOT",
+  "NOR", "AKT", "ATB", "BNR", "NBU", "FLI", "FLT", "GOA", "VOT", "AVI", "BFO", "TEL",
 ]);
 
 /**

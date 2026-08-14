@@ -46,6 +46,29 @@ Ny region `avi → AVI` (fly), som ellers ikke hadde vært synlig noe sted.
 Verifisert i nettleser: med region `vot` viser Topplister nå KUN TEL- og
 VKT-linjer (ingen RUT/SKY/KOL lekker inn) — lista var tom før.
 
+**Linjeanalysen viste forrige operatørs linje etter operatørbytte.** Meldt inn
+som «hvorfor står det Nesttun–Storavatnet på en flylinje, og hvorfor dukker
+20-bussen opp?». Årsaken var ikke flydataene: `fetchedLine` (linja som faktisk
+er analysert) settes bare av «Analyser»-knappen, og ingenting nullstilte den
+ved operatørbytte. Nedtrekket og overskriften fulgte den nye operatøren, mens
+tall, retningsknapper og grafer under fortsatt tilhørte den forrige linja.
+
+Bekreftet ved å måle mot dataene i stedet for å gjette: skjermbildets
+«1,8 min / 619 avganger» er EKSAKT `SKY:Line:20` (flylinja `AVI:Line:WF_OSL-BGO`
+har −0,7 min / 12 avganger). Selve journeys-spørringen for flylinja returnerer
+korrekt «Bergen lufthavn → Oslo lufthavn».
+
+Fikset i `journey-details.tsx`: analysen tømmes når den valgte linja ikke
+finnes i operatørens linjeliste. Tømmer kun når lista faktisk er lastet, så et
+tomt mellomresultat under lasting ikke nullstiller et gyldig valg.
+
+> 📌 **Kjent, ikke fikset — fly har bare én retning.** `directionRef` er NULL
+> for AVI og fylles med "0", så begge veier havner under samme retning: linja
+> `WF_OSL-BGO` inneholder både «Bergen lufthavn → Oslo lufthavn» og motsatt.
+> Retningsvelgeren blir derfor meningsløs for fly, og retningsdelte tall
+> blander de to. Krever et produktvalg: utlede retning fra første/siste stopp,
+> eller skjule retningsvelgeren for fly.
+
 > ⚠️ **Lærdom om etterfylling**: parquet og aggregatene oppdateres av HVER SIN
 > jobb. Etter en backfill må `aggregate_stats.py` kjøres på nytt, ellers viser
 > Linjeanalyse/kart de nye radene mens Oversikt/Topplister fortsatt er tomme —
