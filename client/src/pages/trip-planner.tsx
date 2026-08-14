@@ -34,6 +34,7 @@ import { formatWeekdayDateNO } from "@/lib/date-utils";
 import { PlanDelayChart } from "@/components/plan-delay-chart";
 import { ServiceJourneyDetail } from "@/components/service-journey-detail";
 import { TripRouteMap } from "@/components/trip-route-map";
+import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
 import {
   getRecentStops, addRecentStop, getFavoriteStops, toggleFavorite,
   getCurrentPositionAsStop,
@@ -181,11 +182,6 @@ const MODE_ICONS: Record<string, typeof Bus> = {
 // sikkerhetsmargin for å komme seg av bussen og i gang.
 const SPRINT_MARGIN_SEC = 10;
 const SPRINT_MARGIN_MIN = SPRINT_MARGIN_SEC / 60;
-
-// Modes for which the pipeline currently produces delay statistics.
-// 'coach' (flybuss) and 'ferry' share the Skyss SIRI ET feed with regular buses.
-// ('ferry' is the vehicleMode value Skyss uses — NOT 'water'.)
-const MODES_WITH_DELAY_DATA = new Set(["bus", "coach", "ferry"]);
 
 // ---------------------------------------------------------------------------
 // DuckDB helpers
@@ -3626,7 +3622,7 @@ export default function TripPlanner() {
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-start gap-2">
                 <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
-                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid − planlagt tid. Buss og flybuss fra operatører med SIRI ET-feed har forsinkelsesdata. Andre transportmidler vises uten statistikk.</p>
+                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid − planlagt tid. Buss, flybuss, tog, båt, bybane og fly har forsinkelsesdata. T-bane vises uten statistikk.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />

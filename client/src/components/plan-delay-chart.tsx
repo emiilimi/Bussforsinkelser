@@ -11,8 +11,7 @@ import {
   CartesianGrid, Tooltip, ReferenceLine,
 } from "recharts";
 import { legStops, type TripPattern, type DuckDelayRow } from "@/lib/trip-shared";
-
-const MODES_WITH_DELAY_DATA = new Set(["bus", "coach", "ferry"]);
+import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
 
 type ChartPoint = {
   idx: number;

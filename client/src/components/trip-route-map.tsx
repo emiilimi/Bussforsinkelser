@@ -23,8 +23,7 @@ import "leaflet/dist/leaflet.css";
 import { cn } from "@/lib/utils";
 import { decodePolyline, type LatLng } from "@/lib/decode-polyline";
 import { legStops, type TripPattern, type DuckDelayRow } from "@/lib/trip-shared";
-
-const MODES_WITH_DELAY_DATA = new Set(["bus", "coach", "ferry"]);
+import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
 
 // Nøytral farge per transportmodus (brukt når vi mangler forsinkelsesdata).
 const MODE_COLORS: Record<string, string> = {

@@ -49,7 +49,9 @@ const LABELS: Record<VehicleMode, string> = {
  * `coach` beholdes fordi Entur bruker den for ekspressbuss; i våre egne data
  * ligger de under `bus`.
  */
-export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>([
+// Typed as ReadonlySet<string> (not VehicleMode) because callers compare
+// against Entur's leg.mode, which is a free-form string, not our own enum.
+export const MODES_WITH_DELAY_DATA: ReadonlySet<string> = new Set<VehicleMode>([
   "bus", "coach", "ferry", "water", "rail", "tram", "air",
 ]);
 
