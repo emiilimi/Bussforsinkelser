@@ -37,10 +37,16 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 
+# Vår mode-verdi for fly. SIRI-standarden (og Enturs Journey Planner) bruker
+# "air"; vi lagrer "airplane". Klienten må derfor kjenne BEGGE når den
+# sammenlikner Entur-legg mot våre data — samme felle som ferry/water, se
+# components/mode-icon.tsx.
+AIR_MODE = "airplane"
+
 # Vehicle modes included in all aggregations. Anything outside this set is
 # dropped at the end of compute_delays(). 'coach' = flybuss / langdistansebuss,
 # kept separate from 'bus' for the reiseplanlegger filter.
-INCLUDED_MODES = {"bus", "coach", "tram", "metro", "rail", "water", "ferry"}
+INCLUDED_MODES = {"bus", "coach", "tram", "metro", "rail", "water", "ferry", AIR_MODE}
 
 # IMPORTANT: verify exact table path in the Entur data catalog at
 # https://data.entur.no/domain/public-transport-data/product/realtime_siri_et
@@ -56,9 +62,13 @@ DB_PATH = os.environ.get(
 
 # Comma-separated operator codes; can be overridden via --operator CLI flag or BQ_OPERATOR env var.
 # Default: all known operators.
+# dataSource-koder vi henter. AVI = Avinor (fly) — lagt til 2026-08-14.
+# Flydataene har ligget i samme SIRI ET-feed hele tiden, men falt utenfor denne
+# lista og ble derfor kastet. Målt 2026-08-11: 1 134 rader, 511 avganger,
+# 46 flyplasser — forsvinnende lite mot ~1,5 mill. bakkerader per dag.
 _ALL_OPERATORS = (
     "SKY,MOR,INN,OST,RUT,KOL,VYG,TRO,BRA,FIN,NOR,"
-    "AKT,ATB,BNR,NBU,FLI,FLT,GOA,VOT"
+    "AKT,ATB,BNR,NBU,FLI,FLT,GOA,VOT,AVI"
 )
 OPERATORS: list[str] = [
     op.strip() for op in os.environ.get("BQ_OPERATOR", _ALL_OPERATORS).split(",") if op.strip()
@@ -160,11 +170,19 @@ def compute_delays(df: pd.DataFrame) -> pd.DataFrame:
         .dt.tz_convert(OSLO_TZ)
         .dt.hour
     )
-    # Normalise vehicle mode: fill nulls with "bus", then lowercase.
-    # Skyss does NOT populate vehicleMode for bus trips in SIRI ET — NULL
-    # means bus for this operator. Only ferry (and occasionally other modes)
-    # are explicitly tagged. Ghost lines with legacy numeric stop refs are
-    # filtered below by the NSR: check, so fillna("bus") is safe here.
+    # Normalise vehicle mode.
+    #
+    # NULL betyr IKKE det samme for alle kilder, så rekkefølgen her er viktig:
+    #   - AVI (Avinor) sender ALDRI vehicleMode, men alle radene er fly.
+    #   - De fleste bakkeoperatørene lar også feltet stå tomt, og der betyr
+    #     tomt buss. Målt 2026-08-11: RUT 460 878 og SKY 228 939 tomme
+    #     bussrader, mot AVI sine 1 134 flyrader.
+    #
+    # Fly må derfor settes FØR den generelle fillna("bus"). En generell
+    # fillna("airplane") ville stemplet over en million bussrader per dag som
+    # fly — dataSource er det eneste som skiller dem.
+    is_air = df["dataSource"].astype(str).str.upper() == "AVI"
+    df.loc[is_air, "vehicleMode"] = AIR_MODE
     df["vehicleMode"] = df["vehicleMode"].fillna("bus").str.lower().str.strip()
     # Drop modes outside the whitelist (taxi, air, etc.)
     before_mode = len(df)

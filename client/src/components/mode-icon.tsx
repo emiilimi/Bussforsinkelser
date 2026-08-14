@@ -1,8 +1,13 @@
 import { Bus, TramFront, Train, Ship, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 'ferry' = Skyss SIRI ET vehicleMode for boat routes (not NeTEx 'water').
-export type VehicleMode = "bus" | "coach" | "tram" | "metro" | "rail" | "water" | "ferry";
+// To navnepar der sanntidsfeeden og Entur Journey Planner sier ULIKE ting om
+// samme transportmiddel — begge må finnes her, ellers ser det ut som «ingen
+// data» selv når dataene er der:
+//   båt: feeden sier 'ferry', Entur sier 'water'
+//   fly: vi lagrer 'airplane' (AVI/Avinor), Entur/SIRI sier 'air'
+export type VehicleMode =
+  | "bus" | "coach" | "tram" | "metro" | "rail" | "water" | "ferry" | "airplane" | "air";
 
 const ICONS: Record<VehicleMode, typeof Bus> = {
   bus: Bus,
@@ -12,6 +17,8 @@ const ICONS: Record<VehicleMode, typeof Bus> = {
   rail: Train,
   water: Ship,
   ferry: Ship,
+  airplane: Plane,
+  air: Plane,
 };
 
 const LABELS: Record<VehicleMode, string> = {
@@ -22,6 +29,8 @@ const LABELS: Record<VehicleMode, string> = {
   rail: "Tog",
   water: "Båt",
   ferry: "Ferje",
+  airplane: "Fly",
+  air: "Fly",
 };
 
 /**
@@ -41,7 +50,7 @@ const LABELS: Record<VehicleMode, string> = {
  * ligger de under `bus`.
  */
 export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>([
-  "bus", "coach", "ferry", "water", "rail", "tram",
+  "bus", "coach", "ferry", "water", "rail", "tram", "airplane", "air",
 ]);
 
 export function modeLabel(mode: string | null | undefined): string {
