@@ -23,10 +23,9 @@ export const db = drizzle(sqlite, { schema });
 // distinct from 'bus' so the trip planner can filter the two separately.
 // 'ferry' is the actual vehicleMode value Skyss SIRI ET uses for boat routes
 // (not 'water', which is the NeTEx/Entur transport mode name).
-// "airplane" er VÅR verdi for fly (AVI/Avinor). SIRI og Enturs Journey Planner
-// bruker "air" — begge må med der Entur-data sammenliknes med våre, jf.
-// ferry/water-fella i client/src/components/mode-icon.tsx.
-export const INCLUDED_MODES = ["bus", "coach", "tram", "metro", "rail", "water", "ferry", "airplane"] as const;
+// "air" = fly (AVI/Avinor). Samme verdi som SIRI-standarden og Enturs Journey
+// Planner bruker, så den slipper alias-håndteringen ferry/water trenger.
+export const INCLUDED_MODES = ["bus", "coach", "tram", "metro", "rail", "water", "ferry", "air"] as const;
 export type VehicleMode = (typeof INCLUDED_MODES)[number];
 
 // Day-type filter values used by the backend. 'all' (or undefined) = no filter.

@@ -1,13 +1,15 @@
 import { Bus, TramFront, Train, Ship, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// To navnepar der sanntidsfeeden og Entur Journey Planner sier ULIKE ting om
-// samme transportmiddel — begge må finnes her, ellers ser det ut som «ingen
-// data» selv når dataene er der:
-//   båt: feeden sier 'ferry', Entur sier 'water'
-//   fly: vi lagrer 'airplane' (AVI/Avinor), Entur/SIRI sier 'air'
+// Båt er det ENE tilfellet der sanntidsfeeden og Entur Journey Planner sier
+// ulike ting om samme transportmiddel: feeden sier 'ferry', Entur sier
+// 'water'. Begge må finnes her, ellers ser båt ut som «ingen data» selv når
+// dataene er der.
+//
+// Fly bruker SIRI-standardens 'air' i BEGGE ender (se AIR_MODE i
+// pipeline/ingest.py), nettopp for å slippe et alias-par til.
 export type VehicleMode =
-  | "bus" | "coach" | "tram" | "metro" | "rail" | "water" | "ferry" | "airplane" | "air";
+  | "bus" | "coach" | "tram" | "metro" | "rail" | "water" | "ferry" | "air";
 
 const ICONS: Record<VehicleMode, typeof Bus> = {
   bus: Bus,
@@ -17,7 +19,6 @@ const ICONS: Record<VehicleMode, typeof Bus> = {
   rail: Train,
   water: Ship,
   ferry: Ship,
-  airplane: Plane,
   air: Plane,
 };
 
@@ -29,7 +30,6 @@ const LABELS: Record<VehicleMode, string> = {
   rail: "Tog",
   water: "Båt",
   ferry: "Ferje",
-  airplane: "Fly",
   air: "Fly",
 };
 
@@ -50,7 +50,7 @@ const LABELS: Record<VehicleMode, string> = {
  * ligger de under `bus`.
  */
 export const MODES_WITH_DELAY_DATA: ReadonlySet<VehicleMode> = new Set<VehicleMode>([
-  "bus", "coach", "ferry", "water", "rail", "tram", "airplane", "air",
+  "bus", "coach", "ferry", "water", "rail", "tram", "air",
 ]);
 
 export function modeLabel(mode: string | null | undefined): string {

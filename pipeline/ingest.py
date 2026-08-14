@@ -37,11 +37,11 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 
-# Vår mode-verdi for fly. SIRI-standarden (og Enturs Journey Planner) bruker
-# "air"; vi lagrer "airplane". Klienten må derfor kjenne BEGGE når den
-# sammenlikner Entur-legg mot våre data — samme felle som ferry/water, se
-# components/mode-icon.tsx.
-AIR_MODE = "airplane"
+# Mode-verdi for fly. Vi bruker SIRI-standardens egen verdi, "air", som også
+# er den Enturs Journey Planner returnerer. Dermed slipper vi et nytt
+# ferry/water-tilfelle der samme transportmiddel heter ulike ting i våre data
+# og hos Entur, og legg kan sammenliknes direkte uten alias.
+AIR_MODE = "air"
 
 # Vehicle modes included in all aggregations. Anything outside this set is
 # dropped at the end of compute_delays(). 'coach' = flybuss / langdistansebuss,
@@ -62,13 +62,25 @@ DB_PATH = os.environ.get(
 
 # Comma-separated operator codes; can be overridden via --operator CLI flag or BQ_OPERATOR env var.
 # Default: all known operators.
-# dataSource-koder vi henter. AVI = Avinor (fly) — lagt til 2026-08-14.
-# Flydataene har ligget i samme SIRI ET-feed hele tiden, men falt utenfor denne
-# lista og ble derfor kastet. Målt 2026-08-11: 1 134 rader, 511 avganger,
-# 46 flyplasser — forsvinnende lite mot ~1,5 mill. bakkerader per dag.
+# dataSource-koder vi henter — nå ALLE som faktisk sender data i feeden.
+#
+# Kartlagt mot BigQuery for 31. juli–13. august 2026: 22 ulike dataSource-verdier
+# finnes, og lista under dekker alle. Lagt til 2026-08-14: AVI (Avinor/fly),
+# BFO og TEL (to små fergefeeder som sender hver eneste dag, men falt utenfor).
+#
+# MERK forskjellen på dataSource og linje-prefiks — de er ULIKE navnerom, og
+# det er lett å tro at noe mangler:
+#   dataSource   = hvem som PUBLISERER feeden   (f.eks. VOT)
+#   lineRef-prefiks = linjens myndighet          (f.eks. VKT, TEL)
+# VKTs 681 848 rader kommer via dataSource VOT, SJN/SJV/TM via BNR, BOR via
+# OST. De har aldri manglet, selv om koden deres ikke står her.
+#
+# Enturs operatørtabell (developer.entur.org/pages-real-time-intro) lister i
+# tillegg GJB, NSB, SOF, VYB og VYX. Ingen av dem har rader i feeden i det hele
+# tatt i perioden over — konsolidert inn i andre kodeverk eller sovende.
 _ALL_OPERATORS = (
     "SKY,MOR,INN,OST,RUT,KOL,VYG,TRO,BRA,FIN,NOR,"
-    "AKT,ATB,BNR,NBU,FLI,FLT,GOA,VOT,AVI"
+    "AKT,ATB,BNR,NBU,FLI,FLT,GOA,VOT,AVI,BFO,TEL"
 )
 OPERATORS: list[str] = [
     op.strip() for op in os.environ.get("BQ_OPERATOR", _ALL_OPERATORS).split(",") if op.strip()
@@ -178,9 +190,9 @@ def compute_delays(df: pd.DataFrame) -> pd.DataFrame:
     #     tomt buss. Målt 2026-08-11: RUT 460 878 og SKY 228 939 tomme
     #     bussrader, mot AVI sine 1 134 flyrader.
     #
-    # Fly må derfor settes FØR den generelle fillna("bus"). En generell
-    # fillna("airplane") ville stemplet over en million bussrader per dag som
-    # fly — dataSource er det eneste som skiller dem.
+    # Fly må derfor settes FØR den generelle fillna("bus"). En generell fillna
+    # til fly ville stemplet over en million bussrader per dag som fly —
+    # dataSource er det eneste som skiller dem.
     is_air = df["dataSource"].astype(str).str.upper() == "AVI"
     df.loc[is_air, "vehicleMode"] = AIR_MODE
     df["vehicleMode"] = df["vehicleMode"].fillna("bus").str.lower().str.strip()

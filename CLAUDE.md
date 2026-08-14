@@ -231,10 +231,11 @@ naturlig — startflyplassen har ingen ankomst, endeflyplassen ingen avgang).
 To ting å vite:
 - `vehicleMode` er ALLTID NULL for AVI. Fly settes derfor eksplisitt fra
   `dataSource == "AVI"` FØR den generelle `fillna("bus")`. En generell
-  `fillna("airplane")` ville stemplet >1 mill. bussrader per dag som fly —
-  RUT og SKY lar også feltet stå tomt for buss.
-- Vår mode-verdi er `airplane`; SIRI og Entur Journey Planner sier `air`.
-  Begge må med i klientens mode-sett — samme felle som `ferry`/`water`.
+  fillna til fly ville stemplet >1 mill. bussrader per dag som fly — RUT og
+  SKY lar også feltet stå tomt for buss.
+- Mode-verdien er `air` (`AIR_MODE` i `ingest.py`) — samme verdi som SIRI og
+  Entur Journey Planner bruker. Bevisst valg: da slipper vi et alias-par til
+  ved siden av `ferry`/`water`.
 
 I motsetning til Skyss er avgangs-IDen STABIL over dager: siste ledd av
 `AVI:ServiceJourney:DX568-03-1284178164` var uendret for alle kontrollerte
