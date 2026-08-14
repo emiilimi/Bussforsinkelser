@@ -168,6 +168,48 @@ To strategier:
 
 Oppdaterer `line_name` i: `line_daily`, `line_hourly_raw`, `line_hourly_profile`, `leaderboard_lines`.
 
+### `backfill_operator.py`
+Etterfyller ÉN eller flere `dataSource`-koder over et datointervall, uten å røre
+rader som allerede ligger der (`upsert_journey_stop_daily` er ren
+INSERT … ON CONFLICT DO UPDATE — en flyrad og en bussrad kan ikke kollidere).
+
+Bruk denne, ikke `ingest_lite.py <dato>` med `BQ_OPERATOR`, fordi den siste
+avbryter på `MIN_EXPECTED_ROWS` (300 000; én dag fly er ~1 100 rader) og kjører
+prune + VACUUM per dag (minutter hver gang på en 6 GB base).
+
+```powershell
+$env:DATABASE_PATH = "data/reise.db"
+$env:PARQUET_DIR   = "data/reise-parquet"
+$env:R2_ENV_FILE   = "r2.reise.env"
+
+# 1. Sjekk først (henter, men skriver ikke):
+python pipeline/backfill_operator.py --operator AVI --from 2026-07-31 --to 2026-08-13 --dry-run
+# 2. Kjør:
+python pipeline/backfill_operator.py --operator AVI --from 2026-07-31 --to 2026-08-13
+# 3. Bygg ukefilene på nytt for BERØRTE uker, kjør aggregatene, og last opp:
+python pipeline/export_parquet.py --week 2026-W32
+python pipeline/aggregate_stats.py       # ELLERS blir Oversikt/Topplister uendret
+python pipeline/upload_to_r2.py --prune
+```
+
+**⚠️ FELLE 2 — `aggregate_stats.py` MÅ kjøres på nytt.** Parquet driver
+Linjeanalyse/stoppanalyse/kart (DuckDB leser filene direkte), men Oversikt og
+Topplister leser de ferdigaggregerte `stats_*.json`. Hopper du over steget,
+dukker de etterfylte radene opp noen steder og ikke andre — og `upload_to_r2`
+laster villig opp de GAMLE JSON-filene uten å klage.
+
+**⚠️ FELLE i steg 3**: `export_parquet` nekter å overskrive en ukefil med en
+versjon som dekker FÆRRE dager (vern mot datatap). Basen har bare 14 dagers
+vindu, så for den ELDSTE uka i intervallet har den typisk 2–3 av ukas 7 dager,
+og eksporten hopper stille over den uka («Exported 0 rows»). Da må de nye
+radene FLETTES inn i den eksisterende fila i stedet — se STATUS.md 2026-08-14
+for hvordan det ble gjort for W31 (les fila med pyarrow, `concat_tables` med de
+nye radene, skriv tilbake med `write_sorted_family` fra `export_parquet`).
+
+**Ikke etterfylt ennå: `BFO` og `TEL`** (to små fergekilder lagt til i
+operatørlista 2026-08-14, virker bare framover). Samme oppskrift:
+`--operator BFO,TEL --from ... --to ...`
+
 ### `export_parquet.py`
 Eksporterer `journey_stop_daily` til `data/parquet/YYYY-WXX.parquet` (ZSTD).
 - Uten args: eksporter alle nye + nåværende (ufullstendig) uke

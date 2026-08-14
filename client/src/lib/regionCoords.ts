@@ -25,4 +25,5 @@ export const REGION_MAP_CENTER: Record<Region, { lat: number; lng: number; zoom:
   flt:   { lat: 60.0,    lng: 11.1,    zoom: 10 }, // Oslo–Gardermoen (Flytoget)
   goa:   { lat: 58.5,    lng:  8.5,    zoom:  7 }, // Sør-Norge tog (Go Ahead)
   vot:   { lat: 59.2674, lng: 10.4076, zoom: 10 }, // Tønsberg (Vestfold og Telemark)
+  avi:   { lat: 65.0,    lng: 13.5,    zoom:  5 }, // Fly — hele landet
 };

@@ -385,7 +385,8 @@ export default function Departures() {
     [operatorParam],
   );
   const setOperatorRegions = (r: Region[]) => setOperatorParam(r.join(","));
-  const operators = operatorRegions.map((r) => REGION_OPERATOR[r]).filter(Boolean);
+  // flatMap: én region kan dekke flere linje-prefikser (se REGION_OPERATOR).
+  const operators = operatorRegions.flatMap((r) => REGION_OPERATOR[r] ?? []);
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
 
   const [query, setQuery] = useState("");

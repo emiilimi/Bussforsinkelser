@@ -3,7 +3,56 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-12
+**Sist oppdatert**: 2026-08-14
+
+## Endringslogg — 2026-08-14: fly inn, alle kilder kartlagt, og to døde regionvalg
+
+**Fly (AVI/Avinor) er med.** Dataene har ligget i samme SIRI ET-feed hele
+tiden; `AVI` manglet bare i operatørlista. Mode-verdien er `air` — samme som
+SIRI og Entur Journey Planner, bevisst for å slippe et alias-par som
+`ferry`/`water`. `vehicleMode` er ALLTID NULL for AVI, så fly settes fra
+`dataSource` FØR den generelle `fillna("bus")`; en generell fillna til fly
+ville stemplet >1 mill. bussrader per dag som fly.
+
+**Etterfylt 2 uker fly** (31. juli–13. august) med nye
+`pipeline/backfill_operator.py`: 13 169 rader, 46 flyplasser, ~455–511
+avganger per dag. Snitt avgangsforsinkelse varierte fra −0,8 min til +3,8 min.
+
+> ⚠️ **W31 måtte flettes, ikke re-eksporteres.** `export_parquet` nekter å
+> overskrive en ukefil med færre dager enn den har fra før (vern mot datatap),
+> og basens 14-dagersvindu hadde bare 3 av W31s 7 dager. Flyradene ble derfor
+> lest inn i den eksisterende fila med pyarrow og skrevet tilbake
+> (7 690 502 → 7 692 826 rader, alle gamle rader beholdt). Samme situasjon vil
+> oppstå ved neste etterfylling — se oppskrift i CLAUDE.md.
+
+**Alle kilder med data er nå med.** Kartla BigQuery 31. juli–13. august: 22
+`dataSource`-verdier finnes, vi hentet 20. Lagt til `BFO` og `TEL`, to små
+fergefeeder som sender hver dag.
+> 📌 **TODO: `BFO` og `TEL` er IKKE etterfylt** — de virker bare framover fra
+> 14. august. Oppskrift står i CLAUDE.md under `backfill_operator.py`:
+> `--operator BFO,TEL --from <dato> --to <dato>`, så export + upload.
+
+**To regionvalg var døde.** `REGION_OPERATOR` mappet region → ÉN kode, og
+filteret kjører mot `split_part(line_ref, ':', 1)`. Men `dataSource` og
+linje-prefiks er ulike navnerom: `VOT` og `BNR` publiserer under HELT andre
+linje-prefikser og forekommer aldri selv som prefiks. Resultat: «Vestfold og
+Telemark» og «Bane NOR» ga tomme lister, og ~865 000 rader (uke 32–33) var
+uleselige gjennom regionvelgeren.
+
+Mappingen er nå én-til-mange:
+`vot → VKT, TEL` · `bnr → SJN, SJV, TM, Vy` · `ost → OST, BOR`.
+Ny region `avi → AVI` (fly), som ellers ikke hadde vært synlig noe sted.
+
+Verifisert i nettleser: med region `vot` viser Topplister nå KUN TEL- og
+VKT-linjer (ingen RUT/SKY/KOL lekker inn) — lista var tom før.
+
+> ⚠️ **Lærdom om etterfylling**: parquet og aggregatene oppdateres av HVER SIN
+> jobb. Etter en backfill må `aggregate_stats.py` kjøres på nytt, ellers viser
+> Linjeanalyse/kart de nye radene mens Oversikt/Topplister fortsatt er tomme —
+> og `upload_to_r2` laster opp de gamle JSON-filene uten å si fra. Oppdaget
+> nettopp slik: region `avi` ga tomme topplister rett etter fly-backfillen.
+
+## Endringslogg — 2026-08-12
 
 ## Endringslogg — 2026-08-12: to nattjobb-feil på rad, og en frist som var i ferd med å ryke
 

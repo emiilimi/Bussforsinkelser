@@ -20,31 +20,46 @@ export type Region =
   | "fli"
   | "flt"
   | "goa"
-  | "vot";
+  | "vot"
+  | "avi";
 
-// Maps each region key to its NeTEx operator code (used to filter lineRef / API calls).
-// Empty string = no filter (alle).
-export const REGION_OPERATOR: Record<Region, string> = {
-  alle: "",
-  sky: "SKY",
-  mor: "MOR",
-  inn: "INN",
-  ost: "OST",
-  rut: "RUT",
-  kol: "KOL",
-  vyg: "VYG",
-  tro: "TRO",
-  bra: "BRA",
-  fin: "FIN",
-  nor: "NOR",
-  akt: "AKT",
-  atb: "ATB",
-  bnr: "BNR",
-  nbu: "NBU",
-  fli: "FLI",
-  flt: "FLT",
-  goa: "GOA",
-  vot: "VOT",
+/**
+ * Region → LINJE-prefiksene den dekker (brukes til å filtrere på `line_ref`).
+ * Tom liste = ingen filtrering (alle).
+ *
+ * Hvorfor en LISTE og ikke én kode: `dataSource` (hvem som publiserer feeden)
+ * og linjas eget prefiks er ULIKE navnerom, og for noen fylker er de ikke like.
+ * Filtrene her kjører mot `split_part(line_ref, ':', 1)`, altså linje-prefikset.
+ *
+ * Målt mot produksjonsdata 2026-08-14 (uke 32–33) — før dette pekte `vot` og
+ * `bnr` på koder som ALDRI forekommer som linje-prefiks, så begge regionene ga
+ * tomme lister, og ~865 000 rader var uleselige gjennom regionvelgeren:
+ *   VOT publiserer linjene VKT (517 991 rader) og TEL (335 255)
+ *   BNR publiserer SJN (11 695), SJV (211), TM (141) og Vy (25)
+ *   OST publiserer i tillegg BOR (4 rader)
+ */
+export const REGION_OPERATOR: Record<Region, string[]> = {
+  alle: [],
+  sky: ["SKY"],
+  mor: ["MOR"],
+  inn: ["INN"],
+  ost: ["OST", "BOR"],
+  rut: ["RUT"],
+  kol: ["KOL"],
+  vyg: ["VYG"],
+  tro: ["TRO"],
+  bra: ["BRA"],
+  fin: ["FIN"],
+  nor: ["NOR"],
+  akt: ["AKT"],
+  atb: ["ATB"],
+  bnr: ["SJN", "SJV", "TM", "Vy"],
+  nbu: ["NBU"],
+  fli: ["FLI"],
+  flt: ["FLT"],
+  goa: ["GOA"],
+  vot: ["VKT", "TEL"],
+  avi: ["AVI"],
 };
 
 // Offisielle operatørnavn per codespace, hentet fra Enturs egen liste:
@@ -69,7 +84,8 @@ export const REGION_LABEL: Record<Region, string> = {
   fli: "Flixbus",
   flt: "Flytoget",
   goa: "Go Ahead",
-  vot: "Vestfold og Telemark",
+  vot: "Vestfold og Telemark (VKT/Farte)",
+  avi: "Avinor (fly)",
 };
 
 // All individual region keys (excluding "alle" sentinel)
@@ -141,9 +157,8 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   };
 
   // operators: actual codes for the API (empty = no filter = alle)
-  const operators = regions
-    .map((r) => REGION_OPERATOR[r])
-    .filter((op) => op !== "" && op !== "alle");
+  // flatMap: én region kan dekke flere linje-prefikser (se REGION_OPERATOR).
+  const operators = regions.flatMap((r) => REGION_OPERATOR[r] ?? []);
 
   // Legacy: expose first region / first operator for pages not yet fully migrated
   const region: Region = regions.length === 0 ? "alle" : regions[0];
