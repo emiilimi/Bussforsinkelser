@@ -5,6 +5,33 @@
 
 **Sist oppdatert**: 2026-08-15
 
+## TODO — la bussanimasjonen SELV være fremdriftsindikatoren
+
+`BusLoading` har nå en egen fremdriftsstripe under teksten (ubestemt som
+standard — se under). Det er en mellomløsning: stripen og bussen sier det
+samme to ganger.
+
+Ønsket løsning: **bussen ER fremdriftsindikatoren.** Bussen ser omtrent ut som
+i dag, men animasjonsvinduet gjøres bredere, og bussen kjører SAKTE fra venstre
+mot høyre gjennom vinduet i stedet for å bare bobbe på stedet mens veien
+scroller. Da leses «hvor langt bussen har kommet» direkte som «hvor langt
+lastingen har kommet».
+
+Uavklart før dette bygges:
+- Med UBESTEMT fremdrift (som i dag) vet vi ikke hvor lang veien er. Skal
+  bussen da bremse asymptotisk mot enden (aldri helt fram før data er der),
+  eller kjøre i loop? Asymptotisk er ærligst, men må ikke se ut som den har
+  hengt seg opp.
+- Krever at kallestedene faktisk kan oppgi fremdrift for at det skal bli
+  BESTEMT. I dag kan de ikke det (se kostnadsmodellen i CLAUDE.md — vi vet
+  ikke på forhånd hvor lenge en DuckDB-spørring tar). Reell fremdrift blir
+  først mulig med forhåndsaggregerte persentiler (NOTES.md punkt 4), der
+  arbeidet er oppdelt i tellbare steg.
+
+Relevante filer: `client/src/components/bus-loading.tsx`,
+keyframes `st-busbob`/`st-roadscroll`/`st-progress-indeterminate` i
+`client/src/index.css`.
+
 ## Endringslogg — 2026-08-15: to stale-liste-bugs + StopPlace-navnekollisjon i reise-bygget
 
 **To forekomster av samme feilmønster: kanonisk liste utvidet ett sted, ikke
