@@ -829,6 +829,48 @@ function estimateP80(aggP80: number | null, realP80?: number | null): string | n
   return `~+${aggP80.toFixed(1)}m`;
 }
 
+/**
+ * Nivået P80-ankomsten faktisk må leses av på, gitt at reisen har overganger
+ * som kan ryke.
+ *
+ * Ankomsttiden er en BLANDINGSFORDELING: med sannsynlighet `pMakeAll` rekker du
+ * alt og lander i «plan A»-grenen; ellers mister du en overgang og ankommer
+ * vesentlig senere. For tider innenfor plan A er
+ *     P(framme innen t) ≈ pMakeAll × F_A(t)
+ * Setter vi den lik 0,80 får vi F_A(t) = 0,80 / pMakeAll — altså et HØYERE
+ * persentil av plan A enn 80 når overgangen er usikker.
+ *
+ * Eksempel: rekker du alle overganger 90 % av dagene, er den reelle P80-
+ * ankomsten plan A sin 89. persentil, ikke 80. Er pMakeAll under 0,80 finnes
+ * ikke P80 i plan A i det hele tatt — da returneres null, og UI-et sier det
+ * i stedet for å vise et falskt trygt tall.
+ */
+const P80_LEVEL = 0.8;
+function arrivalQuantileLevel(pMakeAll: number): number | null {
+  if (!(pMakeAll > 0)) return null;      // brutt overgang → P80 er i miss-grenen
+  if (pMakeAll >= 0.999) return P80_LEVEL; // ingen (kjente) overganger å ryke
+  const level = P80_LEVEL / pMakeAll;
+  return level <= 0.95 ? level : null;   // over P95 har vi ikke datagrunnlag
+}
+
+/** Lineær interpolasjon mellom de persentilene vi faktisk har (P50/P80/P95). */
+function interpolatePercentile(
+  p50: number | null | undefined,
+  p80: number | null | undefined,
+  p95: number | null | undefined,
+  level: number,
+): number | null {
+  const lerp = (aL: number, aV: number, bL: number, bV: number) =>
+    aV + ((level - aL) / (bL - aL)) * (bV - aV);
+  if (level <= 0.5) return p50 ?? p80 ?? p95 ?? null;
+  if (level <= 0.8) {
+    if (p50 != null && p80 != null) return lerp(0.5, p50, 0.8, p80);
+    return p80 ?? p50 ?? null;
+  }
+  if (p80 != null && p95 != null) return lerp(0.8, p80, 0.95, p95);
+  return p95 ?? p80 ?? null;
+}
+
 /** Round to nearest 5 minutes for time input */
 function roundedNow(): string {
   const d = new Date();
@@ -2111,32 +2153,59 @@ function TripCard({
       ? formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr))
       : null;
 
-    // P80: verste over alle transitt-legg. Førstevalg er per-avgang-tallet
-    // (legTimes, samme rute-ID); ellers det aggregerte P80-et for (stopp,
-    // linje) fra duckStats — et faktisk målt persentil, ikke lenger et
-    // snitt ganget med 1,5 slik det var da snitt-tallene kom fra den
-    // blokkerende spørringen. Aggregatet gjelder alle avganger på linjen
-    // ved stoppet, ikke akkurat din, og merkes derfor «~» i UI-et.
+    // P80-ankomst, justert for overgangsrisiko (endret 2026-08-15).
+    //
+    // FØR: rått maksimum av P80 over alle transitt-legg. Det svarte egentlig på
+    // «hvor sen er det verste enkeltlegget?», ikke «når er jeg framme 4 av 5
+    // dager» — og det ignorerte at en ryket overgang flytter ankomsten langt
+    // mer enn noen minutters legg-forsinkelse.
+    //
+    // NÅ: vi leser av plan A på det nivået blandingsfordelingen krever, gitt
+    // sannsynligheten for å rekke ALLE overganger (se arrivalQuantileLevel).
+    // Er den under 80 % finnes ikke P80 i plan A — da settes p80 til null og
+    // kortet sier at P80 ligger i «mistet overgang»-grenen i stedet for å vise
+    // et falskt trygt tall.
+    const pMakeAll = transferAnalysis.hasTransfers
+      ? (transferAnalysis.overallProb >= 0 ? transferAnalysis.overallProb : null)
+      : 1;
+    // null = overgangssannsynlighet ikke beregnet ennå (gapene er på vei inn)
+    const level = pMakeAll == null ? P80_LEVEL : arrivalQuantileLevel(pMakeAll);
+    const p80BeyondPlanA = pMakeAll != null && level == null;
+
     let worstRealP80: number | null = null;
     let worstAggP80: number | null = null;
-    for (let i = 0; i < pattern.legs.length; i++) {
-      const leg = pattern.legs[i];
-      if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-      const arrRes = legTimes?.get(`arr_${i}`);
-      if (arrRes?.p80 != null && (worstRealP80 == null || arrRes.p80 > worstRealP80)) {
-        worstRealP80 = arrRes.p80;
-      }
-      const toQuay = leg.toPlace.quay?.id;
-      if (toQuay) {
-        const stat = duckStats?.get(`${toQuay}|${leg.line.id}`);
-        const d = stat?.p80_arr ?? stat?.p80_dep ?? null;
-        if (d != null && (worstAggP80 == null || d > worstAggP80)) worstAggP80 = d;
+    if (level != null) {
+      for (let i = 0; i < pattern.legs.length; i++) {
+        const leg = pattern.legs[i];
+        if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+        const arrRes = legTimes?.get(`arr_${i}`);
+        // Per-avgang-tallene har bare P50/P80 — interpoler på samme nivå.
+        const real = interpolatePercentile(arrRes?.p50, arrRes?.p80, null, level);
+        if (real != null && (worstRealP80 == null || real > worstRealP80)) {
+          worstRealP80 = real;
+        }
+        const toQuay = leg.toPlace.quay?.id;
+        if (toQuay) {
+          const stat = duckStats?.get(`${toQuay}|${leg.line.id}`);
+          const agg = stat
+            ? interpolatePercentile(
+                stat.p50_arr ?? stat.p50_dep,
+                stat.p80_arr ?? stat.p80_dep,
+                stat.p95_arr ?? stat.p95_dep,
+                level,
+              )
+            : null;
+          if (agg != null && (worstAggP80 == null || agg > worstAggP80)) worstAggP80 = agg;
+        }
       }
     }
-    const p80 = estimateP80(worstAggP80, worstRealP80);
+    const p80 = p80BeyondPlanA ? null : estimateP80(worstAggP80, worstRealP80);
 
-    return { estDeparture, estArrival, p80, depResult, arrResult: lastArrResult };
-  }, [pattern, duckStats, legTimes]);
+    return {
+      estDeparture, estArrival, p80, depResult, arrResult: lastArrResult,
+      p80BeyondPlanA, pMakeAll, p80Level: level,
+    };
+  }, [pattern, duckStats, legTimes, transferAnalysis]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
@@ -2199,12 +2268,37 @@ function TripCard({
             ) : (
               <Badge variant="outline" className="text-green-600 border-green-300 text-[10px]">Direkte</Badge>
             )}
-            {/* P80 estimate */}
-            {estimatedTimes.p80 && (
-              <Badge variant="outline" className="text-[9px] text-muted-foreground border-dashed">
+            {/* P80 estimate — justert for sannsynligheten for å rekke alle
+                overganger. Er den under 80 %, finnes ikke P80 i «alt går
+                etter planen»-grenen; da sier merket det i stedet for å vise
+                et falskt trygt tall (se arrivalQuantileLevel). */}
+            {estimatedTimes.p80BeyondPlanA ? (
+              <Badge
+                variant="outline"
+                className="text-[9px] text-amber-700 dark:text-amber-400 border-amber-400/60 border-dashed"
+                title={
+                  `Du rekker alle overgangene bare ${Math.round((estimatedTimes.pMakeAll ?? 0) * 100)} % av dagene. ` +
+                  `Mer enn 1 av 5 dager ryker altså en overgang, og da bestemmes ankomsten av hvilken avgang du ` +
+                  `får i stedet — ikke av forsinkelsen på selve leggene. Åpne overgangsanalysen for plan B/C/D.`
+                }
+              >
+                P80 = mistet overgang
+              </Badge>
+            ) : estimatedTimes.p80 ? (
+              <Badge
+                variant="outline"
+                className="text-[9px] text-muted-foreground border-dashed"
+                title={
+                  estimatedTimes.p80Level != null && estimatedTimes.p80Level > P80_LEVEL + 0.001
+                    ? `Avlest på ${(estimatedTimes.p80Level * 100).toFixed(0)}. persentil av «alt går etter planen», ` +
+                      `fordi du rekker alle overganger ${Math.round((estimatedTimes.pMakeAll ?? 1) * 100)} % av dagene ` +
+                      `— de resterende dagene ankommer du senere enn dette.`
+                    : `80 % av de historiske turene var innenfor denne forsinkelsen.`
+                }
+              >
                 P80 est. {estimatedTimes.p80}
               </Badge>
-            )}
+            ) : null}
             {expanded
               ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
               : <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -2811,13 +2905,21 @@ export default function TripPlanner() {
     };
     for (const p of tripPatterns) {
       const isExpanded = expandedKeys.has(patternKey(p));
+      let seenFirstTransit = false;
       for (const leg of p.legs) {
         const lineRef = leg.line?.id ?? "";
         if (!lineRef || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-        // Endepunktene trengs alltid — kortets topplinje (estimert avgang/
-        // ankomst og P80) leser dem også når kortet er sammenslått.
-        add(leg.fromPlace.quay?.id, lineRef);
+        // AVSTIGNINGSSTOPP trengs alltid: det sammenslåtte kortet leser dem
+        // både for estimert ankomst (siste legg) og for P80-merket (alle legg).
         add(leg.toPlace.quay?.id, lineRef);
+        // PÅSTIGNINGSSTOPP trengs derimot bare for FØRSTE transitt-legg når
+        // kortet er sammenslått — det er den eneste som gir «estimert avgang».
+        // Byttestoppenes påstigningskø (f.eks. Festplassen) ble tidligere hentet
+        // for alle 12 reiseforslag uten at noe leste dem før kortet ble utvidet.
+        if (!seenFirstTransit || isExpanded) {
+          add(leg.fromPlace.quay?.id, lineRef);
+        }
+        seenFirstTransit = true;
         // Mellomstoppene vises kun i det utvidede kortet; hent dem først da.
         if (isExpanded) {
           for (const q of leg.intermediateQuays) add(q.id, lineRef);
@@ -2827,36 +2929,45 @@ export default function TripPlanner() {
     return pairs;
   }, [tripPatterns, expandedKeys]);
 
-  const { data: duckData, isFetching: duckStatsFetching } =
-    useTripDelayDistribution(duckPairs, duckReady, duckQuery, resolvedStatsWindow);
-
   // ---------------------------------------------------------------------------
   // Overgangs-gap for ALLE reiseforslag, beregnet sekvensielt i bakgrunnen.
   // Utvidede kort prioriteres (typisk det øverste); resten fylles inn
   // topp-til-bunn slik at %-merkene dukker opp på sammenslåtte kort etter
   // hvert som de blir klare. Én DuckDB-rundtur per overgang (primær +
   // fallback UNION-et i samme spørring — se lib/trip-shared.ts).
+  //
+  // REKKEFØLGE (endret 2026-08-15): gapene kjører nå FØR persentilene, ikke
+  // etter. To grunner:
+  //  1. «Rekker jeg bussen?» er sidens hovedspørsmål — det skal ikke være det
+  //     siste tallet som lander.
+  //  2. P80-ankomsten AVHENGER nå av overgangssannsynligheten (se
+  //     estimatedTimes i TripCard), så gapene MÅ foreligge først uansett.
+  // Den gamle kommentaren her advarte mot at persistil-spørringen ble stående
+  // bakerst i køen; det er fortsatt sant, men nå er det den som må vente.
   // ---------------------------------------------------------------------------
   const [gapResults, setGapResults] = useState<Map<string, Map<string, TransferGapResult>>>(new Map());
   const gapResultsRef = useRef(gapResults);
   gapResultsRef.current = gapResults;
   const gapGen = useRef(0);
+  // Settes når gap-løkken har vært gjennom alle reiseforslag én gang (også ved
+  // feil) — persentil-spørringen venter på denne, ellers sulter den ut gapene.
+  const [gapPhaseDone, setGapPhaseDone] = useState(false);
 
   // Bytter brukeren statistikkperiode, er de ferdigberegnede gapene regnet på
   // feil utvalg. Tøm dem, ellers ville løkken under hoppet over hvert
   // reiseforslag den allerede hadde et (nå utdatert) svar for.
   useEffect(() => {
     setGapResults(new Map());
+    setGapPhaseDone(false);
   }, [statsWindowId]);
+
+  // Nytt søk → nye reiseforslag → gapene må regnes på nytt før persentilene.
+  useEffect(() => {
+    setGapPhaseDone(false);
+  }, [tripPatterns]);
 
   useEffect(() => {
     if (!duckReady || tripPatterns.length === 0) return;
-    // Vent til persentilene har landet. DuckDB-workeren tar én spørring om
-    // gangen, og denne løkken legger 12 tunge spørringer i kø. Kjørte den
-    // først, ble persentil-spørringen — som alle kortene viser tall fra —
-    // stående bakerst i køen: målt ble til og med en `SELECT 1` liggende
-    // >17 s. Overgangs-%-ene fylles derfor inn etter tallene, ikke foran dem.
-    if (duckStatsFetching) return;
     const gen = ++gapGen.current;
     const ordered = [...tripPatterns].sort(
       (a, b) =>
@@ -2882,8 +2993,16 @@ export default function TripPlanner() {
           }
         }
       }
+      // Uansett utfall: slipp persentil-spørringen løs. Feilede gap skal ikke
+      // kunne blokkere resten av statistikken permanent.
+      if (gapGen.current === gen) setGapPhaseDone(true);
     })();
-  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching, statsWindowId, resolvedStatsWindow]);
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery, statsWindowId, resolvedStatsWindow]);
+
+  // Persentilene kjører ETTER gapene (se rekkefølge-notatet over). duckPairs er
+  // allerede snevret inn til det sammenslåtte kortet faktisk leser.
+  const { data: duckData, isFetching: duckStatsFetching } =
+    useTripDelayDistribution(duckPairs, duckReady && gapPhaseDone, duckQuery, resolvedStatsWindow);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
@@ -3615,7 +3734,16 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-muted-foreground font-mono">P80</span> Punktlighet
                 </p>
-                <p>80. persentil av forsinkelsen — 80 % av de historiske turene var innenfor denne forsinkelsen. Regnet ut fra de rå historiske observasjonene, direkte i nettleseren din.</p>
+                <p>
+                  Tiden du er framme innen 4 av 5 dager. Har reisen overganger, tas
+                  sannsynligheten for å <em>miste</em> dem med i regnestykket: rekker du alle
+                  overganger f.eks. 90 % av dagene, leses tallet av på 89. persentil av «alt
+                  går etter planen» — ikke 80. — fordi de resterende dagene allerede ligger
+                  senere. Rekker du alle overganger sjeldnere enn 80 % av dagene, finnes ikke
+                  P80 i den grenen i det hele tatt; da sier merket «P80 = mistet overgang», og
+                  ankomsten avgjøres av hvilken avgang du får i stedet (se overgangsanalysen).
+                  Regnet ut fra de rå historiske observasjonene, direkte i nettleseren din.
+                </p>
               </div>
             </div>
 
