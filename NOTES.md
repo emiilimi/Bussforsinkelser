@@ -44,11 +44,58 @@ eksporter forhåndsaggregerte persentiler per `(stop_ref, line_ref)` som en
 liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
 persentiler over 54 mill. rader ved hvert søk.
 
-Det er et reelt valg, ikke bare teknikk, og bør diskuteres først:
-- Hvilke oppdelinger må forhåndsberegnes (day_type? per time?). Hver dimensjon
-  multipliserer artefaktstørrelsen.
+### Scoping med FAKTISKE tall (målt 2026-08-15)
+
+Målt over hele parquet-arkivet slik `aggregate_stats.py` faktisk leser det
+(56 dager, 2026-06-19 → 2026-08-14, 63,8 mill. rader med minst én
+forsinkelsesmåling):
+
+| Oppdeling | Celler | ≥10 obs | ≥20 obs | ≥30 obs |
+|---|---|---|---|---|
+| stopp × linje × dagtype × **time** | 1 987 273 | 54,6 % | 41,0 % | 36,7 % |
+| stopp × linje × **dagtype** | 309 785 | 62,0 % | 53,2 % | 48,5 % |
+| stopp × linje | 190 180 | 53,5 % | 49,5 % | 47,6 % |
+
+**«Bør vi begrense til 7 eller 14 dager av hensyn til DB-størrelse?» — nei,
+og premisset er feil.** Tre ting blandes lett sammen:
+
+1. `data/reise.db` er ALLEREDE kappet til 14 dager (`JSD_RETENTION_DAYS`).
+   Forhåndsaggregatet legges ikke der — det bygges fra parquet og skrives som
+   en ny artefakt ved siden av `stats_*.json`. SQLite-basen vokser ikke uansett
+   hva vi velger.
+2. R2 har 14 UKER med parquet (`PARQUET_KEEP_WEEKS`), og `aggregate_stats.py`
+   leser alle ukefilene — ikke 14-dagersbasen. Vinduet er altså allerede ~8
+   uker i dag og vokser mot 14.
+3. **Vinduslengden påvirker ikke artefaktstørrelsen i det hele tatt.** Antall
+   rader i aggregatet bestemmes av antall CELLER (hvilke dimensjoner vi deler
+   på), ikke av hvor mange dager som summeres inn i hver celle. 56 dager gir
+   nøyaktig like mange rader som 14 dager — bare med bedre statistikk.
+
+Å korte vinduet ned til 7/14 dager sparer altså ingenting, og koster mye:
+samme måling på 14-dagersbasen ga bare **15,6 %** av time-cellene ≥20 obs, mot
+41,0 % på 56 dager. Konklusjon: **bruk hele vinduet som er tilgjengelig.**
+
+**Granulariteten er derimot et reelt valg**, og det er der størrelsen ligger:
+time-oppdeling gir 6,4× flere rader (2,0 mill. mot 310 k) og har samtidig
+DÅRLIGST dekning (41 % mot 53 % med ≥20 obs). P95 på under ~20 observasjoner
+er støy. Anbefaling: start på **stopp × linje × dagtype** (310 k rader) og
+vurder time-oppdeling først når arkivet er fylt til 14 uker — da bør
+time-cellene lande rundt dagens dagtype-nivå.
+
+Gevinsten er uansett strukturell: ÉN sortert artefaktfil (anslagsvis 5–15 MB
+ZSTD) i stedet for 16 ukefiler à 35–71 MB. Footer-lesingen ved kaldstart går
+fra 16 filer til 1, og oppslaget blir et punktoppslag i stedet for en
+`PERCENTILE_CONT` over 54 mill. rader.
+
+Fortsatt uavklart før bygging:
 - Per-avgang-tallene (`legTimes`, samme rute-ID) kan neppe forhåndsaggregeres
   like enkelt — skal de fortsatt regnes live, eller droppes?
+- Overgangs-gapene (`computeTransferGaps`) er PAR av avganger og passer ikke
+  inn i denne celleformen i det hele tatt. De blir liggende live inntil
+  videre — og de er en stor del av ventetiden (se punkt 8).
+- Celler under obs-terskelen: utelates de fra artefakten (mindre fil, men
+  frontend må falle tilbake), eller tas de med og merkes med `n` slik at UI-et
+  kan flagge lavt grunnlag? Sistnevnte passer «flagg, ikke skjul»-prinsippet.
 
 Merk at det døde tidsvindu-filteret er FJERNET (2026-08-08, se punkt 5). Det
 gjør forhåndsaggregering enklere: uten vilkårlige brukervalgte datointervaller
