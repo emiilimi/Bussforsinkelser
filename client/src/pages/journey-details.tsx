@@ -487,6 +487,29 @@ export default function JourneyDetails() {
     return labels;
   }, [journeys]);
 
+  /**
+   * Knappene i retningsvelgeren.
+   *
+   * Har linja bare ÉN retning, vises KUN «Begge». Å tilby et retningsvalg da
+   * er i beste fall støy — knappene ville filtrert på samme datasett — og i
+   * verste fall villedende: kilder som ikke sender directionRef får den fylt
+   * med "0", så begge reiseveier havner under samme retning. Etiketten
+   * «A → B» ville da påstått at tallene gjelder én vei når de dekker begge.
+   */
+  const directionOptions = useMemo(() => {
+    const dirs = Object.keys(directionLabels).sort();
+    return dirs.length > 1 ? ["all", ...dirs] : ["all"];
+  }, [directionLabels]);
+
+  // Står et retningsvalg igjen fra forrige linje (eller en delt URL) på en
+  // linje som bare har én retning, ville tallene blitt filtrert på en retning
+  // brukeren ikke lenger kan se eller endre. Fall tilbake til «Begge».
+  useEffect(() => {
+    if (direction !== "all" && !directionOptions.includes(direction)) {
+      setDirection("all");
+    }
+  }, [directionOptions, direction, setDirection]);
+
   // Y-axis max states (declared early; updated via useEffect after data is computed below)
   const [trendYMax, setTrendYMax] = useState<number>(1);
   const [stopProfileCumYMax, setStopProfileCumYMax] = useState<number>(1);
@@ -733,7 +756,14 @@ export default function JourneyDetails() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-muted-foreground">Retning:</span>
-              {["all", ...Object.keys(directionLabels).sort()].map((d) => (
+              {/* Har linja bare ÉN retning, er et retningsvalg meningsløst: alle
+                  knappene ville vist nøyaktig samme datasett. Verre for kilder
+                  som ikke sender directionRef i det hele tatt (fylles med "0"),
+                  der begge reiseveier ligger under samme retning — da ville
+                  etiketten «A → B» direkte lyve om hva tallene dekker.
+                  Målt uke 32–33: gjelder ALLE linjer hos AVI (94), VYG (22),
+                  FLI (8) og NBU (3), samt 124 av 129 hos KOL. */}
+              {directionOptions.map((d) => (
                 <Button
                   key={d}
                   size="sm"
@@ -1003,21 +1033,27 @@ export default function JourneyDetails() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Direction picker — derived from actual directions in data */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Retning:</span>
-                    {Object.keys(directionLabels).sort().map((d) => (
-                      <Button
-                        key={d}
-                        size="sm"
-                        variant={stopProfileDir === d ? "default" : "outline"}
-                        onClick={() => setStopProfileDir(d)}
-                        className="h-7 px-3 text-xs"
-                      >
-                        {directionLabels[d] ?? `Retning ${d}`}
-                      </Button>
-                    ))}
-                  </div>
+                  {/* Direction picker — derived from actual directions in data.
+                      Skjules helt når linja bare har én retning: da er det ingen
+                      ting å velge mellom, og en enslig «A → B»-knapp ville
+                      påstått at profilen gjelder én vei selv om begge ligger i
+                      samme retning (se directionOptions). */}
+                  {directionOptions.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Retning:</span>
+                      {Object.keys(directionLabels).sort().map((d) => (
+                        <Button
+                          key={d}
+                          size="sm"
+                          variant={stopProfileDir === d ? "default" : "outline"}
+                          onClick={() => setStopProfileDir(d)}
+                          className="h-7 px-3 text-xs"
+                        >
+                          {directionLabels[d] ?? `Retning ${d}`}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                   {/* Variant picker — shown when multiple route patterns exist */}
                   {routeVariants.length > 1 && stopProfileDir !== "" && stopProfileDir !== "all" && (
                     <div className="space-y-1.5">

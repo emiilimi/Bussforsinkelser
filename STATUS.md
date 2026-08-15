@@ -62,12 +62,21 @@ Fikset i `journey-details.tsx`: analysen tømmes når den valgte linja ikke
 finnes i operatørens linjeliste. Tømmer kun når lista faktisk er lastet, så et
 tomt mellomresultat under lasting ikke nullstiller et gyldig valg.
 
-> 📌 **Kjent, ikke fikset — fly har bare én retning.** `directionRef` er NULL
-> for AVI og fylles med "0", så begge veier havner under samme retning: linja
-> `WF_OSL-BGO` inneholder både «Bergen lufthavn → Oslo lufthavn» og motsatt.
-> Retningsvelgeren blir derfor meningsløs for fly, og retningsdelte tall
-> blander de to. Krever et produktvalg: utlede retning fra første/siste stopp,
-> eller skjule retningsvelgeren for fly.
+**Retningsvelgeren skjules når linja bare har én retning.** `directionRef` er
+NULL for flere kilder og fylles med "0", så begge reiseveier havner under samme
+retning — linja `WF_OSL-BGO` inneholder både «Bergen lufthavn → Oslo lufthavn»
+og motsatt. En knapp merket «A → B» ville da påstått at tallene gjelder én vei
+når de dekker begge. Nå vises kun «Begge».
+
+Dette er ikke et fly-særtilfelle. Målt uke 32–33 gjelder det ALLE linjer hos
+AVI (94), VYG (22), FLI (8) og NBU (3) — Emilie gjettet riktig på Connect Bus
+Flybuss — samt 124 av 129 linjer hos KOL, og et titalls linjer hos de fleste
+andre. Gjelder begge retningsvelgerne (topplinja og profilen langs ruten), og
+et retningsvalg som henger igjen fra en annen linje faller tilbake til «Begge».
+
+> 📌 **Fortsatt uløst**: vi VET ikke hvilken vei disse avgangene går. Skal
+> retning utledes fra første/siste stopp i avgangen, er det en egen jobb —
+> her er den bare skjult, ikke gjenopprettet.
 
 > ⚠️ **Lærdom om etterfylling**: parquet og aggregatene oppdateres av HVER SIN
 > jobb. Etter en backfill må `aggregate_stats.py` kjøres på nytt, ellers viser
