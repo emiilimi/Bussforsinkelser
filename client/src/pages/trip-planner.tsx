@@ -1285,6 +1285,12 @@ function LegAlternatives({
 
 const PLAN_LETTERS = ["B", "C", "D", "E"];
 
+/** Hvor lenge overgangs-gapene får DuckDB-workeren for seg selv før
+ *  persentil-spørringen slippes til uansett. Se sikkerhetsventilen i
+ *  TripPlanner — prioritering skal koste litt ventetid, ikke kunne stanse
+ *  all statistikk hvis ett gap henger. */
+const GAP_PRIORITY_MS = 8000;
+
 // Legg med flere stopp enn dette kollapses til første + siste stopp
 const STOP_COLLAPSE_THRESHOLD = 8;
 
@@ -2970,6 +2976,17 @@ export default function TripPlanner() {
   useEffect(() => {
     setGapPhaseDone(false);
   }, [tripPatterns]);
+
+  // SIKKERHETSVENTIL: sperren slippes uansett etter GAP_PRIORITY_MS, selv om
+  // det første gapet fortsatt henger. Uten denne kunne ÉN treg/hengende
+  // gap-spørring blokkere ALL statistikk permanent — målt på preview: 110 s
+  // uten et eneste tall på et kaldt søk, mens et varmt (cachet) søk var
+  // umiddelbart. Prioritering skal koste ventetid, ikke risikere total stans.
+  useEffect(() => {
+    if (!duckReady || tripPatterns.length === 0) return;
+    const t = setTimeout(() => setGapPhaseDone(true), GAP_PRIORITY_MS);
+    return () => clearTimeout(t);
+  }, [duckReady, tripPatterns, statsWindowId]);
 
   useEffect(() => {
     if (!duckReady || tripPatterns.length === 0) return;
