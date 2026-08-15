@@ -149,6 +149,47 @@ spørring, samme kostnad) og `useLatestDataDate()` eksponerer den. Rekkefølgen 
 `resolveStatsWindow()` er målt → manifest → filnavn. Den kan fjernes når alle
 manifester i omløp har `maxDate`.
 
+## 8. Rekkefølge på DuckDB-spørringene i reiseplanleggeren — AVKREFTET 2026-08-15
+
+**Ikke prøv «kjør overgangssannsynligheten først» på nytt uten en ny måling.**
+
+Hypotesen var rimelig: «rekker jeg bussen?» er sidens hovedspørsmål, så gapene
+burde kjøre før persentilene i stedet for bak dem. Testet på preview mot ekte
+R2, identisk metode og samme søk (Lagunen→Åsane, kald sidelast, tid til de
+synlige tallene — «~ankomst» og P80 — dukker opp på kortene):
+
+| Rekkefølge | Tid til synlige tall |
+|---|---|
+| Persentiler først (dagens/gamle kode) | **101 s** |
+| Gap først | **149 s** |
+
+Altså ~48 s DÅRLIGERE. Årsaken er DuckDB-workeren: den tar én spørring om
+gangen og kan ikke avbrytes. Legger gap-spørringen seg først, betaler DEN
+kaldstartkostnaden (footer-lesing av alle ukefiler, jf. kostnadsmodellen i
+CLAUDE.md), og persentilene — som driver alt brukeren faktisk ser — havner bak
+i køen.
+
+To varianter ble prøvd og forkastet:
+- «Vent på ALLE 12 reiseforslags gap»: >2 min, og ett hengende gap blokkerte
+  all statistikk permanent (målt 110 s uten et eneste tall).
+- «Slipp løs etter FØRSTE gap + 8 s sikkerhetsventil»: hjalp ikke nok. En
+  timeout kan flippe et `enabled`-flagg, men ikke ta workeren fra en spørring
+  som allerede er i gang.
+
+Beholdt fra samme økt (uavhengig av rekkefølgen, begge fortsatt i koden):
+- **Snevrere stoppsett** i `duckPairs`: påstigningsstoppet hentes nå bare for
+  FØRSTE transitt-legg når kortet er sammenslått. Byttestoppenes påstigningskø
+  ble tidligere hentet for alle reiseforslag uten at noe leste dem før kortet
+  ble utvidet. Ren besparelse, ingen synlig endring.
+- **P80 justert for overgangsrisiko** (`arrivalQuantileLevel`): ankomsten er en
+  blandingsfordeling, så P80 leses av på 0,80/pMakeAll av «alt går etter
+  planen». Under 80 % sjanse for å rekke alt finnes ikke P80 i den grenen —
+  da vises «P80 = mistet overgang». Dette REGNES OM når gapene lander, så
+  tallet blir riktig selv om persentilene kommer først.
+
+Den egentlige flaskehalsen er fortsatt punkt 4 (forhåndsaggregerte
+persentiler). Rekkefølge-triks flytter bare ventetiden rundt.
+
 ## 7. «Min buss, mitt stopp» — rapport-prototype, IKKE bygget som funksjon ennå
 
 Utforsket 2026-08 som svar på ønske om mer avansert analyse: en personlig

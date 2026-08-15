@@ -1285,11 +1285,6 @@ function LegAlternatives({
 
 const PLAN_LETTERS = ["B", "C", "D", "E"];
 
-/** Hvor lenge overgangs-gapene får DuckDB-workeren for seg selv før
- *  persentil-spørringen slippes til uansett. Se sikkerhetsventilen i
- *  TripPlanner — prioritering skal koste litt ventetid, ikke kunne stanse
- *  all statistikk hvis ett gap henger. */
-const GAP_PRIORITY_MS = 8000;
 
 // Legg med flere stopp enn dette kollapses til første + siste stopp
 const STOP_COLLAPSE_THRESHOLD = 8;
@@ -2935,6 +2930,10 @@ export default function TripPlanner() {
     return pairs;
   }, [tripPatterns, expandedKeys]);
 
+  // duckPairs er snevret inn til det sammenslåtte kortet faktisk leser (se over).
+  const { data: duckData, isFetching: duckStatsFetching } =
+    useTripDelayDistribution(duckPairs, duckReady, duckQuery, resolvedStatsWindow);
+
   // ---------------------------------------------------------------------------
   // Overgangs-gap for ALLE reiseforslag, beregnet sekvensielt i bakgrunnen.
   // Utvidede kort prioriteres (typisk det øverste); resten fylles inn
@@ -2942,54 +2941,38 @@ export default function TripPlanner() {
   // hvert som de blir klare. Én DuckDB-rundtur per overgang (primær +
   // fallback UNION-et i samme spørring — se lib/trip-shared.ts).
   //
-  // REKKEFØLGE (endret 2026-08-15): gapene kjører nå FØR persentilene, ikke
-  // etter. To grunner:
-  //  1. «Rekker jeg bussen?» er sidens hovedspørsmål — det skal ikke være det
-  //     siste tallet som lander.
-  //  2. P80-ankomsten AVHENGER nå av overgangssannsynligheten (se
-  //     estimatedTimes i TripCard), så gapene MÅ foreligge først uansett.
-  //
-  // MEN: persentilene slippes løs allerede etter det FØRSTE (prioriterte)
-  // reiseforslaget, ikke etter alle 12. Målt på preview mot R2 gikk gapene for
-  // alle 12 langt over 2 minutter, og med en «vent på alle»-sperre kom de
-  // synlige tidene senere enn før endringen — altså en regresjon i opplevd
-  // fart. Nå: topp-kortets overgangs-% først, så tidene, så resten av
-  // %-merkene i bakgrunnen.
+  // REKKEFØLGE — MÅLT, IKKE ANTATT (2026-08-15).
+  // Forsøkt: kjøre gapene FØR persentilene, fordi «rekker jeg bussen?» er
+  // sidens hovedspørsmål. Det ble MÅLT som en klar regresjon på preview mot
+  // R2, med identisk metode og samme søk (Lagunen→Åsane, kald sidelast):
+  //     persentiler først (dagens kode):  synlige tider + P80 etter 101 s
+  //     gap først:                        synlige tider + P80 etter 149 s
+  // Årsak: DuckDB-workeren tar ÉN spørring om gangen og kan ikke avbrytes.
+  // Legger gapet seg først, betaler DEN for kaldstarten (footer-lesing av 16
+  // ukefiler), og persentilene — som driver alt brukeren faktisk ser på
+  // kortene — står bak i køen. En timeout-basert «sikkerhetsventil» hjalp
+  // ikke: den kan flippe et enabled-flagg, men ikke ta workeren fra en
+  // spørring som allerede er i gang.
+  // Konklusjon: persentilene beholder førsteplassen. Overgangs-%-ene fylles
+  // inn etterpå, og P80 REGNES OM når de lander (se estimatedTimes) — så
+  // tallet blir riktig, det blir bare riktig litt senere.
   // ---------------------------------------------------------------------------
   const [gapResults, setGapResults] = useState<Map<string, Map<string, TransferGapResult>>>(new Map());
   const gapResultsRef = useRef(gapResults);
   gapResultsRef.current = gapResults;
   const gapGen = useRef(0);
-  // Settes så snart det FØRSTE reiseforslagets gap er beregnet (også ved feil)
-  // — persentil-spørringen venter på denne, ellers sulter den ut gapene.
-  const [gapPhaseDone, setGapPhaseDone] = useState(false);
 
   // Bytter brukeren statistikkperiode, er de ferdigberegnede gapene regnet på
   // feil utvalg. Tøm dem, ellers ville løkken under hoppet over hvert
   // reiseforslag den allerede hadde et (nå utdatert) svar for.
   useEffect(() => {
     setGapResults(new Map());
-    setGapPhaseDone(false);
   }, [statsWindowId]);
 
-  // Nytt søk → nye reiseforslag → gapene må regnes på nytt før persentilene.
-  useEffect(() => {
-    setGapPhaseDone(false);
-  }, [tripPatterns]);
-
-  // SIKKERHETSVENTIL: sperren slippes uansett etter GAP_PRIORITY_MS, selv om
-  // det første gapet fortsatt henger. Uten denne kunne ÉN treg/hengende
-  // gap-spørring blokkere ALL statistikk permanent — målt på preview: 110 s
-  // uten et eneste tall på et kaldt søk, mens et varmt (cachet) søk var
-  // umiddelbart. Prioritering skal koste ventetid, ikke risikere total stans.
   useEffect(() => {
     if (!duckReady || tripPatterns.length === 0) return;
-    const t = setTimeout(() => setGapPhaseDone(true), GAP_PRIORITY_MS);
-    return () => clearTimeout(t);
-  }, [duckReady, tripPatterns, statsWindowId]);
-
-  useEffect(() => {
-    if (!duckReady || tripPatterns.length === 0) return;
+    // Vent til persentilene har landet — se rekkefølge-notatet over.
+    if (duckStatsFetching) return;
     const gen = ++gapGen.current;
     const ordered = [...tripPatterns].sort(
       (a, b) =>
@@ -3014,19 +2997,9 @@ export default function TripPlanner() {
             console.warn("[trip] overgangs-gap feilet for", key, err);
           }
         }
-        // Første (prioriterte) reiseforslag er ferdig — slipp persentilene løs
-        // nå, i stedet for å la dem vente på de elleve andre. Settes uansett
-        // utfall, så et feilet gap ikke kan blokkere resten permanent.
-        if (gapGen.current === gen) setGapPhaseDone(true);
       }
-      if (gapGen.current === gen) setGapPhaseDone(true); // 0 reiseforslag m/ overgang
     })();
-  }, [duckReady, tripPatterns, expandedKeys, duckQuery, statsWindowId, resolvedStatsWindow]);
-
-  // Persentilene kjører ETTER gapene (se rekkefølge-notatet over). duckPairs er
-  // allerede snevret inn til det sammenslåtte kortet faktisk leser.
-  const { data: duckData, isFetching: duckStatsFetching } =
-    useTripDelayDistribution(duckPairs, duckReady && gapPhaseDone, duckQuery, resolvedStatsWindow);
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching, statsWindowId, resolvedStatsWindow]);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
