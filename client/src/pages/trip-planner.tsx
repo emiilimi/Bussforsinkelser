@@ -2942,15 +2942,20 @@ export default function TripPlanner() {
   //     siste tallet som lander.
   //  2. P80-ankomsten AVHENGER nå av overgangssannsynligheten (se
   //     estimatedTimes i TripCard), så gapene MÅ foreligge først uansett.
-  // Den gamle kommentaren her advarte mot at persistil-spørringen ble stående
-  // bakerst i køen; det er fortsatt sant, men nå er det den som må vente.
+  //
+  // MEN: persentilene slippes løs allerede etter det FØRSTE (prioriterte)
+  // reiseforslaget, ikke etter alle 12. Målt på preview mot R2 gikk gapene for
+  // alle 12 langt over 2 minutter, og med en «vent på alle»-sperre kom de
+  // synlige tidene senere enn før endringen — altså en regresjon i opplevd
+  // fart. Nå: topp-kortets overgangs-% først, så tidene, så resten av
+  // %-merkene i bakgrunnen.
   // ---------------------------------------------------------------------------
   const [gapResults, setGapResults] = useState<Map<string, Map<string, TransferGapResult>>>(new Map());
   const gapResultsRef = useRef(gapResults);
   gapResultsRef.current = gapResults;
   const gapGen = useRef(0);
-  // Settes når gap-løkken har vært gjennom alle reiseforslag én gang (også ved
-  // feil) — persentil-spørringen venter på denne, ellers sulter den ut gapene.
+  // Settes så snart det FØRSTE reiseforslagets gap er beregnet (også ved feil)
+  // — persentil-spørringen venter på denne, ellers sulter den ut gapene.
   const [gapPhaseDone, setGapPhaseDone] = useState(false);
 
   // Bytter brukeren statistikkperiode, er de ferdigberegnede gapene regnet på
@@ -2992,10 +2997,12 @@ export default function TripPlanner() {
             console.warn("[trip] overgangs-gap feilet for", key, err);
           }
         }
+        // Første (prioriterte) reiseforslag er ferdig — slipp persentilene løs
+        // nå, i stedet for å la dem vente på de elleve andre. Settes uansett
+        // utfall, så et feilet gap ikke kan blokkere resten permanent.
+        if (gapGen.current === gen) setGapPhaseDone(true);
       }
-      // Uansett utfall: slipp persentil-spørringen løs. Feilede gap skal ikke
-      // kunne blokkere resten av statistikken permanent.
-      if (gapGen.current === gen) setGapPhaseDone(true);
+      if (gapGen.current === gen) setGapPhaseDone(true); // 0 reiseforslag m/ overgang
     })();
   }, [duckReady, tripPatterns, expandedKeys, duckQuery, statsWindowId, resolvedStatsWindow]);
 
