@@ -3,7 +3,61 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-14
+**Sist oppdatert**: 2026-08-15
+
+## Endringslogg — 2026-08-15: to stale-liste-bugs + StopPlace-navnekollisjon i reise-bygget
+
+**To forekomster av samme feilmønster: kanonisk liste utvidet ett sted, ikke
+et annet.** `MODES_WITH_DELAY_DATA` ble utvidet i `mode-icon.tsx` (db66d4e)
+til å inkludere `rail`/`tram`/`water`/`air`, men tre andre filer
+(`trip-planner.tsx`, `trip-route-map.tsx`, `plan-delay-chart.tsx`) hadde hver
+sin egen, aldri-oppdaterte kopi `{bus, coach, ferry}`. Reiseplanleggeren
+sjekket `leg.mode` mot den gamle lokale kopien FØR den i det hele tatt
+forsøkte en DuckDB-spørring — toglegg (f.eks. RE10/RE11 Vy) ble derfor stille
+hoppet over selv når dataene fantes. Fikset ved å importere fra `mode-icon.tsx`
+i alle tre i stedet for lokale konstanter. Samme mønster funnet i
+`server/routes.ts`: `VALID_OPERATORS`-whitelisten (kommentert som speil av
+`_ALL_OPERATORS` i `pipeline/ingest.py`) manglet `AVI`/`BFO`/`TEL` etter at
+pipelinen fikk dem 14. august — `?operator=AVI` ble stille filtrert bort som
+"ukjent". Begge rettet; ingen andre kopier av noen av listene funnet ved søk.
+
+**StopPlace-navnekollisjon i reise-bygget: Kringsjå (Oslo) viste Bergen-linjer.**
+Meldt inn som «linje 20 Haukeland og linje 6 Birkelundstoppen dukker opp under
+Kringsjå (Oslo), som bare har 5B i virkeligheten». Årsak: `reise` er statisk
+og kan ikke spørre live SQLite, så `stats-adapter.ts` faller tilbake til
+navnematch når en `NSR:StopPlace`-ref ikke finnes i `stats_stops_map.json`
+(kjent NSR-ID-drift — se CLAUDE.md). Bekreftet konkret via Enturs geocoder
+14. august: Oslo Kringsjå heter i dag `NSR:StopPlace:59706`, mens artefakten
+(BQ-snapshot) fortsatt har `6211`/`6213` — IDen er byttet ut siden artefakten
+sist ble bygget. Navnematchen har INGEN geografisk sperre, og Norge har minst
+4 steder som heter nøyaktig «Kringsjå» (Oslo, Bergen, Fredrikstad, Vennesla),
+så fallbacken plukket opp Bergens `NSR:StopPlace:31836` (bekreftet i
+`gtfs-legacy/sky/stops.txt`, ~300 km unna) i tillegg til Oslos egne kvaier.
+
+Fikset med en 1,5 km radius-sjekk mot søketreffets koordinat (fra
+Entur-geocoderet) når en navnematch spenner over mer enn ett stoppested —
+`NAME_MATCH_RADIUS_M` i `stats-adapter.ts`. Quay-koordinater er stabile
+(fysisk plassering), i motsetning til StopPlace-IDer (administrativ
+gruppering som NSR bytter ut uavhengig av om noe fysisk har flyttet seg), så
+radius-sjekken degraderer gradvis ved evt. koordinat-unøyaktighet i stedet
+for å feile helt slik eksakt ID-match gjør. Verifisert mot faktisk R2-data:
+med Oslo-koordinat filtreres Bergens to kvaier bort korrekt; med
+Bergen-koordinat filtreres Oslos fire kvaier bort korrekt. `lat`/`lng` tredd
+gjennom hele kjeden: `departures.tsx` (søk → valgt stopp → URL-persistering)
+→ `StopAnalysisSection` → `useLinesAtStop`/`useLineHourlyAtStop`/
+`useLineDeparturesAtStop` → `/api/stops/lookup`, `/api/stop/:ref`,
+`/api/stop/:ref/directions`. Kun `departures.tsx` bruker denne oppslagsveien
+(trip-planner/journey-details løser alltid mot konkrete quay-refs fra
+Entur-reiseleggene, aldri via navnesøk) — ingen andre sider berørt.
+
+> 📌 **TODO: `populate_stops.py --refresh` bør kjøres ukentlig i pipelinen,
+> ikke kun manuelt/sjelden som i dag.** Kilden (`national_stop_registry.
+> quays_last_version`/`stop_places_last_version`) er en liten, dedikert
+> registertabell — billig å scanne, ikke i nærheten av kostnaden ved
+> SIRI ET-realtidstabellen. En jevnlig oppdatert artefakt krymper vinduet der
+> StopPlace-ID-drift i det hele tatt kan oppstå, men fjerner IKKE behovet for
+> radius-sjekken over: ekte navnekollisjoner (som Kringsjå) oppstår uansett
+> hvor fersk artefakten er.
 
 ## Endringslogg — 2026-08-14: fly inn, alle kilder kartlagt, og to døde regionvalg
 

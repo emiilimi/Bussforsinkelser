@@ -171,7 +171,10 @@ function HourlyTooltip({ active, payload }: RechartsTooltipProps<HourlyPoint>) {
  * stoppanalyse-siden er droppet her — Entur-geocoderet (delt søk) gir ikke
  * quay-lister, kun retningsvelgeren (som hentes uavhengig) er beholdt.
  */
-export function StopAnalysisSection({ stopRef, stopName, operators }: { stopRef: string; stopName: string; operators: string[] }) {
+export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: {
+  stopRef: string; stopName: string; operators: string[];
+  lat?: number | null; lng?: number | null;
+}) {
   const [, navigate] = useLocation();
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
   const [direction, setDirection] = useUrlParam("stopDirection", "all");
@@ -191,11 +194,16 @@ export function StopAnalysisSection({ stopRef, stopName, operators }: { stopRef:
   // sammen/erstattes, så geocoderets ref kan avvike fra den artefakten
   // (stats_stops_map.json) kjenner til — navnet brukes som fallback for å
   // finne stoppet likevel. Se resolveStopQuays i stats-adapter.ts.
+  // lat/lng følger med samme sted: flere fysisk urelaterte stoppesteder i
+  // Norge deler navn (f.eks. "Kringsjå" i Oslo/Bergen/Fredrikstad), så
+  // navnematchen alene kan plukke opp feil by — koordinatet brukes til å
+  // luke ut treff utenfor NAME_MATCH_RADIUS_M i stats-adapter.ts.
   const nameQ = `name=${encodeURIComponent(stopName)}`;
+  const coordQ = lat != null && lng != null ? `lat=${lat}&lng=${lng}` : "";
   const { data: availableDirections = [] } = useQuery<string[]>({
-    queryKey: [`/api/stop/${encodeURIComponent(stopRef)}/directions?${[nameQ, opStr].filter(Boolean).join("&")}`],
+    queryKey: [`/api/stop/${encodeURIComponent(stopRef)}/directions?${[nameQ, coordQ, opStr].filter(Boolean).join("&")}`],
   });
-  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : ""].filter(Boolean).join("&")}`;
+  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, coordQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : ""].filter(Boolean).join("&")}`;
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
     queryKey: [stopStatsUrl],
@@ -216,8 +224,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators }: { stopRef:
     return d.toISOString().slice(0, 10);
   })();
 
-  const { data: linesAtStop = [] } = useLinesAtStop(stopRef, stopFromDate, stopName);
-  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(stopRef, stopFromDate, stopName);
+  const { data: linesAtStop = [] } = useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng);
+  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng);
 
   const { data: lineDeps = [], isLoading: lineDepsLoading } = useLineDeparturesAtStop(
     expandedLine ?? "",
@@ -225,6 +233,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators }: { stopRef:
     stopFromDate,
     expandedLine != null,
     stopName,
+    lat,
+    lng,
   );
 
   const trendData = (stats?.daily ?? []).map((r) => ({

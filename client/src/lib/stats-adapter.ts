@@ -471,6 +471,8 @@ type QuayMeta = {
   stopPlaceRef: string | null;
   stopPlaceName: string | null;
   platformCode: string | null;
+  lat: number | null;
+  lng: number | null;
 };
 
 let quayMetaCache: Map<string, QuayMeta> | null = null;
@@ -486,6 +488,8 @@ function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
     map.set(row[0], {
       stopRef: row[0],
       stopName: row[2],
+      lat: row[3],
+      lng: row[4],
       stopPlaceRef:
         typeof rawSp === "number"
           ? `NSR:StopPlace:${rawSp}`
@@ -502,21 +506,68 @@ function normName(s: string): string {
   return s.trim().toLowerCase();
 }
 
+/** ?lat=&lng= → koordinat-hint for quaysByName, eller null hvis fraværende/ugyldig. */
+function parseCoordHint(params: URLSearchParams): { lat: number; lng: number } | null {
+  const lat = Number(params.get("lat"));
+  const lng = Number(params.get("lng"));
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
+/** Haversine-avstand i meter mellom to koordinater. */
+function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6_371_000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/** Norge har flere fysisk urelaterte stoppesteder med identisk navn (f.eks.
+ *  "Kringsjå" finnes i Oslo, Bergen og Fredrikstad — bekreftet via Enturs
+ *  geocoder 2026-08-14). Radius rundt et koordinat-hint (fra søketreffet som
+ *  utløste oppslaget) holder navnematchen til ÉN by. 1,5 km er rikelig slakk
+ *  for at en quay kan ha flyttet noen meter, men trygt under avstanden
+ *  mellom to steder med samme navn i praksis (typisk hundrevis av km) — se
+ *  STATUS.md 2026-08-14 for utledningen. Filtreres KUN når treffene faktisk
+ *  spenner over mer enn ett stoppested — ellers ingen grunn til å risikere å
+ *  luke ut et treff pga. et unøyaktig/manglende koordinat-hint. */
+const NAME_MATCH_RADIUS_M = 1500;
+
 /** Alle quays der stopPlaceName/stopName matcher det gitte navnet nøyaktig
  *  (normalisert). Brukt som fallback når en NSR:StopPlace-ref ikke finnes i
- *  artefakten — se resolveStopQuays. */
-function quaysByName(metas: Map<string, QuayMeta>, name: string): { quays: string[]; nameHint: string | null } {
+ *  artefakten — se resolveStopQuays. `hint` er søketreffets koordinat, brukt
+ *  til å luke ut navnelikheter i andre byer (se NAME_MATCH_RADIUS_M). */
+function quaysByName(
+  metas: Map<string, QuayMeta>,
+  name: string,
+  hint?: { lat: number; lng: number } | null,
+): { quays: string[]; nameHint: string | null } {
   const target = normName(name);
-  const quays: string[] = [];
+  const matches: QuayMeta[] = [];
   let found: string | null = null;
   for (const m of Array.from(metas.values())) {
     const candidate = m.stopPlaceName ?? m.stopName;
     if (candidate && normName(candidate) === target) {
-      quays.push(m.stopRef);
+      matches.push(m);
       found = candidate;
     }
   }
-  return { quays, nameHint: found };
+
+  const distinctStopPlaces = new Set(matches.map((m) => m.stopPlaceRef ?? m.stopRef));
+  if (hint && distinctStopPlaces.size > 1) {
+    const nearby = matches.filter(
+      (m) => m.lat != null && m.lng != null &&
+        distanceMeters(hint.lat, hint.lng, m.lat, m.lng) <= NAME_MATCH_RADIUS_M,
+    );
+    // Bare stol på radius-filteret når det faktisk fant noe — et tomt
+    // resultat betyr mest sannsynlig et upresist hint, ikke at ALLE treffene
+    // er feil sted. Da er uten radius-filter tryggere enn "ingen data".
+    if (nearby.length > 0) return { quays: nearby.map((m) => m.stopRef), nameHint: found };
+  }
+  return { quays: matches.map((m) => m.stopRef), nameHint: found };
 }
 
 /** NSR:StopPlace:X → medlems-quays (med data); quay-refs slippes gjennom.
@@ -531,6 +582,7 @@ function quaysByName(metas: Map<string, QuayMeta>, name: string): { quays: strin
 async function resolveStopQuays(
   ref: string,
   nameHint?: string | null,
+  coordHint?: { lat: number; lng: number } | null,
 ): Promise<{ quays: string[]; nameHint: string | null }> {
   const doc = await fetchStops();
   const metas = quayMetaMap(doc);
@@ -544,7 +596,7 @@ async function resolveStopQuays(
       }
     }
     if (quays.length > 0) return { quays, nameHint: name };
-    if (nameHint) return quaysByName(metas, nameHint);
+    if (nameHint) return quaysByName(metas, nameHint, coordHint);
     return { quays: [], nameHint: null };
   }
   return { quays: [ref], nameHint: metas.get(ref)?.stopName ?? null };
@@ -612,6 +664,7 @@ async function apiStopsLookup(params: URLSearchParams) {
   const metas = quayMetaMap(doc);
   const expand = params.get("expand") === "stopplace";
   const nameHint = params.get("name");
+  const coordHint = parseCoordHint(params);
 
   const out: Array<{ stopRef: string; stopName: string | null; stopPlaceRef: string | null }> = [];
   for (const ref of refs) {
@@ -624,7 +677,7 @@ async function apiStopsLookup(params: URLSearchParams) {
         }
       }
       if (!matched && nameHint) {
-        const { quays } = quaysByName(metas, nameHint);
+        const { quays } = quaysByName(metas, nameHint, coordHint);
         for (const q of quays) {
           const m = metas.get(q);
           if (m) out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
@@ -650,7 +703,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
   const direction = params.get("direction");
   const operators = parseOperators(params);
 
-  const { quays, nameHint } = await resolveStopQuays(ref, params.get("name"));
+  const { quays, nameHint } = await resolveStopQuays(ref, params.get("name"), parseCoordHint(params));
   if (quays.length === 0) throw new Error("Stoppested ikke funnet");
 
   await ensureParquetFilesRegistered();
@@ -730,7 +783,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
 /** GET /api/stop/:ref/directions — direction_ref-verdier ved stoppet. */
 async function apiStopDirections(ref: string, params: URLSearchParams) {
   const operators = parseOperators(params);
-  const { quays } = await resolveStopQuays(ref, params.get("name"));
+  const { quays } = await resolveStopQuays(ref, params.get("name"), parseCoordHint(params));
   if (quays.length === 0) return [];
   const conds: string[] = [
     `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,

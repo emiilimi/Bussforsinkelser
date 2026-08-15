@@ -36,8 +36,10 @@ async function lookupStops(
   refs: string,
   expand: boolean,
   nameHint?: string,
+  lat?: number | null,
+  lng?: number | null,
 ): Promise<Array<{ stopRef: string; stopName?: string | null; stopPlaceRef?: string | null }>> {
-  const url = `/api/stops/lookup?refs=${encodeURIComponent(refs)}${expand ? "&expand=stopplace" : ""}${nameHint ? `&name=${encodeURIComponent(nameHint)}` : ""}`;
+  const url = `/api/stops/lookup?refs=${encodeURIComponent(refs)}${expand ? "&expand=stopplace" : ""}${nameHint ? `&name=${encodeURIComponent(nameHint)}` : ""}${lat != null && lng != null ? `&lat=${lat}&lng=${lng}` : ""}`;
   if (IS_REISE) {
     const { statsAdapterFetch } = await import("@/lib/stats-adapter");
     const res = await statsAdapterFetch(url);
@@ -572,19 +574,22 @@ export function useBestJourneysForLine(
 // 8. useLineHourlyAtStop
 // ---------------------------------------------------------------------------
 
-export function useLineHourlyAtStop(stopRef: string, fromDate: string, stopName?: string) {
+export function useLineHourlyAtStop(
+  stopRef: string, fromDate: string, stopName?: string,
+  lat?: number | null, lng?: number | null,
+) {
   const { query, ready } = useParquetQuery();
 
   // NSR:StopPlace → expand to all quays via /api/stops/lookup (raw fetch, not hook)
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<HourlyAtStop[]>({
-    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? ""],
+    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
         // Utvid StopPlace → alle barne-quays, så filtrer parquet på dem
-        const allQuays = await lookupStops(stopRef, true, stopName);
+        const allQuays = await lookupStops(stopRef, true, stopName, lat, lng);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
@@ -623,16 +628,19 @@ export function useLineHourlyAtStop(stopRef: string, fromDate: string, stopName?
 // 9. useLinesAtStop
 // ---------------------------------------------------------------------------
 
-export function useLinesAtStop(stopRef: string, fromDate: string, stopName?: string) {
+export function useLinesAtStop(
+  stopRef: string, fromDate: string, stopName?: string,
+  lat?: number | null, lng?: number | null,
+) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<LineAtStop[]>({
-    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? ""],
+    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
-        const allQuays = await lookupStops(stopRef, true, stopName);
+        const allQuays = await lookupStops(stopRef, true, stopName, lat, lng);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
         if (!quayList) return [];
 
@@ -685,17 +693,19 @@ export function useLineDeparturesAtStop(
   fromDate: string,
   enabled: boolean,
   stopName?: string,
+  lat?: number | null,
+  lng?: number | null,
 ) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
 
   return useQuery<LineDepartureAtStop[]>({
-    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate, stopName ?? ""],
+    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
     enabled: ready && enabled && !!lineRef && !!stopRef,
     queryFn: async () => {
       let stopCond: string;
       if (isStopPlace) {
-        const allQuays = await lookupStops(stopRef, true, stopName);
+        const allQuays = await lookupStops(stopRef, true, stopName, lat, lng);
         const quayList = allQuays
           .map((q) => `'${q.stopRef.replace(/'/g, "''")}'`)
           .join(",");

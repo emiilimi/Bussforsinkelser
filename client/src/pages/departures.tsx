@@ -36,6 +36,8 @@ type SearchResult = {
   stopName: string | null;
   platformCodes: string | null;
   quays: Quay[];
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type Departure = {
@@ -391,7 +393,7 @@ export default function Departures() {
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string } | null>(null);
+  const [selectedStop, setSelectedStop] = useState<{ ref: string; name: string; lat: number | null; lng: number | null } | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   // Favoritter og nylig søkte stopp deles med reiseplanleggeren (samme
@@ -405,36 +407,45 @@ export default function Departures() {
   }, []);
 
   /** Avgangssidens stopp → formen favorittlista lagrer. */
-  const asStopResult = (ref: string, name: string): StopSearchResult => ({
+  const asStopResult = (ref: string, name: string, lat: number | null = null, lng: number | null = null): StopSearchResult => ({
     stopRef: ref,
     stopPlaceRef: ref.startsWith("NSR:StopPlace:") ? ref : null,
     stopName: name,
     label: name,
     layer: "venue",
-    lat: null,
-    lng: null,
+    lat,
+    lng,
   });
 
   /** Felles vei inn når et stopp velges — fra søketreff, favoritt eller nylig.
-   *  rawName kan være null fra søket; formatStopName gir da et brukbart navn. */
-  function chooseStop(ref: string, rawName: string | null) {
+   *  rawName kan være null fra søket; formatStopName gir da et brukbart navn.
+   *  lat/lng (når kjent) brukes til å luke ut navnelikheter i andre byer ved
+   *  NSR-ID-drift — se NAME_MATCH_RADIUS_M i stats-adapter.ts. */
+  function chooseStop(ref: string, rawName: string | null, lat: number | null = null, lng: number | null = null) {
     const name = formatStopName(rawName, ref);
-    setSelectedStop({ ref, name });
+    setSelectedStop({ ref, name, lat, lng });
     setQuery(name);
     setShowResults(false);
-    addRecentStop(asStopResult(ref, name));
+    addRecentStop(asStopResult(ref, name, lat, lng));
     setRecents(getRecentStops());
     // Oppdater URL-en (for refresh/deling) — behold ev. andre parametre
     // (operator/minutes/mode) som allerede står der.
     const params = new URLSearchParams(search);
     params.set("stop", ref);
     params.set("name", name);
+    if (lat != null && lng != null) {
+      params.set("lat", String(lat));
+      params.set("lng", String(lng));
+    } else {
+      params.delete("lat");
+      params.delete("lng");
+    }
     navigate(`/avganger?${params.toString()}`);
   }
 
   const isFav = (ref: string) => favorites.some((f) => f.stopRef === ref);
   const flipFavorite = (ref: string, name: string) =>
-    setFavorites(toggleFavorite(asStopResult(ref, name)));
+    setFavorites(toggleFavorite(asStopResult(ref, name, selectedStop?.lat ?? null, selectedStop?.lng ?? null)));
   const [minutesParam, setMinutesParam] = useUrlParam("minutes", "90");
   const minutes = Number(minutesParam) || 90;
   const setMinutes = (n: number) => setMinutesParam(String(n));
@@ -466,13 +477,19 @@ export default function Departures() {
     return `${String(n.getHours()).padStart(2, "0")}:${String(n.getMinutes()).padStart(2, "0")}`;
   };
 
-  // Auto-select stop from URL params (?stop=NSR:StopPlace:X&name=…)
+  // Auto-select stop from URL params (?stop=NSR:StopPlace:X&name=…&lat=…&lng=…)
   useEffect(() => {
     const params = new URLSearchParams(search);
     const stopRef = params.get("stop");
     const stopName = params.get("name");
+    const stopLat = params.get("lat");
+    const stopLng = params.get("lng");
     if (stopRef && !selectedStop) {
-      setSelectedStop({ ref: stopRef, name: stopName ?? stopRef });
+      setSelectedStop({
+        ref: stopRef, name: stopName ?? stopRef,
+        lat: stopLat != null ? Number(stopLat) : null,
+        lng: stopLng != null ? Number(stopLng) : null,
+      });
       setQuery(stopName ?? stopRef);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -499,9 +516,12 @@ export default function Departures() {
   // gi avganger, så adresser filtreres bort.
   const searchResults: SearchResult[] = useMemo(() => {
     if (!IS_REISE) return rawSearch as SearchResult[];
-    return (rawSearch as Array<{ id: string; name: string; layer: string }>)
+    return (rawSearch as Array<{ id: string; name: string; layer: string; lat?: number; lng?: number }>)
       .filter((r) => r.layer === "venue" && typeof r.id === "string" && r.id.startsWith("NSR:"))
-      .map((r) => ({ stopRef: r.id, stopName: r.name, platformCodes: null, quays: [] }));
+      .map((r) => ({
+        stopRef: r.id, stopName: r.name, platformCodes: null, quays: [],
+        lat: r.lat ?? null, lng: r.lng ?? null,
+      }));
   }, [rawSearch]);
 
   const stopRef = selectedStop?.ref ?? null;
@@ -761,7 +781,7 @@ export default function Departures() {
                               title={name}
                               subtitle={r.platformCodes ? `Plattformer: ${r.platformCodes}` : undefined}
                               isFav={isFav(r.stopRef)}
-                              onPick={() => chooseStop(r.stopRef, r.stopName)}
+                              onPick={() => chooseStop(r.stopRef, r.stopName, r.lat ?? null, r.lng ?? null)}
                               onToggleFav={() => flipFavorite(r.stopRef, name)}
                             />
                           );
@@ -781,7 +801,7 @@ export default function Departures() {
                               icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
                               title={s.stopName}
                               isFav
-                              onPick={() => chooseStop(s.stopRef, s.stopName)}
+                              onPick={() => chooseStop(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
                               onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
                             />
                           ))}
@@ -796,7 +816,7 @@ export default function Departures() {
                               icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}
                               title={s.stopName}
                               isFav={isFav(s.stopRef)}
-                              onPick={() => chooseStop(s.stopRef, s.stopName)}
+                              onPick={() => chooseStop(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
                               onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
                             />
                           ))}
@@ -1073,7 +1093,10 @@ export default function Departures() {
                 Detaljert forsinkelsesstatistikk for {selectedStop.name}.
               </p>
             </div>
-            <StopAnalysisSection stopRef={stopRef} stopName={selectedStop.name} operators={operators} />
+            <StopAnalysisSection
+              stopRef={stopRef} stopName={selectedStop.name} operators={operators}
+              lat={selectedStop.lat} lng={selectedStop.lng}
+            />
           </div>
         )}
 
