@@ -388,8 +388,8 @@ function classifyQuery(sql: string): string {
  * på nettopp det, se NOTES.md punkt 8). Nullstill med
  * `window.__duckTimings.reset()`.
  */
-type DuckTimingEntry = { label: string; ms: number; at: number };
-function recordTiming(label: string, ms: number): void {
+type DuckTimingEntry = { label: string; ms: number; at: number; sql?: string };
+function recordTiming(label: string, ms: number, sql?: string): void {
   if (typeof window === "undefined") return;
   const w = window as unknown as { __duckTimings?: {
     entries: DuckTimingEntry[]; summary(): Record<string, { n: number; totalMs: number }>; reset(): void;
@@ -410,7 +410,12 @@ function recordTiming(label: string, ms: number): void {
       reset() { entries.length = 0; },
     };
   }
-  w.__duckTimings.entries.push({ label, ms: Math.round(ms), at: Math.round(performance.now()) });
+  w.__duckTimings.entries.push({
+    label,
+    ms: Math.round(ms),
+    at: Math.round(performance.now()),
+    sql: sql?.replace(/\s+/g, " ").trim().slice(0, 160),
+  });
 }
 
 async function runQueryOnConn<T = Record<string, unknown>>(
@@ -419,7 +424,7 @@ async function runQueryOnConn<T = Record<string, unknown>>(
 ): Promise<T[]> {
   const _t0 = performance.now();
   const result = await conn.query(sql);
-  recordTiming(classifyQuery(sql), performance.now() - _t0);
+  recordTiming(classifyQuery(sql), performance.now() - _t0, sql);
   const rows: T[] = [];
   const schema = result.schema.fields;
   for (let i = 0; i < result.numRows; i++) {
