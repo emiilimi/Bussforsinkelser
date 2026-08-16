@@ -28,23 +28,11 @@ export function BusLoading({
   label = "Henter data",
   scale = 1,
   className,
-  progress,
-  showProgress = true,
 }: {
   label?: string;
   scale?: number;
   className?: string;
-  /**
-   * 0–1 = bestemt fremdrift (fyller stripen). Utelatt/null = UBESTEMT, som er
-   * det ærlige valget for DuckDB-spørringene: kostnaden varierer med kald/varm
-   * cache og antall stopp, så vi kan ikke oppgi en prosent uten å finne på et
-   * tall. Se kostnadsmodellen i CLAUDE.md.
-   */
-  progress?: number | null;
-  /** Sett false der animasjonen brukes dekorativt uten reell venting. */
-  showProgress?: boolean;
 }) {
-  const pct = progress == null ? null : Math.round(Math.min(1, Math.max(0, progress)) * 100);
   // Tilbake til originaldesignets mål (360x150) — forsøket på en bredere,
   // konturløs "dinosaur game"-variant så mer ujevn/urealistisk ut i praksis
   // enn den opprinnelige, avgrensede kort-visningen.
@@ -88,34 +76,13 @@ export function BusLoading({
           </svg>
           <div
             className="absolute left-0 right-0 text-center font-semibold text-muted-foreground"
-            style={{ bottom: showProgress ? 22 : 12, fontFamily: "'Nunito', Arial, sans-serif", fontSize: 13 }}
+            style={{ bottom: 12, fontFamily: "'Nunito', Arial, sans-serif", fontSize: 13 }}
           >
             {label}
             <span className="st-dot" style={{ animationDelay: "0s" }}>.</span>
             <span className="st-dot" style={{ animationDelay: ".2s" }}>.</span>
             <span className="st-dot" style={{ animationDelay: ".4s" }}>.</span>
           </div>
-          {/* Fremdriftsstripe under teksten. TODO (se STATUS.md): på sikt bør
-              selve bussen VÆRE fremdriftsindikatoren — bredere animasjonsvindu
-              der bussen kjører sakte mot enden — i stedet for en separat stripe. */}
-          {showProgress && (
-            <div
-              className="absolute overflow-hidden rounded-full bg-muted"
-              style={{ bottom: 10, left: 60, right: 60, height: 4 }}
-              role="progressbar"
-              aria-label={label}
-              {...(pct == null
-                ? {}
-                : { "aria-valuenow": pct, "aria-valuemin": 0, "aria-valuemax": 100 })}
-            >
-              <div
-                className={cn("h-full rounded-full bg-primary/70", pct == null && "st-progress-bar")}
-                style={pct == null
-                  ? { width: "40%" }
-                  : { width: `${pct}%`, transition: "width .3s ease-out" }}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>

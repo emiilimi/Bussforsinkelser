@@ -7,9 +7,9 @@
 
 ## TODO — la bussanimasjonen SELV være fremdriftsindikatoren
 
-`BusLoading` har nå en egen fremdriftsstripe under teksten (ubestemt som
-standard — se under). Det er en mellomløsning: stripen og bussen sier det
-samme to ganger.
+En UBESTEMT fremdriftsstripe under bussen ble bygget og **fjernet igjen samme
+dag**: den fortalte ingenting bussen ikke allerede fortalte, og to elementer
+som begge bare sier «det jobbes» er verre enn ett. Ikke bygg den på nytt.
 
 Ønsket løsning: **bussen ER fremdriftsindikatoren.** Bussen ser omtrent ut som
 i dag, men animasjonsvinduet gjøres bredere, og bussen kjører SAKTE fra venstre
@@ -17,20 +17,15 @@ mot høyre gjennom vinduet i stedet for å bare bobbe på stedet mens veien
 scroller. Da leses «hvor langt bussen har kommet» direkte som «hvor langt
 lastingen har kommet».
 
-Uavklart før dette bygges:
-- Med UBESTEMT fremdrift (som i dag) vet vi ikke hvor lang veien er. Skal
-  bussen da bremse asymptotisk mot enden (aldri helt fram før data er der),
-  eller kjøre i loop? Asymptotisk er ærligst, men må ikke se ut som den har
-  hengt seg opp.
-- Krever at kallestedene faktisk kan oppgi fremdrift for at det skal bli
-  BESTEMT. I dag kan de ikke det (se kostnadsmodellen i CLAUDE.md — vi vet
-  ikke på forhånd hvor lenge en DuckDB-spørring tar). Reell fremdrift blir
-  først mulig med forhåndsaggregerte persentiler (NOTES.md punkt 4), der
-  arbeidet er oppdelt i tellbare steg.
+Forutsetningen er at det finnes ekte fremdrift å vise. Det gjør det ikke i
+dag (se kostnadsmodellen i CLAUDE.md — vi vet ikke på forhånd hvor lenge en
+DuckDB-spørring tar), og det er nettopp derfor stripen ble meningsløs.
+Rekkefølgen bør altså være: **først få tellbare steg, så animer dem.** Ett
+tellbart steg finnes allerede: overgangs-gapene kjøres én spørring per
+reiseforslag (N av 12 ferdig), så «buss X % av veien» kunne vært ekte der.
 
 Relevante filer: `client/src/components/bus-loading.tsx`,
-keyframes `st-busbob`/`st-roadscroll`/`st-progress-indeterminate` i
-`client/src/index.css`.
+keyframes `st-busbob`/`st-roadscroll` i `client/src/index.css`.
 
 ## Endringslogg — 2026-08-15: to stale-liste-bugs + StopPlace-navnekollisjon i reise-bygget
 

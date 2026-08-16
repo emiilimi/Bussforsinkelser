@@ -321,14 +321,105 @@ async function prepareView(
 }
 
 // ---------------------------------------------------------------------------
+// Serialisering + begrenset retry rundt prepareView+spørring.
+//
+// SERIALISERING: prepareView (CREATE OR REPLACE VIEW ...) og den påfølgende
+// SELECT-en er to SEPARATE .query()-kall mot samme delte, navngitte view
+// (delays_by_line/delays_by_stop — se prepareView over). DuckDB-wasm kjører
+// alt gjennom én worker-tråd, men REKKEFØLGEN kallene når worker-en i styres
+// av JS-hendelsesløkkas mikrotask-rekkefølge på tvers av SAMTIDIGE kall.
+// Uten denne muteksen kan én spørrings prepareView (f.eks. "siste 2 uker")
+// bli etterfulgt av en ANNEN samtidig spørrings prepareView ("siste uke") FØR
+// den første rekker sin egen SELECT — som da leser feil vindus datasett.
+// Stoppanalysens flere hooks (linjer/timesprofil/enkeltavganger + dagstrend)
+// bytter alle vindu SAMTIDIG når brukeren endrer periode, så dette er ikke et
+// teoretisk hjørnetilfelle.
+//
+// RETRY: samme begrunnelse som registerFilesWithRetry over — queryClient sin
+// globale retry:false betyr at ÉN forbigående glipp (nettverk, akkurat denne
+// racen, midlertidig kontensjon) gir en PERMANENT feil-cachet spørring for
+// akkurat den (stopp/linje, vindu)-kombinasjonen, uten vei tilbake før siden
+// lastes på nytt. Sett i praksis: bytt periode i stoppanalysen rett etter et
+// tregt førstelast, og visningen sitter fast på det gamle vinduets tall.
+let queryMutex: Promise<void> = Promise.resolve();
+const QUERY_RETRY_DELAYS_MS = [500, 1500];
+
+async function runSerializedWithRetry<T>(fn: () => Promise<T>): Promise<T> {
+  const runOnce = (): Promise<T> => {
+    const scheduled = queryMutex.then(fn, fn);
+    queryMutex = scheduled.then(
+      () => undefined,
+      () => undefined,
+    );
+    return scheduled;
+  };
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await runOnce();
+    } catch (err) {
+      const delay = QUERY_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) throw err;
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Delt spørringskjøring: SQL → rader som plain JS-objekter
 // ---------------------------------------------------------------------------
+
+/**
+ * Grovklassifisering av en spørring, kun til ytelsesmåling. Vi har ingen
+ * label-parameter gjennom alle kallestedene, så vi kjenner igjen formen på
+ * SQL-en i stedet.
+ */
+function classifyQuery(sql: string): string {
+  if (/arr\.date\s*=\s*dep\.date/.test(sql)) return "transfer-gap";
+  if (/PERCENTILE_CONT/.test(sql) && /GROUP BY\s+stop_ref,\s*line_ref/i.test(sql)) return "percentiles";
+  if (/service_journey_id/.test(sql) && /stop_sequence/.test(sql)) return "leg-timing";
+  if (/CREATE\s+OR\s+REPLACE\s+VIEW/i.test(sql)) return "view-setup";
+  return "other";
+}
+
+/**
+ * Ytelsesteller per spørringstype, lagt på `window.__duckTimings`.
+ * Alltid på — kostnaden er én Date.now()-differanse per spørring, og uten den
+ * er «hvor blir tiden av?» ren gjetting (vi har allerede tatt feil to ganger
+ * på nettopp det, se NOTES.md punkt 8). Nullstill med
+ * `window.__duckTimings.reset()`.
+ */
+type DuckTimingEntry = { label: string; ms: number; at: number };
+function recordTiming(label: string, ms: number): void {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { __duckTimings?: {
+    entries: DuckTimingEntry[]; summary(): Record<string, { n: number; totalMs: number }>; reset(): void;
+  } };
+  if (!w.__duckTimings) {
+    const entries: DuckTimingEntry[] = [];
+    w.__duckTimings = {
+      entries,
+      summary() {
+        const out: Record<string, { n: number; totalMs: number }> = {};
+        for (const e of entries) {
+          out[e.label] ??= { n: 0, totalMs: 0 };
+          out[e.label].n += 1;
+          out[e.label].totalMs += e.ms;
+        }
+        return out;
+      },
+      reset() { entries.length = 0; },
+    };
+  }
+  w.__duckTimings.entries.push({ label, ms: Math.round(ms), at: Math.round(performance.now()) });
+}
 
 async function runQueryOnConn<T = Record<string, unknown>>(
   conn: AsyncDuckDBConnection,
   sql: string,
 ): Promise<T[]> {
+  const _t0 = performance.now();
   const result = await conn.query(sql);
+  recordTiming(classifyQuery(sql), performance.now() - _t0);
   const rows: T[] = [];
   const schema = result.schema.fields;
   for (let i = 0; i < result.numRows; i++) {
@@ -388,13 +479,15 @@ export async function standaloneDuckQuery<T = Record<string, unknown>>(
   if (registeredFiles.size === 0) {
     throw new Error("Ingen parquet-filer tilgjengelig");
   }
-  const conn = await db.connect();
-  try {
-    await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
-    return await runQueryOnConn<T>(conn, bindParams(sql, params));
-  } finally {
-    await conn.close();
-  }
+  return runSerializedWithRetry(async () => {
+    const conn = await db.connect();
+    try {
+      await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+      return await runQueryOnConn<T>(conn, bindParams(sql, params));
+    } finally {
+      await conn.close();
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -500,13 +593,15 @@ export function useParquetQuery(): ParquetQueryState {
       // Re-register files in case new weeks appeared since last check
       await ensureFilesRegistered(db);
 
-      const conn = await db.connect();
-      try {
-        await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
-        return await runQueryOnConn<T>(conn, bindParams(sql, params));
-      } finally {
-        await conn.close();
-      }
+      return runSerializedWithRetry(async () => {
+        const conn = await db.connect();
+        try {
+          await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+          return await runQueryOnConn<T>(conn, bindParams(sql, params));
+        } finally {
+          await conn.close();
+        }
+      });
     },
     [db],
   );
