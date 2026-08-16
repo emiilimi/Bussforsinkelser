@@ -69,10 +69,49 @@ De to faktiske kostnadene:
    `dataRange` (`COUNT(DISTINCT date)`, som kun mater en kosmetisk linje i
    metodeboksen) 7 s, og en tredje 47 s. Dette er største enkeltpost, og den
    betales før noe brukeren ser i det hele tatt beregnes.
-   **Uverifisert hypotese** verdt å teste først: `prepareView` bygger viewet på
-   nytt per distinkte datovindu, så footer-kostnaden kan bli betalt FLERE
-   ganger — én gang per vindu — i stedet for én gang totalt. Det ville i så
-   fall forklare den tredje 47 s-spørringen.
+   **`prepareView`-hypotesen er TESTET og AVKREFTET (2026-08-16).** Målt med
+   filantall + `changed`-flagg per view-bygging:
+
+   | view-setup | filsett endret? | tid |
+   |---|---|---|
+   | #1 (by-stop, 9 filer) | **ja** | 4,1 s |
+   | #2 (by-stop, 9 filer) | **nei** | **23,5 s** |
+   | #3 (by-line, 9 filer) | ja | 2,8 s |
+
+   Den med UENDRET filsett var 5,7× dyrere enn den med endret. Kostnaden
+   drives altså ikke av at vinduet/filsettet skifter. Ikke prøv å «cache
+   viewet per vindu» — det løser ingenting.
+
+   **Målemetodisk forbehold funnet underveis**: tallene er vegg-klokke fra
+   kall til svar, og inkluderer derfor VENTETID på den ene DuckDB-worker'en.
+   En «23,5 s view-setup» kan være 0,1 s arbeid + 23,4 s kø. Kategori-summene
+   over er fortsatt riktige for «hvor blir tiden av», men enkelttall for
+   spørringer som overlapper kan ikke leses som ren arbeidstid. (Den aller
+   første spørringen har ingen kø foran seg og er derfor pålitelig.)
+
+   **DEN FAKTISKE SYNDEREN, funnet i samme måling:**
+
+   ```
+   SELECT COUNT(DISTINCT date) AS days, MIN(date), MAX(date) FROM delays_by_stop
+   ```
+   → **81,6 sekunder.** Den enkeltspørringen er den dyreste i hele flyten.
+
+   `MIN`/`MAX` kan besvares fra parquetens row group-statistikk, men
+   `COUNT(DISTINCT date)` kan det ikke — den må skanne date-kolonnen over alle
+   ~64 mill. rader. Og den mater i praksis bare den kosmetiske linjen
+   «Datagrunnlag: N dager (dato–dato)» i metodeboksen
+   (`trip-planner.tsx` ~3691), pluss en fallback for `latestDataDay` som
+   nesten aldri brukes (`measuredLatest` fra primingen kommer først).
+
+   Billigst mulige fikser, i økende ærlighet/kostnad:
+   - vis kun datointervallet fra `MIN`/`MAX` (row group-stats, billig) og
+     dropp «N dager»-tallet;
+   - eller behold tallet, men utled det fra ukefilene som allerede er
+     registrert (`RegisteredFile.fromIso/toIso`) — null spørringskostnad, men
+     overestimerer hvis en ukefil mangler dager (det HAR skjedd, se
+     ufullstendige ingester);
+   - eller behold eksakt `COUNT(DISTINCT date)`, men kjør den ALLER SIST slik
+     at den ikke står foran noe brukeren venter på.
 2. **Overgangs-gap, ~11 s per reiseforslag.** Med 12 forslag ≈ 130 s. Dette er
    den største posten etter metadata, men den fylles inn progressivt og
    blokkerer ikke tidene på kortene.
