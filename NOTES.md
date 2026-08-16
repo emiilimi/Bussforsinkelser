@@ -44,6 +44,45 @@ eksporter forhåndsaggregerte persentiler per `(stop_ref, line_ref)` som en
 liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
 persentiler over 54 mill. rader ved hvert søk.
 
+### ⚠️ MÅLT 2026-08-16: forhåndsaggregering treffer FEIL flaskehals
+
+Etter at `window.__duckTimings` ble lagt inn (teller per DuckDB-spørring i
+`runQueryOnConn`) kunne fordelingen endelig måles i stedet for gjettes. Kaldt
+søk Lagunen→Åsane på preview mot R2, ~12 reiseforslag:
+
+| Fase | Spørringer | Tid |
+|---|---|---|
+| Metadata/priming (footer-lesing) | 3 | **~110 s** |
+| **Persentiler** | 1 | **8,5 s** |
+| Overgangs-gap | 6 av ~12 | 67,7 s (**~11 s per reiseforslag**) |
+| Småspørringer (leg-timing o.l.) | ~11 | ~15 s |
+
+**Persentil-spørringen koster 8,5 sekunder av ~250.** Å forhåndsaggregere den
+— planen i dette punktet — ville altså spart under 4 % av ventetiden. Hele
+scopingen under er riktig regnet, men rettet mot feil mål. Ikke bygg den som
+et ytelsestiltak.
+
+De to faktiske kostnadene:
+
+1. **Footer-/metadatalesing, ~110 s kaldt.** Den første spørringen
+   (`primeParquetMetadata`: `SELECT COUNT(*), MAX(date)`) brukte alene 55 s,
+   `dataRange` (`COUNT(DISTINCT date)`, som kun mater en kosmetisk linje i
+   metodeboksen) 7 s, og en tredje 47 s. Dette er største enkeltpost, og den
+   betales før noe brukeren ser i det hele tatt beregnes.
+   **Uverifisert hypotese** verdt å teste først: `prepareView` bygger viewet på
+   nytt per distinkte datovindu, så footer-kostnaden kan bli betalt FLERE
+   ganger — én gang per vindu — i stedet for én gang totalt. Det ville i så
+   fall forklare den tredje 47 s-spørringen.
+2. **Overgangs-gap, ~11 s per reiseforslag.** Med 12 forslag ≈ 130 s. Dette er
+   den største posten etter metadata, men den fylles inn progressivt og
+   blokkerer ikke tidene på kortene.
+
+Å forhåndsberegne alle mulige overganger er ikke farbart (kombinatorisk —
+antall avgangs-PAR, ikke stopp), og vi har ikke Enturs bruksdata til å vite
+hvilke som er populære. Realistiske retninger i stedet: kutte antall
+reiseforslag det regnes gap for, regne kun for synlige/utvidede kort, eller
+angripe metadatakostnaden i punkt 1 først — den er størst og rammer alt.
+
 ### Scoping med FAKTISKE tall (målt 2026-08-15)
 
 Målt over hele parquet-arkivet slik `aggregate_stats.py` faktisk leser det
