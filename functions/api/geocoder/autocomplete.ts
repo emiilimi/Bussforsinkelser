@@ -43,6 +43,14 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       layer: f.properties.layer, // "venue" = stopp, "address" = adresse, "street", …
       lat: f.geometry.coordinates[1],
       lng: f.geometry.coordinates[0],
+      // Kommune/by — brukt til å disambiguere navneduplikater i søkeresultatet
+      // (Norge har flere stoppesteder med identisk navn, f.eks. "Kringsjå" i
+      // Oslo/Bergen/Fredrikstad/Vennesla). Se disambiguationSuffix() i klienten.
+      locality: f.properties.locality ?? null,
+      // Beste gjetning på operatør fra tariffsone-prefikset (ikke samme
+      // navnerom som dataSource, men sammenfaller i praksis for regionene i
+      // REGION_OPERATOR — brukes kun til visning, aldri til filtrering).
+      operatorHint: f.properties.tariff_zones?.[0]?.split(":")[0] ?? null,
     }));
 
     const out = json(results, { cacheSeconds: CACHE_SECONDS });

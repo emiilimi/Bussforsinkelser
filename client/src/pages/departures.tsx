@@ -17,6 +17,7 @@ import {
 import type { StopSearchResult } from "@/lib/trip-shared";
 import { cn, formatStopName } from "@/lib/utils";
 import { REGION_OPERATOR, type Region } from "@/lib/RegionContext";
+import { disambiguatedName } from "@/lib/disambiguate-stops";
 import { useParquetQuery, type QueryOptions } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import { useUrlParam } from "@/hooks/use-url-state";
@@ -38,6 +39,8 @@ type SearchResult = {
   quays: Quay[];
   lat?: number | null;
   lng?: number | null;
+  locality?: string | null;
+  operatorHint?: string | null;
 };
 
 type Departure = {
@@ -516,11 +519,15 @@ export default function Departures() {
   // gi avganger, så adresser filtreres bort.
   const searchResults: SearchResult[] = useMemo(() => {
     if (!IS_REISE) return rawSearch as SearchResult[];
-    return (rawSearch as Array<{ id: string; name: string; layer: string; lat?: number; lng?: number }>)
+    return (rawSearch as Array<{
+      id: string; name: string; layer: string; lat?: number; lng?: number;
+      locality?: string | null; operatorHint?: string | null;
+    }>)
       .filter((r) => r.layer === "venue" && typeof r.id === "string" && r.id.startsWith("NSR:"))
       .map((r) => ({
         stopRef: r.id, stopName: r.name, platformCodes: null, quays: [],
         lat: r.lat ?? null, lng: r.lng ?? null,
+        locality: r.locality ?? null, operatorHint: r.operatorHint ?? null,
       }));
   }, [rawSearch]);
 
@@ -774,11 +781,12 @@ export default function Departures() {
                         <SectionLabel>Søketreff</SectionLabel>
                         {searchResults.map((r) => {
                           const name = formatStopName(r.stopName, r.stopRef);
+                          const title = disambiguatedName(searchResults, r, name);
                           return (
                             <StopRow
                               key={r.stopRef}
                               icon={<MapPin className="h-3.5 w-3.5 text-muted-foreground" />}
-                              title={name}
+                              title={title}
                               subtitle={r.platformCodes ? `Plattformer: ${r.platformCodes}` : undefined}
                               isFav={isFav(r.stopRef)}
                               onPick={() => chooseStop(r.stopRef, r.stopName, r.lat ?? null, r.lng ?? null)}

@@ -88,6 +88,22 @@ export const REGION_LABEL: Record<Region, string> = {
   avi: "Avinor (fly)",
 };
 
+/** Kort visningsnavn for en operatørkode (dataSource ELLER en Entur
+ *  tariffsone-prefiks — ulike navnerom i teorien, men de sammenfaller i
+ *  praksis for regionene under). Brukt til å disambiguere navneduplikater i
+ *  stoppsøket (se disambiguationSuffix i lib/disambiguate-stops.ts) — "Ruter"
+ *  i stedet for hele "Ruter (Oslo/Akershus)". null hvis koden er ukjent. */
+export function operatorDisplayName(code: string | null | undefined): string | null {
+  if (!code) return null;
+  const upper = code.toUpperCase();
+  const direct = REGION_LABEL[upper.toLowerCase() as Region];
+  if (direct) return direct.split(" (")[0];
+  for (const [region, codes] of Object.entries(REGION_OPERATOR)) {
+    if (codes.includes(upper)) return REGION_LABEL[region as Region].split(" (")[0];
+  }
+  return null;
+}
+
 // All individual region keys (excluding "alle" sentinel)
 export const INDIVIDUAL_REGIONS = Object.keys(REGION_OPERATOR).filter(
   (k) => k !== "alle",
