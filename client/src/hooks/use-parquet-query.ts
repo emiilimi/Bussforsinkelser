@@ -302,6 +302,11 @@ function filesForFamily(family: DelayFamily, fromDate?: string, toDate?: string)
  *  et datointervall — DuckDB slipper da å i det hele tatt åpne ukefiler
  *  utenfor vinduet (ikke bare hoppe over radgrupper i dem). Billig
  *  metadata-operasjon, kjøres på nytt per spørring som oppgir et intervall. */
+/** Siste filsett viewet ble bygget med, per familie — kun til måling, slik at
+ *  vi kan se om en dyr spørring faller sammen med at filsettet ENDRET seg
+ *  (hypotesen om at footer-kostnaden betales på nytt per datovindu). */
+const lastViewFiles = new Map<DelayFamily, string>();
+
 async function prepareView(
   conn: AsyncDuckDBConnection,
   family: DelayFamily,
@@ -310,13 +315,23 @@ async function prepareView(
 ): Promise<string> {
   const viewName = `delays_${family.replace("-", "_")}`;
   const files = filesForFamily(family, fromDate, toDate);
+  const key = files.join("|");
+  const changed = lastViewFiles.get(family) !== key;
+  lastViewFiles.set(family, key);
+  const t0 = performance.now();
   if (files.length === 0) {
     // Ingen registrerte uker overlapper vinduet — tom, men gyldig, view.
     await conn.query(`CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet([]) WHERE 1=0`);
+    recordTiming("view-setup", performance.now() - t0, `[0 filer] changed=${changed}`);
     return viewName;
   }
   const fileList = files.map((u) => `'${u}'`).join(", ");
   await conn.query(`CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet([${fileList}])`);
+  recordTiming(
+    "view-setup",
+    performance.now() - t0,
+    `[${files.length} filer, ${family}] changed=${changed} window=${fromDate ?? "*"}..${toDate ?? "*"}`,
+  );
   return viewName;
 }
 
