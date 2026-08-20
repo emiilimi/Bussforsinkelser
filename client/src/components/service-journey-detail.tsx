@@ -73,10 +73,16 @@ function fmtDeltaMin(m: number): string {
 }
 
 /**
- * mounted-og-alltid-fetch: queryene kjører så snart komponenten er montert
- * (så lenge `active`), uavhengig av om `open`. Slik prefetches hele avgangen i
- * bakgrunnen for hvert legg i et utvidet kort, og visningen er umiddelbar når
- * brukeren klikker. Selve tabellen rendres bare når `open`.
+ * To ulike hentestrategier, med vilje:
+ *
+ * - **Entur-kallet (stopplista)** prefetches på `active`, altså så snart
+ *   kortet er utvidet. Det er et vanlig HTTP-kall og koster ikke
+ *   DuckDB-worker'en noe, så visningen føles umiddelbar når brukeren klikker.
+ * - **DuckDB-persentilene** venter derimot på `open` — se begrunnelsen ved
+ *   spørringen under. Kort sagt: de går mot en filfamilie siden ikke primer,
+ *   og å prefetche dem la ~46 s worker-tid foran alt brukeren venter på.
+ *
+ * Selve tabellen rendres uansett bare når `open`.
  */
 export function ServiceJourneyDetail({
   sjId,
@@ -110,9 +116,18 @@ export function ServiceJourneyDetail({
 
   // Per-stopp P50/P80/P95 fra DuckDB: helst for akkurat denne avgangen
   // (service_journey_id), ellers for linjen ved stoppet (bredest dekning).
+  //
+  // GATET PÅ `open`, IKKE `active` (endret 2026-08-16). Disse spørringene går
+  // mot `by-line`-familien, mens reiseplanleggeren bare primer `by-stop` — så
+  // den FØRSTE av dem betaler hele footer-lesingen for den andre filfamilien
+  // om igjen. Målt på preview mot R2: 46,2 s for den første, 2,5 s for de
+  // påfølgende. Å forhåndshente det for hvert legg i hvert utvidede kort la
+  // altså 46 s med worker-tid foran alt brukeren faktisk venter på, for å
+  // spare et klikk. Entur-kallet over prefetches fortsatt på `active` — det
+  // er et vanlig HTTP-kall og koster ikke DuckDB-worker'en noe.
   const { data: statMap } = useQuery<Map<string, SjStopStat>>({
     queryKey: ["duck-sj-stops-full", sjId, lineRef ?? ""],
-    enabled: active && duckReady,
+    enabled: open && duckReady,
     staleTime: Infinity,
     queryFn: async () => {
       const map = new Map<string, SjStopStat>();
