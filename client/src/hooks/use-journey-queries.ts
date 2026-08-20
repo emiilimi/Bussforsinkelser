@@ -23,6 +23,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useParquetQuery } from "./use-parquet-query";
 import { IS_REISE } from "@/lib/app-mode";
 
@@ -323,13 +324,27 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
     queryKey: ["route-variants", lineRef, directionRef, fromDate],
     enabled: ready && !!lineRef,
     queryFn: () =>
+      // arg_min/arg_max i stedet for korrelerte subspørringer: de fire
+      // subspørringene her (første/siste stopp-ref og -navn) hadde INGEN
+      // line_ref/dato-filter, så hver av dem skannet HELE datasettet på nytt
+      // — én gang per service_journey_id i gruppa, altså hundrevis av
+      // fullskann per sidelast. arg_min(x, y) plukker x fra raden med lavest
+      // y innenfor gruppa som allerede er lest. Samme mønster som
+      // useJourneyRankings under, og semantisk likt: stop_sequence er aldri
+      // NULL. Bonus: nå respekteres datovinduet også for endestoppene.
+      //
+      // CAST(... AS BIGINT): SUM(<heltall>) gir ellers HUGEINT, som Arrow
+      // sender som Decimal128 → Uint32Array i JS, ikke et tall. Det ga
+      // "99 090,0,0" i nedtrekket. runQueryOnConn konverterer nå slike
+      // verdier, men CAST-en holder typen riktig allerede i SQL-en (samme
+      // grep som stats-adapter.ts bruker).
       query<RouteVariant>(`
         SELECT
           first_stop_ref || '->' || last_stop_ref || ':' || num_stops AS variantId,
           MAX(COALESCE(first_stop_name, first_stop_ref)) AS firstStopName,
           MAX(COALESCE(last_stop_name, last_stop_ref))   AS lastStopName,
           num_stops           AS numStops,
-          SUM(total_samples)  AS totalSamples,
+          CAST(SUM(total_samples) AS BIGINT) AS totalSamples,
           MIN(first_time)     AS exampleTime
         FROM (
           SELECT
@@ -337,18 +352,10 @@ export function useRouteVariants(lineRef: string, directionRef: string, fromDate
             COUNT(DISTINCT d.stop_ref) AS num_stops,
             MIN(COALESCE(d.aimed_departure, d.aimed_arrival)) AS first_time,
             COUNT(*) AS total_samples,
-            (SELECT d2.stop_ref FROM delays_by_line d2
-             WHERE d2.service_journey_id = d.service_journey_id
-             ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_ref,
-            (SELECT d2.stop_ref FROM delays_by_line d2
-             WHERE d2.service_journey_id = d.service_journey_id
-             ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_ref,
-            (SELECT d2.stop_name FROM delays_by_line d2
-             WHERE d2.service_journey_id = d.service_journey_id
-             ORDER BY d2.stop_sequence ASC LIMIT 1) AS first_stop_name,
-            (SELECT d2.stop_name FROM delays_by_line d2
-             WHERE d2.service_journey_id = d.service_journey_id
-             ORDER BY d2.stop_sequence DESC LIMIT 1) AS last_stop_name
+            arg_min(d.stop_ref,  d.stop_sequence) AS first_stop_ref,
+            arg_max(d.stop_ref,  d.stop_sequence) AS last_stop_ref,
+            arg_min(d.stop_name, d.stop_sequence) AS first_stop_name,
+            arg_max(d.stop_name, d.stop_sequence) AS last_stop_name
           FROM delays_by_line d
           WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           GROUP BY d.service_journey_id
@@ -384,28 +391,33 @@ export function useLineStopProfile(
         const m = variantId.match(/^(.+)->(.+):(\d+)$/);
         if (m) {
           const [, firstStop, lastStop, numStops] = m;
+          // arg_min/arg_max, ikke korrelerte subspørringer — se
+          // useRouteVariants over for hvorfor (subspørringene manglet
+          // line_ref/dato-filter og fullskannet datasettet per gruppe).
           return query<{ service_journey_id: string }>(`
             SELECT d.service_journey_id
             FROM delays_by_line d
             WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
             GROUP BY d.service_journey_id
             HAVING COUNT(DISTINCT d.stop_ref) = ?
-              AND (SELECT d2.stop_ref FROM delays_by_line d2
-                   WHERE d2.service_journey_id = d.service_journey_id
-                   ORDER BY d2.stop_sequence ASC LIMIT 1) = ?
-              AND (SELECT d2.stop_ref FROM delays_by_line d2
-                   WHERE d2.service_journey_id = d.service_journey_id
-                   ORDER BY d2.stop_sequence DESC LIMIT 1) = ?
-            ORDER BY COUNT(*) DESC
+              AND arg_min(d.stop_ref, d.stop_sequence) = ?
+              AND arg_max(d.stop_ref, d.stop_sequence) = ?
+            ORDER BY COUNT(*) DESC, d.service_journey_id
             LIMIT 1`,
             [lineRef, directionRef, fromDate, parseInt(numStops), firstStop, lastStop],
             { family: "by-line", fromDate });
         }
       }
+      // service_journey_id som tiebreak: målt på ekte data kan 38 avganger
+      // dele samme COUNT(*), og uten et stabilt kriterium plukker LIMIT 1
+      // vilkårlig — profilen kunne da «bytte avgang» mellom to sidelastninger.
+      // (De uavgjorte har samme stopprekkefølge, så valget påvirker ikke
+      // tallene, kun stabiliteten.)
       return query<{ service_journey_id: string }>(`
         SELECT service_journey_id FROM delays_by_line
         WHERE line_ref = ? AND direction_ref = ? AND date >= ?
-        GROUP BY service_journey_id ORDER BY COUNT(*) DESC LIMIT 1`,
+        GROUP BY service_journey_id
+        ORDER BY COUNT(*) DESC, service_journey_id LIMIT 1`,
         [lineRef, directionRef, fromDate],
         { family: "by-line", fromDate });
     },
@@ -414,35 +426,45 @@ export function useLineStopProfile(
 
   const dominantId = dominantQuery.data?.[0]?.service_journey_id;
 
-  // Step 2: get canonical stops for dominant journey (én avgang — liten
-  // oppslagsspørring, datovindu ukjent her så vi lar den gå mot hele by-line).
-  const canonicalQuery = useQuery<Array<{ stop_ref: string }>>({
-    queryKey: ["line-stop-profile-canonical", dominantId ?? ""],
+  // Step 2: stoppene (og rekkefølgen) for den dominerende avgangen.
+  //
+  // fromDate er med nå. Kommentaren her sa tidligere at «datovinduet er ukjent
+  // her», men det er det ikke — det er en parameter til hooken. Uten den
+  // droppet prepareView ingen ukefiler, og et view over ALLE registrerte uker
+  // (opptil 14) ble bygget for det som bare er et lite oppslag på ÉN avgang.
+  //
+  // Henter samtidig stop_sequence, slik at steg 3 slipper to korrelerte
+  // subspørringer for å finne rekkefølgen (se der).
+  const canonicalQuery = useQuery<Array<{ stop_ref: string; stop_sequence: number }>>({
+    queryKey: ["line-stop-profile-canonical", dominantId ?? "", fromDate],
     enabled: !!dominantId,
     queryFn: () =>
-      query<{ stop_ref: string }>(`
-        SELECT stop_ref FROM delays_by_line WHERE service_journey_id = ?
-        GROUP BY stop_ref`,
+      query<{ stop_ref: string; stop_sequence: number }>(`
+        SELECT stop_ref, MIN(stop_sequence) AS stop_sequence
+        FROM delays_by_line WHERE service_journey_id = ?
+        GROUP BY stop_ref
+        ORDER BY stop_sequence`,
         [dominantId!],
-        { family: "by-line" }),
+        { family: "by-line", fromDate }),
     staleTime: Infinity,
   });
 
   const canonicalStops = canonicalQuery.data?.map((r) => r.stop_ref) ?? [];
 
-  // Step 3: aggregate all matching journeys at those stops
-  const profileQuery = useQuery<LineStopProfileEntry[]>({
+  // Step 3: aggregate all matching journeys at those stops.
+  //
+  // stopSequence hentes IKKE lenger med korrelert subspørring (den lå både i
+  // SELECT og i ORDER BY, altså to fullskann av delays_by_line per utrad).
+  // Steg 2 har allerede rekkefølgen for den dominerende avgangen, så vi
+  // kobler den på klientsiden og sorterer der.
+  const profileQuery = useQuery<Array<Omit<LineStopProfileEntry, "stopSequence">>>({
     queryKey: ["line-stop-profile-data", lineRef, directionRef, fromDate, dominantId ?? "", canonicalStops.join(",")],
     enabled: !!dominantId && canonicalStops.length > 0,
     queryFn: () => {
       const ph = canonicalStops.map((s) => `'${s.replace(/'/g, "''")}'`).join(",");
-      const domId = dominantId!.replace(/'/g, "''");
-      return query<LineStopProfileEntry>(`
+      return query<Omit<LineStopProfileEntry, "stopSequence">>(`
         SELECT
           d.stop_ref AS stopRef,
-          (SELECT d2.stop_sequence FROM delays_by_line d2
-           WHERE d2.service_journey_id = '${domId}' AND d2.stop_ref = d.stop_ref
-           LIMIT 1) AS stopSequence,
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
           ROUND(MAX(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS maxDelayMin,
           ROUND(MIN(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS minDelayMin,
@@ -455,20 +477,31 @@ export function useLineStopProfile(
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
           AND d.stop_ref IN (${ph})
         GROUP BY d.stop_ref
-        HAVING COUNT(*) >= 3
-        ORDER BY (SELECT d2.stop_sequence FROM delays_by_line d2
-                  WHERE d2.service_journey_id = '${domId}' AND d2.stop_ref = d.stop_ref
-                  LIMIT 1)`,
+        HAVING COUNT(*) >= 3`,
         [lineRef, directionRef, fromDate],
         { family: "by-line", fromDate });
     },
     staleTime: Infinity,
   });
 
+  // Rekkefølge fra steg 2 påkoblet, og sortert her i stedet for i SQL-en.
+  const sequenceByStop = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of canonicalQuery.data ?? []) m.set(r.stop_ref, Number(r.stop_sequence));
+    return m;
+  }, [canonicalQuery.data]);
+
+  const orderedProfile = useMemo(() => {
+    if (!profileQuery.data) return undefined;
+    return profileQuery.data
+      .map((r) => ({ ...r, stopSequence: sequenceByStop.get(r.stopRef) ?? Number.MAX_SAFE_INTEGER }))
+      .sort((a, b) => a.stopSequence - b.stopSequence) as LineStopProfileEntry[];
+  }, [profileQuery.data, sequenceByStop]);
+
   return {
     isLoading: dominantQuery.isLoading || canonicalQuery.isLoading || profileQuery.isLoading,
     error: dominantQuery.error ?? canonicalQuery.error ?? profileQuery.error,
-    data: profileQuery.data,
+    data: orderedProfile,
   };
 }
 
