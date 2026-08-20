@@ -427,8 +427,19 @@ async function runSerializedWithRetry<T>(fn: () => Promise<T>): Promise<T> {
  * SQL-en i stedet.
  */
 function classifyQuery(sql: string): string {
+  // Overgangs-gap: UNION-en i lib/trip-shared.ts merker hvert spor med en
+  // src-kolonne ('S'/'A'/'P'). Å kjenne igjen JOIN-en (arr.date = dep.date)
+  // alene var ikke nok — de havnet som "other" og ble usynlige i summary().
+  if (/AS src\b/i.test(sql) && /\bgap\b/i.test(sql)) return "transfer-gap";
   if (/arr\.date\s*=\s*dep\.date/.test(sql)) return "transfer-gap";
-  if (/PERCENTILE_CONT/.test(sql) && /GROUP BY\s+stop_ref,\s*line_ref/i.test(sql)) return "percentiles";
+  if (/PERCENTILE_CONT/.test(sql)) {
+    if (/GROUP BY\s+stop_ref,\s*line_ref/i.test(sql)) return "percentiles";
+    if (/FROM\s+delays_by_line/i.test(sql)) return "sj-detail";       // «hele avgangen»
+    return "percentiles-other";
+  }
+  if (/COUNT\(DISTINCT date\)/i.test(sql)) return "data-daycount";
+  if (/COUNT\(\*\)\s+AS n,\s*MAX\(date\)/i.test(sql)) return "metadata-priming";
+  if (/MIN\(date\)/i.test(sql) && /MAX\(date\)/i.test(sql)) return "data-range";
   if (/service_journey_id/.test(sql) && /stop_sequence/.test(sql)) return "leg-timing";
   if (/CREATE\s+OR\s+REPLACE\s+VIEW/i.test(sql)) return "view-setup";
   return "other";
@@ -486,7 +497,25 @@ async function runQueryOnConn<T = Record<string, unknown>>(
       const col = result.getChild(field.name);
       const val = col?.get(i) ?? null;
       // DuckDB returns COUNT(*) etc. as BigInt — convert to Number
-      row[field.name] = typeof val === "bigint" ? Number(val) : val;
+      if (typeof val === "bigint") {
+        row[field.name] = Number(val);
+      } else if (val instanceof Uint32Array) {
+        // SUM(<heltall>) gir HUGEINT (INT128) i DuckDB, som Arrow sender som
+        // Decimal128 — i JS en Uint32Array på fire ord, IKKE et tall. Uten
+        // denne konverteringen slipper objektet urørt ut i UI-et, og det er
+        // to ulike feil, begge stille:
+        //   `${v}.toLocaleString("nb-NO")` → "99 090,0,0,0" (TypedArray-
+        //      varianten formaterer hvert ord for seg) — se rutevariant-
+        //      nedtrekket i linjeanalysen, meldt inn 2026-08-15.
+        //   `sum + v` → STRENGSAMMENSETNING ("99090" + "0" = "990900"), altså
+        //      et plausibelt, men helt feil tall i enhver reduce().
+        // Number() håndterer hele INT128-området vi bryr oss om her.
+        // Uint32Array (ikke ArrayBuffer.isView) er med vilje: en ekte BLOB
+        // ville kommet som Uint8Array og skal ikke tallkonverteres.
+        row[field.name] = Number(val);
+      } else {
+        row[field.name] = val;
+      }
     }
     rows.push(row as T);
   }
