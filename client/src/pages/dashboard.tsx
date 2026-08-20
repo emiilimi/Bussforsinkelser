@@ -46,11 +46,28 @@ const PERIOD_DAYS: Record<string, number> = IS_REISE
   ? { week: 7, month: 30, year: 90 }
   : { week: 7, month: 30, year: 365 };
 
+// Y-akse-bredden på leaderboard-grafene er 160px — lange navn med en
+// «(...)»-forklaring wrapper til så mange linjer at de overlapper naborraden.
+// Kutt derfor ned/fjern parentesen først, siden den bare er tilleggsinfo.
+const CHART_LABEL_MAX_LEN = 46;
+
+function shortenTrailingParens(label: string, maxLen: number): string {
+  if (label.length <= maxLen) return label;
+  const match = label.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+  if (!match) return label;
+  const [, base, inner] = match;
+  const budget = maxLen - base.length - 4; // plass til " (…)"
+  if (budget <= 3) return base;
+  return `${base} (${inner.slice(0, budget).trimEnd()}…)`;
+}
+
 /** Display name for bar chart: "60 — Fanahammeren - Lagunen" or just "Linje 60" */
 function lineLabel(l: LeaderboardLine): string {
   const num = lineNumber(l.lineRef);
   const name = l.lineName;
-  if (name && name !== `Linje ${num}`) return `${num} — ${name}`;
+  if (name && name !== `Linje ${num}`) {
+    return shortenTrailingParens(`${num} — ${name}`, CHART_LABEL_MAX_LEN);
+  }
   return `Linje ${num}`;
 }
 
