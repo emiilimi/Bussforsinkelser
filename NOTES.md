@@ -103,6 +103,39 @@ De to faktiske kostnadene:
    (`trip-planner.tsx` ~3691), pluss en fallback for `latestDataDay` som
    nesten aldri brukes (`measuredLatest` fra primingen kommer først).
 
+   **FIKSET 2026-08-16 — og etterprøvd på preview mot R2:**
+
+   | spørring | før | etter |
+   |---|---|---|
+   | datointervall (`MIN`/`MAX`) | 81,6 s (kombinert) | **6,7 s** |
+   | eksakt dagantall (`COUNT(DISTINCT date)`) | i samme spørring | kjører først når DuckDB har vært helt ledig (`whenDuckIdle`) |
+
+   Metodeboksen viser nå «Datagrunnlag: 19. juni–18. aug.» med det samme, og
+   dagantallet føyes til bak når det eventuelt lander. Ny `whenDuckIdle()` i
+   `use-parquet-query.ts` teller `pendingQueries` og venter til worker'en har
+   vært ledig sammenhengende i N sekunder.
+
+   **Korrigering av view-setup-tallene over.** Med mindre kø i systemet ble
+   `prepareView` målt på nytt: filsett ENDRET ≈ 3–6 s, filsett UENDRET ≈ 0,4 s.
+   Filsett-bytte koster altså noe, men lite — og de 23,5 s i tabellen over var
+   i hovedsak køventing, ikke arbeid. Hovedkonklusjonen står: dette er ikke
+   flaskehalsen.
+
+   **NYTT FUNN i samme måling — `by-line` betaler footer-kostnaden EN GANG TIL.**
+   Reiseplanleggeren primer kun `by-stop` (`primeParquetMetadata("by-stop")`,
+   med kommentar om at «alle spørringene på denne siden filtrerer på
+   stop_ref»). Det stemmer ikke: `service-journey-detail.tsx` kjører
+   `SELECT stop_ref, … FROM delays_by_line … GROUP BY stop_ref` mot
+   `by-line`-familien, og den FØRSTE slike spørringen ble målt til **46,2 s** —
+   nesten hele priming-kostnaden om igjen, for den andre filfamilien.
+   Til sammenlikning tok de påfølgende by-line-spørringene 2,5 s.
+
+   Verdt å prøve (ikke gjort ennå): enten prime BEGGE familiene når siden
+   faktisk bruker begge, eller utsette service-journey-spørringen til brukeren
+   faktisk åpner «hele avgangen» (`active`-flagget ser ut til å være sant
+   tidligere enn nødvendig). Sistnevnte er trolig riktigst — det er samme
+   prinsipp som mellomstoppene allerede følger.
+
    Billigst mulige fikser, i økende ærlighet/kostnad:
    - vis kun datointervallet fra `MIN`/`MAX` (row group-stats, billig) og
      dropp «N dager»-tallet;
