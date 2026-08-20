@@ -359,9 +359,47 @@ async function prepareView(
 let queryMutex: Promise<void> = Promise.resolve();
 const QUERY_RETRY_DELAYS_MS = [500, 1500];
 
+// Hvor mange spørringer som står i kø eller kjører akkurat nå. Brukes av
+// whenDuckIdle() — se der for hvorfor.
+let pendingQueries = 0;
+
+/**
+ * Venter til DuckDB-worker'en har vært HELT ledig sammenhengende i `idleMs`.
+ *
+ * Finnes for spørringer som er rene «nice to have» og aldri skal stå foran
+ * noe brukeren venter på. Worker'en tar én spørring om gangen og kan ikke
+ * avbrytes, så en tung bakgrunnsspørring som sniker seg inn i køen forsinker
+ * alt bak den (målt: COUNT(DISTINCT date) = 81,6 s, og den matet bare en
+ * kosmetisk linje — se NOTES.md punkt 4).
+ *
+ * Merk: dette forhindrer at spørringen STARTER på et dårlig tidspunkt. Når
+ * den først er i gang kan den ikke stoppes — derfor bør den bare brukes til
+ * ting som tåler å komme sent, og helst når køen har roet seg helt.
+ */
+export function whenDuckIdle(idleMs = 4000, timeoutMs = 300_000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const startedAt = Date.now();
+    let idleSince: number | null = pendingQueries === 0 ? Date.now() : null;
+    const tick = () => {
+      if (Date.now() - startedAt > timeoutMs) return resolve(false);
+      if (pendingQueries > 0) {
+        idleSince = null;
+      } else {
+        idleSince ??= Date.now();
+        if (Date.now() - idleSince >= idleMs) return resolve(true);
+      }
+      setTimeout(tick, 500);
+    };
+    setTimeout(tick, 500);
+  });
+}
+
 async function runSerializedWithRetry<T>(fn: () => Promise<T>): Promise<T> {
   const runOnce = (): Promise<T> => {
-    const scheduled = queryMutex.then(fn, fn);
+    pendingQueries += 1;
+    const scheduled = queryMutex.then(fn, fn).finally(() => {
+      pendingQueries -= 1;
+    });
     queryMutex = scheduled.then(
       () => undefined,
       () => undefined,

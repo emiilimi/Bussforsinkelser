@@ -1,7 +1,7 @@
 import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
-  useParquetQuery, primeParquetMetadata, latestAvailableDate, useLatestDataDate,
+  useParquetQuery, primeParquetMetadata, latestAvailableDate, useLatestDataDate, whenDuckIdle,
   type QueryOptions,
 } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
@@ -2847,22 +2847,46 @@ export default function TripPlanner() {
   // DuckDB-WASM for empirical percentiles
   const { ready: duckReady, query: duckQuery, loading: duckLoading, idle: duckIdle, retry: duckRetry } = useParquetQuery();
 
-  // Datagrunnlagets omfang — vises i metodeboksen slik at "N dager" i
-  // statistikken alltid kan sjekkes mot hva som faktisk er lastet. Ligger
-  // FØR vindusberegningen fordi `max` er den eneste kilden vi har til den
-  // FAKTISKE siste datadagen — se resolveStatsWindow().
-  const { data: dataRange } = useQuery<{ days: number; min: string; max: string } | null>({
+  // Datagrunnlagets omfang — vises i metodeboksen slik at tallene i
+  // statistikken alltid kan sjekkes mot hva som faktisk er lastet.
+  //
+  // DELT I TO (2026-08-16) etter måling: den gamle spørringen hentet
+  // COUNT(DISTINCT date) + MIN + MAX i én, og brukte **81,6 sekunder** — den
+  // dyreste enkeltspørringen i hele reiseplanleggeren, for en ren
+  // informasjonslinje. MIN/MAX besvares fra parquetens row group-statistikk
+  // og er billig; COUNT(DISTINCT date) må skanne date-kolonnen over ~64 mill.
+  // rader. Se NOTES.md punkt 4.
+  //
+  // 1) Datointervallet hentes med det samme (billig).
+  const { data: dataRange } = useQuery<{ min: string; max: string } | null>({
     queryKey: ["duck-data-range"],
     enabled: duckReady,
     staleTime: Infinity,
     queryFn: async () => {
       const rows = await duckQuery(
-        `SELECT COUNT(DISTINCT date) AS days, MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
+        `SELECT MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
       );
-      const r = rows[0] as { days: number; mind: string; maxd: string } | undefined;
-      return r && Number(r.days) > 0
-        ? { days: Number(r.days), min: String(r.mind), max: String(r.maxd) }
-        : null;
+      const r = rows[0] as { mind: string | null; maxd: string | null } | undefined;
+      return r?.mind && r?.maxd ? { min: String(r.mind), max: String(r.maxd) } : null;
+    },
+  });
+
+  // 2) Det eksakte dagantallet fylles inn ETTERPÅ, og først når DuckDB har
+  //    vært helt ledig en stund — se whenDuckIdle(). Det er en ren
+  //    tilleggsopplysning og skal aldri stå foran noe brukeren venter på.
+  const { data: dataDayCount } = useQuery<number | null>({
+    queryKey: ["duck-data-daycount"],
+    enabled: duckReady,
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      const idle = await whenDuckIdle();
+      if (!idle) return null; // aldri rolig nok — la linjen stå uten dagantall
+      const rows = await duckQuery(
+        `SELECT COUNT(DISTINCT date) AS days FROM delays_by_stop`,
+      );
+      const n = Number((rows[0] as { days?: number } | undefined)?.days ?? 0);
+      return n > 0 ? n : null;
     },
   });
 
@@ -3691,13 +3715,13 @@ export default function TripPlanner() {
                 {dataRange && (
                   <span
                     className="text-[10px] text-muted-foreground/70"
-                    title="Antall dager med rådata som er lastet i nettleseren — alle 'N dager'-tall i statistikken er begrenset av dette"
+                    title="Perioden med rådata som er lastet i nettleseren — alle 'N dager'-tall i statistikken er begrenset av dette. Det eksakte dagantallet telles opp i bakgrunnen og fylles inn når nettleseren er ferdig med resten."
                   >
-                    Datagrunnlag: {dataRange.days} dager (
+                    Datagrunnlag:{" "}
                     {new Date(dataRange.min).toLocaleDateString("nb-NO", { day: "numeric", month: "short" })}
                     –
                     {new Date(dataRange.max).toLocaleDateString("nb-NO", { day: "numeric", month: "short" })}
-                    )
+                    {dataDayCount != null && ` · ${dataDayCount} dager`}
                   </span>
                 )}
               </div>
