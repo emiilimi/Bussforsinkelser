@@ -44,6 +44,24 @@ eksporter forhåndsaggregerte persentiler per `(stop_ref, line_ref)` som en
 liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
 persentiler over 54 mill. rader ved hvert søk.
 
+### Fordelingen etter fiksene (målt 2026-08-16, kald sidelast mot R2)
+
+Med riktige merkelapper i `__duckTimings.summary()`, samme søk som før:
+
+| merkelapp | n | total |
+|---|---|---|
+| `metadata-priming` (`COUNT(*)`, `MAX(date)`) | 1 | **54,5 s** |
+| `transfer-gap` | 6 (av ~11) | 52,8 s (~8,8 s hver) |
+| `percentiles` | 1 | 7,2 s |
+| `view-setup` | 15 | 6,2 s |
+| `percentiles-other` | 5 | 4,6 s |
+| `data-range` (var 81,6 s) | 1 | **2,1 s** |
+
+`data-range` er altså nede fra 81,6 s til 2,1 s, og by-line-straffen på
+46–73 s er borte. Igjen står to poster: metadata-primingen (54 s, ren
+footer-lesing ved kaldstart) og overgangs-gapene (~8,8 s × antall
+reiseforslag). Priming er nå den største enkeltposten.
+
 ### ⚠️ MÅLT 2026-08-16: forhåndsaggregering treffer FEIL flaskehals
 
 Etter at `window.__duckTimings` ble lagt inn (teller per DuckDB-spørring i
