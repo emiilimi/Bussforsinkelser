@@ -2176,9 +2176,23 @@ function TripCard({
     // tall som ikke tok hensyn til overgangsrisiko, og så byttet det ut når
     // overgangsanalysen landet. Et tall som endrer seg under føttene på
     // leseren er verre enn et som ennå ikke er der.
-    const p80Pending = pMakeAll == null;
-    const level = p80Pending ? null : arrivalQuantileLevel(pMakeAll!);
-    const p80BeyondPlanA = !p80Pending && level == null;
+    //
+    // MERK forskjellen på «ikke beregnet ennå» og «beregnet, men uten data»:
+    // `gapMap` er undefined helt til gapene for DETTE reiseforslaget er kjørt
+    // (samme signal som isPending lenger nede). Er de kjørt, men overgangen
+    // mangler historikk (overallProb < 0), venter vi IKKE videre — da ville
+    // «P80 beregnes…» stått for alltid på overganger uten data. Vi viser rått,
+    // UJUSTERT P80 i stedet, og sier fra i tooltipen at overgangsrisikoen
+    // ikke er medregnet.
+    const gapsComputed = !transferAnalysis.hasTransfers || !!gapMap;
+    const p80Pending = !gapsComputed;
+    const p80Unadjusted = gapsComputed && pMakeAll == null;
+    const level = p80Pending
+      ? null
+      : p80Unadjusted
+        ? P80_LEVEL
+        : arrivalQuantileLevel(pMakeAll!);
+    const p80BeyondPlanA = !p80Pending && !p80Unadjusted && level == null;
 
     let worstRealP80: number | null = null;
     let worstAggP80: number | null = null;
@@ -2211,9 +2225,9 @@ function TripCard({
 
     return {
       estDeparture, estArrival, p80, depResult, arrResult: lastArrResult,
-      p80BeyondPlanA, p80Pending, pMakeAll, p80Level: level,
+      p80BeyondPlanA, p80Pending, p80Unadjusted, pMakeAll, p80Level: level,
     };
-  }, [pattern, duckStats, legTimes, transferAnalysis]);
+  }, [pattern, duckStats, legTimes, transferAnalysis, gapMap]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
@@ -2305,14 +2319,19 @@ function TripCard({
                 variant="outline"
                 className="text-[9px] text-muted-foreground border-dashed"
                 title={
-                  estimatedTimes.p80Level != null && estimatedTimes.p80Level > P80_LEVEL + 0.001
-                    ? `Avlest på ${(estimatedTimes.p80Level * 100).toFixed(0)}. persentil av «alt går etter planen», ` +
-                      `fordi du rekker alle overganger ${Math.round((estimatedTimes.pMakeAll ?? 1) * 100)} % av dagene ` +
-                      `— de resterende dagene ankommer du senere enn dette.`
-                    : `80 % av de historiske turene var innenfor denne forsinkelsen.`
+                  estimatedTimes.p80Unadjusted
+                    ? `80 % av de historiske turene var innenfor denne forsinkelsen. ` +
+                      `Vi mangler historikk for overgangen(e) på denne reisen, så risikoen for å ` +
+                      `MISTE en overgang er IKKE regnet inn — den reelle P80-ankomsten kan være senere.`
+                    : estimatedTimes.p80Level != null && estimatedTimes.p80Level > P80_LEVEL + 0.001
+                      ? `Avlest på ${(estimatedTimes.p80Level * 100).toFixed(0)}. persentil av «alt går etter planen», ` +
+                        `fordi du rekker alle overganger ${Math.round((estimatedTimes.pMakeAll ?? 1) * 100)} % av dagene ` +
+                        `— de resterende dagene ankommer du senere enn dette.`
+                      : `80 % av de historiske turene var innenfor denne forsinkelsen.`
                 }
               >
                 P80 est. {estimatedTimes.p80}
+                {estimatedTimes.p80Unadjusted && <span className="ml-0.5 opacity-60">*</span>}
               </Badge>
             ) : null}
             {expanded
