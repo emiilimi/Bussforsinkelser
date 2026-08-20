@@ -113,6 +113,16 @@ type LineStopProfile = {
 // Helper components
 // ---------------------------------------------------------------------------
 
+/**
+ * Y-akse-maks for stopptid-grafene (sekunder), tilpasset de faktiske dataene.
+ * 15 % luft over høyeste stopp, minimum 5 s. Se kommentaren ved
+ * stopProfileDwellDataMax for hvorfor det gamle faste gulvet på 30 s var galt.
+ */
+function dwellAxisMax(values: Array<number | null | undefined>): number {
+  const max = values.reduce<number>((m, v) => (v != null && v > m ? v : m), 0);
+  return Math.max(5, Math.ceil(max * 1.15));
+}
+
 function delayColor(delay: number | null) {
   const d = delay ?? 0;
   if (d > 5) return "hsl(var(--destructive))";
@@ -622,13 +632,25 @@ export default function JourneyDetails() {
   const stopProfileDerDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
   // Min for derivative mode (can be negative when bus recovers time):
   const stopProfileDerDataMin = Math.floor(Math.min(...stopProfileData.map(d => d.delayGain ?? 0), 0));
-  const stopProfileDwellDataMax = Math.ceil(Math.max(...stopProfileData.map(d => d.dwellTimeSec ?? 0), 30));
+  // Stopptid: la aksen følge DATAENE, ikke et fast gulv.
+  //
+  // Dette var `Math.max(..., 30)`, altså minst 30 sekunder uansett. Men
+  // stopptidene per stopp ligger typisk på 2-5 s (median 3,0 s målt over
+  // 3,16 mill. observasjoner), så hele kurven ble klemt ned i nederste
+  // sjettedel av ruten og så helt flat ut — all variasjon forsvant.
+  //
+  // 15 % luft over toppunktet gir plass til toppen uten at den klistrer seg
+  // til kanten; 5 s som nedre grense hindrer at aksen kollapser når alle
+  // stoppene ligger nær null. Y-aksen er fortsatt forankret i 0 (0 s = ingen
+  // stopptid er en meningsfull bunn), og slideren + allowDataOverflow lar deg
+  // fortsatt dra opp for å se enkeltstopp over dette.
+  const stopProfileDwellDataMax = dwellAxisMax(stopProfileData.map(d => d.dwellTimeSec));
   const profileDataMax = Math.ceil(Math.max(...profileData.map(d => Math.max(d.bandBase + d.bandRange, d.avgPlusSigma ?? 0, d.avgDelayMin ?? 0, d.extremeMax ?? 0)), 1));
   // Min also accounts for avg-σ inner band lower edge AND raw extreme min (can be negative when avg is small)
   const profileDataMin = Math.floor(Math.min(...profileData.map(d => Math.min(d.bandBase, d.innerBandBase, d.extremeMin ?? 0, d.avgDelayMin ?? 0)), 0));
   const profileDerDataMax = Math.ceil(Math.max(...profileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
   const profileDerDataMin = Math.floor(Math.min(...profileData.map(d => d.delayGain ?? 0), 0));
-  const profileDwellDataMax = Math.ceil(Math.max(...profileData.map(d => d.dwellTimeSec ?? 0), 30));
+  const profileDwellDataMax = dwellAxisMax(profileData.map(d => d.dwellTimeSec));
   const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0)), 1));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setTrendYMax(trendDataMax); }, [trendDataMax]);
@@ -1255,6 +1277,7 @@ export default function JourneyDetails() {
                           yMax={stopProfileDwellYMax}
                           setYMax={setStopProfileDwellYMax}
                           dataMax={stopProfileDwellDataMax}
+                          unit="s"
                         >
                           <ComposedChart
                             width={stopProfileWidth}
@@ -1694,6 +1717,7 @@ export default function JourneyDetails() {
                           yMax={profileDwellYMax}
                           setYMax={setProfileDwellYMax}
                           dataMax={profileDwellDataMax}
+                          unit="s"
                         >
                           <ComposedChart
                             width={profileWidth}

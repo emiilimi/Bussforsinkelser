@@ -58,8 +58,8 @@ export function useYAxisDrag(
  * Vertical Y-axis slider control with reset button.
  * Placed to the right of charts for easy access.
  */
-function YAxisSlider({ yMax, setYMax, dataMax, height }: {
-  yMax: number; setYMax: (v: number) => void; dataMax: number; height: number;
+function YAxisSlider({ yMax, setYMax, dataMax, height, unit }: {
+  yMax: number; setYMax: (v: number) => void; dataMax: number; height: number; unit: string;
 }) {
   if (dataMax <= 2) return null;
   return (
@@ -83,9 +83,9 @@ function YAxisSlider({ yMax, setYMax, dataMax, height }: {
           writingMode: "vertical-lr",
           direction: "rtl",
         } as React.CSSProperties}
-        title={`Y-maks: ${yMax}m`}
+        title={`Y-maks: ${yMax}${unit}`}
       />
-      <span className="text-[9px] text-muted-foreground font-mono">{yMax}m</span>
+      <span className="text-[9px] text-muted-foreground font-mono">{yMax}{unit}</span>
     </div>
   );
 }
@@ -102,6 +102,14 @@ type ScrollableChartProps = {
   dataMax: number;
   /** Minimum value shown on the Y axis. Defaults to 0. Pass a negative number to show early-arrival data. */
   yMin?: number;
+  /**
+   * Enhet på Y-akse-etikettene. Default "m" (minutter).
+   *
+   * MÅ settes for serier som ikke er minutter: stopptid-grafene måler
+   * SEKUNDER, og med den hardkodede m-en viste aksen «8m» der dataene var
+   * 8 sekunder — altså 60 ganger feil, og tooltipen ved siden av sa «2 sek».
+   */
+  unit?: string;
   children: React.ReactNode;
   marginTop?: number;
   marginBottom?: number;
@@ -144,6 +152,7 @@ export function ScrollableChart({
   setYMax,
   dataMax,
   yMin = 0,
+  unit = "m",
   children,
   marginTop = 10,
   marginBottom = 80,
@@ -191,7 +200,7 @@ export function ScrollableChart({
                   fontSize={11}
                   fill="hsl(var(--muted-foreground))"
                 >
-                  {tickStep < 1 ? `${t.value.toFixed(1)}m` : `${t.value.toFixed(0)}m`}
+                  {tickStep < 1 ? `${t.value.toFixed(1)}${unit}` : `${t.value.toFixed(0)}${unit}`}
                 </text>
                 <line
                   x1={50}
@@ -219,7 +228,7 @@ export function ScrollableChart({
       </div>
 
       {/* Vertical slider on the right */}
-      <YAxisSlider yMax={yMax} setYMax={setYMax} dataMax={dataMax} height={chartHeight - marginBottom} />
+      <YAxisSlider yMax={yMax} setYMax={setYMax} dataMax={dataMax} height={chartHeight - marginBottom} unit={unit} />
     </div>
   );
 }
