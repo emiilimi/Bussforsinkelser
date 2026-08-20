@@ -10,6 +10,7 @@
 // reiseplanleggeren (showPct-prop).
 // ---------------------------------------------------------------------------
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { BusLoading } from "@/components/bus-loading";
@@ -125,9 +126,16 @@ export function ServiceJourneyDetail({
   // altså 46 s med worker-tid foran alt brukeren faktisk venter på, for å
   // spare et klikk. Entur-kallet over prefetches fortsatt på `active` — det
   // er et vanlig HTTP-kall og koster ikke DuckDB-worker'en noe.
+  // Stoppene denne avgangen faktisk innom — brukes til å begrense
+  // linje-fallbacken under. Uten den ba vi om HELE linjen ved ALLE stopp.
+  const journeyQuays = useMemo(
+    () => Array.from(new Set((sj?.calls ?? []).map((c) => c.quayRef).filter((q): q is string => !!q))),
+    [sj],
+  );
+
   const { data: statMap } = useQuery<Map<string, SjStopStat>>({
-    queryKey: ["duck-sj-stops-full", sjId, lineRef ?? ""],
-    enabled: open && duckReady,
+    queryKey: ["duck-sj-stops-full", sjId, lineRef ?? "", journeyQuays.length],
+    enabled: open && duckReady && journeyQuays.length > 0,
     staleTime: Infinity,
     queryFn: async () => {
       const map = new Map<string, SjStopStat>();
@@ -139,19 +147,31 @@ export function ServiceJourneyDetail({
         PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p80_arr,
         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_arrival_min)   AS p95_arr,
         COUNT(*) AS n`;
-      if (lineRef) {
-        const lineRows = await duckQuery(`
-          SELECT stop_ref, ${cols} FROM delays_by_line
-          WHERE line_ref = '${escSql(lineRef)}'
-          GROUP BY stop_ref`, undefined, { family: "by-line" }) as Array<Omit<SjStopStat, "source">>;
-        for (const r of lineRows) map.set(r.stop_ref, { ...r, source: "line" });
-      }
+
+      // 1) SMALT FØRST: akkurat denne avgangen. Dette er tallet vi helst vil
+      //    vise uansett, og det er den billigste av de to spørringene.
       const sjRows = await duckQuery(`
         SELECT stop_ref, ${cols} FROM delays_by_line
         WHERE service_journey_id = '${escSql(sjId)}'
         GROUP BY stop_ref`, undefined, { family: "by-line" }) as Array<Omit<SjStopStat, "source">>;
       for (const r of sjRows) {
         if (r.n >= 3) map.set(r.stop_ref, { ...r, source: "sj" });
+      }
+
+      // 2) Linje-fallback KUN for stoppene som fortsatt mangler tall, og kun
+      //    for stoppene denne avgangen er innom. Tidligere spurte vi om hele
+      //    linjen ved alle dens stopp, alltid — også når avgangen selv hadde
+      //    god dekning. Dekker avgangen alt, hoppes spørringen helt over.
+      const missing = journeyQuays.filter((q) => !map.has(q));
+      if (lineRef && missing.length > 0) {
+        const inList = missing.map((q) => `'${escSql(q)}'`).join(", ");
+        const lineRows = await duckQuery(`
+          SELECT stop_ref, ${cols} FROM delays_by_line
+          WHERE line_ref = '${escSql(lineRef)}' AND stop_ref IN (${inList})
+          GROUP BY stop_ref`, undefined, { family: "by-line" }) as Array<Omit<SjStopStat, "source">>;
+        for (const r of lineRows) {
+          if (!map.has(r.stop_ref)) map.set(r.stop_ref, { ...r, source: "line" });
+        }
       }
       return map;
     },

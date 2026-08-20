@@ -2169,9 +2169,16 @@ function TripCard({
     const pMakeAll = transferAnalysis.hasTransfers
       ? (transferAnalysis.overallProb >= 0 ? transferAnalysis.overallProb : null)
       : 1;
-    // null = overgangssannsynlighet ikke beregnet ennå (gapene er på vei inn)
-    const level = pMakeAll == null ? P80_LEVEL : arrivalQuantileLevel(pMakeAll);
-    const p80BeyondPlanA = pMakeAll != null && level == null;
+
+    // VENTER vi fortsatt på overgangssannsynligheten? Da kan P80 ikke regnes
+    // ut — og skal heller ikke VISES. Tidligere falt vi tilbake til rått P80
+    // (nivå 0,80) mens gapene var underveis, slik at kortet først viste et
+    // tall som ikke tok hensyn til overgangsrisiko, og så byttet det ut når
+    // overgangsanalysen landet. Et tall som endrer seg under føttene på
+    // leseren er verre enn et som ennå ikke er der.
+    const p80Pending = pMakeAll == null;
+    const level = p80Pending ? null : arrivalQuantileLevel(pMakeAll!);
+    const p80BeyondPlanA = !p80Pending && level == null;
 
     let worstRealP80: number | null = null;
     let worstAggP80: number | null = null;
@@ -2204,7 +2211,7 @@ function TripCard({
 
     return {
       estDeparture, estArrival, p80, depResult, arrResult: lastArrResult,
-      p80BeyondPlanA, pMakeAll, p80Level: level,
+      p80BeyondPlanA, p80Pending, pMakeAll, p80Level: level,
     };
   }, [pattern, duckStats, legTimes, transferAnalysis]);
 
@@ -2273,7 +2280,15 @@ function TripCard({
                 overganger. Er den under 80 %, finnes ikke P80 i «alt går
                 etter planen»-grenen; da sier merket det i stedet for å vise
                 et falskt trygt tall (se arrivalQuantileLevel). */}
-            {estimatedTimes.p80BeyondPlanA ? (
+            {estimatedTimes.p80Pending ? (
+              <Badge
+                variant="outline"
+                className="text-[9px] text-muted-foreground/50 border-dashed"
+                title="P80 avhenger av sannsynligheten for å rekke overgangene, så den vises først når overgangsanalysen er ferdig."
+              >
+                P80 beregnes…
+              </Badge>
+            ) : estimatedTimes.p80BeyondPlanA ? (
               <Badge
                 variant="outline"
                 className="text-[9px] text-amber-700 dark:text-amber-400 border-amber-400/60 border-dashed"
