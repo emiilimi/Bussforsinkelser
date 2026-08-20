@@ -21,6 +21,7 @@ type DailySummary = {
   avgDelayMin: number | null;
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
+  pctEarly: number | null;
   totalJourneys: number | null;
   totalCancellations: number | null;
   // Andel av planlagte stopp-passeringer med sanntid (0–100). Måles ved
@@ -36,6 +37,7 @@ type LeaderboardLine = {
   avgDelayMin: number | null;
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
+  pctEarly: number | null;
   totalDepartures: number | null;
 };
 
@@ -98,17 +100,22 @@ export default function Dashboard() {
   // nå et vektet snitt over `trend` (samme data som grafen under) i stedet.
   const periodStats = useMemo(() => {
     let delayNum = 0, delayDen = 0, onTimeNum = 0, onTimeDen = 0;
+    let earlyNum = 0, earlyDen = 0;
     let totalJourneys = 0, totalCancellations = 0;
     for (const r of trend) {
       const n = r.totalJourneys ?? 0;
       if (r.avgDelayMin != null) { delayNum += r.avgDelayMin * n; delayDen += n; }
       if (r.pctOnTime != null) { onTimeNum += r.pctOnTime * n; onTimeDen += n; }
+      // pctEarly mangler i artefakter laget før feltet fantes — da forblir
+      // nevneren 0 og kortet viser «—» i stedet for en falsk 0 %.
+      if (r.pctEarly != null) { earlyNum += r.pctEarly * n; earlyDen += n; }
       totalJourneys += n;
       totalCancellations += r.totalCancellations ?? 0;
     }
     return {
       avgDelayMin: delayDen > 0 ? delayNum / delayDen : null,
       pctOnTime: onTimeDen > 0 ? onTimeNum / onTimeDen : null,
+      pctEarly: earlyDen > 0 ? earlyNum / earlyDen : null,
       totalJourneys,
       totalCancellations,
     };
@@ -226,6 +233,24 @@ export default function Dashboard() {
                 {periodStats.pctOnTime != null ? `${periodStats.pctOnTime.toFixed(1)}%` : "—"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse · {periodLabel.toLowerCase()}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-amber-500 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                Gikk for tidlig
+                <InfoTip learnMoreHref="/metode#punktlighet">
+                  Andel stopp-passeringer som gikk mer enn ett minutt FØR rutetid. Disse teller som «i rute» i punktlighetstallet over, men en avgang som går for tidlig kan du ikke rekke uansett hvor presis du selv er.
+                </InfoTip>
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono text-amber-600">
+                {periodStats.pctEarly != null ? `${periodStats.pctEarly.toFixed(1)}%` : "—"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Mer enn 1 min før rutetid · {periodLabel.toLowerCase()}</p>
             </CardContent>
           </Card>
 

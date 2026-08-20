@@ -485,6 +485,37 @@ export default function Methodology() {
               sammenliknbare med operatørenes egne punktlighetsrapporter, og vil typisk
               se strengere ut.
             </p>
+            <p className="text-muted-foreground leading-relaxed">
+              Nettopp fordi tidlige passeringer teller som punktlige, viser vi{" "}
+              <strong>«gikk for tidlig»</strong> som et eget tall ved siden av: andelen som
+              passerte <strong>mer enn ett minutt før rutetid</strong>. En avgang som går
+              for tidlig kan du ikke rekke, uansett hvor presis du selv er — men i
+              punktlighetstallet ser den prikkfri ut. Grensen på ett minutt er satt fordi
+              alt under stort sett er avrundingsstøy: av 12,2 millioner observasjoner er
+              7,7 % negative i det hele tatt, men bare 2,8 % ligger under −1 minutt.
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              Andelen varierer kraftig med transportmiddel (målt uke 33–34 2026):
+            </p>
+            <div className="overflow-x-auto">
+              <table className="text-sm border-collapse">
+                <tbody>
+                  {[["Fly", "61,6 %"], ["Båt/ferje", "9,4 %"], ["Buss", "2,7 %"],
+                    ["Tog", "1,2 %"], ["Bybane", "0,1 %"]].map(([k, v]) => (
+                    <tr key={k} className="border-b border-border/50 last:border-0">
+                      <td className="py-1 pr-6">{k}</td>
+                      <td className="py-1 font-mono">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              At fly ligger så høyt er ventet: et fly trykker fra så snart ombordstigningen
+              er ferdig, i stedet for å vente på oppsatt minutt. «For tidlig» betyr derfor
+              ikke det samme for fly som for buss, og tallene bør ikke leses side om side
+              uten det forbeholdet.
+            </p>
           </div>
         </section>
 

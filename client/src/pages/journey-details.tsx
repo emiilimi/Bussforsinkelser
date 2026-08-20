@@ -20,7 +20,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
-import { Search, Clock, CheckCircle, AlertCircle, ChevronsUpDown, Check, MapPin, ArrowRight, CalendarDays, TrendingUp, TrendingDown, Map, BarChart2 } from "lucide-react";
+import { Search, Clock, CheckCircle, AlertCircle, AlertTriangle, ChevronsUpDown, Check, MapPin, ArrowRight, CalendarDays, TrendingUp, TrendingDown, Map, BarChart2 } from "lucide-react";
 import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Area, ComposedChart, Line, ReferenceLine } from "recharts";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
@@ -55,6 +55,7 @@ type LineDaily = {
   minDelayMin: number | null;
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
+  pctEarly: number | null;
   numDepartures: number | null;
   pctRealtimeCoverage: number | null;
   stddevDelayMin: number | null;
@@ -390,6 +391,11 @@ export default function JourneyDetails() {
     : null;
   const avgPctDelayed10 = daily.length
     ? daily.reduce((s, r) => s + (r.pctDelayed10plus ?? 0), 0) / daily.length
+    : null;
+  // «For tidlig» teller som «i rute» i dagens definisjon (<= 2 min), så uten
+  // dette tallet er en avgang du umulig kunne rukket usynlig i statistikken.
+  const avgPctEarly = daily.length
+    ? daily.reduce((s, r) => s + (r.pctEarly ?? 0), 0) / daily.length
     : null;
 
   // Worst and best days
@@ -818,7 +824,7 @@ export default function JourneyDetails() {
               </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Snitt forsinkelse</CardTitle>
@@ -853,6 +859,20 @@ export default function JourneyDetails() {
                     {avgPctDelayed10 != null ? `${avgPctDelayed10.toFixed(1)}%` : "—"}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Avganger &gt; 10 min forsinkelse</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Gikk for tidlig</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-mono text-amber-600">
+                    {avgPctEarly != null ? `${avgPctEarly.toFixed(1)}%` : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Avganger mer enn 1 min før rutetid — dem kan du ikke rekke
+                  </p>
                 </CardContent>
               </Card>
               <Card>

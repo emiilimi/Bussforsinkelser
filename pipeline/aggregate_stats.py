@@ -65,6 +65,13 @@ log = logging.getLogger(__name__)
 # Forsinkelses-uttrykk (minutter): avgang der den finnes, ellers ankomst.
 D = "COALESCE(delay_departure_min, delay_arrival_min)"
 
+# «For tidlig»: mer enn ETT minutt før rutetid. Under det er tallet stort sett
+# avrundingsstøy (7,7 % av observasjonene er negative i det hele tatt, men bare
+# 2,8 % under -1 min). En avgang som går for tidlig kan man ikke rekke, men den
+# teller likevel som «i rute» (forsinkelse <= 2 min) — uten dette tallet er den
+# usynlig. Må holdes i synk med EARLY_MIN i client/src/lib/stats-adapter.ts.
+EARLY_MIN = -1
+
 
 def r(v, digits=2):
     """Rund flyttall for kompakt JSON; None passerer gjennom."""
@@ -264,6 +271,7 @@ def main() -> int:
             ROUND(AVG({D}), 2)                              AS avg_delay,
             ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
             ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
+            ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
             COUNT(DISTINCT service_journey_id)              AS journeys,
             COUNT(*)                                        AS n
         FROM delays
@@ -275,8 +283,8 @@ def main() -> int:
         {
             "date": row[0], "operator": row[1],
             "avgDelayMin": r(row[2]), "pctOnTime": r(row[3], 1),
-            "pctDelayed10plus": r(row[4], 1),
-            "totalJourneys": int(row[5]), "n": int(row[6]),
+            "pctDelayed10plus": r(row[4], 1), "pctEarly": r(row[5], 1),
+            "totalJourneys": int(row[6]), "n": int(row[7]),
             "pctRealtimeCoverage": coverage.get((row[0], row[1])),
             # Avlyste avganger (unike) fra coverage_daily — null før 6. juli 2026
             "totalCancellations": cancellations.get((row[0], row[1])),
@@ -302,6 +310,7 @@ def main() -> int:
                     ROUND(STDDEV_SAMP({D}), 2)               AS stddev,
                     ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
                     ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
+                    ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
                     COUNT(DISTINCT service_journey_id || date) AS departures
                 FROM delays
                 WHERE date >= '{cutoff}' AND {D} IS NOT NULL
@@ -313,7 +322,8 @@ def main() -> int:
                     "lineRef": row[0], "mode": row[1], "window": w,
                     "avgDelayMin": r(row[2]), "stddevDelayMin": r(row[3]),
                     "pctOnTime": r(row[4], 1), "pctDelayed10plus": r(row[5], 1),
-                    "totalDepartures": int(row[6]),
+                    "pctEarly": r(row[6], 1),
+                    "totalDepartures": int(row[7]),
                 })
     log.info("lines: %d rader (%d vinduer)", len(lines), len(WINDOWS))
 
