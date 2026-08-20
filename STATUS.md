@@ -3,7 +3,42 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-15
+**Sist oppdatert**: 2026-08-19
+
+## Endringslogg — 2026-08-19: VACUUM drepte tre kjøringer, nå betinget
+
+Nattjobben hang tre ganger (12., 17. og 19. august), hver gang på nøyaktig
+samme sted: RETT etter «Pruned … rader», altså med bare `VACUUM` igjen.
+90-minutters vakten drepte prosessen. Dataene var for lengst skrevet og
+committet — vi mistet publiseringen, ikke dataene.
+
+`VACUUM` bygger HELE basen på nytt: leser hver side, skriver en komprimert
+kopi ved siden av, bytter den inn. For reise.db er det ~8,5 GB lest og skrevet
+med eksklusiv lås. Ingen delvis variant finnes (`auto_vacuum` er NONE).
+
+**Det lønte seg ikke.** Vi sletter ~1,2 mill. rader og setter inn ~1,7 mill.
+hver natt, så sidene pruningen frigjør spises opp av samme natts innsetting.
+Filen legger seg på et platå av seg selv. Målt midt i en kjøring: **0 ledige
+sider av 1 822 787** — VACUUM ville skrevet om 7,47 GB og frigjort ingenting.
+
+`maybe_vacuum()` i `ingest_lite.py` kjører nå kun når andelen ledige sider
+overstiger `VACUUM_MIN_FREE_PCT` (default 25 %).
+
+> ⚠️ **Terskelen er målt, ikke gjettet — og første forsøk var feil.** Jeg satte
+> først 10 %. Men freelist er på sitt STØRSTE nettopp når VACUUM kalles (rett
+> etter pruningen), og én dag er ~7,1 % av basen (2 067 667 sider / 14 dager).
+> Med 4,9 % allerede ledig ville en normal natt havnet rundt 12 % — altså over
+> 10 %, og VACUUM ville kjørt hver natt som før. 25 % tilsvarer ~3,5 dager og
+> nås aldri i den daglige syklusen.
+
+Verifisert mot ekte SQLite-baser: 7,1 % ledig → hopper over; 14 % (to dager
+pruned samtidig) → hopper over; 40 % → kjører, og filen krympet 10 025 → 6 016
+sider.
+
+**Retry-logikken beviste seg samtidig**: 19. august hang første forsøk, det
+andre gikk gjennom («gikk gjennom pa forsok 2»), og dagen ble publisert uten
+inngripen. Uten den ville 18. august krevd manuell opprydding slik 16. august
+gjorde.
 
 ## TODO — la bussanimasjonen SELV være fremdriftsindikatoren
 

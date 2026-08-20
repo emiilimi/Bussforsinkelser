@@ -79,6 +79,20 @@ DB_PATH = os.environ.get(
 # ikke re-genereres uten å hente dagene fra BigQuery på nytt (backfill).
 RETENTION_DAYS = int(os.environ.get("JSD_RETENTION_DAYS", "14"))
 
+# Hvor stor andel av basen som må være ledige sider før VACUUM lønner seg.
+#
+# Terskelen er MÅLT, ikke gjettet (reise.db 19. august): 2 067 667 sider over
+# 14 dager, altså ~7,1 % per dag. Rett etter den nattlige pruningen av én dag
+# ligger derfor freelist rundt 7 % + det som allerede lå der (4,9 % målt) —
+# rundt 12 %. En terskel på 10 % ville følgelig utløst VACUUM hver eneste natt
+# og ikke fikset noe som helst.
+#
+# 25 % tilsvarer ~3,5 dagers ledig plass (~2,1 GB). Den daglige syklusen
+# prune → innsetting når aldri dit, så VACUUM kjører kun når det har hopet seg
+# opp for ekte: lengre opphold i kjøringene, senket retention, eller et varig
+# fall i datamengde. Se maybe_vacuum() for hva VACUUM koster.
+VACUUM_MIN_FREE_PCT = float(os.environ.get("VACUUM_MIN_FREE_PCT", "25"))
+
 # Nedre grense for antall rader BigQuery skal returnere for én dag, uansett
 # operatør-utvalg. Oppdaget 2026-08-06/07: kjøringer trigget for tidlig på
 # døgnet (03:00) fikk stille bare 1-7 % av forventet radantall — BigQuerys
@@ -268,6 +282,52 @@ def upsert_coverage(conn: sqlite3.Connection, date_str: str, df) -> None:
     )
 
 
+def maybe_vacuum(conn: sqlite3.Connection, min_free_pct: float = VACUUM_MIN_FREE_PCT) -> None:
+    """VACUUM bare når det er reell luft å hente i filen.
+
+    VACUUM bygger HELE basen på nytt: leser hver side, skriver en fersk,
+    komprimert kopi ved siden av, og bytter den inn. For reise.db er det ~7,5 GB
+    lest og skrevet, med eksklusiv lås hele veien. Det finnes ingen delvis eller
+    gjenopptakbar variant her (auto_vacuum er NONE).
+
+    Hvorfor det ikke lønner seg hver natt: vi sletter ~1,2 mill. rader og setter
+    inn ~1,7 mill. hver eneste kjøring, så sidene pruningen frigjør blir spist
+    opp av samme natts innsetting. Filen legger seg på et platå av seg selv.
+    Målt 19. august, midt i en kjøring: 0 ledige sider av 1 822 787 — VACUUM
+    ville skrevet om 7,47 GB og frigjort ingenting.
+
+    MERK at freelist er på sitt STØRSTE nettopp når VACUUM kalles (rett etter
+    pruningen), ~7 % for én dag. Terskelen må derfor ligge godt over én dags
+    verdi, ellers utløses VACUUM likevel hver natt — se VACUUM_MIN_FREE_PCT.
+
+    Det var ikke gratis: VACUUM hang tre kjøringer på rad (12., 17. og 19.
+    august), hver gang RETT etter «Pruned …», altså med bare VACUUM igjen.
+    90-minutters vakten drepte prosessen, og hver gang var dataene for lengst
+    skrevet og committet. Vi mistet publiseringen, ikke dataene.
+
+    Terskelen kan settes med VACUUM_MIN_FREE_PCT (prosent ledige sider).
+    """
+    page_count = conn.execute("PRAGMA page_count").fetchone()[0]
+    if not page_count:
+        return
+    page_size = conn.execute("PRAGMA page_size").fetchone()[0]
+    freelist = conn.execute("PRAGMA freelist_count").fetchone()[0]
+    free_pct = 100.0 * freelist / page_count
+    free_gb = freelist * page_size / 1e9
+
+    if free_pct < min_free_pct:
+        log.info(
+            "  Hopper over VACUUM: %.1f %% ledige sider (%.2f GB), terskel %.0f %%",
+            free_pct, free_gb, min_free_pct,
+        )
+        return
+
+    log.info("  VACUUM: %.1f %% ledige sider (%.2f GB) å frigjøre …", free_pct, free_gb)
+    started = time.time()
+    conn.execute("VACUUM")
+    log.info("  VACUUM ferdig på %.1fs", time.time() - started)
+
+
 def prune_old_rows(conn: sqlite3.Connection, retention_days: int) -> None:
     """Slett rader eldre enn retention-vinduet. Holder basen liten."""
     cur = conn.execute(
@@ -334,11 +394,11 @@ def run(target_date: date, operators: list[str] | None = None) -> None:
                 )
             else:
                 prune_old_rows(conn, RETENTION_DAYS)
-        # Hold filen kompakt — ellers vokser den selv om vi sletter rader.
+        # Hold filen kompakt — men bare når det faktisk er noe å hente.
         # (Hoppes over i backfill-modus: ingenting er slettet, og VACUUM på
         # en stor base tar minutter per kjøring i en backfill-løkke.)
         if not backfill_mode:
-            conn.execute("VACUUM")
+            maybe_vacuum(conn)
         log.info("=== Ferdig: %s skrevet til %s (%.1fs) ===",
                  date_str, DB_PATH, time.time() - started)
     finally:
