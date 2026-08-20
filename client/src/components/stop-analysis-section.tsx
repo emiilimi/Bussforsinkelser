@@ -39,6 +39,7 @@ type StopStatsResponse = {
     maxDelayMin: number | null;
     minDelayMin: number | null;
     pctDelayed2plus: number | null;
+    pctEarly: number | null;
     stddevDelayMin: number | null;
     numDepartures: number | null;
   }>;
@@ -277,6 +278,14 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
       ? stats.daily.reduce((s, r) => s + (r.pctDelayed2plus ?? 0), 0) / stats.daily.length
       : null;
 
+  // «For tidlig» faller utenfor både «forsinket >2 min» og dagens i rute-
+  // definisjon, så uten dette tallet er en avgang du umulig kunne rukket
+  // usynlig ved stoppet.
+  const avgPctEarly =
+    stats && stats.daily.length > 0
+      ? stats.daily.reduce((s, r) => s + (r.pctEarly ?? 0), 0) / stats.daily.length
+      : null;
+
   const avgStddev = (() => {
     if (!stats || stats.daily.length === 0) return null;
     let num = 0, den = 0;
@@ -413,6 +422,19 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                 <div className="text-3xl font-bold font-mono text-orange-500">
                   {avgPctDelayed != null ? `${avgPctDelayed.toFixed(1)}%` : "—"}
                 </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Gikk for tidlig</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold font-mono text-amber-600">
+                  {avgPctEarly != null ? `${avgPctEarly.toFixed(1)}%` : "—"}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                  Mer enn 1 min før rutetid — dem kan du ikke rekke.
+                </p>
               </CardContent>
             </Card>
           </div>

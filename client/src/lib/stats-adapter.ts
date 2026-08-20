@@ -18,6 +18,21 @@ import {
 import { computeDayType } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
+// «For tidlig»-terskel
+//
+// Mer enn ETT minutt før rutetid. Under det er tallet stort sett
+// avrundingsstøy: målt over 12,2 mill. observasjoner er 7,7 % negative i det
+// hele tatt, men bare 2,8 % ligger under -1 min.
+//
+// Hvorfor det er verdt en egen måling: en avgang som går for tidlig kan man
+// ikke rekke, uansett hvor presis man selv er. Den teller likevel som «i rute»
+// i dagens definisjon (forsinkelse <= 2 min), så uten dette tallet er den
+// usynlig. Andelen varierer voldsomt mellom transportmidler — målt uke 33-34:
+// fly 61,6 %, ferje 9,4 %, buss 2,7 %, tog 1,2 %, bybane 0,1 %.
+// ---------------------------------------------------------------------------
+export const EARLY_MIN = -1;
+
+// ---------------------------------------------------------------------------
 // Artefakt-typer
 // ---------------------------------------------------------------------------
 
@@ -502,6 +517,26 @@ function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
   return map;
 }
 
+let stopPlaceIndexCache: Map<string, QuayMeta[]> | null = null;
+
+/** stopPlaceRef → medlems-quays, indeksert ÉN gang. resolveStopQuays og
+ *  apiStopsLookup slår opp per StopPlace flere ganger per sidelast
+ *  (linjer/timesprofil/dagstrend/retninger kaller alle sin egen
+ *  StopPlace→quays-utvidelse) — uten denne indeksen var hvert kall et
+ *  lineært søk gjennom hele metas-kartet (~60 000 rader i produksjon). */
+function stopPlaceIndex(metas: Map<string, QuayMeta>): Map<string, QuayMeta[]> {
+  if (stopPlaceIndexCache) return stopPlaceIndexCache;
+  const idx = new Map<string, QuayMeta[]>();
+  for (const m of Array.from(metas.values())) {
+    if (!m.stopPlaceRef) continue;
+    const arr = idx.get(m.stopPlaceRef);
+    if (arr) arr.push(m);
+    else idx.set(m.stopPlaceRef, [m]);
+  }
+  stopPlaceIndexCache = idx;
+  return idx;
+}
+
 function normName(s: string): string {
   return s.trim().toLowerCase();
 }
@@ -587,15 +622,13 @@ async function resolveStopQuays(
   const doc = await fetchStops();
   const metas = quayMetaMap(doc);
   if (ref.startsWith("NSR:StopPlace:")) {
-    const quays: string[] = [];
-    let name: string | null = null;
-    for (const m of Array.from(metas.values())) {
-      if (m.stopPlaceRef === ref) {
-        quays.push(m.stopRef);
-        name = m.stopPlaceName ?? m.stopName ?? name;
-      }
+    const members = stopPlaceIndex(metas).get(ref) ?? [];
+    if (members.length > 0) {
+      const quays = members.map((m) => m.stopRef);
+      let name: string | null = null;
+      for (const m of members) name = m.stopPlaceName ?? m.stopName ?? name;
+      return { quays, nameHint: name };
     }
-    if (quays.length > 0) return { quays, nameHint: name };
     if (nameHint) return quaysByName(metas, nameHint, coordHint);
     return { quays: [], nameHint: null };
   }
@@ -669,14 +702,11 @@ async function apiStopsLookup(params: URLSearchParams) {
   const out: Array<{ stopRef: string; stopName: string | null; stopPlaceRef: string | null }> = [];
   for (const ref of refs) {
     if (expand && ref.startsWith("NSR:StopPlace:")) {
-      let matched = false;
-      for (const m of Array.from(metas.values())) {
-        if (m.stopPlaceRef === ref) {
-          out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
-          matched = true;
-        }
+      const members = stopPlaceIndex(metas).get(ref) ?? [];
+      for (const m of members) {
+        out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
       }
-      if (!matched && nameHint) {
+      if (members.length === 0 && nameHint) {
         const { quays } = quaysByName(metas, nameHint, coordHint);
         for (const q of quays) {
           const m = metas.get(q);
@@ -727,7 +757,8 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
     standaloneDuckQuery<{
       date: string; stopNameRow: string | null;
       avgDelayMin: number | null; maxDelayMin: number | null; minDelayMin: number | null;
-      pctDelayed2plus: number | null; stddevDelayMin: number | null; numDepartures: number | null;
+      pctDelayed2plus: number | null; pctEarly: number | null;
+      stddevDelayMin: number | null; numDepartures: number | null;
     }>(`
       SELECT
         date,
@@ -736,6 +767,7 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
         ROUND(MAX(${D}), 1)  AS maxDelayMin,
         ROUND(MIN(${D}), 1)  AS minDelayMin,
         ROUND(100.0 * AVG(CASE WHEN ${D} > 2 THEN 1 ELSE 0 END), 1) AS pctDelayed2plus,
+        ROUND(100.0 * AVG(CASE WHEN ${D} < ${EARLY_MIN} THEN 1 ELSE 0 END), 1) AS pctEarly,
         ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin,
         COUNT(DISTINCT service_journey_id) AS numDepartures
       FROM delays_by_stop
@@ -780,6 +812,15 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
   };
 }
 
+// Retning (direction_ref) er en stabil egenskap ved en linje ved et stopp —
+// den svinger ikke med tidsvinduet brukeren har valgt i periodevelgeren.
+// Derfor et FAST, lite vindu i stedet for hele historikken: uten dette bygde
+// prepareView et view over ALLE registrerte uker (ubegrenset fromDate/toDate
+// → filesForFamily dropper ingen filer), dvs. opptil 14 uker på reise-bygget,
+// PÅ HVER stoppsidelast — den enkeltdyreste av de fem spørringene
+// stoppanalysen fyrer av. Se STATUS.md.
+const DIRECTIONS_LOOKBACK_DAYS = 30;
+
 /** GET /api/stop/:ref/directions — direction_ref-verdier ved stoppet. */
 async function apiStopDirections(ref: string, params: URLSearchParams) {
   const operators = parseOperators(params);
@@ -792,11 +833,14 @@ async function apiStopDirections(ref: string, params: URLSearchParams) {
   if (operators.length > 0) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
   }
+  await ensureParquetFilesRegistered();
+  const fromDate = daysAgoFromLatest(DIRECTIONS_LOOKBACK_DAYS, "by-stop");
+  conds.push(`date >= '${esc(fromDate)}'`);
   const rows = await standaloneDuckQuery<{ direction_ref: string }>(`
     SELECT DISTINCT direction_ref FROM delays_by_stop
     WHERE ${conds.join(" AND ")}
     ORDER BY direction_ref
-  `, undefined, { family: "by-stop" });
+  `, undefined, { family: "by-stop", fromDate });
   return rows.map((r) => String(r.direction_ref));
 }
 
@@ -1033,6 +1077,7 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
         ROUND(MIN(${D}), 1)  AS minDelayMin,
         ROUND(100.0 * AVG(CASE WHEN ${D} <= 2 THEN 1 ELSE 0 END), 1) AS pctOnTime,
         ROUND(100.0 * AVG(CASE WHEN ${D} > 10 THEN 1 ELSE 0 END), 1)             AS pctDelayed10plus,
+        ROUND(100.0 * AVG(CASE WHEN ${D} < ${EARLY_MIN} THEN 1 ELSE 0 END), 1)   AS pctEarly,
         COUNT(DISTINCT service_journey_id) AS numDepartures,
         ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin
       FROM delays_by_line
