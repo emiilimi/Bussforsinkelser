@@ -117,6 +117,19 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
 }
 
 /**
+ * Sist kjente posisjon i denne fanen, satt av getCurrentPositionAsStop().
+ *
+ * Brukes som geografisk fokuspunkt i stoppesøket. Bevisst kun i minnet og kun
+ * etter at brukeren selv har trykt «Min posisjon» — søket skal aldri utløse en
+ * posisjonsforespørsel på egen hånd.
+ */
+let lastKnownPosition: { lat: number; lng: number } | null = null;
+
+export function getLastKnownPosition(): { lat: number; lng: number } | null {
+  return lastKnownPosition;
+}
+
+/**
  * Hent nåværende posisjon som et StopSearchResult.
  *
  * Krever HTTPS (sentur.no har det) og at brukeren godkjenner. Resultatet får
@@ -134,6 +147,7 @@ export function getCurrentPositionAsStop(): Promise<StopSearchResult> {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
+        lastKnownPosition = { lat: latitude, lng: longitude };
         const resolvedArea = await reverseGeocode(latitude, longitude);
         const stopName = resolvedArea ? `Min posisjon (${resolvedArea})` : "Min posisjon";
         resolve({

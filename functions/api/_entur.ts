@@ -49,6 +49,24 @@ export function clampNumber(v: unknown, min: number, max: number): number | null
     : null;
 }
 
+/**
+ * Valgfritt geografisk fokuspunkt for geocoder-søk, avrundet til 2 desimaler
+ * (~1 km). Avrundingen er ikke kosmetikk: den holder cachen effektiv — uten
+ * den ville hver lille GPS-drift gitt en ny cachenøkkel.
+ * Returnerer null hvis paret mangler eller ligger utenfor gyldig lat/lon.
+ */
+export function parseFocus(
+  rawLat: string | null,
+  rawLng: string | null,
+): { lat: number; lng: number } | null {
+  if (rawLat === null || rawLng === null) return null;
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
+}
+
 /** Trygt heltall fra en query-parameter (string). */
 export function parseIntParam(raw: string | null, fallback: number): number {
   if (raw === null || raw.length === 0) return fallback;

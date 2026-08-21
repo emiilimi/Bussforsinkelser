@@ -12,7 +12,7 @@ import { Search, Clock, AlertCircle, Loader2, Star, MapPin } from "lucide-react"
 import { ModeIcon } from "@/components/mode-icon";
 import { SectionLabel, StopRow, FavoriteToggle } from "@/components/stop-picker";
 import {
-  getFavoriteStops, toggleFavorite, getRecentStops, addRecentStop,
+  getFavoriteStops, toggleFavorite, getRecentStops, addRecentStop, getLastKnownPosition,
 } from "@/lib/stop-history";
 import type { StopSearchResult } from "@/lib/trip-shared";
 import { cn, formatStopName } from "@/lib/utils";
@@ -505,8 +505,17 @@ export default function Departures() {
 
   // Reise-bygget har ingen SQLite-backend → bruk Entur Geocoder (samme som
   // reiseplanleggeren). Det fulle nettstedet bruker DB-søket som før.
+  //
+  // size=20, ikke 8: adressetreff filtreres bort NEDENFOR, så et navn med mange
+  // gatetreff («Kongleveien»: 7 av de 8 første er adresser) kunne ellers gi null
+  // stoppesteder selv om de finnes. Fokuspunktet er posisjonen brukeren
+  // eventuelt allerede har hentet — uten det rangerer Entur nasjonalt.
+  const focus = getLastKnownPosition();
+  const focusParam = focus
+    ? `&lat=${Math.round(focus.lat * 100) / 100}&lng=${Math.round(focus.lng * 100) / 100}`
+    : "";
   const searchUrl = IS_REISE
-    ? `/api/geocoder/autocomplete?text=${encodeURIComponent(debouncedQuery)}&size=8`
+    ? `/api/geocoder/autocomplete?text=${encodeURIComponent(debouncedQuery)}&size=20${focusParam}`
     : `/api/stops/search?q=${encodeURIComponent(debouncedQuery)}`;
 
   const { data: rawSearch = [] } = useQuery<any[]>({

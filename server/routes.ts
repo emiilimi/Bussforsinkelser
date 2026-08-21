@@ -536,15 +536,30 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/geocoder/autocomplete?text=Bryggen+Bergen&size=8
+   * GET /api/geocoder/autocomplete?text=Bryggen+Bergen&size=20[&lat=&lng=]
    * Proxy to Entur Geocoder — returns stops AND addresses.
+   *
+   * lat/lng er et VALGFRITT fokuspunkt som vekter treffene geografisk. Uten det
+   * rangerer Entur nasjonalt, og et lokalt stopp kan falle langt ned:
+   * «Kongleveien» gir Halden på 1. plass og Oslo-stoppet (NSR:StopPlace:6208)
+   * først på 12. plass. Se STATUS.md 2026-08-21.
    */
   app.get("/api/geocoder/autocomplete", geocoderLimiter, async (req, res) => {
     const text = String(req.query.text || "").trim().slice(0, 200);
     if (text.length < 2) return res.json([]);
-    const size = Math.min(Math.max(1, parseIntQuery(req.query.size, 8)), 20);
+    const size = Math.min(Math.max(1, parseIntQuery(req.query.size, 20)), 20);
+    // Avrundet til 2 desimaler (~1 km) for å speile Pages-proxyens cachenøkkel.
+    const focusLat = Number(req.query.lat);
+    const focusLng = Number(req.query.lng);
+    const hasFocus =
+      Number.isFinite(focusLat) && Number.isFinite(focusLng) &&
+      focusLat >= -90 && focusLat <= 90 && focusLng >= -180 && focusLng <= 180;
+    const focus = hasFocus
+      ? `&focus.point.lat=${Math.round(focusLat * 100) / 100}` +
+        `&focus.point.lon=${Math.round(focusLng * 100) / 100}`
+      : "";
     try {
-      const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(text)}&size=${size}&lang=no`;
+      const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(text)}&size=${size}&lang=no${focus}`;
       const response = await fetch(url, {
         headers: { "ET-Client-Name": "emiliemoldestad-sentur" },
       });

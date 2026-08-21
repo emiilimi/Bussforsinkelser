@@ -3,7 +3,45 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-19
+**Sist oppdatert**: 2026-08-21
+
+## Endringslogg — 2026-08-21: stoppsøket manglet fokuspunkt (og var for kort)
+
+**Symptom**: «Kongleveien» ga Halden, Arendal, Aurskog-høland … mens entur.no
+ga Oslo-stoppet. Det så ut som et hull i datagrunnlaget. Det var det ikke —
+stoppet finnes (`NSR:StopPlace:6208`), det ble bare rangert bort.
+
+To parametre skilte oss fra entur.no:
+
+1. **Vi sendte ikke noe fokuspunkt.** Uten `focus.point.lat/lon` rangerer
+   Entur nasjonalt. Kongleveien Oslo lå da på **12. plass** — vi ba om 8.
+2. **`size=8`.** For et navn med mange gatetreff spiste adressene hele vinduet.
+
+Fikset (`server/routes.ts`, `functions/api/geocoder/autocomplete.ts`,
+`trip-planner.tsx`, `departures.tsx`): proxyene tar valgfrie `lat`/`lng`, og
+`size` er hevet til 20. Fokuspunktet er avrundet til 2 desimaler (~1 km) i BÅDE
+klientens queryKey og proxyens cachenøkkel — ellers ville hver lille GPS-drift
+gitt en ny nøkkel og cachen vært verdiløs.
+
+**Hvor punktet kommer fra** (samme design som entur.no): stedet som allerede er
+valgt i det ANDRE feltet. Søker du i Til, vektes treffene mot Fra-stoppet, og
+omvendt. Fallback er posisjonen brukeren eventuelt selv har hentet via «Min
+posisjon» (`getLastKnownPosition()` i `stop-history.ts`, kun i minnet). Søket
+ber ALDRI om posisjonstillatelse på egen hånd.
+
+Verifisert i dev: med Fra = Jernbanetorget sendte Til-feltet
+`&lat=59.91&lng=10.75`, og Kongleveien Oslo kom på 6. plass med stoppikon.
+
+**Sidegevinst på Avganger**: den siden filtrerer bort adressetreff ETTER
+henting, så «Kongleveien» ga tidligere **ett** stoppested av 8 rader. Nå gir
+den fire (Halden, Nordre Follo, Sandnes, Oslo).
+
+> **Uutnyttet**: entur.no bruker `geocoder/v3` (`q=`, `limit=`, `lat=`, `lon=`),
+> ikke v1 som oss. v3 uten fokuspunkt rangerer *identisk* med v1 — versjonen var
+> altså ikke årsaken her. Men v3 gir `names.display` ferdig disambiguert
+> («Kongleveien, Halden») pluss `transportModes` og `stopPlaceRole`, som ville
+> forenklet `client/src/lib/disambiguate-stops.ts` betydelig. Ikke gjort:
+> responsformatet er annerledes, så det er en egen jobb.
 
 ## Endringslogg — 2026-08-19: VACUUM drepte tre kjøringer, nå betinget
 

@@ -38,6 +38,7 @@ import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
 import {
   getRecentStops, addRecentStop, getFavoriteStops, toggleFavorite,
   getCurrentPositionAsStop,
+  getLastKnownPosition,
 } from "@/lib/stop-history";
 import {
   type TripLeg, type TripPattern, type DuckDelayRow, type StopEntry,
@@ -926,11 +927,17 @@ function StopSearch({
   value,
   onSelect,
   externalQuery,
+  focusHint,
 }: {
   label: string;
   value: StopSearchResult | null;
   onSelect: (stop: StopSearchResult) => void;
   externalQuery?: string;
+  /**
+   * Geografisk fokuspunkt for søket — typisk stedet som allerede er valgt i
+   * det ANDRE feltet. Se kommentaren på søkespørringen under for hvorfor.
+   */
+  focusHint?: { lat: number | null; lng: number | null } | null;
 }) {
   const [query, setQuery] = useState(value?.stopName ?? "");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -983,8 +990,24 @@ function StopSearch({
     return () => clearTimeout(t);
   }, [query]);
 
+  // Fokuspunkt: det andre feltet først, ellers posisjonen brukeren eventuelt
+  // allerede har hentet via «Min posisjon». Uten et slikt punkt rangerer Entur
+  // nasjonalt, og lokale stopp drukner i navnelike treff fra hele landet —
+  // «Kongleveien» ga Halden øverst og Oslo-stoppet først på 12. plass. Det er
+  // også slik entur.no gjør det. Avrundet til 2 desimaler (~1 km) fordi proxyen
+  // uansett runder av i cachenøkkelen — ellers ville queryKey bommet på cachen.
+  const focus =
+    focusHint && focusHint.lat !== null && focusHint.lng !== null
+      ? { lat: focusHint.lat, lng: focusHint.lng }
+      : getLastKnownPosition();
+  const focusParam = focus
+    ? `&lat=${Math.round(focus.lat * 100) / 100}&lng=${Math.round(focus.lng * 100) / 100}`
+    : "";
+
   const { data: results = [] } = useQuery<GeocoderResult[]>({
-    queryKey: [`/api/geocoder/autocomplete?text=${encodeURIComponent(debouncedQuery)}&size=8`],
+    queryKey: [
+      `/api/geocoder/autocomplete?text=${encodeURIComponent(debouncedQuery)}&size=20${focusParam}`,
+    ],
     enabled: debouncedQuery.length >= 2 && open,
   });
 
@@ -3265,7 +3288,7 @@ export default function TripPlanner() {
           <CardContent className="pt-6 space-y-4">
             {/* From / Swap / To / Button */}
             <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr_auto] items-end">
-              <StopSearch label="Fra" value={fromStop} onSelect={(s) => { setFromStop(s); setFromQuery(s.stopName); }} externalQuery={fromQuery} />
+              <StopSearch label="Fra" value={fromStop} onSelect={(s) => { setFromStop(s); setFromQuery(s.stopName); }} externalQuery={fromQuery} focusHint={toStop} />
               <Button
                 variant="ghost"
                 size="icon"
@@ -3275,7 +3298,7 @@ export default function TripPlanner() {
               >
                 <ArrowUpDown className="h-4 w-4" />
               </Button>
-              <StopSearch label="Til" value={toStop} onSelect={(s) => { setToStop(s); setToQuery(s.stopName); }} externalQuery={toQuery} />
+              <StopSearch label="Til" value={toStop} onSelect={(s) => { setToStop(s); setToQuery(s.stopName); }} externalQuery={toQuery} focusHint={fromStop} />
               <div className="flex items-end">
                 <Button
                   onClick={() => {
