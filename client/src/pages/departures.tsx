@@ -13,6 +13,7 @@ import { ModeIcon } from "@/components/mode-icon";
 import { SectionLabel, StopRow, FavoriteToggle } from "@/components/stop-picker";
 import {
   getFavoriteStops, toggleFavorite, getRecentStops, addRecentStop, getLastKnownPosition,
+  isStopEntry,
 } from "@/lib/stop-history";
 import type { StopSearchResult } from "@/lib/trip-shared";
 import { cn, formatStopName } from "@/lib/utils";
@@ -405,8 +406,11 @@ export default function Departures() {
   const [favorites, setFavorites] = useState<StopSearchResult[]>([]);
   const [recents, setRecents] = useState<StopSearchResult[]>([]);
   useEffect(() => {
-    setFavorites(getFavoriteStops());
-    setRecents(getRecentStops());
+    // Favoritter/nylig deles med reiseplanleggeren, der adresser er gyldige
+    // fra/til-punkter — men en adresse har ingen avganger, så bare faktiske
+    // stopp skal vises her (jf. STATUS.md, favoritten «Frederikke»-bugen).
+    setFavorites(getFavoriteStops().filter(isStopEntry));
+    setRecents(getRecentStops().filter(isStopEntry));
   }, []);
 
   /** Avgangssidens stopp → formen favorittlista lagrer. */
@@ -448,7 +452,7 @@ export default function Departures() {
 
   const isFav = (ref: string) => favorites.some((f) => f.stopRef === ref);
   const flipFavorite = (ref: string, name: string) =>
-    setFavorites(toggleFavorite(asStopResult(ref, name, selectedStop?.lat ?? null, selectedStop?.lng ?? null)));
+    setFavorites(toggleFavorite(asStopResult(ref, name, selectedStop?.lat ?? null, selectedStop?.lng ?? null)).filter(isStopEntry));
   const [minutesParam, setMinutesParam] = useUrlParam("minutes", "90");
   const minutes = Number(minutesParam) || 90;
   const setMinutes = (n: number) => setMinutesParam(String(n));
