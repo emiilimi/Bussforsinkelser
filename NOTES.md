@@ -44,6 +44,43 @@ eksporter forhåndsaggregerte persentiler per `(stop_ref, line_ref)` som en
 liten JSON/parquet-artefakt, slik at nettleseren slår opp i stedet for å regne
 persentiler over 54 mill. rader ved hvert søk.
 
+### 🔴 ROTÅRSAK funnet 2026-08-21: overgangene manglet ikke data — de ble tidsavbrutt i KØEN
+
+Symptom: nesten alle buss-til-buss-overganger endte som «mangler
+forsinkelsesdata», og bare et par fikk sannsynlighet.
+
+**Først avkreftet at det var datamangel.** For et reelt søk (Ullevål stadion →
+Tøyenparken, 10 reiseforslag, 14 overganger, alle RUT) ble hver eneste
+overgang sjekket mot parquet med dagtype-filter:
+
+| nivå | overganger med ≥5 dager |
+|---|---|
+| eksakt rutetid-match | **14 / 14** (7 dager hver) |
+| pool (±60 min) | **14 / 14** (27 dager hver) |
+
+Dekningen var altså aldri problemet. Underveis ble to andre mistanker også
+avkreftet: `delay_arrival_min` er ikke systematisk NULL (RUT har 96,1 %
+ankomst / 96,6 % avgang), og quay-ID-ene fra Entur finnes i dataene våre.
+
+**Feilen lå i tidsavbruddet i `computeTransferGap`:**
+
+1. `withTimeout()` lå rundt HELE `duckQuery`-løftet, så fristen begynte å løpe
+   idet spørringen ble lagt i KØ. Worker'en tar én spørring om gangen, og
+   kaldstart-primingen alene bruker ~55 s — gap-spørringene ble derfor avvist
+   før de i det hele tatt hadde begynt å kjøre.
+2. 15 s var uansett for knapt. Målt faktisk KJØRETID etter fiksen:
+   **17,7 s / 15,8 s / 15,9 s** — alle tre over den gamle grensen. Under den
+   gamle koden ville samtlige blitt kastet.
+
+Fikset med `QueryOptions.timeoutMs`, som starter klokka ETTER muteksen (ren
+kjøretid), og grensen hevet til 45 s. Den opprinnelige hensikten — R2 429-svar
+som får duckdb-wasm til å henge for alltid — er beholdt, for den handlet om
+kjøring, ikke om kø.
+
+**Merk at overgangene fortsatt er trege**: ~16 s per reiseforslag betyr ~2,5
+min for ti forslag. Fiksen gjør at de faktisk KOMMER, ikke at de kommer raskt.
+Det er samme flaskehals som punkt 4 handler om.
+
 ### Fordelingen etter fiksene (målt 2026-08-16, kald sidelast mot R2)
 
 Med riktige merkelapper i `__duckTimings.summary()`, samme søk som før:
