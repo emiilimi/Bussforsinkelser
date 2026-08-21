@@ -1,6 +1,9 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useLinesAtStop, useLineHourlyAtStop, useLineDeparturesAtStop } from "@/hooks/use-journey-queries";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
+import {
+  useLatestDataDate, latestAvailableDate, primeParquetMetadata,
+} from "@/hooks/use-parquet-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -187,6 +190,11 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
 
   useEffect(() => {
     warmupDuckDB();
+    // Primingen gir oss MAX(date) (ankeret for «Siste N dager», se
+    // stopFromDate under) og varmer samtidig parquet-footerne, som er det
+    // som gjør den FØRSTE ekte spørringen rask. Kun "by-stop" — alle
+    // spørringene på denne siden bruker den familien.
+    primeParquetMetadata("by-stop");
     setExpandedLine(null);
     setDirection("all");
   }, [stopRef]);
@@ -206,7 +214,14 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   });
   const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, coordQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : ""].filter(Boolean).join("&")}`;
 
-  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery<StopStatsResponse>({
+  // isFetching (ikke isLoading): med keepPreviousData går status rett til
+  // "success" med FORRIGE vindus data, så isLoading er false under hele
+  // ombyttet. Uten isFetching har UI-et ingen måte å vise at det jobber —
+  // og siden spørringene tar titalls sekunder, så det ut som om «Siste uke»
+  // og «Siste 2 uker» ga nøyaktig samme tall (meldt inn 2026-08-21).
+  const {
+    data: stats, isLoading: statsLoading, isError: statsError, isFetching: statsFetching,
+  } = useQuery<StopStatsResponse>({
     queryKey: [stopStatsUrl],
     placeholderData: keepPreviousData, // keep old charts visible while switching direction/window
   });
@@ -218,15 +233,36 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   const lineNameMap = Object.fromEntries(allLines.map(l => [l.lineRef, l.lineName]));
   function lineNumber(ref: string) { return ref.split(":").pop() ?? ref; }
 
+  // «Siste N dager» må ankres på SISTE DAG MED DATA, ikke på dagens dato.
+  // Ingesten ligger typisk noen dager bak (målt 21. aug 2026: ferskeste
+  // by-stop-data var 18. aug), og med dagens dato som anker ble vinduet
+  // stille forkortet i den ene enden: «Siste uke» ga da 5 dager med data,
+  // ikke 7. Verre var at panelene på SAMME side var uenige — dagstrend og
+  // timesprofil går via stats-adapterens daysAgoFromLatest(), som allerede
+  // ankret riktig, mens listene under (linjer/enkeltavganger) brukte denne
+  // beregningen. Nå bruker begge samme anker. Samme grep som trip-planner.
+  const measuredLatest = useLatestDataDate("by-stop");
+  const dataAnchor = measuredLatest ?? latestAvailableDate("by-stop");
   const stopFromDate = (() => {
     if (window.kind === "custom") return window.from;
-    const d = new Date();
-    d.setDate(d.getDate() - window.days);
-    return d.toISOString().slice(0, 10);
+    const base = dataAnchor ? new Date(`${dataAnchor}T00:00:00Z`) : new Date();
+    base.setUTCDate(base.getUTCDate() - Math.max(window.days - 1, 0));
+    return base.toISOString().slice(0, 10);
   })();
 
-  const { data: linesAtStop = [] } = useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng);
-  const { data: lineHourlyRaw = [] } = useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng);
+  const { data: linesAtStop = [], isFetching: linesFetching } =
+    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng);
+  const { data: lineHourlyRaw = [], isFetching: hourlyFetching } =
+    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng);
+
+  // Noe er på vei inn mens vi allerede viser tall fra forrige valg.
+  // (Førstegangslasting dekkes av den store BusLoading-en lenger nede — der
+  // finnes det ingen «gammel» visning å merke som utdatert.)
+  const refreshing = (statsFetching || linesFetching || hourlyFetching) && !!stats;
+  const refreshTarget = [
+    windowLabel(window).toLowerCase(),
+    direction !== "all" ? `retning ${direction}` : null,
+  ].filter(Boolean).join(" · ");
 
   const { data: lineDeps = [], isLoading: lineDepsLoading } = useLineDeparturesAtStop(
     expandedLine ?? "",
@@ -339,6 +375,26 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
       )}
 
       <TimeWindowPicker value={window} onChange={setWindow} />
+
+      {/* Oppdateringsstripe: vises ØVERST, over den gamle statistikken, når
+          et nytt tidsvindu/retning hentes. Uten den blir forrige visning
+          stående uendret (keepPreviousData) i de titalls sekundene
+          spørringene tar, og det ser ut som om valget ikke gjorde noe. */}
+      {refreshing && (
+        <div
+          className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2"
+          role="status"
+          aria-live="polite"
+        >
+          <BusLoading label="" scale={0.32} className="shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Laster data for {refreshTarget}</p>
+            <p className="text-xs text-muted-foreground">
+              Viser forrige visning inntil de nye tallene er klare.
+            </p>
+          </div>
+        </div>
+      )}
 
       {statsLoading && !stats && (
         <div className="flex justify-center py-6">
