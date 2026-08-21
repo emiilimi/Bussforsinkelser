@@ -522,20 +522,20 @@ function normalizeDate(d: unknown): string {
 // worker-en enkelttrådet kan det avbrutte kallet fortsatt oppta den bak
 // kulissene og forsinke senere spørringer. Reduserer altså opplevd
 // "for alltid hengende UI", men reduserer ikke selve R2-belastningen.
-const GAP_QUERY_TIMEOUT_MS = 15_000;
-
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`DuckDB-spørring tidsavbrutt etter ${ms}ms (${label})`)),
-      ms,
-    );
-    promise.then(
-      (v) => { clearTimeout(timer); resolve(v); },
-      (e) => { clearTimeout(timer); reject(e); },
-    );
-  });
-}
+// RETTET 2026-08-21 — dette var årsaken til at de fleste overganger endte som
+// «mangler forsinkelsesdata» selv når historikken fantes.
+//
+// To feil i den gamle bruken:
+//  1. Fristen ble målt fra spørringen ble LAGT I KØ, ikke fra den begynte å
+//     kjøre. Worker'en tar én spørring om gangen, og kaldstart-primingen
+//     alene bruker ~55 s — så gap-spørringene ble avbrutt før de i det hele
+//     tatt hadde fått forsøke. Nå settes fristen via QueryOptions.timeoutMs,
+//     som starter klokka ETTER muteksen (se use-parquet-query.ts).
+//  2. 15 s var uansett for knapt: målt faktisk KJØRETID for gap-spørringene
+//     er 8–15,5 s, altså rett på grensen. Verifisert mot data at alle 14
+//     overganger i et reelt søk HAR dekning (7 dager på eksakt match, 27 i
+//     poolen) — det var aldri datamangel.
+const GAP_QUERY_TIMEOUT_MS = 45_000;
 
 export async function computeTransferGap(
   s: TransferSpec,
@@ -556,10 +556,10 @@ export async function computeTransferGap(
     };
   }
 
-  const rows = (await withTimeout(
-    duckQuery(parts.join("\nUNION ALL\n"), undefined, { family: "by-stop" }),
-    GAP_QUERY_TIMEOUT_MS,
-    s.key,
+  const rows = (await duckQuery(
+    parts.join("\nUNION ALL\n"),
+    undefined,
+    { family: "by-stop", timeoutMs: GAP_QUERY_TIMEOUT_MS },
   )) as CombinedGapRow[];
 
   const toObs = (r: CombinedGapRow): TransferGapObservation => ({

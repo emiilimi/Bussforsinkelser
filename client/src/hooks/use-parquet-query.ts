@@ -534,6 +534,33 @@ export interface QueryOptions {
    *  spørringer som trenger hele historikken (topplister, kart). */
   fromDate?: string;
   toDate?: string;
+  /**
+   * Tidsavbrudd i millisekunder for selve KJØRINGEN — klokka starter når
+   * spørringen faktisk får worker'en, ikke når den legges i kø.
+   *
+   * Det skillet er hele poenget. Worker'en tar én spørring om gangen, og en
+   * kaldstart-priming kan holde den i ~55 s. Et tidsavbrudd som teller fra
+   * kø-tidspunktet ville da avbryte spørringer som ennå ikke hadde begynt å
+   * kjøre — de «feilet» uten å ha fått forsøke. Det var nettopp det som
+   * skjedde med overgangs-gapene: 15 s frist, målt kjøretid 8–15 s, og
+   * dermed avbrutt en masse så snart det lå noe foran dem i køen.
+   */
+  timeoutMs?: number;
+}
+
+/** Avviser hvis `promise` ikke er ferdig innen `ms`. Brukes rundt selve
+ *  kjøringen (etter muteksen), aldri rundt kø-ventingen. */
+function withExecTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`DuckDB-spørring tidsavbrutt etter ${ms}ms (kjøretid)`)),
+      ms,
+    );
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
 }
 
 /** Erstatter ? med escapede parameterverdier — DuckDB-WASM sitt JS-API
@@ -569,8 +596,12 @@ export async function standaloneDuckQuery<T = Record<string, unknown>>(
   return runSerializedWithRetry(async () => {
     const conn = await db.connect();
     try {
-      await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
-      return await runQueryOnConn<T>(conn, bindParams(sql, params));
+      const exec = (async () => {
+        await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+        return await runQueryOnConn<T>(conn, bindParams(sql, params));
+      })();
+      // Klokka starter HER — etter muteksen — så kø-venting ikke teller.
+      return await (options?.timeoutMs ? withExecTimeout(exec, options.timeoutMs) : exec);
     } finally {
       await conn.close();
     }
@@ -683,8 +714,12 @@ export function useParquetQuery(): ParquetQueryState {
       return runSerializedWithRetry(async () => {
         const conn = await db.connect();
         try {
-          await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
-          return await runQueryOnConn<T>(conn, bindParams(sql, params));
+          const exec = (async () => {
+            await prepareView(conn, options?.family ?? DEFAULT_FAMILY, options?.fromDate, options?.toDate);
+            return await runQueryOnConn<T>(conn, bindParams(sql, params));
+          })();
+          // Klokka starter HER — etter muteksen — så kø-venting ikke teller.
+          return await (options?.timeoutMs ? withExecTimeout(exec, options.timeoutMs) : exec);
         } finally {
           await conn.close();
         }
