@@ -5,6 +5,78 @@
 
 **Sist oppdatert**: 2026-08-21
 
+## Ytelsesarbeid i reiseplanleggeren — oppsummering (2026-08-15 → 08-21)
+
+> **Status: trenger videre testing.** Alt under ligger på `reise-preview`, ikke
+> i produksjon. Måletallene er fra kald sidelast mot ekte R2 (Lagunen→Åsane og
+> Ullevål stadion→Tøyenparken), og varierer en del med R2-latens — samme
+> spørring er målt både 54 s og 96 s. Les tallene som størrelsesorden.
+
+### Verktøyet som gjorde resten mulig
+
+`window.__duckTimings` i `use-parquet-query.ts` (`runQueryOnConn` — ett
+choke point for alle DuckDB-spørringer). Gir `entries` (label, ms, tidspunkt,
+SQL-utdrag) og `summary()` per type. **Bruk denne før du optimaliserer noe
+her** — vi gjettet feil to ganger før den fantes, og begge gangene på ting som
+viste seg å være uvesentlige.
+
+### Rettet
+
+| # | Hva | Effekt |
+|---|---|---|
+| 1 | **Overgangs-gap ble tidsavbrutt i KØEN.** `withTimeout()` lå rundt hele `duckQuery`-løftet, så 15 s-fristen løp fra spørringen ble lagt i kø — ikke fra den begynte å kjøre. Med ~55 s priming foran seg rakk de aldri å starte. Målt kjøretid er dessuten 15,8–17,7 s, altså over grensen uansett. | **Rotårsaken til at nesten alle buss-til-buss-overganger viste «mangler forsinkelsesdata».** Ny `QueryOptions.timeoutMs` starter klokka etter muteksen; grense 45 s |
+| 2 | **Datagrunnlag-spørringen** hentet `COUNT(DISTINCT date)` + `MIN`/`MAX` i én. `MIN`/`MAX` er gratis fra row group-statistikk; `COUNT(DISTINCT)` må skanne datokolonnen over ~64 mill. rader | **81,6 s → 2,1 s.** Dagantallet telles nå opp via `whenDuckIdle()`, altså først når worker'en er helt ledig |
+| 3 | **«Hele avgangen» prefetchet mot `by-line`** ved hvert utvidet kort. Siden bare `by-stop` primes, betalte den første slike spørringen hele footer-lesingen på nytt for den andre filfamilien | Fjernet en spørring på **46–73 s** fra vanlige søk. Gates nå på `open`, ikke `active` |
+| 4 | Samme panel hentet persentiler for **hele linjen ved alle dens stopp**, alltid | Smal per-avgang-spørring først; linje-fallback bare for stopp som fortsatt mangler tall, begrenset til avgangens egne stopp |
+| 5 | `duckPairs` hentet **begge endepunkter for hvert legg** i alle reiseforslag, men et sammenslått kort leser bare første leggs påstigning | Færre distinkte `stop_ref` — og kostnaden er lineær i nettopp det |
+
+### Avkreftet (ikke prøv på nytt uten nye målinger)
+
+- **«Kjør overgangssannsynligheten først.»** Testet: synlige tall gikk fra
+  **101 s → 149 s**, altså ~48 s tregere. Worker'en tar én spørring om gangen
+  og kan ikke avbrytes, så gapet betaler kaldstarten og persentilene — som
+  driver alt brukeren ser — havner bak i køen. En timeout-basert
+  «sikkerhetsventil» hjalp ikke: den kan flippe et `enabled`-flagg, men ikke ta
+  worker'en fra en spørring som allerede kjører.
+- **«`prepareView` betaler footer-kostnaden på nytt per datovindu.»** Målt med
+  `changed`-flagg: uendret filsett 23,5 s vs. endret 4,1 s — altså motsatt av
+  hypotesen. (Med mindre kø: endret ≈ 3–6 s, uendret ≈ 0,4 s. De 23,5 s var
+  hovedsakelig køventing.)
+- **Manglende data som forklaring på «ingen overgangsdata».** Alle 14
+  overganger i et reelt søk HAR dekning: 7 dager på eksakt rutetid-match, 27 i
+  ±60-min-poolen. Også avkreftet: `delay_arrival_min` er ikke systematisk NULL
+  (RUT: 96,1 % ankomst / 96,6 % avgang), og Enturs quay-ID-er finnes hos oss.
+- **Forhåndsaggregerte persentiler som YTELSESTILTAK.** Persentil-spørringen
+  er 7–9 s av ~250 s. Å fjerne den helt sparer under 4 %. Scopingen i
+  NOTES.md punkt 4 er riktig regnet, men rettet mot feil flaskehals.
+
+### Gjenstår — i rekkefølge etter antatt gevinst
+
+1. **`metadata-priming` ~54 s** (`SELECT COUNT(*), MAX(date)`). Nå den klart
+   største enkeltposten. Begge verdiene SKAL kunne besvares fra parquetens
+   row group-statistikk, så at den bruker ~54 s tyder på at noe tvinger fram en
+   faktisk skanning — eller at det rett og slett er footer-lesing av 10–16
+   filer som dominerer. **Ikke undersøkt ennå.** Mulige spor: færre/større
+   ukefiler, eller å hente `maxDate` fra manifestet i stedet (feltet finnes
+   allerede der) og droppe spørringen helt.
+2. **Overgangs-gap ~16 s per reiseforslag.** Ti forslag ≈ 2,5 min. Fiksen over
+   gjør at de kommer fram, ikke at de kommer raskt. Retninger: regn bare for
+   synlige/utvidede kort (samme prinsipp som mellomstoppene alt følger),
+   begrens antall reiseforslag det regnes for, eller gjør selve spørringen
+   billigere. Å forhåndsberegne alle overganger er ikke farbart — det er
+   kombinatorisk i avgangs-PAR, og vi har ikke Enturs bruksdata til å vite
+   hvilke som er verdt å regne.
+3. **Uforklart:** ett legg (linje 28) viste ingen persentilkolonner mens
+   nabolegene i samme kort viste alle fire. Linje 28 HAR data (27 dager ved
+   alle tre overgangsstoppene), så det er ikke datamangel. Ikke reprodusert.
+   Neste gang det sees: noter `(line_ref, stop_ref)`-parene med kortet utvidet.
+4. **Bussanimasjonen som fremdriftsindikator.** En ubestemt stripe ble bygget
+   og fjernet igjen samme dag — den sa ingenting bussen ikke alt sa. Riktig
+   rekkefølge er å skaffe TELLBARE steg først, så animere dem. Gapene er
+   allerede tellbare (N av M reiseforslag ferdig).
+
+Detaljene, med alle måletall, ligger i [NOTES.md](NOTES.md) punkt 4 og 8.
+
 ## Endringslogg — 2026-08-21: stoppsøket manglet fokuspunkt (og var for kort)
 
 **Symptom**: «Kongleveien» ga Halden, Arendal, Aurskog-høland … mens entur.no
