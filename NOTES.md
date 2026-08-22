@@ -81,6 +81,45 @@ kjøring, ikke om kø.
 min for ti forslag. Fiksen gjør at de faktisk KOMMER, ikke at de kommer raskt.
 Det er samme flaskehals som punkt 4 handler om.
 
+### `metadata-priming` undersøkt 2026-08-22 — det er KALDSTARTEN, ikke spørringen
+
+Primingen (`primeParquetMetadata`) har to formål: varme opp parquet-footerne
+før brukerens første ekte spørring, og hente siste datadag (`MAX(date)`).
+
+**Formål 2 er nå overflødig** — pipelinen skriver `maxDate` per fil i
+manifestet, så datoen er gratis. `MAX(date)` er droppet fra spørringen, og
+`latestDataDate()` leser manifestet i stedet.
+
+**Men det var ikke der tiden gikk.** Målt kald sidelast mot ekte R2, 10
+by-stop-filer:
+
+| | nettleser (duckdb-wasm) | python/duckdb+httpfs |
+|---|---|---|
+| `SELECT COUNT(*), MAX(date)` | 54–69 s | 10,4 s |
+| `SELECT COUNT(*)` alene | **62 s** | **1,4 s** |
+| `SELECT MAX(date)` alene | — | 12,0 s |
+| alt etter den første | 2–9 s | — |
+
+Å fjerne `MAX(date)` endret altså **ingenting** i nettleseren. Fra Python ser
+`MAX(date)` ut som hele synderen (9× dyrere enn `COUNT(*)`); i nettleseren er
+den irrelevant. **Ikke bruk Python-tall til å forutsi duckdb-wasm her** — det
+var nettopp den slutningen som førte til en feilrettet fiks.
+
+Flaskehalsen er duckdb-wasm sitt HTTP-lag når det åpner de ti filene for
+første gang. Footer-metadataen er bare **0,9 MB til sammen** (~100 KB per fil,
+607 radgrupper totalt), så det er ikke bytes — det er antall
+range-forespørsler og at de går sekvensielt på én worker.
+
+Uprøvde spor, i synkende rekkefølge etter antatt gevinst:
+- **Færre filer.** Kostnaden ser ut til å følge FILANTALL, ikke datamengde.
+  Månedsfiler i stedet for ukefiler ville gitt ~3 i stedet for ~14. Krever
+  endring i `export_parquet.py` og et nytt manifest-format.
+- **Begrense første spørring til et datovindu**, så kaldstarten bare betales
+  for de filene som faktisk trengs. Reiseplanleggerens spørringer kjører i dag
+  stort sett uten vindu og treffer derfor alle filene.
+- Undersøke om duckdb-wasm gjør noe patologisk (mange små, sekvensielle
+  range-kall). Verdt å telle faktiske HTTP-kall i nettverksfanen først.
+
 ### Fordelingen etter fiksene (målt 2026-08-16, kald sidelast mot R2)
 
 Med riktige merkelapper i `__duckTimings.summary()`, samme søk som før:

@@ -210,24 +210,30 @@ const latestDateListeners = new Set<() => void>();
  * målt gjorde det statistikken merkbart tregere når søket startet samtidig
  * (URL-gjenoppretting) i stedet for etter at brukeren hadde fylt ut skjemaet.
  *
- * MÅLT 2026-08-22 (duckdb + httpfs mot ekte R2, samme 10 by-stop-filer):
+ * KOSTNADEN ER FØRSTE-SPØRRING-MOT-FAMILIEN, IKKE SPØRRINGENS FORM.
+ * Målt 2026-08-22, kald sidelast mot ekte R2, 10 by-stop-filer:
  *
- *     SELECT COUNT(*)              →  1 350 ms
- *     SELECT MAX(date)             → 12 022 ms
- *     SELECT COUNT(*), MAX(date)   → 10 430 ms
+ *   i nettleseren (duckdb-wasm):
+ *     SELECT COUNT(*), MAX(date)   → 54–69 s
+ *     SELECT COUNT(*)              → 62 s      ← MAX(date) fjernet: ingen endring
+ *     alt etterpå (data-range, persentiler)    → 2–9 s
  *
- * Den gamle kommentaren her påsto at «begge deler besvares fra parquetens row
- * group-statistikk, så det koster ikke mer enn COUNT(*) alene». Det stemmer
- * ikke: MAX(date) er ~9× dyrere og sto for hele kostnaden. I nettleseren
- * (duckdb-wasm, mer HTTP-overhead) ble hele spørringen målt til ~54 s — den
- * største enkeltposten i reiseplanleggeren.
+ *   samme spørringer fra python/duckdb+httpfs mot SAMME filer:
+ *     SELECT COUNT(*)              →  1,4 s
+ *     SELECT MAX(date)             → 12,0 s
  *
- * MAX(date) er nå UNØDVENDIG: pipelinen skriver `maxDate` per fil i
- * manifestet, så den faktiske siste datadagen er allerede gratis tilgjengelig
- * (se manifestMaxDate/latestDataDate). Vi beholder COUNT(*) — det er den
- * billige delen, og det er den som varmer opp footerne, som er hele poenget
- * med primingen. MAX(date) tas bare med hvis manifestet mangler maxDate
- * (eldre artefakt), slik at oppførselen ikke regresserer der.
+ * Merk spriket: fra Python ser MAX(date) ut som synderen, i nettleseren er
+ * den irrelevant. Flaskehalsen er duckdb-wasm sitt HTTP-lag når det åpner ti
+ * filer første gang — ikke aggregatet. Ikke stol på Python-tall for å
+ * forutsi nettleseren her.
+ *
+ * MAX(date) er likevel droppet: pipelinen skriver `maxDate` per fil i
+ * manifestet, så faktisk siste datadag er gratis tilgjengelig (se
+ * manifestMaxDate/latestDataDate). Det fjerner et unødvendig aggregat, men
+ * det var IKKE det som kostet tid. Beholdes kun hvis manifestet mangler
+ * maxDate (eldre artefakt), så oppførselen ikke regresserer der.
+ *
+ * Selve kaldstarten står altså fortsatt uløst — se NOTES.md punkt 4.
  */
 export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
   if (primingPromises.has(family)) return;
