@@ -232,26 +232,31 @@ const latestDateListeners = new Set<() => void>();
 export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
   if (primingPromises.has(family)) return;
   const view = `delays_${family.replace("-", "_")}`;
-  const needMax = manifestMaxDate(family) === null;
-  const p = standaloneDuckQuery<{ n: number; mx: string | null }>(
-    needMax
-      ? `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`
-      : `SELECT COUNT(*) AS n FROM ${view}`,
-    undefined,
-    { family },
-  )
-    .then((rows) => {
-      const mx = rows[0]?.mx;
-      if (mx) {
-        measuredLatestDate.set(family, String(mx));
-        for (const l of Array.from(latestDateListeners)) l();
-      }
-    })
-    .catch(() => {
-      // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
-      // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
-      primingPromises.delete(family);
-    });
+  const p = (async () => {
+    // Manifestet MÅ være lest før vi kan avgjøre om MAX(date) trengs:
+    // `registeredFiles` er tom ved første kall, og en synkron sjekk her ville
+    // alltid sett «ingen maxDate» og kjørt den dyre varianten likevel.
+    // (Målt: gjorde nettopp det — 68,6 s i nettleseren, se commit-historikk.)
+    const db = await initDuckDB();
+    await registerFilesWithRetry(db);
+    const needMax = manifestMaxDate(family) === null;
+    const rows = await standaloneDuckQuery<{ n: number; mx: string | null }>(
+      needMax
+        ? `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`
+        : `SELECT COUNT(*) AS n FROM ${view}`,
+      undefined,
+      { family },
+    );
+    const mx = rows[0]?.mx;
+    if (mx) {
+      measuredLatestDate.set(family, String(mx));
+      for (const l of Array.from(latestDateListeners)) l();
+    }
+  })().catch(() => {
+    // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
+    // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
+    primingPromises.delete(family);
+  });
   primingPromises.set(family, p);
 }
 
