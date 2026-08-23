@@ -45,6 +45,7 @@ type DailyRow = {
   totalJourneys: number;
   n: number;
   pctRealtimeCoverage: number | null;
+  pctEarly: number | null;
   // Avlyste avganger (unike per dag/operatør) — null for dager før målingen startet
   totalCancellations?: number | null;
   // Avganger i feeden helt uten sanntid (ikke avlyst) — null før målingen startet
@@ -181,6 +182,7 @@ function combineDaily(rows: DailyRow[]): {
   avgDelayMin: number | null;
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
+  pctEarly: number | null;
   totalJourneys: number;
   totalCancellations: number | null;
   pctRealtimeCoverage: number | null;
@@ -217,6 +219,7 @@ function combineDaily(rows: DailyRow[]): {
     avgDelayMin: w((r) => r.avgDelayMin),
     pctOnTime: w((r) => r.pctOnTime),
     pctDelayed10plus: w((r) => r.pctDelayed10plus),
+    pctEarly: w((r) => r.pctEarly),
     totalJourneys: rows.reduce((a, r) => a + r.totalJourneys, 0),
     totalCancellations: sumMeasured((r) => r.totalCancellations),
     pctRealtimeCoverage: n > 0 ? w((r) => r.pctRealtimeCoverage) : null,
