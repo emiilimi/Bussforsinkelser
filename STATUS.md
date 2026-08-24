@@ -3,7 +3,7 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-21
+**Sist oppdatert**: 2026-08-24
 
 ## Ytelsesarbeid i reiseplanleggeren — oppsummering (2026-08-15 → 08-21)
 
@@ -76,6 +76,83 @@ viste seg å være uvesentlige.
    allerede tellbare (N av M reiseforslag ferdig).
 
 Detaljene, med alle måletall, ligger i [NOTES.md](NOTES.md) punkt 4 og 8.
+
+## Endringslogg — 2026-08-24: ukedagsfilter, delt linjespørring, og en uendelig render-løkke
+
+### 1. Uendelig render-løkke tømte Linjeanalyse-siden (eldre feil, funnet nå)
+
+**Symptom**: siden ble helt blank når du hadde analysert en linje og så byttet
+operatør bort fra den linjas operatør. Konsollen: «Maximum update depth
+exceeded».
+
+**Løkka**, mellom to useEffect-er i `journey-details.tsx` som ikke visste om
+hverandre:
+
+1. «tøm linja når den ikke finnes hos valgt operatør» satte `fetchedLine = ""`
+   — men lot `?line=` stå i URL-en, og endret `?direction`/`?stopProfileDir`.
+2. Endringen av `search` vekket «pre-select line from ?line=», som så at
+   `lineParam` fantes og `fetchedLine` var tom — og satte linja tilbake.
+3. Som trigget 1 igjen. I ring, til React ga opp.
+
+**Fiks**: steg 1 fjerner nå `line` fra URL-en samtidig som state tømmes, slik
+at de to effektene ikke kan dra i hver sin retning. Verifisert: feilen
+reproduserer på committed HEAD uten endringene, og er borte med dem.
+
+> **Beslektet, IKKE fikset**: `?direction=1` i en delt URL overlever ikke
+> sidelasten. Effekten som validerer retningsvalget kjører før
+> `directionOptions` er lastet, ser at «1» ikke finnes i en tom liste, og
+> faller tilbake til «Begge». Samme familie som over (URL-parameter mot
+> asynkront lastet data). Å klikke retning virker fint.
+
+### 2. Linjeanalyse: stat-kortene henter fra artefakten, grafene laster hver for seg
+
+`/api/line/:ref` er delt i `/summary`, `/daily` og `/hourly` — i både
+stats-adapteren og Express. `/summary` leser `stats_summary.json` og koster
+INGEN DuckDB-spørring, så stat-kortene står med tall mens grafene fortsatt
+regnes. Daily og hourly var allerede to separate spørringer i én `Promise.all`;
+nå rendres de hver for seg etter hvert som de blir ferdige.
+
+DuckDB kjører fortsatt én spørring om gangen (jf. kostnadsmodellen i
+CLAUDE.md), så dette gjør dem ikke parallelle — gevinsten er at ingenting
+venter på det treigeste.
+
+**`apiLineSummary` returnerer null — aldri en tilnærming — når artefakten ikke
+kan svare eksakt**: egendefinert datointervall, vindu utenom 7/30/90,
+retningsfilter, ukedagsfilter, eller linje under `MIN_JOURNEYS_LINE` (5).
+Da regnes kortene fra dagsserien som før. Å snappe «Siste 2 uker» til nærmeste
+artefaktvindu ville vist 7-dagerstall under feil overskrift.
+
+### 3. Ukedagsfilter (day_type) på de DuckDB-drevne sidene
+
+`day_type` lå allerede i parquet-filene fra `export_parquet.py` — filtrering
+var derfor bare en WHERE-betingelse, ikke en pipeline-endring.
+
+Lagt til på **Linjeanalyse** og **Stoppanalyse** (alle seksjoner: stat-kort,
+dagstrend, timesprofil, verste stopp, stoppprofil, linjer/timer ved stopp, rå
+avganger). **Ikke** på Oversikt/Topplister/Kart — de leser ferdigaggregerte
+artefakter uten dagtype-dimensjon; å legge den til ville grovt firedoblet
+`stats_summary.json` (3,8 → ~15 MB) og `stats_stops_map.json` (10,5 → ~40 MB).
+
+Hjelpefunksjonene ligger i `lib/day-type.ts` (som allerede eide domenet), ikke
+i komponenten — hvitelista brukes av både stats-adapteren og
+use-journey-queries, og en whitelist i tre kopier spriker før eller siden.
+
+Bare Hverdag/Lørdag/Søndag er knapper. `holiday` og `may17` finnes ikke i det
+rullerende 90-dagersvinduet store deler av året (målt: 0 rader av 75,5 mill.
+2026-06-19 → 08-23), så de ville stått tomme; de er med under «Alle dager».
+
+**Verifisert mot fasit regnet direkte i DuckDB** (RUT:Line:5, siste måned):
+
+| Dagtype | Fasit | UI |
+|---|---|---|
+| alle | 1,80m / 83,4 % | 1,8m / 83,6 % |
+| hverdag | 2,05m / 82,0 % | 1,9m / 82,9 % |
+| lørdag | 0,94m / 85,7 % | 0,9m / 86,7 % |
+| søndag | 0,91m / 90,2 % | 0,9m / 90,2 % |
+
+Bjørvika (stoppanalyse): ufiltrert 2,58m/47,6 % → UI 2,6m/46,6 %; søndag
+1,93m/38,1 % → UI 1,9m/38,3 %. Småavvikene er fordi kortene snitter
+dagsgjennomsnitt uvektet mens fasiten snitter alle rader.
 
 ## Endringslogg — 2026-08-21: stoppsøket manglet fokuspunkt (og var for kort)
 

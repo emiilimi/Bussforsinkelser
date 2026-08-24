@@ -39,6 +39,8 @@ import {
   parseWindow,
 } from "@/components/time-window-picker";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { DayTypePicker } from "@/components/day-type-picker";
+import { dayTypeFilterLabel, parseDayTypeFilter } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,7 +73,19 @@ type HourlyProfile = {
   numSamples: number | null;
 };
 
-type LineStatsResponse = { daily: LineDaily[]; hourly: HourlyProfile[] };
+/** Ferdigaggregerte stat-kort for én linje (stats_summary.json). Null når
+ *  artefakten ikke kan svare presist — se apiLineSummary i stats-adapter.ts. */
+type LineSummary = {
+  lineRef: string;
+  lineName: string | null;
+  window: number;
+  avgDelayMin: number | null;
+  pctOnTime: number | null;
+  pctDelayed10plus: number | null;
+  pctEarly: number | null;
+  stddevDelayMin: number | null;
+  totalDepartures: number;
+};
 
 type JourneyStop = {
   stopRef: string;
@@ -128,6 +142,23 @@ function delayColor(delay: number | null) {
   if (d > 5) return "hsl(var(--destructive))";
   if (d > 2) return "hsl(var(--chart-4))";
   return "hsl(var(--primary))";
+}
+
+/** Plassholder for en graf som fortsatt regnes. Beholder korttittelen og
+ *  høyden så siden ikke hopper når grafen lander. */
+function ChartPlaceholder({ title, label }: { title: string; label: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-center items-center h-[250px]">
+          <BusLoading label={label} scale={0.55} />
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 // Time-window now uses shared TimeWindowPicker (5 presets + custom range).
@@ -261,6 +292,12 @@ export default function JourneyDetails() {
   // Direction filter for stats charts ('all' = both directions aggregated)
   const [direction, setDirection] = useUrlParam("direction", "all");
 
+  // Ukedagsfilter ('all' = ingen filtrering). Treffer bare de DuckDB-drevne
+  // spørringene; stat-kortene faller tilbake fra stats_summary.json til
+  // dagsserien når filteret er satt, siden artefakten ikke har dagtype.
+  const [dayTypeParam, setDayTypeParam] = useUrlParam("dayType", "all");
+  const dayType = parseDayTypeFilter(dayTypeParam);
+
   // Time window (5 presets + custom range).
   const DEFAULT_TW: TimeWindow = { kind: "preset", days: 30, label: "Siste måned" };
   const [twParam, setTwParam] = useUrlParam("tw", serializeWindow(DEFAULT_TW));
@@ -312,6 +349,14 @@ export default function JourneyDetails() {
   //
   // Vi tømmer bare når lista faktisk er lastet og linja ikke finnes i den —
   // ellers ville et tomt mellomresultat under lasting nullstilt et gyldig valg.
+  //
+  // ⚠️ `?line=` MÅ fjernes fra URL-en samtidig. Uten det oppsto en uendelig
+  // render-løkke som hvitet ut hele siden («Maximum update depth exceeded»):
+  // denne effekten tømte fetchedLine, ?line= ble stående, ?direction/?stopProfileDir
+  // endret `search`, effekten over («Pre-select line from ?line=») så at
+  // lineParam fantes og fetchedLine var tom — og satte linja rett tilbake, som
+  // trigget denne igjen. Reproduserbart ved å bytte operatør bort fra den
+  // analyserte linjas operatør. Se STATUS.md 2026-08-24.
   useEffect(() => {
     if (!fetchedLine || allLines.length === 0) return;
     if (allLines.some((l) => l.lineRef === fetchedLine)) return;
@@ -320,21 +365,39 @@ export default function JourneyDetails() {
     setSelectedJourney(null);
     setDirection("all");
     setStopProfileDir("");
+    const params = new URLSearchParams(search);
+    params.delete("line");
+    const qs = params.toString();
+    navigate(qs ? `/journey?${qs}` : "/journey", { replace: true });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allLines, fetchedLine]);
 
-  const lineStatsUrl = fetchedLine
-    ? `/api/line/${encodeURIComponent(fetchedLine)}?${wq}${direction !== "all" ? `&direction=${direction}` : ""}`
-    : null;
+  // Tre separate spørringer i stedet for ett kombinert svar. DuckDB kjører én
+  // spørring om gangen (se kostnadsmodellen i CLAUDE.md), så dette gjør dem
+  // ikke parallelle — men hver del RENDRES så snart den er ferdig i stedet for
+  // at alt venter på det treigeste. Rekkefølgen er bevisst: /summary koster
+  // ingen DuckDB-spørring (leser stats_summary.json), så stat-kortene står med
+  // tall nesten umiddelbart; deretter dagstrenden; timesprofilen sist.
+  const lineQs = [wq, direction !== "all" ? `direction=${direction}` : "", dayType === "all" ? "" : `dayType=${dayType}`]
+    .filter(Boolean).join("&");
+  const lineBase = fetchedLine ? `/api/line/${encodeURIComponent(fetchedLine)}` : null;
 
-  const { data: lineStats, isLoading: lineStatsLoading } = useQuery<LineStatsResponse>({
-    queryKey: [lineStatsUrl],
-    enabled: lineStatsUrl != null,
+  const { data: lineSummary } = useQuery<LineSummary | null>({
+    queryKey: [lineBase ? `${lineBase}/summary?${lineQs}` : null],
+    enabled: lineBase != null,
+  });
+  const { data: daily = [], isLoading: dailyLoading } = useQuery<LineDaily[]>({
+    queryKey: [lineBase ? `${lineBase}/daily?${lineQs}` : null],
+    enabled: lineBase != null,
+  });
+  const { data: hourly = [], isLoading: hourlyLoading } = useQuery<HourlyProfile[]>({
+    queryKey: [lineBase ? `${lineBase}/hourly?${lineQs}` : null],
+    enabled: lineBase != null,
   });
 
   const { data: journeys = [] } = useJourneysForLine(fetchedLine, fromDate);
 
-  const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate);
+  const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate, 15, dayType);
 
   const [stopProfileDir, setStopProfileDir] = useUrlParam("stopProfileDir", "");
   const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
@@ -371,7 +434,7 @@ export default function JourneyDetails() {
   );
 
   const { data: lineStopProfile = [], isLoading: lineStopProfileLoading } = useLineStopProfile(
-    fetchedLine, stopProfileDir, fromDate, selectedVariant,
+    fetchedLine, stopProfileDir, fromDate, selectedVariant, dayType,
   );
 
   const { data: journeyProfile = [] } = useJourneyProfile(
@@ -379,6 +442,7 @@ export default function JourneyDetails() {
     selectedJourney?.directionRef ?? "",
     selectedJourney?.firstStopTime ?? "",
     fromDate,
+    dayType === "all" ? null : [dayType],
   );
 
   const handleSearch = () => {
@@ -392,21 +456,24 @@ export default function JourneyDetails() {
   };
 
   // ---- Derived data for existing charts ----
-  const daily = lineStats?.daily ?? [];
-  const avgDelay = daily.length
+  // Stat-kortene tar tallene fra stats_summary.json når den kan svare (ingen
+  // DuckDB-venting), ellers regnes de fra dagsserien som før. Fallback-veien
+  // er den eneste som finnes i fullbygget, og den eneste som virker for
+  // egendefinerte datointervaller, retningsfilter og lavfrekvente linjer.
+  const avgDelay = lineSummary?.avgDelayMin ?? (daily.length
     ? daily.reduce((s, r) => s + (r.avgDelayMin ?? 0), 0) / daily.length
-    : null;
-  const avgPctOnTime = daily.length
+    : null);
+  const avgPctOnTime = lineSummary?.pctOnTime ?? (daily.length
     ? daily.reduce((s, r) => s + (r.pctOnTime ?? 0), 0) / daily.length
-    : null;
-  const avgPctDelayed10 = daily.length
+    : null);
+  const avgPctDelayed10 = lineSummary?.pctDelayed10plus ?? (daily.length
     ? daily.reduce((s, r) => s + (r.pctDelayed10plus ?? 0), 0) / daily.length
-    : null;
+    : null);
   // «For tidlig» teller som «i rute» i dagens definisjon (<= 2 min), så uten
   // dette tallet er en avgang du umulig kunne rukket usynlig i statistikken.
-  const avgPctEarly = daily.length
+  const avgPctEarly = lineSummary?.pctEarly ?? (daily.length
     ? daily.reduce((s, r) => s + (r.pctEarly ?? 0), 0) / daily.length
-    : null;
+    : null);
 
   // Worst and best days
   const worstDay = daily.length > 0
@@ -415,10 +482,11 @@ export default function JourneyDetails() {
   const bestDay = daily.length > 0
     ? daily.reduce((best, r) => (r.avgDelayMin ?? Infinity) < (best.avgDelayMin ?? Infinity) ? r : best, daily[0])
     : null;
-  const totalDepartures = daily.reduce((s, r) => s + (r.numDepartures ?? 0), 0);
+  const totalDepartures = lineSummary?.totalDepartures
+    ?? daily.reduce((s, r) => s + (r.numDepartures ?? 0), 0);
 
   // Weighted average stddev across days (a measure of how unpredictable the line is).
-  const avgStddev = (() => {
+  const avgStddev = lineSummary?.stddevDelayMin ?? (() => {
     let num = 0, den = 0;
     for (const r of daily) {
       if (r.stddevDelayMin != null && r.numDepartures != null) {
@@ -441,7 +509,7 @@ export default function JourneyDetails() {
     return { coveragePct: avg, coverageWarning: warning };
   }, [daily]);
 
-  const hourlyData = (lineStats?.hourly ?? []).map((r) => {
+  const hourlyData = hourly.map((r) => {
     const avg = r.avgDelayMin ?? 0;
     const max = r.maxAvgDelayMin ?? avg;
     const min = r.minAvgDelayMin ?? avg;
@@ -456,6 +524,14 @@ export default function JourneyDetails() {
       bandRange: Math.max(0, max - min),
     };
   });
+
+  // Noe — hva som helst — er klart å vise. Styrer om lasteanimasjonen skal vekk.
+  const hasAnyLineData = lineSummary != null || daily.length > 0 || hourly.length > 0;
+
+  // Periodetekst med ev. dagtype, f.eks. «Siste måned · kun hverdager». Uten
+  // dette ville en filtrert graf sett ut som om den dekket hele uka.
+  const dtLabel = dayTypeFilterLabel(dayType);
+  const periodLabel = dtLabel ? `${windowLabel(tw)} · ${dtLabel}` : windowLabel(tw);
 
   const trendData = daily.map((r) => ({
     date: r.date,
@@ -804,15 +880,18 @@ export default function JourneyDetails() {
               ))}
             </div>
             <TimeWindowPicker value={tw} onChange={setTw} />
+            <DayTypePicker value={dayType} onChange={setDayTypeParam} />
             <p className="text-[11px] text-muted-foreground -mt-1">
               Reiseprofiler dekker inntil 13 uker med rådata.
             </p>
           </div>
         )}
 
-        {/* Loading / no data */}
-        {fetchedLine.length > 0 && !lineStats && (
-          lineStatsLoading ? (
+        {/* Loading / no data — bussen står bare så lenge INGEN av delene har
+            landet. Så snart stat-kortene (eller dagstrenden) er inne, tar de
+            over skjermen og resten fyller seg inn under. */}
+        {fetchedLine.length > 0 && !hasAnyLineData && (
+          dailyLoading ? (
             <div className="flex justify-center py-6">
               <BusLoading
                 label={direction !== "all" ? `Laster data for ${directionLabels[direction] ?? `retning ${direction}`}` : "Laster linjedata"}
@@ -829,7 +908,7 @@ export default function JourneyDetails() {
         )}
 
         {/* ---- Stats + charts ---- */}
-        {lineStats && (
+        {hasAnyLineData && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             {daily.length > 0 && (
               <DataQualityBanner
@@ -856,7 +935,7 @@ export default function JourneyDetails() {
                   <div className={`text-2xl font-bold font-mono ${(avgDelay ?? 0) > 5 ? "text-destructive" : ""}`}>
                     {avgDelay != null ? `${avgDelay.toFixed(1)}m` : "—"}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Snitt ({windowLabel(tw)}) · {totalDepartures.toLocaleString("nb-NO")} avganger</p>
+                  <p className="text-xs text-muted-foreground mt-1">Snitt ({periodLabel}) · {totalDepartures.toLocaleString("nb-NO")} avganger</p>
                 </CardContent>
               </Card>
               <Card>
@@ -966,12 +1045,19 @@ export default function JourneyDetails() {
               </div>
             )}
 
+            {hourlyData.length === 0 && hourlyLoading && (
+              <ChartPlaceholder
+                title="Forsinkelse etter time på dagen"
+                label="Regner timesprofil"
+              />
+            )}
+
             {hourlyData.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Forsinkelse etter time på dagen</CardTitle>
                   <CardDescription>
-                    Snittforsinkelse per time ({windowLabel(tw)}). Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                    Snittforsinkelse per time ({periodLabel}). Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -981,7 +1067,7 @@ export default function JourneyDetails() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
-                        <Tooltip content={<HourlyTooltip periodLabel={windowLabel(tw)} />} />
+                        <Tooltip content={<HourlyTooltip periodLabel={periodLabel} />} />
                         <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
                         <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
@@ -991,6 +1077,10 @@ export default function JourneyDetails() {
                   </DraggableYChart>
                 </CardContent>
               </Card>
+            )}
+
+            {trendData.length === 0 && dailyLoading && (
+              <ChartPlaceholder title="Daglig trend" label="Regner dagstrend" />
             )}
 
             {trendData.length > 0 && (
@@ -1024,7 +1114,7 @@ export default function JourneyDetails() {
                 <CardHeader>
                   <CardTitle>Verste stopp på ruten</CardTitle>
                   <CardDescription>
-                    Topp 5 stoppsteder med høyest gjennomsnittlig forsinkelse for {selectedLineName ?? fetchedLine} ({windowLabel(tw)}).
+                    Topp 5 stoppsteder med høyest gjennomsnittlig forsinkelse for {selectedLineName ?? fetchedLine} ({periodLabel}).
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1373,7 +1463,7 @@ export default function JourneyDetails() {
                         {section.title}
                       </CardTitle>
                       <CardDescription>
-                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {windowLabel(tw)} (inntil 13 uker).
+                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {periodLabel} (inntil 13 uker).
                       </CardDescription>
                     </CardHeader>
                     <CardContent>

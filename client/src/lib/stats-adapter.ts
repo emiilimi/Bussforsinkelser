@@ -15,7 +15,7 @@ import {
   PARQUET_BASE, standaloneDuckQuery, ensureParquetFilesRegistered, latestAvailableDate,
   type DelayFamily,
 } from "@/hooks/use-parquet-query";
-import { computeDayType } from "@/lib/day-type";
+import { computeDayType, dayTypePredicate } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // «For tidlig»-terskel
@@ -60,6 +60,7 @@ type LineRow = {
   stddevDelayMin: number | null;
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
+  pctEarly: number | null;
   totalDepartures: number;
 };
 
@@ -251,6 +252,12 @@ function lineSortKey(lineRef: string): [number, string] {
 }
 
 const esc = (s: string) => s.replace(/'/g, "''");
+
+/** WHERE-fragment for ukedagsfilteret, eller null. Hvitelista og selve
+ *  predikatet ligger i lib/day-type.ts — delt med use-journey-queries. */
+function dayTypeClause(params: URLSearchParams): string | null {
+  return dayTypePredicate(params.get("dayType"));
+}
 
 /** "N dager tilbake fra ferskeste tilgjengelige data" — erstatter det
  *  tidligere MAX(date)-underspørringsmønsteret mot den nå fjernede
@@ -753,6 +760,8 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
   if (operators.length > 0) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
   }
+  const stopDayType = dayTypeClause(params);
+  if (stopDayType) conds.push(stopDayType);
   const where = conds.join(" AND ");
   const duckOptions = { family: "by-stop" as const, fromDate: effectiveFrom, toDate: to ?? undefined };
 
@@ -1049,13 +1058,17 @@ async function apiStopsMapFiltered(
   });
 }
 
-async function apiLineStats(lineRef: string, params: URLSearchParams) {
+/**
+ * Felles WHERE-bygging for linje-spørringene. Delt fordi daily og hourly nå er
+ * to separate endepunkter (se apiLineDaily/apiLineHourly) og MÅ filtrere likt —
+ * ellers ville stat-kortene og timesgrafen beskrevet ulike datasett.
+ */
+function lineQueryScope(lineRef: string, params: URLSearchParams) {
   const days = params.get("days") ? parseInt(params.get("days")!, 10) : 30;
   const from = params.get("from");
   const to = params.get("to");
   const direction = params.get("direction");
 
-  await ensureParquetFilesRegistered();
   const useExplicitRange = !!(from && to);
   const effectiveFrom = useExplicitRange ? from! : daysAgoFromLatest(days, "by-line");
   const effectiveTo = useExplicitRange ? to! : undefined;
@@ -1067,58 +1080,118 @@ async function apiLineStats(lineRef: string, params: URLSearchParams) {
   ];
   if (effectiveTo) conds.push(`date <= '${esc(effectiveTo)}'`);
   if (direction) conds.push(`direction_ref = '${esc(direction)}'`);
-  const where = conds.join(" AND ");
-  const D = "COALESCE(delay_departure_min, delay_arrival_min)";
-  const duckOptions = { family: "by-line" as const, fromDate: effectiveFrom, toDate: effectiveTo };
+  const dayType = dayTypeClause(params);
+  if (dayType) conds.push(dayType);
 
-  const [daily, hourly, lineNames] = await Promise.all([
+  return {
+    where: conds.join(" AND "),
+    duckOptions: { family: "by-line" as const, fromDate: effectiveFrom, toDate: effectiveTo },
+  };
+}
+
+const D_EXPR = "COALESCE(delay_departure_min, delay_arrival_min)";
+
+/**
+ * Stat-kortene for én linje, hentet fra den ferdigaggregerte stats_summary.json
+ * i stedet for DuckDB. Returnerer null når artefakten ikke kan svare presist —
+ * da må kalleren regne tallene fra dagsserien i stedet.
+ *
+ * Null-tilfellene, og hvorfor de MÅ være null og ikke en tilnærming:
+ *  - Egendefinert datointervall, eller et vindu som ikke er nøyaktig 7/30/90:
+ *    artefakten har bare de tre vinduene. Å snappe til nærmeste ville vist
+ *    7-dagerstall under overskriften «Siste 2 uker».
+ *  - Retningsfilter: artefakten aggregerer begge retninger.
+ *  - Ukedagsfilter: artefakten aggregerer alle dagtyper. Uten denne sjekken
+ *    ville stat-kortene vist ufiltrerte tall rett ved siden av grafer som
+ *    ER filtrert — samme side, to ulike datasett, ingenting som sa fra.
+ *  - Linjen mangler i vinduet: aggregate_stats.py utelater linjer med færre
+ *    enn MIN_JOURNEYS_LINE (5) avganger, så lavfrekvente linjer finnes ikke her.
+ */
+async function apiLineSummary(lineRef: string, params: URLSearchParams) {
+  if (params.get("from") || params.get("to")) return null;
+  if (params.get("direction")) return null;
+  if (dayTypeClause(params)) return null;
+
+  const days = params.get("days") ? parseInt(params.get("days")!, 10) : 30;
+  const summary = await fetchSummary();
+  if (!summary.windows.includes(days)) return null;
+
+  const row = summary.lines.find(
+    (l) => l.lineRef === lineRef && l.mode === "all" && l.window === days,
+  );
+  if (!row) return null;
+
+  const lineNames = await fetchLineNames();
+  return {
+    lineRef,
+    lineName: lineNames[lineRef] ?? null,
+    window: days,
+    avgDelayMin: row.avgDelayMin,
+    pctOnTime: row.pctOnTime,
+    pctDelayed10plus: row.pctDelayed10plus,
+    pctEarly: row.pctEarly,
+    stddevDelayMin: row.stddevDelayMin,
+    totalDepartures: row.totalDepartures,
+  };
+}
+
+async function apiLineDaily(lineRef: string, params: URLSearchParams) {
+  await ensureParquetFilesRegistered();
+  const { where, duckOptions } = lineQueryScope(lineRef, params);
+
+  const [daily, lineNames] = await Promise.all([
     standaloneDuckQuery<Record<string, unknown>>(`
       SELECT
         date,
-        ROUND(AVG(${D}), 2)  AS avgDelayMin,
-        ROUND(MAX(${D}), 1)  AS maxDelayMin,
-        ROUND(MIN(${D}), 1)  AS minDelayMin,
-        ROUND(100.0 * AVG(CASE WHEN ${D} <= 2 THEN 1 ELSE 0 END), 1) AS pctOnTime,
-        ROUND(100.0 * AVG(CASE WHEN ${D} > 10 THEN 1 ELSE 0 END), 1)             AS pctDelayed10plus,
-        ROUND(100.0 * AVG(CASE WHEN ${D} < ${EARLY_MIN} THEN 1 ELSE 0 END), 1)   AS pctEarly,
+        ROUND(AVG(${D_EXPR}), 2)  AS avgDelayMin,
+        ROUND(MAX(${D_EXPR}), 1)  AS maxDelayMin,
+        ROUND(MIN(${D_EXPR}), 1)  AS minDelayMin,
+        ROUND(100.0 * AVG(CASE WHEN ${D_EXPR} <= 2 THEN 1 ELSE 0 END), 1) AS pctOnTime,
+        ROUND(100.0 * AVG(CASE WHEN ${D_EXPR} > 10 THEN 1 ELSE 0 END), 1)             AS pctDelayed10plus,
+        ROUND(100.0 * AVG(CASE WHEN ${D_EXPR} < ${EARLY_MIN} THEN 1 ELSE 0 END), 1)   AS pctEarly,
         COUNT(DISTINCT service_journey_id) AS numDepartures,
-        ROUND(STDDEV_SAMP(${D}), 2) AS stddevDelayMin
+        ROUND(STDDEV_SAMP(${D_EXPR}), 2) AS stddevDelayMin
       FROM delays_by_line
       WHERE ${where}
       GROUP BY date
       ORDER BY date
     `, undefined, duckOptions),
-    standaloneDuckQuery<Record<string, unknown>>(`
-      WITH per_date_hour AS (
-        SELECT date,
-          CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
-          AVG(${D}) AS avg_delay,
-          COUNT(*) AS n
-        FROM delays_by_line
-        WHERE ${where} AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
-        GROUP BY 1, 2
-      )
-      SELECT hour,
-        ROUND(AVG(avg_delay), 2) AS avgDelayMin,
-        ROUND(MAX(avg_delay), 2) AS maxAvgDelayMin,
-        ROUND(MIN(avg_delay), 2) AS minAvgDelayMin,
-        CAST(SUM(n) AS INTEGER)  AS numSamples
-      FROM per_date_hour
-      GROUP BY hour
-      ORDER BY hour
-    `, undefined, duckOptions),
     fetchLineNames(),
   ]);
 
-  return {
-    daily: daily.map((row) => ({
-      ...row,
-      lineRef,
-      lineName: lineNames[lineRef] ?? null,
-      pctRealtimeCoverage: null,
-    })),
-    hourly: hourly.map((row) => ({ ...row, lineRef })),
-  };
+  return daily.map((row) => ({
+    ...row,
+    lineRef,
+    lineName: lineNames[lineRef] ?? null,
+    pctRealtimeCoverage: null,
+  }));
+}
+
+async function apiLineHourly(lineRef: string, params: URLSearchParams) {
+  await ensureParquetFilesRegistered();
+  const { where, duckOptions } = lineQueryScope(lineRef, params);
+
+  const hourly = await standaloneDuckQuery<Record<string, unknown>>(`
+    WITH per_date_hour AS (
+      SELECT date,
+        CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) AS hour,
+        AVG(${D_EXPR}) AS avg_delay,
+        COUNT(*) AS n
+      FROM delays_by_line
+      WHERE ${where} AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
+      GROUP BY 1, 2
+    )
+    SELECT hour,
+      ROUND(AVG(avg_delay), 2) AS avgDelayMin,
+      ROUND(MAX(avg_delay), 2) AS maxAvgDelayMin,
+      ROUND(MIN(avg_delay), 2) AS minAvgDelayMin,
+      CAST(SUM(n) AS INTEGER)  AS numSamples
+    FROM per_date_hour
+    GROUP BY hour
+    ORDER BY hour
+  `, undefined, duckOptions);
+
+  return hourly.map((row) => ({ ...row, lineRef }));
 }
 
 // ---------------------------------------------------------------------------
@@ -1155,9 +1228,21 @@ export async function statsAdapterFetch(url: string): Promise<unknown | undefine
       return apiLinesAll(params);
   }
 
-  const lineMatch = path.match(/^\/api\/line\/([^/]+)$/);
-  if (lineMatch) {
-    return apiLineStats(decodeURIComponent(lineMatch[1]), params);
+  // Linjeanalysen henter de tre bitene hver for seg slik at de kan rendres
+  // etter hvert som de blir ferdige. /summary koster ingen DuckDB-spørring i
+  // det hele tatt (leser stats_summary.json), så stat-kortene står med tall
+  // mens grafene fortsatt regnes. Se apiLineSummary for når den gir null.
+  const lineSummaryMatch = path.match(/^\/api\/line\/([^/]+)\/summary$/);
+  if (lineSummaryMatch) {
+    return apiLineSummary(decodeURIComponent(lineSummaryMatch[1]), params);
+  }
+  const lineDailyMatch = path.match(/^\/api\/line\/([^/]+)\/daily$/);
+  if (lineDailyMatch) {
+    return apiLineDaily(decodeURIComponent(lineDailyMatch[1]), params);
+  }
+  const lineHourlyMatch = path.match(/^\/api\/line\/([^/]+)\/hourly$/);
+  if (lineHourlyMatch) {
+    return apiLineHourly(decodeURIComponent(lineHourlyMatch[1]), params);
   }
 
   const stopDirMatch = path.match(/^\/api\/stop\/([^/]+)\/directions$/);

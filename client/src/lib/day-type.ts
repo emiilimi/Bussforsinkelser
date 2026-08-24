@@ -81,3 +81,54 @@ export function computeDayType(input: string | Date): DayType {
   if (weekday === 0) return "sunday";
   return "weekday";
 }
+
+// ---------------------------------------------------------------------------
+// Filtrering på day_type (UI + SQL)
+//
+// Ligger her, ikke i komponenten, fordi BÅDE stats-adapteren og
+// use-journey-queries bygger SQL med den samme hvitelista — og en whitelist
+// som finnes i tre kopier er en whitelist som før eller siden spriker.
+// ---------------------------------------------------------------------------
+
+/** Dagtypevalg i UI-et. "all" = ingen filtrering. */
+export type DayTypeFilter = DayType | "all";
+
+/** Gyldige day_type-verdier i dataene (speiler pipeline/day_type.py). */
+export const DAY_TYPE_VALUES: ReadonlySet<string> = new Set<DayType>([
+  "weekday", "saturday", "sunday", "holiday", "may17",
+]);
+
+/** Trygg lesing av en URL-parameter/vilkårlig streng til DayTypeFilter. */
+export function parseDayTypeFilter(s: string | null | undefined): DayTypeFilter {
+  return s != null && DAY_TYPE_VALUES.has(s) ? (s as DayType) : "all";
+}
+
+/**
+ * `day_type = '...'`-predikat for DuckDB, eller null når det ikke skal filtreres.
+ *
+ * Hviteliste framfor escaping: verdien interpoleres rett inn i SQL-en. En ukjent
+ * verdi gir INGEN filtrering i stedet for 0 rader — en skrivefeil i URL-en skal
+ * ikke se ut som «ingen data for denne linjen».
+ */
+export function dayTypePredicate(value: string | null | undefined): string | null {
+  return value != null && DAY_TYPE_VALUES.has(value) ? `day_type = '${value}'` : null;
+}
+
+/** Samme predikat som `AND ...`-ledd, eller tom streng. For SQL-strenger som
+ *  limes sammen med andre WHERE-ledd. */
+export function dayTypeAndClause(value: string | null | undefined): string {
+  const p = dayTypePredicate(value);
+  return p ? `AND ${p}` : "";
+}
+
+/** Etikett til grafoverskrifter, f.eks. «kun hverdager». Null for "all". */
+export function dayTypeFilterLabel(f: DayTypeFilter): string | null {
+  switch (f) {
+    case "weekday": return "kun hverdager";
+    case "saturday": return "kun lørdager";
+    case "sunday": return "kun søndager";
+    case "holiday": return "kun helligdager";
+    case "may17": return "kun 17. mai";
+    default: return null;
+  }
+}
