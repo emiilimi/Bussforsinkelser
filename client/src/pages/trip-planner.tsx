@@ -74,6 +74,10 @@ function windowOverridesDayType(w: StatsTimeWindow): boolean {
   return w.type !== "all";
 }
 
+/** Hvor mange dager bakover standardvinduet dekker. Se resolveStatsWindow for
+ *  hvorfor det er begrenset i det hele tatt, og hva grensen koster statistisk. */
+const DEFAULT_STATS_WINDOW_DAYS = 30;
+
 /**
  * Gjør brukervalget om til et konkret vindu spørringene kan bruke.
  *
@@ -111,8 +115,36 @@ function resolveStatsWindow(
     case "custom":
       return { dayTypes: null, dateFrom: w.dateFrom || null, dateTo: w.dateTo || null };
     case "all":
-    default:
-      return defaultWindowForDayType(tripDayType);
+    default: {
+      // Standardvinduet: samme dagtype som reisedagen, MEN nå også begrenset
+      // bakover i tid (2026-08-22). Grunnen er kaldstartkostnaden: `dateFrom`
+      // styrer `filesForFamily()`, altså hvor mange ukefiler DuckDB må åpne,
+      // og hver fil koster ~6 sekvensielle HTTP-kall (målt, se NOTES.md
+      // punkt 4). Uten grense åpnes ALLE ukefilene ved hvert søk.
+      //
+      // MERK at vi IKKE bruker `case "days"` til dette: den setter
+      // `dayTypes: null` og ville dermed sluppet lørdags- og søndagsdata inn i
+      // en onsdagsreise. Her beholdes dagtype-låsen; det eneste nye er
+      // datogrensen.
+      //
+      // Kostnaden er målt, ikke antatt (samme datagrunnlag, 68 dager mot 30):
+      //   overgangene:  alle 14 testede holdt seg over 5-dagersterskelen på
+      //                 begge spor; median falt 19 → 13 dager (eksakt match)
+      //                 og 49 → 22 (pool)
+      //   persentiler:  andel (stopp × linje × dagtype)-celler med ≥20 obs
+      //                 falt fra 59,5 % til 53,4 %
+      //   filer:        5 av 11 ukefiler i stedet for alle
+      const latest =
+        latestDataDate ?? latestAvailableDate("by-stop") ?? null;
+      if (!latest) return defaultWindowForDayType(tripDayType);
+      const d = new Date(`${latest}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - (DEFAULT_STATS_WINDOW_DAYS - 1));
+      return {
+        dayTypes: [tripDayType],
+        dateFrom: d.toISOString().slice(0, 10),
+        dateTo: null,
+      };
+    }
   }
 }
 
@@ -3093,7 +3125,11 @@ export default function TripPlanner() {
     // spørringen etter «Finn reise» hele metadata-kostnaden (målt 45 s kald
     // mot ~5 s varm) — se primeParquetMetadata(). Kun "by-stop": alle
     // spørringene på denne siden filtrerer på stop_ref.
-    primeParquetMetadata("by-stop");
+    //
+    // Primes med SAMME datovindu som spørringene kommer til å bruke, slik at
+    // vi ikke åpner ukefiler ingen skal lese. Utvider brukeren vinduet senere,
+    // åpnes de resterende filene da — inkrementelt, ikke på forhånd.
+    primeParquetMetadata("by-stop", resolvedStatsWindow.dateFrom ?? undefined);
   }, [fromStop, toStop]);
 
   // Count total DuckDB observations for transparency display

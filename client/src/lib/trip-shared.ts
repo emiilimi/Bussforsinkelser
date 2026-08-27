@@ -497,7 +497,10 @@ function normalizeDate(d: unknown): string {
  * brukes bare som siste utvei, og merkes i UI.
  */
 // DuckDB-WASM-spørringer kan henge for alltid — verifisert rotårsak
-// (2026-07-24): Cloudflare R2 sin offentlige .r2.dev-bucket svarer 429 (Too
+// (2026-07-24, den gang vi hentet fra .r2.dev; vi bruker nå custom-domenet
+// parquet.sentur.no, men tidsavbruddet under er fortsatt nødvendig fordi
+// hengingen er en duckdb-wasm-svakhet, ikke en R2-svakhet):
+// Cloudflare R2 sin offentlige .r2.dev-bucket svarer 429 (Too
 // Many Requests) ved høyt volum, og duckdb-wasm sin httpfs-klient ser IKKE ut
 // til å overføre den 429-en videre som en avvist promise — kallet blir
 // stående uten å verken løse seg eller feile. Reprodusert direkte: samme SQL
@@ -559,7 +562,16 @@ export async function computeTransferGap(
   const rows = (await duckQuery(
     parts.join("\nUNION ALL\n"),
     undefined,
-    { family: "by-stop", timeoutMs: GAP_QUERY_TIMEOUT_MS },
+    {
+      family: "by-stop",
+      timeoutMs: GAP_QUERY_TIMEOUT_MS,
+      // Samme vindu som SQL-en filtrerer på — men her styrer det hvilke
+      // UKEFILER som i det hele tatt åpnes (~6 HTTP-kall per fil, se NOTES.md
+      // punkt 4). Uten dette leste hver gap-spørring alle filene selv om den
+      // bare brukte dager innenfor vinduet.
+      fromDate: s.statsWindow?.dateFrom ?? undefined,
+      toDate: s.statsWindow?.dateTo ?? undefined,
+    },
   )) as CombinedGapRow[];
 
   const toObs = (r: CombinedGapRow): TransferGapObservation => ({
