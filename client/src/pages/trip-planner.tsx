@@ -2955,12 +2955,21 @@ export default function TripPlanner() {
   // og er billig; COUNT(DISTINCT date) må skanne date-kolonnen over ~64 mill.
   // rader. Se NOTES.md punkt 4.
   //
-  // 1) Datointervallet hentes med det samme (billig).
+  // 1) Datointervallet. «Billig» viste seg å være betinget: MIN/MAX besvares
+  //    riktignok fra row group-statistikk, men spørringen dekker HELE
+  //    historikken og åpner derfor ALLE ukefilene — også de seks som det
+  //    30-dagers standardvinduet aldri rører. Målt på preview: 28 s, og den
+  //    sto rett foran persentilene i køen. Den er ren informasjon i
+  //    metodeboksen, så den venter nå på at DuckDB er ledig, akkurat som
+  //    dagantallet under.
   const { data: dataRange } = useQuery<{ min: string; max: string } | null>({
     queryKey: ["duck-data-range"],
     enabled: duckReady,
     staleTime: Infinity,
+    retry: false,
     queryFn: async () => {
+      const idle = await whenDuckIdle();
+      if (!idle) return null;
       const rows = await duckQuery(
         `SELECT MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
       );
