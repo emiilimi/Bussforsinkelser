@@ -289,17 +289,26 @@ function useEstimatedLegTimes(
     queryFn: async () => {
       const out = new Map<string, LegTimingResult>();
       for (const s of specs) {
-        const r0 = await duckQuery(legTimingSql(s), undefined, { family: "by-stop" });
+        // Samme vindu som SQL-en filtrerer på, men her styrer det hvilke
+        // UKEFILER som åpnes. Uten dette leste hver av disse spørringene alle
+        // filene, og viewet ble bygget om fram og tilbake mellom 5 og 11 filer
+        // mellom hver spørring (observert i __duckTimings).
+        const opts: QueryOptions = {
+          family: "by-stop",
+          fromDate: s.statsWindow?.dateFrom ?? undefined,
+          toDate: s.statsWindow?.dateTo ?? undefined,
+        };
+        const r0 = await duckQuery(legTimingSql(s), undefined, opts);
         if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj" });
           continue;
         }
-        const r1 = await duckQuery(legTimingSql(s, 1), undefined, { family: "by-stop" });
+        const r1 = await duckQuery(legTimingSql(s, 1), undefined, opts);
         if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1" });
           continue;
         }
-        const r2 = await duckQuery(legTimingSql(s, 2), undefined, { family: "by-stop" });
+        const r2 = await duckQuery(legTimingSql(s, 2), undefined, opts);
         const n2 = r2[0]?.n ?? 0;
         out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none" });
       }
@@ -3126,10 +3135,12 @@ export default function TripPlanner() {
     // mot ~5 s varm) — se primeParquetMetadata(). Kun "by-stop": alle
     // spørringene på denne siden filtrerer på stop_ref.
     //
-    // Primes med SAMME datovindu som spørringene kommer til å bruke, slik at
-    // vi ikke åpner ukefiler ingen skal lese. Utvider brukeren vinduet senere,
-    // åpnes de resterende filene da — inkrementelt, ikke på forhånd.
-    primeParquetMetadata("by-stop", resolvedStatsWindow.dateFrom ?? undefined);
+    // Primes med SAMME vindulengde som standardspørringene bruker, slik at vi
+    // ikke åpner ukefiler ingen skal lese. Vi sender ANTALL DAGER, ikke en
+    // ferdig dato: ankeret (siste datadag) kommer fra manifestet, som ikke er
+    // lest ennå på dette tidspunktet — se primeParquetMetadata. Utvider
+    // brukeren vinduet senere, åpnes de resterende filene da, inkrementelt.
+    primeParquetMetadata("by-stop", DEFAULT_STATS_WINDOW_DAYS);
   }, [fromStop, toStop]);
 
   // Count total DuckDB observations for transparency display

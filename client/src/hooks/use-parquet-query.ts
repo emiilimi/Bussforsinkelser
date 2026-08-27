@@ -239,12 +239,12 @@ const latestDateListeners = new Set<() => void>();
  */
 export function primeParquetMetadata(
   family: DelayFamily = DEFAULT_FAMILY,
-  fromDate?: string,
+  windowDays?: number,
 ): void {
   // Nøkkelen tar med vinduet: en priming for «siste 30 dager» har varmet opp
   // FÆRRE filer enn en for hele historikken, så et senere, bredere vindu skal
   // få lov til å prime på nytt i stedet for å bli avvist som «allerede gjort».
-  const key = `${family}|${fromDate ?? "*"}`;
+  const key = `${family}|${windowDays ?? "*"}`;
   if (primingPromises.has(key)) return;
   const view = `delays_${family.replace("-", "_")}`;
   const p = (async () => {
@@ -254,7 +254,19 @@ export function primeParquetMetadata(
     // (Målt: gjorde nettopp det — 68,6 s i nettleseren, se commit-historikk.)
     const db = await initDuckDB();
     await registerFilesWithRetry(db);
-    const needMax = manifestMaxDate(family) === null;
+    // Vinduet regnes ut HER, ikke av kallestedet. Kallestedet kjenner ikke
+    // siste datadag ennå: den kommer fra manifestet, som først er lest på
+    // linja over. Tar vi imot en ferdig `fromDate` i stedet, er den alltid
+    // null ved første kall — og da primes alle ukefilene likevel. Målt: 48 s,
+    // altså nøyaktig det vi prøvde å unngå.
+    const anchor = manifestMaxDate(family);
+    let fromDate: string | undefined;
+    if (windowDays && anchor) {
+      const d = new Date(`${anchor}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - (windowDays - 1));
+      fromDate = d.toISOString().slice(0, 10);
+    }
+    const needMax = anchor === null;
     const rows = await standaloneDuckQuery<{ n: number; mx: string | null }>(
       needMax
         ? `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`
