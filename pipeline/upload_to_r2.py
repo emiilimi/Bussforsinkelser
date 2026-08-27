@@ -317,11 +317,48 @@ def main():
                 if did_upload:
                     uploaded += 1
 
+        # ---------- Stoppdetaljer (shardet) ----------
+        # stops/<shard>.json fra aggregate_stats.py — datagrunnlaget for
+        # Stoppanalyse. Se build_stop_detail_shards for hvorfor det shardes.
+        #
+        # OPS-BUDSJETT (R2 gratis: 1 mill. Class A/mnd): 2000 shards × 30
+        # netter = 60 000 skriv/mnd ≈ 6 %. head_object-sjekken under er
+        # Class B (10 mill./mnd) og hopper over shards som faktisk er
+        # uendret — typisk distrikts-shards uten helgetrafikk. Derfor IKKE
+        # force=True her, i motsetning til de tre andre artefaktene.
+        stops_dir = PARQUET_DIR / "stops"
+        if stops_dir.is_dir():
+            shard_files = sorted(stops_dir.glob("*.json"),
+                                 key=lambda p: int(p.stem) if p.stem.isdigit() else -1)
+            shard_up = shard_skip = 0
+            for sp in shard_files:
+                key = f"stops/{sp.name}"
+                if args.dry_run:
+                    shard_up += 1
+                    continue
+                if upload_file(s3, bucket, sp, key, cache_control=MANIFEST_CACHE):
+                    shard_up += 1
+                else:
+                    shard_skip += 1
+            uploaded += shard_up
+            if args.dry_run:
+                total_mb = sum(p.stat().st_size for p in shard_files) / 1e6
+                log.info("  [dry-run] Ville lastet opp %d shardfiler (%.1f MB)",
+                         shard_up, total_mb)
+            else:
+                log.info("Stoppdetaljer: %d lastet opp, %d uendret (av %d shards)",
+                         shard_up, shard_skip, len(shard_files))
+
         # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
         # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende
         # og kan plukkes opp av klienter med gammelt manifest i cache.
         if args.prune:
             local_names = {e["name"] for e in manifest}
+            # Shardfiler som ikke finnes lokalt (typisk fordi STATS_STOP_SHARDS
+            # er endret, eller en shard er blitt tom). DeleteObject er gratis
+            # på R2, så det koster ingenting å rydde.
+            local_shards = {f"stops/{p.name}" for p in (PARQUET_DIR / "stops").glob("*.json")} \
+                if (PARQUET_DIR / "stops").is_dir() else set()
             stale_keys: list[str] = []
             if not args.dry_run:
                 paginator = s3.get_paginator("list_objects_v2")
@@ -329,6 +366,8 @@ def main():
                     for obj in page.get("Contents", []):
                         key = obj["Key"]
                         if key.endswith(".parquet") and key not in local_names:
+                            stale_keys.append(key)
+                        elif key.startswith("stops/") and local_shards and key not in local_shards:
                             stale_keys.append(key)
                 for key in stale_keys:
                     log.info("  ✂ Sletter fra bucket: %s", key)

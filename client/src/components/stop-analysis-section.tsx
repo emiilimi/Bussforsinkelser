@@ -262,9 +262,14 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   })();
 
   const { data: linesAtStop = [], isFetching: linesFetching } =
-    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
+    // windowDays: lar hooken bruke den ferdigaggregerte stoppdetalj-artefakten
+    // for presets (7/14/30/90) i stedet for DuckDB. Egendefinerte intervall
+    // har kind === "custom" og sendes som undefined → DuckDB som før.
+    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType,
+                   window.kind === "preset" ? window.days : undefined);
   const { data: lineHourlyRaw = [], isFetching: hourlyFetching } =
-    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
+    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType,
+                        window.kind === "preset" ? window.days : undefined);
 
   // Noe er på vei inn mens vi allerede viser tall fra forrige valg.
   // (Førstegangslasting dekkes av den store BusLoading-en lenger nede — der

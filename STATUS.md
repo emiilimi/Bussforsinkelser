@@ -3,7 +3,60 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-24
+**Sist oppdatert**: 2026-08-27
+
+## Endringslogg — 2026-08-27: Stoppanalyse ferdig aggregert i pipelinen
+
+**Hvorfor: ~40 av 43 sekunder var HTTP-rundturer, ikke beregning.** Målt mot
+R2 (Kringsjå, «Siste måned», de fem ukefilene vinduet berører):
+
+| kjøring | fem spørringer totalt |
+|---|---|
+| lokale parquet-filer (ingen nett) | 3,3 s |
+| R2, metadata cachet (varm) | 4,8 s |
+| R2, kald — det brukeren faktisk møter | **43,2 s** |
+
+Footerne er små (100–117 KB per fil), så det er ANTALL rangeforespørsler som
+koster: 5 filer × ~70 radgrupper × 14 kolonner, og DuckDB henter kolonnebiter
+etter hvert som spørringene trenger nye kolonner. Kostnaden fulgte da også
+antall NYE kolonner per spørring (5,4 s → 21,7 s → 11,8 s → 3,2 s → 1,1 s),
+og falt til 4,8 s totalt ved umiddelbar gjenkjøring.
+
+**Løsning: `stops/<shard>.json`, bygget i samme DuckDB-pass som kartet.**
+Dagstrend, timesprofil, linjer ved stoppet, linje×time og retninger ferdig
+aggregert. Samme pass og samme `coords` som `stats_stops_map.json`, slik at
+de to artefaktene ikke kan si ulike ting om samme stopp.
+
+**Hvorfor shardet og ikke én fil per stopp** — filene har DAGLIGE rader, så
+hvert stopp med avganger i går endres hver natt. Målt ~70 683 aktive stopp
+per dag ⇒ 2,12 mill. skriv/mnd selv med endringsdeteksjon, altså OVER R2s
+gratisgrense på 1 mill. Class A. Shardet skalerer skrivingen med antall
+shards i stedet: **2000 × 30 = 60 000 skriv/mnd ≈ 6 %**. Lagring ~90 MB
+gzippet av 10 GB (0,9 %). Lesing er Class B (10 mill./mnd) — neglisjerbart.
+
+**Hvorfor `crc32(stopPlaceRef)` og ikke `stopRef`** — Stoppanalyse slår opp et
+StopPlace og trenger alle medlems-quays. Hashes quayene hver for seg havner de
+i ulike shards. Med stoppestedet som nøkkel ligger de sammen. Balansen holder:
+45 113 stoppesteder → median 38 quays/shard, maks 70. (Noen fysiske stopp er
+delt på FLERE StopPlace — Oslo Kringsjå ligger på både 6211 og 6213 — og da
+hentes to shards. Fortsatt to små filer mot titalls sekunder.)
+
+**Verifisert mot DuckDB**: 32 kontroller (dagstrend, timesprofil, linjer,
+retninger) på fire Kringsjå-quays — 0 avvik. crc32 i `lib/stop-detail.ts` gir
+identiske verdier som Pythons `zlib.crc32`, også for æøå.
+
+**Fallback beholdt**: DuckDB brukes fortsatt ved dagtypefilter, retnings- og
+operatørfilter og egendefinerte datointervall — artefakten har ingen slike
+dimensjoner, og ville ellers svart på feil spørsmål.
+
+> ⚠️ **Sidefunn: `aggregate_stats.py` leste alle rader TO ganger.**
+> `PARQUET_DIR.glob("*.parquet")` fanget begge filfamiliene (`-by-line` og
+> `-by-stop` er samme rader, ulikt sortert — verifisert: 8 791 994 rader i
+> begge, alle felles). Kostet dobbelt minne (OOM på 11 uker) og dobbel tid.
+> De eksisterende artefaktene overlevde det: alle synlige tellinger bruker
+> `COUNT(DISTINCT …)`, og snitt/vekter er skala-uavhengige. Men
+> stoppdetaljene teller med `COUNT(*)` og ville vist doble tall. Nå leses
+> kun én familie.
 
 ## Ytelsesarbeid i reiseplanleggeren — oppsummering (2026-08-15 → 08-21)
 
@@ -76,6 +129,55 @@ viste seg å være uvesentlige.
    allerede tellbare (N av M reiseforslag ferdig).
 
 Detaljene, med alle måletall, ligger i [NOTES.md](NOTES.md) punkt 4 og 8.
+
+## Endringslogg — 2026-08-27: «Datadekning» på Linjeanalyse var alltid tom
+
+**Symptom**: stat-kortet «Datadekning» viste «—» for hver eneste linje i
+reise-bygget.
+
+**Årsaken var ikke en regnefeil — tallet nådde aldri nettleseren.** Tre ledd,
+og det røk i det siste:
+
+1. `coverage_daily` i `ingest_lite.py` måler dekningen KORREKT, per
+   `(date, line_ref)` — 90 109 rader. Den *må* måles ved ingest: parquet
+   inneholder bare sanntidsobserverte rader, så nevneren (planlagte
+   passeringer) finnes ikke der og kan ikke utledes i etterkant.
+2. `aggregate_stats.py` grupperte bort linjedimensjonen
+   (`GROUP BY date, operator`) og la resultatet kun i `daily`-radene.
+   `lines`-radene hadde ingen dekning i det hele tatt.
+3. `apiLineDaily` i stats-adapteren returnerte derfor `pctRealtimeCoverage:
+   null` hardkodet.
+
+Derfor viste Oversikt «Sanntidsdekning: 96,8 %» helt fint (den leser `daily`),
+mens Linjeanalyse sto tom.
+
+**Fiks**: ny `coverage`-seksjon i `stats_summary.json`,
+`{lineRef: [w7, w30, w90]}`, lest av `apiLineSummary`.
+
+> **Per VINDU, ikke per dato — bevisst.** En per-dato-variant ble målt til
+> 1,09 MB (+29 % på artefakten), 437 kB selv med sparsom koding. Denne koster
+> **126 kB (+3,3 %)**. `stats_summary.json` hentes ved HVER sidelast på hele
+> reise-siten, så ett stat-kort er ikke verdt 1 MB. Den sparsomme varianten
+> hadde dessuten en felle: den kan ikke skille «100 % dekning» fra «linja
+> kjørte ikke den dagen» uten en per-linje datomaske som spiser gevinsten.
+
+Prisen er at egendefinerte datointervall ikke får dekningstall — der står
+kortet med «—», etter samme regel som resten av summary-svaret: eksakt eller
+ingenting, aldri en tilnærming. Dekningen har heller ingen retnings- eller
+dagtypedimensjon (`coverage_daily` er per dato+linje), så den vises bare når
+de filtrene står på «alle». Full-bygget er uendret: Express-`/summary`
+returnerer `null`, og klienten faller tilbake til dagsnittet fra SQLite.
+
+**Dette avdekket noe reelt**: 366 av 3 790 linjer har under 70 % dekning i
+30-dagersvinduet. Verst er `SKY:Line:2` med **0,1 %** — 53 av 67 054 planlagte
+passeringer. Forsinkelsestallene for den linja har hele tiden vært bygget på
+0,1 % av trafikken, uten at noe sa fra. Advarselsbanneret (som fantes, men
+aldri kunne utløses) slår nå inn.
+
+**Felle for neste gang**: `coverage_daily` prunes ALDRI, mens parquet-uker
+ruller av etter 14 uker. Vindusfilteret har derfor både nedre OG øvre grense
+(`max_date_s`) — uten den ville dekningen dekket flere dager enn tallene den
+står ved siden av, de dagene ingest har kjørt men `export_parquet` ikke.
 
 ## Endringslogg — 2026-08-24: ukedagsfilter, delt linjespørring, og en uendelig render-løkke
 

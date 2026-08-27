@@ -620,9 +620,99 @@ export function useBestJourneysForLine(
 // 8. useLineHourlyAtStop
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Artefaktvei for de to stopp-hookene under.
+//
+// Stoppdetalj-artefakten (stops/<shard>.json, se lib/stop-detail.ts) har
+// linje- og linje×time-aggregatene ferdig regnet per vindu. Det erstatter to
+// DuckDB-spørringer mot parquet — målt ~40 s kaldt for hele sidens sett.
+// null = ikke dekket (mangler shard/stopp/vindu) → kalleren bruker DuckDB.
+// ---------------------------------------------------------------------------
+
+/** Quays + stoppested for sharding. Bruker samme oppslagsvei som ellers
+ *  (stats-adapteren i reise-bygget, Express i full-bygget). */
+async function quaysForDetail(
+  stopRef: string, stopName?: string, lat?: number | null, lng?: number | null,
+): Promise<Array<{ stopRef: string; stopPlaceRef: string | null }>> {
+  if (!stopRef.startsWith("NSR:StopPlace:")) {
+    const rows = await lookupStops(stopRef, false, stopName, lat, lng);
+    return rows.length
+      ? rows.map((r) => ({ stopRef: r.stopRef, stopPlaceRef: r.stopPlaceRef ?? null }))
+      : [{ stopRef, stopPlaceRef: null }];
+  }
+  const rows = await lookupStops(stopRef, true, stopName, lat, lng);
+  return rows.map((r) => ({ stopRef: r.stopRef, stopPlaceRef: r.stopPlaceRef ?? null }));
+}
+
+async function linesAtStopFromArtifact(
+  stopRef: string, stopName: string | undefined,
+  lat: number | null | undefined, lng: number | null | undefined, days: number,
+): Promise<LineAtStop[] | null> {
+  const { fetchStopDetail, snapToWindow } = await import("@/lib/stop-detail");
+  const quays = await quaysForDetail(stopRef, stopName, lat, lng);
+  if (quays.length === 0) return null;
+  const { stops, windows } = await fetchStopDetail(quays);
+  if (stops.size === 0) return null;
+  const win = snapToWindow(days, windows);
+  if (win == null || win !== days) return null;   // kun eksakte vinduer
+
+  // Slå sammen quays per linje: vektet snitt, summerte observasjoner.
+  const agg = new Map<string, { sum: number; n: number }>();
+  for (const e of Array.from(stops.values())) {
+    for (const [lineRef, avg, n] of e.l[String(win)] ?? []) {
+      const cur = agg.get(lineRef) ?? { sum: 0, n: 0 };
+      if (avg != null && n) { cur.sum += avg * n; cur.n += n; }
+      else if (n) cur.n += n;
+      agg.set(lineRef, cur);
+    }
+  }
+  if (agg.size === 0) return null;
+  return Array.from(agg.entries())
+    .map(([lineRef, v]) => ({
+      lineRef,
+      avgDelayMin: v.n ? Math.round((v.sum / v.n) * 100) / 100 : null,
+      numSamples: v.n,
+    }))
+    .sort((a, b) => (b.avgDelayMin ?? 0) - (a.avgDelayMin ?? 0)) as LineAtStop[];
+}
+
+async function lineHourlyFromArtifact(
+  stopRef: string, stopName: string | undefined,
+  lat: number | null | undefined, lng: number | null | undefined, days: number,
+): Promise<HourlyAtStop[] | null> {
+  const { fetchStopDetail, snapToWindow } = await import("@/lib/stop-detail");
+  const quays = await quaysForDetail(stopRef, stopName, lat, lng);
+  if (quays.length === 0) return null;
+  const { stops, windows } = await fetchStopDetail(quays);
+  if (stops.size === 0) return null;
+  const win = snapToWindow(days, windows);
+  if (win == null || win !== days) return null;
+
+  const agg = new Map<string, { line: string; hour: number; sum: number; n: number }>();
+  for (const e of Array.from(stops.values())) {
+    for (const [lineRef, hour, avg, n] of e.lh[String(win)] ?? []) {
+      const k = `${lineRef}|${hour}`;
+      const cur = agg.get(k) ?? { line: lineRef, hour, sum: 0, n: 0 };
+      if (avg != null && n) { cur.sum += avg * n; cur.n += n; }
+      else if (n) cur.n += n;
+      agg.set(k, cur);
+    }
+  }
+  if (agg.size === 0) return null;
+  return Array.from(agg.values())
+    .map((v) => ({
+      lineRef: v.line,
+      hour: v.hour,
+      avgDelayMin: v.n ? Math.round((v.sum / v.n) * 100) / 100 : null,
+      numSamples: v.n,
+    }))
+    .sort((a, b) => a.lineRef.localeCompare(b.lineRef) || a.hour - b.hour) as HourlyAtStop[];
+}
+
 export function useLineHourlyAtStop(
   stopRef: string, fromDate: string, stopName?: string,
   lat?: number | null, lng?: number | null, dayType?: string,
+  windowDays?: number,
 ) {
   const { query, ready } = useParquetQuery();
 
@@ -631,9 +721,14 @@ export function useLineHourlyAtStop(
   const dtFilter = dayTypeAndClause(dayType);
 
   return useQuery<HourlyAtStop[]>({
-    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter],
-    enabled: ready && !!stopRef,
+    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter, windowDays ?? ""],
+    enabled: !!stopRef && (ready || (windowDays != null && !dtFilter)),
     queryFn: async () => {
+      // Artefakt først; ikke ved dagtypefilter (se useLinesAtStop).
+      if (windowDays != null && !dtFilter) {
+        const rows = await lineHourlyFromArtifact(stopRef, stopName, lat, lng, windowDays);
+        if (rows) return rows;
+      }
       if (isStopPlace) {
         // Utvid StopPlace → alle barne-quays, så filtrer parquet på dem
         const allQuays = await lookupStops(stopRef, true, stopName, lat, lng);
@@ -678,15 +773,25 @@ export function useLineHourlyAtStop(
 export function useLinesAtStop(
   stopRef: string, fromDate: string, stopName?: string,
   lat?: number | null, lng?: number | null, dayType?: string,
+  windowDays?: number,
 ) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
   const dtFilter = dayTypeAndClause(dayType);
 
   return useQuery<LineAtStop[]>({
-    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter],
-    enabled: ready && !!stopRef,
+    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter, windowDays ?? ""],
+    // `ready` gjelder DuckDB. Artefaktveien trenger den ikke, så la
+    // spørringen starte så snart vi har et stopp — DuckDB-initen (flere
+    // sekunder) skal ikke forsinke det som bare er et JSON-oppslag.
+    enabled: !!stopRef && (ready || (windowDays != null && !dtFilter)),
     queryFn: async () => {
+      // Ferdigaggregert artefakt først. IKKE ved dagtypefilter — artefakten
+      // har ingen dagtype-dimensjon, så den ville svart på feil spørsmål.
+      if (windowDays != null && !dtFilter) {
+        const rows = await linesAtStopFromArtifact(stopRef, stopName, lat, lng, windowDays);
+        if (rows) return rows;
+      }
       if (isStopPlace) {
         const allQuays = await lookupStops(stopRef, true, stopName, lat, lng);
         const quayList = allQuays.map((q) => `'${q.stopRef.replace(/'/g, "''")}'`).join(",");
