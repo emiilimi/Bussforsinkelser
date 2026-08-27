@@ -46,6 +46,12 @@ const PERIOD_DAYS: Record<string, number> = IS_REISE
   ? { week: 7, month: 30, year: 90 }
   : { week: 7, month: 30, year: 365 };
 
+// Linjetopplistene (Dårligste/Beste linjer) er BEVISST frakoblet
+// tidsvindu-boksen på siden — de leser et ferdigaggregert vindu (7/30/90
+// dager) som ikke kan settes fritt, og å la dem følge boksens valg ville gjort
+// det uklart at boksen kun styrer nøkkeltallene + grafen. Se samtale 2026-08-27.
+const LEADERBOARD_PERIOD = "week";
+
 // Y-akse-bredden på leaderboard-grafene er 160px — lange navn med en
 // «(...)»-forklaring wrapper til så mange linjer at de overlapper naborraden.
 // Kutt derfor ned/fjern parentesen først, siden den bare er tilleggsinfo.
@@ -101,11 +107,11 @@ export default function Dashboard() {
     placeholderData: keepPreviousData,
   });
   const { data: worstLines = [], isFetching: worstLinesFetching } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=worst&period=${period}${opStr ? `&${opStr}` : ""}`],
+    queryKey: [`/api/leaderboard/lines?type=worst&period=${LEADERBOARD_PERIOD}${opStr ? `&${opStr}` : ""}`],
     placeholderData: keepPreviousData,
   });
   const { data: bestLines = [], isFetching: bestLinesFetching } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=best&period=${period}${opStr ? `&${opStr}` : ""}`],
+    queryKey: [`/api/leaderboard/lines?type=best&period=${LEADERBOARD_PERIOD}${opStr ? `&${opStr}` : ""}`],
     placeholderData: keepPreviousData,
   });
 
@@ -177,8 +183,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Oversikt — {REGION_LABEL[region]}</h2>
             <p className="text-muted-foreground mt-1">
-              Forsinkelsesstatistikk for siste {days} dager
-              {summary?.date && <span className="text-xs ml-2 opacity-70">· Sist oppdatert: {formatDateShortNO(summary.date)}</span>}
+              {summary?.date && <span className="opacity-70">Sist oppdatert: {formatDateShortNO(summary.date)}</span>}
               {summary?.pctRealtimeCoverage != null && (
                 <span
                   className="text-xs ml-2 opacity-70"
@@ -198,8 +203,19 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <RegionSelector />
+          <RegionSelector />
+        </div>
+
+        {/* Tidsvindu-boks: nøkkeltallene og grafen inni styres ALENE av
+            velgeren i boks-headeren. Linjetopplistene under boksen har sitt
+            eget faste vindu (LEADERBOARD_PERIOD) og reagerer ikke på denne —
+            bevisst, slik at det er tydelig hva velgeren faktisk påvirker. */}
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Tidsvindu</CardTitle>
+              <CardDescription>Styrer nøkkeltallene og grafen under</CardDescription>
+            </div>
             <Tabs value={period} onValueChange={setPeriod} className="w-[300px]">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="week">Uke</TabsTrigger>
@@ -207,275 +223,280 @@ export default function Dashboard() {
                 <TabsTrigger value="year">{IS_REISE ? "90 dager" : "År"}</TabsTrigger>
               </TabsList>
             </Tabs>
-          </div>
-        </div>
-
-        {isRefreshing && (
-          <div className="flex items-center">
-            <BusLoading label="Laster nye data" scale={0.4} />
-          </div>
-        )}
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                Snitt forsinkelse
-                <InfoTip learnMoreHref="/metode#hva-vises">
-                  Gjennomsnittlig differanse (i minutter) mellom faktisk og planlagt avgangstid, vektet over valgt periode.
-                </InfoTip>
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono">
-                {periodStats.avgDelayMin != null ? `${periodStats.avgDelayMin.toFixed(1)}m` : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                Andel i rute
-                <InfoTip learnMoreHref="/metode#punktlighet">
-                  Andel stopp-passeringer med høyst 2 minutter forsinkelse, vektet over valgt periode. Punktlighetsdefinisjonen varierer mellom operatører — vi bruker en relativt streng grense.
-                </InfoTip>
-              </CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono">
-                {periodStats.pctOnTime != null ? `${periodStats.pctOnTime.toFixed(1)}%` : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse · {periodLabel.toLowerCase()}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-amber-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                Gikk for tidlig
-                <InfoTip learnMoreHref="/metode#punktlighet">
-                  Andel stopp-passeringer som gikk mer enn ett minutt FØR rutetid. Disse teller som «i rute» i punktlighetstallet over, men en avgang som går for tidlig kan du ikke rekke uansett hvor presis du selv er.
-                </InfoTip>
-              </CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono text-amber-600">
-                {periodStats.pctEarly != null ? `${periodStats.pctEarly.toFixed(1)}%` : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Mer enn 1 min før rutetid · {periodLabel.toLowerCase()}</p>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow ${worstLines[0] ? "cursor-pointer" : ""}`}
-            onClick={() => worstLines[0] && navigate(`/journey?line=${encodeURIComponent(worstLines[0].lineRef)}`)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Dårligste linje</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold truncate">
-                {worstLines[0] ? lineShortLabel(worstLines[0]) : "—"}
-              </div>
-              <p className="text-xs text-destructive mt-1 flex items-center gap-1 flex-wrap">
-                {worstLines[0]?.avgDelayMin != null
-                  ? `+${worstLines[0].avgDelayMin.toFixed(1)}m snitt`
-                  : ""}
-                <DataQualityFlag delayMin={worstLines[0]?.avgDelayMin} withText />
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-primary/50 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Totale avganger</CardTitle>
-              <Bus className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-mono">
-                {periodStats.totalJourneys > 0
-                  ? periodStats.totalJourneys.toLocaleString("nb-NO")
-                  : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {periodLabel}
-                {periodStats.totalCancellations > 0 && (
-                  <span className="text-destructive ml-1">
-                    <XCircle className="h-3 w-3 inline mr-0.5" />
-                    {periodStats.totalCancellations} kansellert
-                  </span>
-                )}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {summary?.date && (
-          <DataQualityBanner date={summary.date} operator={operators[0]} />
-        )}
-
-        {/* Trend chart */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Forsinkelse over tid</CardTitle>
-            <CardDescription>
-              Gjennomsnittlig forsinkelse per dag
-              {period !== "week" && " · glidende 7-dagers snitt vist som linje"}
-            </CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={trendData}>
-                  <defs>
-                    <linearGradient id="colorDelay" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="label"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    interval={period === "year" ? Math.floor(trendData.length / 12) : undefined}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                    labelFormatter={(_, payload) => {
-                      const d = payload?.[0]?.payload?.date;
-                      if (!d) return "";
-                      const weekInfo = period !== "week" ? ` (${formatWeekNO(d)})` : "";
-                      return `${formatDateShortNO(d)}${weekInfo}`;
-                    }}
-                    formatter={(v: number, name: string) => [
-                      `${v.toFixed(2)} min`,
-                      name === "movingAvg" ? "7-dagers snitt" : "Daglig forsinkelse",
-                    ]}
-                  />
-                  <Area type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={1.5} fillOpacity={1} fill="url(#colorDelay)" name="avgDelay" />
-                  {period !== "week" && (
-                    <Line type="monotone" dataKey="movingAvg" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} name="movingAvg" />
-                  )}
-                </ComposedChart>
-              </ResponsiveContainer>
+
+          <CardContent className="space-y-6 pt-6">
+            {isRefreshing && (
+              <div className="flex items-center">
+                <BusLoading label="Laster nye data" scale={0.4} />
+              </div>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    Snitt forsinkelse
+                    <InfoTip learnMoreHref="/metode#hva-vises">
+                      Gjennomsnittlig differanse (i minutter) mellom faktisk og planlagt avgangstid, vektet over valgt periode.
+                    </InfoTip>
+                  </CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-mono">
+                    {periodStats.avgDelayMin != null ? `${periodStats.avgDelayMin.toFixed(1)}m` : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    Andel i rute
+                    <InfoTip learnMoreHref="/metode#punktlighet">
+                      Andel stopp-passeringer med høyst 2 minutter forsinkelse, vektet over valgt periode. Punktlighetsdefinisjonen varierer mellom operatører — vi bruker en relativt streng grense.
+                    </InfoTip>
+                  </CardTitle>
+                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-mono">
+                    {periodStats.pctOnTime != null ? `${periodStats.pctOnTime.toFixed(1)}%` : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Høyst 2 min forsinkelse · {periodLabel.toLowerCase()}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-amber-500 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    Gikk for tidlig
+                    <InfoTip learnMoreHref="/metode#punktlighet">
+                      Andel stopp-passeringer som gikk mer enn ett minutt FØR rutetid. Disse teller som «i rute» i punktlighetstallet over, men en avgang som går for tidlig kan du ikke rekke uansett hvor presis du selv er.
+                    </InfoTip>
+                  </CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-mono text-amber-600">
+                    {periodStats.pctEarly != null ? `${periodStats.pctEarly.toFixed(1)}%` : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Mer enn 1 min før rutetid · {periodLabel.toLowerCase()}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-primary/50 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Totale avganger</CardTitle>
+                  <Bus className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-mono">
+                    {periodStats.totalJourneys > 0
+                      ? periodStats.totalJourneys.toLocaleString("nb-NO")
+                      : "—"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {periodLabel}
+                    {periodStats.totalCancellations > 0 && (
+                      <span className="text-destructive ml-1">
+                        <XCircle className="h-3 w-3 inline mr-0.5" />
+                        {periodStats.totalCancellations} kansellert
+                      </span>
+                    )}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {summary?.date && (
+              <DataQualityBanner date={summary.date} operator={operators[0]} />
+            )}
+
+            {/* Trend chart */}
+            <div>
+              <CardTitle className="mb-1">Forsinkelse over tid</CardTitle>
+              <CardDescription className="mb-3">
+                Gjennomsnittlig forsinkelse per dag
+                {period !== "week" && " · glidende 7-dagers snitt vist som linje"}
+              </CardDescription>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={trendData}>
+                    <defs>
+                      <linearGradient id="colorDelay" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="label"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={period === "year" ? Math.floor(trendData.length / 12) : undefined}
+                    />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                      labelFormatter={(_, payload) => {
+                        const d = payload?.[0]?.payload?.date;
+                        if (!d) return "";
+                        const weekInfo = period !== "week" ? ` (${formatWeekNO(d)})` : "";
+                        return `${formatDateShortNO(d)}${weekInfo}`;
+                      }}
+                      formatter={(v: number, name: string) => [
+                        `${v.toFixed(2)} min`,
+                        name === "movingAvg" ? "7-dagers snitt" : "Daglig forsinkelse",
+                      ]}
+                    />
+                    <Area type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={1.5} fillOpacity={1} fill="url(#colorDelay)" name="avgDelay" />
+                    {period !== "week" && (
+                      <Line type="monotone" dataKey="movingAvg" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} name="movingAvg" />
+                    )}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Worst + Best lines side by side */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-destructive" />
+        {/* Worst + Best lines side by side — eget, fast tidsvindu (LEADERBOARD_PERIOD),
+            uavhengig av boksen over. Se kommentaren der for hvorfor. */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">Linjetopplister</h3>
+              <p className="text-sm text-muted-foreground">Siste uke — eget tidsvindu, ikke styrt av boksen over</p>
+            </div>
+            <Card
+              className={`border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow ${worstLines[0] ? "cursor-pointer" : ""}`}
+              onClick={() => worstLines[0] && navigate(`/journey?line=${encodeURIComponent(worstLines[0].lineRef)}`)}
+            >
+              <CardContent className="flex items-center gap-3 py-3 px-4">
+                <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div>
-                  <CardTitle>Dårligste linjer</CardTitle>
-                  <CardDescription>
-                    Høyest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.
-                    {topWorst.some((l) => isImplausibleDelay(l.avgDelayMin)) && (
-                      <span className="block mt-1 text-amber-600 dark:text-amber-400">
-                        <AlertTriangle className="h-3 w-3 inline mr-1" />
-                        Noen linjer her har snitt over {IMPLAUSIBLE_DELAY_MIN} min. Det er
-                        sannsynligvis datafeil (f.eks. avganger som aldri ble avsluttet i
-                        sanntidsdataene), ikke reelle forsinkelser. Vi viser tallene som de er.
-                      </span>
+                  <div className="text-xs text-muted-foreground">Dårligste linje</div>
+                  <div className="font-bold flex items-center gap-1.5 flex-wrap">
+                    {worstLines[0] ? lineShortLabel(worstLines[0]) : "—"}
+                    {worstLines[0]?.avgDelayMin != null && (
+                      <span className="text-destructive text-sm font-normal">+{worstLines[0].avgDelayMin.toFixed(1)}m</span>
                     )}
-                  </CardDescription>
+                    <DataQualityFlag delayMin={worstLines[0]?.avgDelayMin} withText />
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {topWorst.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">Ingen data</p>
-              ) : (
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={topWorst} margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                      <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                      <YAxis dataKey="label" type="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={160} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                        formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
-                      />
-                      <Bar
-                        dataKey="avgDelayMin"
-                        radius={[0, 4, 4, 0]}
-                        barSize={24}
-                        cursor="pointer"
-                        onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
-                      >
-                        {topWorst.map((entry, index) => (
-                          <Cell
-                            key={index}
-                            fill={
-                              (entry.avgDelayMin ?? 0) > 5
-                                ? "hsl(var(--destructive))"
-                                : (entry.avgDelayMin ?? 0) > 2
-                                ? "hsl(var(--chart-4))"
-                                : "hsl(var(--chart-2))"
-                            }
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-emerald-500" />
-                <div>
-                  <CardTitle>Beste linjer</CardTitle>
-                  <CardDescription>Lavest gjennomsnittlig forsinkelse. Klikk en linje for detaljer.</CardDescription>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-destructive" />
+                  <div>
+                    <CardTitle>Dårligste linjer</CardTitle>
+                    <CardDescription>
+                      Høyest gjennomsnittlig forsinkelse siste uke. Klikk en linje for detaljer.
+                      {topWorst.some((l) => isImplausibleDelay(l.avgDelayMin)) && (
+                        <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                          <AlertTriangle className="h-3 w-3 inline mr-1" />
+                          Noen linjer her har snitt over {IMPLAUSIBLE_DELAY_MIN} min. Det er
+                          sannsynligvis datafeil (f.eks. avganger som aldri ble avsluttet i
+                          sanntidsdataene), ikke reelle forsinkelser. Vi viser tallene som de er.
+                        </span>
+                      )}
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {topBest.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">Ingen data</p>
-              ) : (
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={topBest} margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                      <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
-                      <YAxis dataKey="label" type="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={160} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                        formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
-                      />
-                      <Bar
-                        dataKey="avgDelayMin"
-                        radius={[0, 4, 4, 0]}
-                        barSize={24}
-                        cursor="pointer"
-                        onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
-                      >
-                        {topBest.map((_, index) => (
-                          <Cell key={index} fill="hsl(var(--chart-2))" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+              </CardHeader>
+              <CardContent>
+                {topWorst.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Ingen data</p>
+                ) : (
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart layout="vertical" data={topWorst} margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                        <YAxis dataKey="label" type="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={160} tickLine={false} axisLine={false} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                          formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
+                        />
+                        <Bar
+                          dataKey="avgDelayMin"
+                          radius={[0, 4, 4, 0]}
+                          barSize={24}
+                          cursor="pointer"
+                          onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
+                        >
+                          {topWorst.map((entry, index) => (
+                            <Cell
+                              key={index}
+                              fill={
+                                (entry.avgDelayMin ?? 0) > 5
+                                  ? "hsl(var(--destructive))"
+                                  : (entry.avgDelayMin ?? 0) > 2
+                                  ? "hsl(var(--chart-4))"
+                                  : "hsl(var(--chart-2))"
+                              }
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="h-5 w-5 text-emerald-500" />
+                  <div>
+                    <CardTitle>Beste linjer</CardTitle>
+                    <CardDescription>Lavest gjennomsnittlig forsinkelse siste uke. Klikk en linje for detaljer.</CardDescription>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                {topBest.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Ingen data</p>
+                ) : (
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart layout="vertical" data={topBest} margin={{ left: 10, right: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                        <YAxis dataKey="label" type="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={160} tickLine={false} axisLine={false} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                          formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
+                        />
+                        <Bar
+                          dataKey="avgDelayMin"
+                          radius={[0, 4, 4, 0]}
+                          barSize={24}
+                          cursor="pointer"
+                          onClick={(data: any) => data?.lineRef && navigate(`/journey?line=${encodeURIComponent(data.lineRef)}`)}
+                        >
+                          {topBest.map((_, index) => (
+                            <Cell key={index} fill="hsl(var(--chart-2))" />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </Layout>
