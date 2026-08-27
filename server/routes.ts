@@ -282,20 +282,30 @@ export async function registerRoutes(
    * Stats for one line: daily trend + hourly profile.
    * direction: 'all' (default) aggregates both, '0' = outbound only, '1' = inbound only.
    */
-  app.get("/api/line/:lineref", async (req, res) => {
+  // Delt i /daily og /hourly (ikke ett kombinert svar) fordi klienten rendrer
+  // dagstrend og timesprofil hver for seg etter hvert som de blir ferdige.
+  // Reise-bygget har samme oppdeling i client/src/lib/stats-adapter.ts.
+  app.get("/api/line/:lineref/daily", async (req, res) => {
     const lineRef = req.params.lineref;
     const { fromIso, toIso } = parseTimeWindow(req.query, 30);
     const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
-    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
-    const [daily, hourly] = await Promise.all([
-      getLineStats(lineRef, fromIso, direction, toIso),
-      getLineHourlyProfile(lineRef, direction, dayTypes),
-    ]);
-    if (daily.length === 0 && hourly.length === 0) {
+    const daily = await getLineStats(lineRef, fromIso, direction, toIso);
+    if (daily.length === 0) {
       return res.status(404).json({ message: "Linje ikke funnet" });
     }
-    return res.json({ daily, hourly });
+    return res.json(daily);
   });
+
+  app.get("/api/line/:lineref/hourly", async (req, res) => {
+    const lineRef = req.params.lineref;
+    const direction = typeof req.query.direction === "string" ? req.query.direction : undefined;
+    const dayTypes = parseDayTypes(req.query.dayType as string | undefined);
+    return res.json(await getLineHourlyProfile(lineRef, direction, dayTypes));
+  });
+
+  // Fullbygget har ingen forhåndsaggregert stats_summary.json — klienten faller
+  // tilbake til å regne stat-kortene fra /daily når denne gir null.
+  app.get("/api/line/:lineref/summary", async (_req, res) => res.json(null));
 
   // NOTE: /api/line/:lineref/journeys, /stops, /worst-journeys, /best-journeys,
   // /route-variants, /stop-profile, and /api/journey have been removed.

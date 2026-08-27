@@ -26,6 +26,8 @@ import {
   parseWindow,
 } from "@/components/time-window-picker";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { DayTypePicker } from "@/components/day-type-picker";
+import { dayTypeFilterLabel, parseDayTypeFilter } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -186,6 +188,15 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   const [stopWindowParam, setStopWindowParam] = useUrlParam("stopWindow", serializeWindow(DEFAULT_STOP_WINDOW));
   const window = parseWindow(stopWindowParam, DEFAULT_STOP_WINDOW);
   const setWindow = (w: TimeWindow) => setStopWindowParam(serializeWindow(w));
+  // Ukedagsfilter. Egen URL-nøkkel ("stopDayType") slik at stoppanalysen og
+  // linjeanalysen kan ha ulikt filter samtidig uten å overskrive hverandre.
+  const [stopDayTypeParam, setStopDayTypeParam] = useUrlParam("stopDayType", "all");
+  const dayType = parseDayTypeFilter(stopDayTypeParam);
+  // Periodetekst med ev. dagtype, f.eks. «Siste måned · kun hverdager».
+  const stopPeriodLabel = (() => {
+    const dt = dayTypeFilterLabel(dayType);
+    return dt ? `${windowLabel(window)} · ${dt}` : windowLabel(window);
+  })();
   const [expandedLine, setExpandedLine] = useState<string | null>(null);
 
   useEffect(() => {
@@ -212,7 +223,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   const { data: availableDirections = [] } = useQuery<string[]>({
     queryKey: [`/api/stop/${encodeURIComponent(stopRef)}/directions?${[nameQ, coordQ, opStr].filter(Boolean).join("&")}`],
   });
-  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, coordQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : ""].filter(Boolean).join("&")}`;
+  const stopStatsUrl = `/api/stop/${encodeURIComponent(stopRef)}?${[nameQ, coordQ, windowToQuery(window), opStr, direction !== "all" ? `direction=${direction}` : "", dayType === "all" ? "" : `dayType=${dayType}`].filter(Boolean).join("&")}`;
 
   // isFetching (ikke isLoading): med keepPreviousData går status rett til
   // "success" med FORRIGE vindus data, så isLoading er false under hele
@@ -251,9 +262,9 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   })();
 
   const { data: linesAtStop = [], isFetching: linesFetching } =
-    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng);
+    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
   const { data: lineHourlyRaw = [], isFetching: hourlyFetching } =
-    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng);
+    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
 
   // Noe er på vei inn mens vi allerede viser tall fra forrige valg.
   // (Førstegangslasting dekkes av den store BusLoading-en lenger nede — der
@@ -261,6 +272,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   const refreshing = (statsFetching || linesFetching || hourlyFetching) && !!stats;
   const refreshTarget = [
     windowLabel(window).toLowerCase(),
+    dayTypeFilterLabel(dayType),
     direction !== "all" ? `retning ${direction}` : null,
   ].filter(Boolean).join(" · ");
 
@@ -272,6 +284,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
     stopName,
     lat,
     lng,
+    dayType,
   );
 
   const trendData = (stats?.daily ?? []).map((r) => ({
@@ -375,6 +388,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
       )}
 
       <TimeWindowPicker value={window} onChange={setWindow} />
+      <DayTypePicker value={dayType} onChange={setStopDayTypeParam} />
 
       {/* Oppdateringsstripe: vises ØVERST, over den gamle statistikken, når
           et nytt tidsvindu/retning hentes. Uten den blir forrige visning
@@ -553,7 +567,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
               <CardHeader>
                 <CardTitle>Linjer ved dette stoppestedet</CardTitle>
                 <CardDescription>
-                  Gjennomsnittlig forsinkelse per linje ved {formatStopName(stats.stopName, stats.stopRef)} ({windowLabel(window)}).
+                  Gjennomsnittlig forsinkelse per linje ved {formatStopName(stats.stopName, stats.stopRef)} ({stopPeriodLabel}).
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -665,7 +679,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                               </div>
                               <p className="text-[10px] text-muted-foreground mt-1 px-2">
                                 Rå enkeltobservasjoner for linjen ved dette stoppestedet,{" "}
-                                {windowLabel(window).toLowerCase()}
+                                {stopPeriodLabel.toLowerCase()}
                                 {lineDeps.length >= 100 ? " — viser de 100 nyeste" : ""}. Hold
                                 musepekeren over en rad for avgangs-ID.
                               </p>
@@ -686,7 +700,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
               <CardHeader>
                 <CardTitle>Forsinkelse per linje etter time</CardTitle>
                 <CardDescription>
-                  Gjennomsnittlig forsinkelse per time for hver linje ved {formatStopName(stats.stopName, stats.stopRef)} ({windowLabel(window)}, fra reisedata).
+                  Gjennomsnittlig forsinkelse per time for hver linje ved {formatStopName(stats.stopName, stats.stopRef)} ({stopPeriodLabel}, fra reisedata).
                 </CardDescription>
               </CardHeader>
               <CardContent>

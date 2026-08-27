@@ -3,7 +3,156 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-21
+**Sist oppdatert**: 2026-08-24
+
+## Ytelsesarbeid i reiseplanleggeren — oppsummering (2026-08-15 → 08-21)
+
+> **Status: trenger videre testing.** Alt under ligger på `reise-preview`, ikke
+> i produksjon. Måletallene er fra kald sidelast mot ekte R2 (Lagunen→Åsane og
+> Ullevål stadion→Tøyenparken), og varierer en del med R2-latens — samme
+> spørring er målt både 54 s og 96 s. Les tallene som størrelsesorden.
+
+### Verktøyet som gjorde resten mulig
+
+`window.__duckTimings` i `use-parquet-query.ts` (`runQueryOnConn` — ett
+choke point for alle DuckDB-spørringer). Gir `entries` (label, ms, tidspunkt,
+SQL-utdrag) og `summary()` per type. **Bruk denne før du optimaliserer noe
+her** — vi gjettet feil to ganger før den fantes, og begge gangene på ting som
+viste seg å være uvesentlige.
+
+### Rettet
+
+| # | Hva | Effekt |
+|---|---|---|
+| 1 | **Overgangs-gap ble tidsavbrutt i KØEN.** `withTimeout()` lå rundt hele `duckQuery`-løftet, så 15 s-fristen løp fra spørringen ble lagt i kø — ikke fra den begynte å kjøre. Med ~55 s priming foran seg rakk de aldri å starte. Målt kjøretid er dessuten 15,8–17,7 s, altså over grensen uansett. | **Rotårsaken til at nesten alle buss-til-buss-overganger viste «mangler forsinkelsesdata».** Ny `QueryOptions.timeoutMs` starter klokka etter muteksen; grense 45 s |
+| 2 | **Datagrunnlag-spørringen** hentet `COUNT(DISTINCT date)` + `MIN`/`MAX` i én. `MIN`/`MAX` er gratis fra row group-statistikk; `COUNT(DISTINCT)` må skanne datokolonnen over ~64 mill. rader | **81,6 s → 2,1 s.** Dagantallet telles nå opp via `whenDuckIdle()`, altså først når worker'en er helt ledig |
+| 3 | **«Hele avgangen» prefetchet mot `by-line`** ved hvert utvidet kort. Siden bare `by-stop` primes, betalte den første slike spørringen hele footer-lesingen på nytt for den andre filfamilien | Fjernet en spørring på **46–73 s** fra vanlige søk. Gates nå på `open`, ikke `active` |
+| 4 | Samme panel hentet persentiler for **hele linjen ved alle dens stopp**, alltid | Smal per-avgang-spørring først; linje-fallback bare for stopp som fortsatt mangler tall, begrenset til avgangens egne stopp |
+| 5 | `duckPairs` hentet **begge endepunkter for hvert legg** i alle reiseforslag, men et sammenslått kort leser bare første leggs påstigning | Færre distinkte `stop_ref` — og kostnaden er lineær i nettopp det |
+
+### Avkreftet (ikke prøv på nytt uten nye målinger)
+
+- **«Kjør overgangssannsynligheten først.»** Testet: synlige tall gikk fra
+  **101 s → 149 s**, altså ~48 s tregere. Worker'en tar én spørring om gangen
+  og kan ikke avbrytes, så gapet betaler kaldstarten og persentilene — som
+  driver alt brukeren ser — havner bak i køen. En timeout-basert
+  «sikkerhetsventil» hjalp ikke: den kan flippe et `enabled`-flagg, men ikke ta
+  worker'en fra en spørring som allerede kjører.
+- **«`prepareView` betaler footer-kostnaden på nytt per datovindu.»** Målt med
+  `changed`-flagg: uendret filsett 23,5 s vs. endret 4,1 s — altså motsatt av
+  hypotesen. (Med mindre kø: endret ≈ 3–6 s, uendret ≈ 0,4 s. De 23,5 s var
+  hovedsakelig køventing.)
+- **Manglende data som forklaring på «ingen overgangsdata».** Alle 14
+  overganger i et reelt søk HAR dekning: 7 dager på eksakt rutetid-match, 27 i
+  ±60-min-poolen. Også avkreftet: `delay_arrival_min` er ikke systematisk NULL
+  (RUT: 96,1 % ankomst / 96,6 % avgang), og Enturs quay-ID-er finnes hos oss.
+- **Forhåndsaggregerte persentiler som YTELSESTILTAK.** Persentil-spørringen
+  er 7–9 s av ~250 s. Å fjerne den helt sparer under 4 %. Scopingen i
+  NOTES.md punkt 4 er riktig regnet, men rettet mot feil flaskehals.
+
+### Gjenstår — i rekkefølge etter antatt gevinst
+
+1. **`metadata-priming` ~54 s** (`SELECT COUNT(*), MAX(date)`). Nå den klart
+   største enkeltposten. Begge verdiene SKAL kunne besvares fra parquetens
+   row group-statistikk, så at den bruker ~54 s tyder på at noe tvinger fram en
+   faktisk skanning — eller at det rett og slett er footer-lesing av 10–16
+   filer som dominerer. **Ikke undersøkt ennå.** Mulige spor: færre/større
+   ukefiler, eller å hente `maxDate` fra manifestet i stedet (feltet finnes
+   allerede der) og droppe spørringen helt.
+2. **Overgangs-gap ~16 s per reiseforslag.** Ti forslag ≈ 2,5 min. Fiksen over
+   gjør at de kommer fram, ikke at de kommer raskt. Retninger: regn bare for
+   synlige/utvidede kort (samme prinsipp som mellomstoppene alt følger),
+   begrens antall reiseforslag det regnes for, eller gjør selve spørringen
+   billigere. Å forhåndsberegne alle overganger er ikke farbart — det er
+   kombinatorisk i avgangs-PAR, og vi har ikke Enturs bruksdata til å vite
+   hvilke som er verdt å regne.
+3. **Uforklart:** ett legg (linje 28) viste ingen persentilkolonner mens
+   nabolegene i samme kort viste alle fire. Linje 28 HAR data (27 dager ved
+   alle tre overgangsstoppene), så det er ikke datamangel. Ikke reprodusert.
+   Neste gang det sees: noter `(line_ref, stop_ref)`-parene med kortet utvidet.
+4. **Bussanimasjonen som fremdriftsindikator.** En ubestemt stripe ble bygget
+   og fjernet igjen samme dag — den sa ingenting bussen ikke alt sa. Riktig
+   rekkefølge er å skaffe TELLBARE steg først, så animere dem. Gapene er
+   allerede tellbare (N av M reiseforslag ferdig).
+
+Detaljene, med alle måletall, ligger i [NOTES.md](NOTES.md) punkt 4 og 8.
+
+## Endringslogg — 2026-08-24: ukedagsfilter, delt linjespørring, og en uendelig render-løkke
+
+### 1. Uendelig render-løkke tømte Linjeanalyse-siden (eldre feil, funnet nå)
+
+**Symptom**: siden ble helt blank når du hadde analysert en linje og så byttet
+operatør bort fra den linjas operatør. Konsollen: «Maximum update depth
+exceeded».
+
+**Løkka**, mellom to useEffect-er i `journey-details.tsx` som ikke visste om
+hverandre:
+
+1. «tøm linja når den ikke finnes hos valgt operatør» satte `fetchedLine = ""`
+   — men lot `?line=` stå i URL-en, og endret `?direction`/`?stopProfileDir`.
+2. Endringen av `search` vekket «pre-select line from ?line=», som så at
+   `lineParam` fantes og `fetchedLine` var tom — og satte linja tilbake.
+3. Som trigget 1 igjen. I ring, til React ga opp.
+
+**Fiks**: steg 1 fjerner nå `line` fra URL-en samtidig som state tømmes, slik
+at de to effektene ikke kan dra i hver sin retning. Verifisert: feilen
+reproduserer på committed HEAD uten endringene, og er borte med dem.
+
+> **Beslektet, IKKE fikset**: `?direction=1` i en delt URL overlever ikke
+> sidelasten. Effekten som validerer retningsvalget kjører før
+> `directionOptions` er lastet, ser at «1» ikke finnes i en tom liste, og
+> faller tilbake til «Begge». Samme familie som over (URL-parameter mot
+> asynkront lastet data). Å klikke retning virker fint.
+
+### 2. Linjeanalyse: stat-kortene henter fra artefakten, grafene laster hver for seg
+
+`/api/line/:ref` er delt i `/summary`, `/daily` og `/hourly` — i både
+stats-adapteren og Express. `/summary` leser `stats_summary.json` og koster
+INGEN DuckDB-spørring, så stat-kortene står med tall mens grafene fortsatt
+regnes. Daily og hourly var allerede to separate spørringer i én `Promise.all`;
+nå rendres de hver for seg etter hvert som de blir ferdige.
+
+DuckDB kjører fortsatt én spørring om gangen (jf. kostnadsmodellen i
+CLAUDE.md), så dette gjør dem ikke parallelle — gevinsten er at ingenting
+venter på det treigeste.
+
+**`apiLineSummary` returnerer null — aldri en tilnærming — når artefakten ikke
+kan svare eksakt**: egendefinert datointervall, vindu utenom 7/30/90,
+retningsfilter, ukedagsfilter, eller linje under `MIN_JOURNEYS_LINE` (5).
+Da regnes kortene fra dagsserien som før. Å snappe «Siste 2 uker» til nærmeste
+artefaktvindu ville vist 7-dagerstall under feil overskrift.
+
+### 3. Ukedagsfilter (day_type) på de DuckDB-drevne sidene
+
+`day_type` lå allerede i parquet-filene fra `export_parquet.py` — filtrering
+var derfor bare en WHERE-betingelse, ikke en pipeline-endring.
+
+Lagt til på **Linjeanalyse** og **Stoppanalyse** (alle seksjoner: stat-kort,
+dagstrend, timesprofil, verste stopp, stoppprofil, linjer/timer ved stopp, rå
+avganger). **Ikke** på Oversikt/Topplister/Kart — de leser ferdigaggregerte
+artefakter uten dagtype-dimensjon; å legge den til ville grovt firedoblet
+`stats_summary.json` (3,8 → ~15 MB) og `stats_stops_map.json` (10,5 → ~40 MB).
+
+Hjelpefunksjonene ligger i `lib/day-type.ts` (som allerede eide domenet), ikke
+i komponenten — hvitelista brukes av både stats-adapteren og
+use-journey-queries, og en whitelist i tre kopier spriker før eller siden.
+
+Bare Hverdag/Lørdag/Søndag er knapper. `holiday` og `may17` finnes ikke i det
+rullerende 90-dagersvinduet store deler av året (målt: 0 rader av 75,5 mill.
+2026-06-19 → 08-23), så de ville stått tomme; de er med under «Alle dager».
+
+**Verifisert mot fasit regnet direkte i DuckDB** (RUT:Line:5, siste måned):
+
+| Dagtype | Fasit | UI |
+|---|---|---|
+| alle | 1,80m / 83,4 % | 1,8m / 83,6 % |
+| hverdag | 2,05m / 82,0 % | 1,9m / 82,9 % |
+| lørdag | 0,94m / 85,7 % | 0,9m / 86,7 % |
+| søndag | 0,91m / 90,2 % | 0,9m / 90,2 % |
+
+Bjørvika (stoppanalyse): ufiltrert 2,58m/47,6 % → UI 2,6m/46,6 %; søndag
+1,93m/38,1 % → UI 1,9m/38,3 %. Småavvikene er fordi kortene snitter
+dagsgjennomsnitt uvektet mens fasiten snitter alle rader.
 
 ## Endringslogg — 2026-08-21: stoppsøket manglet fokuspunkt (og var for kort)
 

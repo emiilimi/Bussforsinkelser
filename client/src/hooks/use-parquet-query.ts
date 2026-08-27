@@ -141,6 +141,11 @@ async function ensureFilesRegistered(db: AsyncDuckDB): Promise<void> {
     await db.registerFileURL(name, url, 4 /* DuckDBDataProtocol.HTTP */, false);
     registeredFiles.set(name, { url, family: parsed.family, week: parsed.week, fromIso, toIso, maxDate });
   }
+  // Manifestet bærer nå `maxDate`, så siste datadag er kjent i det filene er
+  // registrert — uten å vente på noen spørring. Varsle lytterne slik at
+  // useLatestDataDate() plukker den opp med det samme (den ble tidligere bare
+  // vekket av primingen, som var det eneste stedet datoen kom fra).
+  for (const l of Array.from(latestDateListeners)) l();
 }
 
 // Et enkelt mislykket forsøk (forbigående nettverksglipp, treg R2-edge ved
@@ -205,30 +210,59 @@ const latestDateListeners = new Set<() => void>();
  * målt gjorde det statistikken merkbart tregere når søket startet samtidig
  * (URL-gjenoppretting) i stedet for etter at brukeren hadde fylt ut skjemaet.
  *
- * Spørringen henter samtidig MAX(date). Begge deler besvares fra parquetens
- * row group-statistikk, så det koster ikke mer enn COUNT(*) alene — og det gir
- * oss den faktiske siste datadagen tidlig, uten en egen spørring i kø.
+ * KOSTNADEN ER FØRSTE-SPØRRING-MOT-FAMILIEN, IKKE SPØRRINGENS FORM.
+ * Målt 2026-08-22, kald sidelast mot ekte R2, 10 by-stop-filer:
+ *
+ *   i nettleseren (duckdb-wasm):
+ *     SELECT COUNT(*), MAX(date)   → 54–69 s
+ *     SELECT COUNT(*)              → 62 s      ← MAX(date) fjernet: ingen endring
+ *     alt etterpå (data-range, persentiler)    → 2–9 s
+ *
+ *   samme spørringer fra python/duckdb+httpfs mot SAMME filer:
+ *     SELECT COUNT(*)              →  1,4 s
+ *     SELECT MAX(date)             → 12,0 s
+ *
+ * Merk spriket: fra Python ser MAX(date) ut som synderen, i nettleseren er
+ * den irrelevant. Flaskehalsen er duckdb-wasm sitt HTTP-lag når det åpner ti
+ * filer første gang — ikke aggregatet. Ikke stol på Python-tall for å
+ * forutsi nettleseren her.
+ *
+ * MAX(date) er likevel droppet: pipelinen skriver `maxDate` per fil i
+ * manifestet, så faktisk siste datadag er gratis tilgjengelig (se
+ * manifestMaxDate/latestDataDate). Det fjerner et unødvendig aggregat, men
+ * det var IKKE det som kostet tid. Beholdes kun hvis manifestet mangler
+ * maxDate (eldre artefakt), så oppførselen ikke regresserer der.
+ *
+ * Selve kaldstarten står altså fortsatt uløst — se NOTES.md punkt 4.
  */
 export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
   if (primingPromises.has(family)) return;
   const view = `delays_${family.replace("-", "_")}`;
-  const p = standaloneDuckQuery<{ n: number; mx: string | null }>(
-    `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`,
-    undefined,
-    { family },
-  )
-    .then((rows) => {
-      const mx = rows[0]?.mx;
-      if (mx) {
-        measuredLatestDate.set(family, String(mx));
-        for (const l of Array.from(latestDateListeners)) l();
-      }
-    })
-    .catch(() => {
-      // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
-      // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
-      primingPromises.delete(family);
-    });
+  const p = (async () => {
+    // Manifestet MÅ være lest før vi kan avgjøre om MAX(date) trengs:
+    // `registeredFiles` er tom ved første kall, og en synkron sjekk her ville
+    // alltid sett «ingen maxDate» og kjørt den dyre varianten likevel.
+    // (Målt: gjorde nettopp det — 68,6 s i nettleseren, se commit-historikk.)
+    const db = await initDuckDB();
+    await registerFilesWithRetry(db);
+    const needMax = manifestMaxDate(family) === null;
+    const rows = await standaloneDuckQuery<{ n: number; mx: string | null }>(
+      needMax
+        ? `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`
+        : `SELECT COUNT(*) AS n FROM ${view}`,
+      undefined,
+      { family },
+    );
+    const mx = rows[0]?.mx;
+    if (mx) {
+      measuredLatestDate.set(family, String(mx));
+      for (const l of Array.from(latestDateListeners)) l();
+    }
+  })().catch(() => {
+    // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
+    // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
+    primingPromises.delete(family);
+  });
   primingPromises.set(family, p);
 }
 
@@ -244,7 +278,26 @@ export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void
  * 7. august) ga «Siste 7 dager» bare 5 dager, og tidlig i uka ned mot 1.
  */
 export function latestDataDate(family: DelayFamily = DEFAULT_FAMILY): string | null {
-  return measuredLatestDate.get(family) ?? null;
+  return measuredLatestDate.get(family) ?? manifestMaxDate(family);
+}
+
+/**
+ * Siste FAKTISKE datadag slik pipelinen selv oppga den i manifestet, eller
+ * null hvis manifestet ikke har feltet.
+ *
+ * Skiller seg fra latestAvailableDate() ved at den ALDRI faller tilbake på
+ * ukefilens søndag. Den tilnærmingen er trygg når man skal velge hvilke filer
+ * som skal åpnes (for høy = tar med en fil for mye), men FARLIG som ankerpunkt
+ * for «siste N dager»: den kan ligge opptil seks dager etter siste datadag og
+ * gir da stille et kortere vindu enn brukeren ba om.
+ */
+function manifestMaxDate(family: DelayFamily): string | null {
+  let max: string | null = null;
+  for (const f of Array.from(registeredFiles.values())) {
+    if (f.family !== family || !f.maxDate) continue;
+    if (max === null || f.maxDate > max) max = f.maxDate;
+  }
+  return max;
 }
 
 /** React-hook: siste datadag, oppdateres når primingen lander. */

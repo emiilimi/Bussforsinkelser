@@ -26,6 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useParquetQuery } from "./use-parquet-query";
 import { IS_REISE } from "@/lib/app-mode";
+import { dayTypeAndClause } from "@/lib/day-type";
 
 /**
  * Oppslag mot /api/stops/lookup. I reise-bygget finnes ikke Express-serveren —
@@ -290,10 +291,16 @@ export function useJourneyProfile(
 // 3. useWorstStopsForLine
 // ---------------------------------------------------------------------------
 
-export function useWorstStopsForLine(lineRef: string, fromDate: string, limit = 15) {
+export function useWorstStopsForLine(
+  lineRef: string,
+  fromDate: string,
+  limit = 15,
+  dayType?: string,
+) {
   const { query, ready } = useParquetQuery();
+  const dtFilter = dayTypeAndClause(dayType);
   const stats = useQuery<WorstStop[]>({
-    queryKey: ["worst-stops-line", lineRef, fromDate, limit],
+    queryKey: ["worst-stops-line", lineRef, fromDate, limit, dtFilter],
     enabled: ready && !!lineRef,
     queryFn: () =>
       query<WorstStop>(`
@@ -302,7 +309,7 @@ export function useWorstStopsForLine(lineRef: string, fromDate: string, limit = 
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
         FROM delays_by_line
-        WHERE line_ref = ? AND date >= ?
+        WHERE line_ref = ? AND date >= ? ${dtFilter}
         GROUP BY stop_ref
         HAVING COUNT(*) >= 20
         ORDER BY avgDelayMin DESC
@@ -379,8 +386,14 @@ export function useLineStopProfile(
   directionRef: string,
   fromDate: string,
   variantId?: string,
+  dayType?: string,
 ) {
   const { query, ready } = useParquetQuery();
+  // Ukedagsfilteret treffer BARE aggregeringen (steg 3), ikke steg 1/2 som
+  // finner rutas form (dominerende avgang + stopprekkefølge). Ruta er den
+  // samme uansett dagtype; det er forsinkelsene som varierer. Filtrerte vi
+  // steg 1 også, kunne grafen byttet stopprekkefølge når man klikker «Lørdag».
+  const dtFilter = dayTypeAndClause(dayType);
 
   // Step 1: find dominant service_journey_id
   const dominantQuery = useQuery<Array<{ service_journey_id: string }>>({
@@ -458,7 +471,7 @@ export function useLineStopProfile(
   // Steg 2 har allerede rekkefølgen for den dominerende avgangen, så vi
   // kobler den på klientsiden og sorterer der.
   const profileQuery = useQuery<Array<Omit<LineStopProfileEntry, "stopSequence">>>({
-    queryKey: ["line-stop-profile-data", lineRef, directionRef, fromDate, dominantId ?? "", canonicalStops.join(",")],
+    queryKey: ["line-stop-profile-data", lineRef, directionRef, fromDate, dominantId ?? "", canonicalStops.join(","), dtFilter],
     enabled: !!dominantId && canonicalStops.length > 0,
     queryFn: () => {
       const ph = canonicalStops.map((s) => `'${s.replace(/'/g, "''")}'`).join(",");
@@ -475,7 +488,7 @@ export function useLineStopProfile(
           COALESCE(MAX(d.stop_name), d.stop_ref) AS stopName
         FROM delays_by_line d
         WHERE d.line_ref = ? AND d.direction_ref = ? AND d.date >= ?
-          AND d.stop_ref IN (${ph})
+          AND d.stop_ref IN (${ph}) ${dtFilter}
         GROUP BY d.stop_ref
         HAVING COUNT(*) >= 3`,
         [lineRef, directionRef, fromDate],
@@ -609,15 +622,16 @@ export function useBestJourneysForLine(
 
 export function useLineHourlyAtStop(
   stopRef: string, fromDate: string, stopName?: string,
-  lat?: number | null, lng?: number | null,
+  lat?: number | null, lng?: number | null, dayType?: string,
 ) {
   const { query, ready } = useParquetQuery();
 
   // NSR:StopPlace → expand to all quays via /api/stops/lookup (raw fetch, not hook)
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const dtFilter = dayTypeAndClause(dayType);
 
   return useQuery<HourlyAtStop[]>({
-    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
+    queryKey: ["line-hourly-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
@@ -632,7 +646,7 @@ export function useLineHourlyAtStop(
             ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
             COUNT(*) AS numSamples
           FROM delays_by_stop
-          WHERE stop_ref IN (${quayList}) AND date >= ?
+          WHERE stop_ref IN (${quayList}) AND date >= ? ${dtFilter}
             AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
           GROUP BY line_ref, CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)
           ORDER BY line_ref, hour`,
@@ -646,7 +660,7 @@ export function useLineHourlyAtStop(
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
         FROM delays_by_stop
-        WHERE stop_ref = ? AND date >= ?
+        WHERE stop_ref = ? AND date >= ? ${dtFilter}
           AND COALESCE(aimed_departure, aimed_arrival) IS NOT NULL
         GROUP BY line_ref, CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)
         ORDER BY line_ref, hour`,
@@ -663,13 +677,14 @@ export function useLineHourlyAtStop(
 
 export function useLinesAtStop(
   stopRef: string, fromDate: string, stopName?: string,
-  lat?: number | null, lng?: number | null,
+  lat?: number | null, lng?: number | null, dayType?: string,
 ) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const dtFilter = dayTypeAndClause(dayType);
 
   return useQuery<LineAtStop[]>({
-    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
+    queryKey: ["lines-at-stop", stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter],
     enabled: ready && !!stopRef,
     queryFn: async () => {
       if (isStopPlace) {
@@ -682,7 +697,7 @@ export function useLinesAtStop(
             ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
             COUNT(*) AS numSamples
           FROM delays_by_stop
-          WHERE stop_ref IN (${quayList}) AND date >= ?
+          WHERE stop_ref IN (${quayList}) AND date >= ? ${dtFilter}
           GROUP BY line_ref
           ORDER BY avgDelayMin DESC`,
           [fromDate],
@@ -694,7 +709,7 @@ export function useLinesAtStop(
           ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
           COUNT(*) AS numSamples
         FROM delays_by_stop
-        WHERE stop_ref = ? AND date >= ?
+        WHERE stop_ref = ? AND date >= ? ${dtFilter}
         GROUP BY line_ref
         ORDER BY avgDelayMin DESC`,
         [stopRef, fromDate],
@@ -728,12 +743,14 @@ export function useLineDeparturesAtStop(
   stopName?: string,
   lat?: number | null,
   lng?: number | null,
+  dayType?: string,
 ) {
   const { query, ready } = useParquetQuery();
   const isStopPlace = stopRef.startsWith("NSR:StopPlace:");
+  const dtFilter = dayTypeAndClause(dayType);
 
   return useQuery<LineDepartureAtStop[]>({
-    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? ""],
+    queryKey: ["line-departures-at-stop", lineRef, stopRef, fromDate, stopName ?? "", lat ?? "", lng ?? "", dtFilter],
     enabled: ready && enabled && !!lineRef && !!stopRef,
     queryFn: async () => {
       let stopCond: string;
@@ -758,7 +775,7 @@ export function useLineDeparturesAtStop(
           delay_arrival_min   AS delayArrivalMin,
           delay_departure_min AS delayDepartureMin
         FROM delays_by_stop
-        WHERE line_ref = ? AND ${stopCond} AND date >= ?
+        WHERE line_ref = ? AND ${stopCond} AND date >= ? ${dtFilter}
         ORDER BY date DESC, aimedTime DESC
         LIMIT 100`,
         [lineRef, fromDate],
