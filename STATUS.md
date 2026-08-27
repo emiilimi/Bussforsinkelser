@@ -103,27 +103,49 @@ viste seg å være uvesentlige.
   er 7–9 s av ~250 s. Å fjerne den helt sparer under 4 %. Scopingen i
   NOTES.md punkt 4 er riktig regnet, men rettet mot feil flaskehals.
 
+### Kaldstart: 83 s → 31 s (målt 2026-08-22)
+
+Punkt 1 under er LØST. Kostnaden var verken `MAX(date)` eller radgrupper, men
+antall ukefiler som åpnes: **~6 sekvensielle HTTP-kall per fil** (målt med en
+lokal tellende HTTP-server). Standardvinduet hadde ingen datogrense, så hver
+spørring åpnet alle 11.
+
+Nå: standardvindu = samme dagtype + siste 30 dager, vinduet sendes videre som
+`QueryOptions.fromDate` (det er dét som styrer filantallet), og den kosmetiske
+`MIN/MAX`-spørringen er flyttet bak `whenDuckIdle()`.
+
+| | før | etter |
+|---|---|---|
+| første estimat på kortet | 83 s | **31 s** |
+| ukefiler åpnet | 11 | 5 |
+| priming | 48,0 s | 14,2 s |
+| `data-range` | 28,1 s i køen | utsatt til ledig |
+| overgangs-gap | ~16 s per forslag | ~9,8 s |
+
+Statistisk pris, målt på samme datagrunnlag (68 dager mot 30): alle 14 testede
+overganger holdt seg over 5-dagersterskelen (median 19→13 dager eksakt match,
+49→22 pool), og andelen (stopp × linje × dagtype)-celler med ≥20 observasjoner
+falt fra 59,5 % til 53,4 %.
+
+Avkreftet underveis: større radgrupper hjelper ikke (42 mot 6 radgrupper ga
+identisk antall kall — duckdb-httpfs-patologien med `kolonner × radgrupper`
+gjelder filer med hundrevis av kolonner, vi har 14).
+
 ### Gjenstår — i rekkefølge etter antatt gevinst
 
-1. **`metadata-priming` ~54 s** (`SELECT COUNT(*), MAX(date)`). Nå den klart
-   største enkeltposten. Begge verdiene SKAL kunne besvares fra parquetens
-   row group-statistikk, så at den bruker ~54 s tyder på at noe tvinger fram en
-   faktisk skanning — eller at det rett og slett er footer-lesing av 10–16
-   filer som dominerer. **Ikke undersøkt ennå.** Mulige spor: færre/større
-   ukefiler, eller å hente `maxDate` fra manifestet i stedet (feltet finnes
-   allerede der) og droppe spørringen helt.
-2. **Overgangs-gap ~16 s per reiseforslag.** Ti forslag ≈ 2,5 min. Fiksen over
-   gjør at de kommer fram, ikke at de kommer raskt. Retninger: regn bare for
+1. **Overgangs-gap ~9,8 s per reiseforslag** (var ~16 s før vinduet). Ti
+   forslag ≈ 100 s, og de er nå den klart største gjenstående posten. Fiksen
+   over gjør at de kommer fram, ikke at de kommer raskt. Retninger: regn bare for
    synlige/utvidede kort (samme prinsipp som mellomstoppene alt følger),
    begrens antall reiseforslag det regnes for, eller gjør selve spørringen
    billigere. Å forhåndsberegne alle overganger er ikke farbart — det er
    kombinatorisk i avgangs-PAR, og vi har ikke Enturs bruksdata til å vite
    hvilke som er verdt å regne.
-3. **Uforklart:** ett legg (linje 28) viste ingen persentilkolonner mens
+2. **Uforklart:** ett legg (linje 28) viste ingen persentilkolonner mens
    nabolegene i samme kort viste alle fire. Linje 28 HAR data (27 dager ved
    alle tre overgangsstoppene), så det er ikke datamangel. Ikke reprodusert.
    Neste gang det sees: noter `(line_ref, stop_ref)`-parene med kortet utvidet.
-4. **Bussanimasjonen som fremdriftsindikator.** En ubestemt stripe ble bygget
+3. **Bussanimasjonen som fremdriftsindikator.** En ubestemt stripe ble bygget
    og fjernet igjen samme dag — den sa ingenting bussen ikke alt sa. Riktig
    rekkefølge er å skaffe TELLBARE steg først, så animere dem. Gapene er
    allerede tellbare (N av M reiseforslag ferdig).

@@ -81,6 +81,41 @@ kjøring, ikke om kø.
 min for ti forslag. Fiksen gjør at de faktisk KOMMER, ikke at de kommer raskt.
 Det er samme flaskehals som punkt 4 handler om.
 
+### ✅ MÅLT PÅ PREVIEW 2026-08-22: kaldstart 83 s → 31 s
+
+Samme søk (Lagunen→Åsane), samme økt, kald sidelast, tid til de første
+synlige estimatene på kortene:
+
+| | før | etter |
+|---|---|---|
+| **første estimat på kortet** | **83 s** | **31 s** |
+| ukefiler åpnet | 11 | 5 |
+| priming (`COUNT(*)`) | 48,0 s | 14,2 s |
+| `data-range` (MIN/MAX) | 28,1 s, i køen foran persentilene | utsatt til ledig |
+| persentiler | 10,6 s | 12,0 s |
+| overgangs-gap | ~16 s per forslag | ~9,8 s per forslag |
+| view-ombygginger | vekslet 5↔11 filer | alltid 5 |
+
+Tre endringer sammen:
+1. Standardvinduet begrenset til 30 dager (samme dagtype beholdt).
+2. Vinduet sendt videre som `QueryOptions.fromDate` fra priming, gap- og
+   leg-timing-spørringene — det er dette som styrer FILANTALLET.
+3. `data-range` flyttet bak `whenDuckIdle()`. Den dekker med vilje hele
+   historikken og åpnet derfor alle 11 filene — også de seks som
+   30-dagersvinduet aldri rører.
+
+To fallgruver som kostet et forsøk hver:
+- **Primingen må regne vinduet SELV.** Sender kallestedet en ferdig `fromDate`,
+  er den null ved første kall (ankeret kommer fra manifestet, som først leses
+  inne i primingen). Målt: primingen kjørte da med alle 11 filene og 48 s
+  likevel. Nå tar den imot ANTALL DAGER og regner datoen etter registreringen.
+- **Ikke bruk `case "days"` til å sette standardvinduet.** Den setter
+  `dayTypes: null` og ville sluppet helgedata inn i en ukedagsreise.
+
+Kjent konsekvens: «Datagrunnlag»-linjen i metodeboksen kan bli stående tom i
+en aktiv økt, siden `whenDuckIdle()` først slipper til når overgangs-gapene er
+ferdige. Bevisst — kosmetikk skal vike for tall brukeren venter på.
+
 ### `metadata-priming` undersøkt 2026-08-22 — det er KALDSTARTEN, ikke spørringen
 
 Primingen (`primeParquetMetadata`) har to formål: varme opp parquet-footerne
