@@ -110,15 +110,79 @@ første gang. Footer-metadataen er bare **0,9 MB til sammen** (~100 KB per fil,
 607 radgrupper totalt), så det er ikke bytes — det er antall
 range-forespørsler og at de går sekvensielt på én worker.
 
-Uprøvde spor, i synkende rekkefølge etter antatt gevinst:
-- **Færre filer.** Kostnaden ser ut til å følge FILANTALL, ikke datamengde.
-  Månedsfiler i stedet for ukefiler ville gitt ~3 i stedet for ~14. Krever
-  endring i `export_parquet.py` og et nytt manifest-format.
-- **Begrense første spørring til et datovindu**, så kaldstarten bare betales
-  for de filene som faktisk trengs. Reiseplanleggerens spørringer kjører i dag
-  stort sett uten vindu og treffer derfor alle filene.
-- Undersøke om duckdb-wasm gjør noe patologisk (mange små, sekvensielle
-  range-kall). Verdt å telle faktiske HTTP-kall i nettverksfanen først.
+#### Målt HTTP-kall (2026-08-22) — filantall bekreftet, radgruppe-teorien avkreftet
+
+Kontrollert forsøk: samme parquet-filer servert fra en lokal HTTP-server som
+teller forespørsler, spurt med duckdb+httpfs. Lokal server ⇒ ~0 latens, så
+tallene måler ANTALL kall, ikke tid.
+
+**Kallene skalerer lineært med FILANTALL, ~6 per fil:**
+
+| filer i viewet | HTTP-kall | per fil |
+|---|---|---|
+| 1 | 12 | 12,0 |
+| 2 | 18 | 9,0 |
+| 5 | 31 | 6,2 |
+| 11 | 67 | 6,1 |
+
+Med 10–14 ukefiler blir det 60–85 kall, sekvensielt på én worker. Ved reell
+R2-latens fra nettleseren (~0,3–0,6 s per rundtur) gir det 20–50 s — som
+stemmer godt med de observerte 54–69 s.
+
+**Radgruppestørrelse har derimot INGEN effekt hos oss.** Samme fil skrevet med
+42 radgrupper (dagens ~122k rader) mot 6 radgrupper (1M rader):
+
+| variant | radgrupper | footer | kall for å åpne | realistisk stoppspørring |
+|---|---|---|---|---|
+| dagens | 42 | 67 KB | 6 | 12 kall / 1 286 ms |
+| store radgrupper | 6 | 11 KB | 6 | 12 kall / 1 245 ms |
+
+Identisk. Den kjente duckdb-httpfs-patologien der kallene blir
+`kolonner × radgrupper` ([issue #172](https://github.com/duckdb/duckdb-httpfs/issues/172),
+150 000 kall) gjaldt en fil med **282 kolonner** — vi har 14. Ikke bruk tid på
+å tune radgrupper her.
+
+Spor, i synkende rekkefølge etter belegg:
+- **Færre filer** (belagt): månedsfiler i stedet for ukefiler ville gitt ~3 i
+  stedet for ~14, altså ~⅓ av kallene. Krever endring i `export_parquet.py`,
+  nytt manifest, og at `weekDateRange()`/`parseFileName()` forstår formatet.
+  Merk baksiden: en månedsfil må skrives om hele måneden ved hver nattlige
+  ingest, og `export_parquet.py` nekter allerede å overskrive en fil med
+  færre dager enn den har (se FELLE i CLAUDE.md).
+- ~~Større radgrupper~~ — målt, ingen effekt.
+
+#### Hva «datovindu på første spørring» faktisk betyr
+
+`QueryOptions.fromDate/toDate` styrer `filesForFamily()`, som bestemmer hvilke
+ukefiler som i det hele tatt havner i `read_parquet([...])`. Færre filer i
+viewet ⇒ færre filer å åpne ⇒ færre HTTP-kall (~6 per fil, se tabellen over).
+Det er altså ikke en SQL-optimalisering — det er kontroll på hvor mange filer
+DuckDB må åpne.
+
+Slik står det i reiseplanleggeren i dag:
+
+| spørring | sender vindu? | filer åpnet |
+|---|---|---|
+| priming (`primeParquetMetadata`) | nei | ALLE |
+| overgangs-gap (`trip-shared.ts:565`) | nei — bare `{ family: "by-stop" }` | ALLE |
+| persentiler (`trip-planner.tsx:734`) | ja, men fra `statsWindow` | se under |
+
+Persentilene sender riktignok `fromDate`, men standardvinduet er
+`defaultWindowForDayType()` = `{ dayTypes: [dayType], dateFrom: null, dateTo: null }`
+(`trip-shared.ts:238`) — altså **ingen datobegrensning**. Dagtype-filteret er
+et SQL-filter og fjerner ikke én eneste fil. I praksis åpner derfor alle tre
+spørringsveiene samtlige ukefiler.
+
+Det viktige forbeholdet: et vindu **fjerner ikke** kostnaden, det flytter den.
+Trenger appen 14 ukers historikk, må de filene åpnes uansett — bare senere, og
+inkrementelt etter hvert som en spørring faktisk trenger dem. Gevinsten er
+reell bare hvis de fleste spørringene klarer seg med færre uker enn vi laster i
+dag. Det er et PRODUKTVALG (hvor mye historikk skal statistikken bygge på),
+ikke bare teknikk — samme avveining som dukket opp i dagantall-diskusjonen.
+
+Verdt å måle før noe bygges: hvor mye dårligere blir tallene med f.eks. 6 uker
+i stedet for 14? Vi vet allerede at celletettheten faller merkbart (se
+scoping-tabellen under), så dette skal ikke gjettes.
 
 ### Fordelingen etter fiksene (målt 2026-08-16, kald sidelast mot R2)
 
