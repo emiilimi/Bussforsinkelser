@@ -287,6 +287,14 @@ async function apiSummary(params: URLSearchParams) {
 }
 
 async function apiSummaryTrend(params: URLSearchParams) {
+  // Tid-på-dagen-filter går via en egen live DuckDB-spørring — den
+  // ferdigaggregerte stats_summary.json har ingen timesdimensjon.
+  const hourMinParam = params.get("hourMin");
+  const hourMaxParam = params.get("hourMax");
+  if (hourMinParam != null && hourMaxParam != null) {
+    return apiSummaryTrendByHour(params, hourMinParam, hourMaxParam);
+  }
+
   const summary = await fetchSummary();
   const byDate = dailyByDate(summary, parseOperators(params));
 
@@ -303,6 +311,66 @@ async function apiSummaryTrend(params: URLSearchParams) {
 
   const days = parseInt(params.get("days") ?? "7", 10) || 7;
   return Array.from(byDate.values()).slice(-days).map(combineDaily);
+}
+
+/**
+ * Tid-på-dagen-filtrert dagstrend — MVP, samme feltutvalg som
+ * Express-ekvivalenten (getDailySummaryRangeByHour i server/storage.ts):
+ * kun avgDelayMin + totalJourneys. Her er det ikke en datahull som på
+ * full-bygget (Parquet har rå per-avgang-rader, så punktlighet o.l. KUNNE
+ * vært regnet ut også i samme spørring) — men dette er allerede en full
+ * GROUP BY dato over ALLE linjer uten linje/stopp-avgrensning, samme
+ * kostnadskategori som kartets filtrerte modus (apiStopsMapFiltered), så
+ * MVP holder feltutvalget likt med full-bygget i stedet for å legge enda
+ * flere aggregater på en spørring som allerede er den dyre typen.
+ */
+async function apiSummaryTrendByHour(params: URLSearchParams, hourMinStr: string, hourMaxStr: string) {
+  await ensureParquetFilesRegistered();
+  const days = parseInt(params.get("days") ?? "7", 10) || 7;
+  const from = params.get("from");
+  const to = params.get("to");
+  const effectiveFrom = from ?? daysAgoFromLatest(days, "by-line");
+  const operators = parseOperators(params);
+
+  const hourMin = parseInt(hourMinStr, 10);
+  const hourMax = parseInt(hourMaxStr, 10);
+  const hourExpr = "CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)";
+  const hourCond =
+    hourMin <= hourMax
+      ? `${hourExpr} >= ${hourMin} AND ${hourExpr} < ${hourMax}`
+      : `(${hourExpr} >= ${hourMin} OR ${hourExpr} < ${hourMax})`; // wraps midnight
+
+  const conds: string[] = [
+    "COALESCE(delay_departure_min, delay_arrival_min) IS NOT NULL",
+    `date >= '${esc(effectiveFrom)}'`,
+    hourCond,
+  ];
+  if (to) conds.push(`date <= '${esc(to)}'`);
+  if (operators.length > 0) {
+    conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  }
+
+  const rows = await standaloneDuckQuery<{ date: string; avgDelayMin: number | null; totalJourneys: number }>(`
+    SELECT date,
+      ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
+      COUNT(*) AS totalJourneys
+    FROM delays_by_line
+    WHERE ${conds.join(" AND ")}
+    GROUP BY date
+    ORDER BY date
+  `, undefined, { family: "by-line", fromDate: effectiveFrom, toDate: to ?? undefined });
+
+  return rows.map((r) => ({
+    date: r.date,
+    avgDelayMin: r.avgDelayMin,
+    pctOnTime: null as number | null,
+    pctDelayed10plus: null as number | null,
+    pctEarly: null as number | null,
+    totalJourneys: r.totalJourneys,
+    totalCancellations: null as number | null,
+    pctRealtimeCoverage: null as number | null,
+    journeysMissingRealtime: null as number | null,
+  }));
 }
 
 type CombinedDay = ReturnType<typeof combineDaily>;

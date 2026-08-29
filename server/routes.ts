@@ -8,6 +8,7 @@ import {
   getDailySummary,
   getLatestSummary,
   getDailySummaryRange,
+  getDailySummaryRangeByHour,
   getLinesForDate,
   getLineStats,
   getLineHourlyProfile,
@@ -246,12 +247,21 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/summary/trend?days=30&operator=SKY,RUT
+   * GET /api/summary/trend?days=30&operator=SKY,RUT&hourMin=7&hourMax=9
    * Returns daily summaries for the last N days (for the trend chart).
+   * hourMin/hourMax (inclusive start, exclusive end) restrict to a time-of-day
+   * window — MVP: only avgDelayMin/totalJourneys are available at that
+   * granularity (see getDailySummaryRangeByHour), the rest come back null.
    */
   app.get("/api/summary/trend", async (req, res) => {
     const { fromIso, toIso } = parseTimeWindow(req.query, 7);
     const operators = parseOperators(req.query.operator);
+    const hourMin = req.query.hourMin != null ? parseInt(req.query.hourMin as string, 10) : null;
+    const hourMax = req.query.hourMax != null ? parseInt(req.query.hourMax as string, 10) : null;
+    if (hourMin != null && hourMax != null && !Number.isNaN(hourMin) && !Number.isNaN(hourMax)) {
+      const rows = await getDailySummaryRangeByHour(fromIso, toIso, operators, hourMin, hourMax);
+      return res.json(rows);
+    }
     const rows = await getDailySummaryRange(fromIso, toIso, operators);
     return res.json(rows);
   });

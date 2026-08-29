@@ -17,6 +17,7 @@ import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
 import { DataQualityFlag, isImplausibleDelay, IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 import { cn } from "@/lib/utils";
+import { TIME_PRESETS, type TimePreset } from "@/lib/time-presets";
 
 type DailySummary = {
   date: string;
@@ -104,6 +105,8 @@ export default function Dashboard() {
   const [period, setPeriod] = useUrlParam("period", "week");
   const [customFrom, setCustomFrom] = useUrlParam("from", "");
   const [customTo, setCustomTo] = useUrlParam("to", "");
+  const [timePresetLabel, setTimePresetLabel] = useUrlParam("timePreset", TIME_PRESETS[0].label);
+  const timePreset = TIME_PRESETS.find((p) => p.label === timePresetLabel) ?? TIME_PRESETS[0];
   const [, navigate] = useLocation();
   const { operators, region } = useRegion();
   const days = PERIOD_DAYS[period] ?? 30;
@@ -112,7 +115,13 @@ export default function Dashboard() {
   // opStr is the raw query param (no leading separator) — appended with ? or & as needed per URL
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
 
-  const trendWindowParam = customRangeReady ? `from=${customFrom}&to=${customTo}` : `days=${days}`;
+  let trendWindowParam = customRangeReady ? `from=${customFrom}&to=${customTo}` : `days=${days}`;
+  // MVP: tid-på-dagen-filteret gir kun snitt-forsinkelse + antall avganger
+  // (se getDailySummaryRangeByHour) — Andel i rute/Gikk for tidlig/kansellert
+  // kommer tilbake som null og vises som «—» på kortene under.
+  if (timePreset.hourMin != null && timePreset.hourMax != null) {
+    trendWindowParam += `&hourMin=${timePreset.hourMin}&hourMax=${timePreset.hourMax}`;
+  }
 
   const { data: summary, isFetching: summaryFetching } = useQuery<DailySummary>({
     queryKey: [`/api/summary${opStr ? `?${opStr}` : ""}`],
@@ -163,11 +172,13 @@ export default function Dashboard() {
     };
   }, [trend]);
 
-  const periodLabel = period === "week" ? "Siste uke"
+  const periodLabelBase = period === "week" ? "Siste uke"
     : period === "month" ? "Siste måned"
     : period === "custom"
       ? (customRangeReady ? `${formatDateShortNO(customFrom)}–${formatDateShortNO(customTo)}` : "Velg datoer")
       : `Siste ${days} dager`;
+  const timeFilterActive = timePreset.hourMin != null;
+  const periodLabel = timeFilterActive ? `${periodLabelBase} · ${timePreset.label}` : periodLabelBase;
 
   const trendData = useMemo(() => {
     const raw = trend.map((r) => ({
@@ -288,6 +299,40 @@ export default function Dashboard() {
                 )}
               </div>
             )}
+
+            {/* Tid på dagen — samme forhåndsvalg som Forsinkelseskart. MVP: kun
+                Snitt forsinkelse og Totale avganger reagerer (se
+                getDailySummaryRangeByHour); Andel i rute og Gikk for tidlig er
+                ikke lagret på timesnivå i pipelinen ennå. */}
+            <div>
+              <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-1.5">
+                <Clock className="h-3 w-3" />
+                Tid på dagen
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {TIME_PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => setTimePresetLabel(p.label)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                      timePresetLabel === p.label
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {timeFilterActive && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                  Med tid på dagen-filter viser vi kun snitt-forsinkelse og antall avganger — andel i rute,
+                  gikk for tidlig og kanselleringer er ikke lagret per time ennå, og står som «—».
+                </p>
+              )}
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-6 pt-6">

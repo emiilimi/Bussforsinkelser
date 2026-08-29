@@ -210,6 +210,60 @@ export async function getDailySummaryRange(fromDate: string, toDate: string, ope
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Daglig snitt-forsinkelse + antall avganger, filtrert på time på dagen.
+ * MVP: leser `line_hourly_raw`, som KUN har avg_delay_min + num_samples per
+ * (dato, linje, retning, time) — ingen punktlighet/kanselleringer/sanntids-
+ * dekning på timesnivå (det finnes bare i det ferdigaggregerte dagstallet).
+ * Andel i rute / Gikk for tidlig / kanselleringer kommer derfor tilbake som
+ * null her — det er en reell datahull i pipelinen, ikke noe som glemtes.
+ * Se samtale 2026-08-29 for hvorfor MVP-varianten er avgrenset sånn.
+ */
+export async function getDailySummaryRangeByHour(
+  fromDate: string,
+  toDate: string,
+  operators: string[],
+  hourMin: number,
+  hourMax: number,
+) {
+  const hourFilter =
+    hourMin <= hourMax
+      ? and(gte(schema.lineHourlyRaw.hour, hourMin), sql`${schema.lineHourlyRaw.hour} < ${hourMax}`)
+      : sql`(${schema.lineHourlyRaw.hour} >= ${hourMin} OR ${schema.lineHourlyRaw.hour} < ${hourMax})`; // wraps midnight
+
+  const rows = await db
+    .select({
+      date: schema.lineHourlyRaw.date,
+      avgDelayMin: sql<number | null>`ROUND(SUM(${schema.lineHourlyRaw.avgDelayMin} * ${schema.lineHourlyRaw.numSamples}) * 1.0 / NULLIF(SUM(${schema.lineHourlyRaw.numSamples}), 0), 2)`,
+      totalJourneys: sql<number>`SUM(${schema.lineHourlyRaw.numSamples})`,
+    })
+    .from(schema.lineHourlyRaw)
+    .where(
+      and(
+        gte(schema.lineHourlyRaw.date, fromDate),
+        lte(schema.lineHourlyRaw.date, toDate),
+        hourFilter,
+        operatorsLineFilter(operators, schema.lineHourlyRaw.lineRef),
+        inArray(schema.lineHourlyRaw.vehicleMode, INCLUDED_MODES as readonly string[] as string[]),
+      ),
+    )
+    .groupBy(schema.lineHourlyRaw.date)
+    .orderBy(schema.lineHourlyRaw.date)
+    .all();
+
+  return rows.map((r) => ({
+    date: r.date,
+    avgDelayMin: r.avgDelayMin,
+    pctOnTime: null as number | null,
+    pctDelayed10plus: null as number | null,
+    pctEarly: null as number | null,
+    totalJourneys: r.totalJourneys,
+    totalCancellations: null as number | null,
+    pctRealtimeCoverage: null as number | null,
+    journeysMissingRealtime: null as number | null,
+  }));
+}
+
 // ---------------------------------------------------------------------------
 // Lines
 // ---------------------------------------------------------------------------
