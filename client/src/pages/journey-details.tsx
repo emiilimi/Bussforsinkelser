@@ -740,9 +740,12 @@ export default function JourneyDetails() {
 
   const stopProfileWidth = Math.max(700, stopProfileData.length * 44);
 
-  // Compute Y-axis maxes after data is available and sync to state
-  const trendDataMax = Math.ceil(Math.max(...trendData.map(d => Math.max(d.maxDelay ?? 0, d.avgDelay ?? 0)), 1));
-  const stopProfileCumDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.max(d.maxDelayMin ?? 0, d.avgDelayMin ?? 0)), 1));
+  // Compute Y-axis maxes after data is available and sync to state.
+  // Bånd-feltene (maxDelay, bandBase+bandRange, extremeMax, o.l.) tas KUN med
+  // når showBands er på — ellers ble aksen stående og strekke seg etter et
+  // bånd som ikke lenger tegnes, og snittlinjen klistret seg flat til bunnen.
+  const trendDataMax = Math.ceil(Math.max(...trendData.map(d => Math.max(showBands ? (d.maxDelay ?? 0) : 0, d.avgDelay ?? 0)), 1));
+  const stopProfileCumDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.max(showBands ? (d.maxDelayMin ?? 0) : 0, d.avgDelayMin ?? 0)), 1));
   const stopProfileDerDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
   // Min for derivative mode (can be negative when bus recovers time):
   const stopProfileDerDataMin = Math.floor(Math.min(...stopProfileData.map(d => d.delayGain ?? 0), 0));
@@ -759,13 +762,13 @@ export default function JourneyDetails() {
   // stopptid er en meningsfull bunn), og slideren + allowDataOverflow lar deg
   // fortsatt dra opp for å se enkeltstopp over dette.
   const stopProfileDwellDataMax = dwellAxisMax(stopProfileData.map(d => d.dwellTimeSec));
-  const profileDataMax = Math.ceil(Math.max(...profileData.map(d => Math.max(d.bandBase + d.bandRange, d.avgPlusSigma ?? 0, d.avgDelayMin ?? 0, d.extremeMax ?? 0)), 1));
+  const profileDataMax = Math.ceil(Math.max(...profileData.map(d => Math.max(showBands ? d.bandBase + d.bandRange : 0, showBands ? (d.avgPlusSigma ?? 0) : 0, d.avgDelayMin ?? 0, showBands ? (d.extremeMax ?? 0) : 0)), 1));
   // Min also accounts for avg-σ inner band lower edge AND raw extreme min (can be negative when avg is small)
-  const profileDataMin = Math.floor(Math.min(...profileData.map(d => Math.min(d.bandBase, d.innerBandBase, d.extremeMin ?? 0, d.avgDelayMin ?? 0)), 0));
+  const profileDataMin = Math.floor(Math.min(...profileData.map(d => Math.min(showBands ? d.bandBase : 0, showBands ? d.innerBandBase : 0, showBands ? (d.extremeMin ?? 0) : 0, d.avgDelayMin ?? 0)), 0));
   const profileDerDataMax = Math.ceil(Math.max(...profileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
   const profileDerDataMin = Math.floor(Math.min(...profileData.map(d => d.delayGain ?? 0), 0));
   const profileDwellDataMax = dwellAxisMax(profileData.map(d => d.dwellTimeSec));
-  const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0)), 1));
+  const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(showBands ? (d.maxAvgDelay ?? 0) : 0, d.avgDelay ?? 0)), 1));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setTrendYMax(trendDataMax); }, [trendDataMax]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1108,12 +1111,8 @@ export default function JourneyDetails() {
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
                         <Tooltip content={<HourlyTooltip periodLabel={periodLabel} />} />
-                        {showBands && (
-                          <>
-                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
-                          </>
-                        )}
+                        {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                        {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                       </ComposedChart>
@@ -1141,12 +1140,8 @@ export default function JourneyDetails() {
                         <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", trendYMax]} allowDataOverflow />
                         <Tooltip content={<DailyTrendTooltip />} />
-                        {showBands && (
-                          <>
-                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
-                          </>
-                        )}
+                        {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                        {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />}
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} isAnimationActive={false} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                       </ComposedChart>
@@ -1364,12 +1359,8 @@ export default function JourneyDetails() {
                             />
                             <YAxis hide domain={["auto", stopProfileCumYMax]} allowDataOverflow width={0} />
                             <Tooltip content={<ProfileTooltip />} />
-                            {showBands && (
-                              <>
-                                <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                                <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
-                              </>
-                            )}
+                            {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                            {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />}
                             <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
                             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
                           </ComposedChart>
@@ -1771,19 +1762,20 @@ export default function JourneyDetails() {
                             />
                             <YAxis hide domain={[profileYMin, profileYMax]} allowDataOverflow width={0} />
                             <Tooltip content={(props: any) => <ProfileTooltip {...props} numVariants={selectedJourney?.numVariants} />} />
-                            {showBands && (
-                              <>
-                                {/* Outer band: capped at avg±2σ (≈95% of weeks, filters outlier weeks) */}
-                                <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                                <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--muted-foreground))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
-                                {/* Inner band: avg±σ symmetric (≈68% of weeks) */}
-                                <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                                <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />
-                                {/* Absolute extremes (raw min/max across all weeks) — faint dashed lines */}
-                                <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
-                                <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
-                              </>
-                            )}
+                            {/* Outer band: capped at avg±2σ (≈95% of weeks, filters outlier weeks).
+                                NB: hver av disse MÅ være sin egen betingede JSX-node — recharts sin
+                                ComposedChart mister stack-grupperingen til Area-barna hvis de i stedet
+                                pakkes i ett <>...</>-fragment (empirisk verifisert: 0 <path> i DOM med
+                                fragment, 2 uten, selv om ComposedChart sin egen toArray() sier den skal
+                                flate ut fragmenter — noe annet i stack/domene-beregningen gjør ikke det). */}
+                            {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                            {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--muted-foreground))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
+                            {/* Inner band: avg±σ symmetric (≈68% of weeks) */}
+                            {showBands && <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                            {showBands && <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />}
+                            {/* Absolute extremes (raw min/max across all weeks) — faint dashed lines */}
+                            {showBands && <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
+                            {showBands && <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
                             {/* Main average line */}
                             <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
                             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
