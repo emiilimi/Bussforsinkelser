@@ -39,12 +39,20 @@ import {
   parseWindow,
 } from "@/components/time-window-picker";
 import { useUrlParam } from "@/hooks/use-url-state";
+import { useLineGeometry } from "@/hooks/use-line-geometry";
+import { LineRouteMap, type StopDelayMap } from "@/components/line-route-map";
 import { DayTypePicker } from "@/components/day-type-picker";
+import { BandToggle } from "@/components/band-toggle";
 import { dayTypeFilterLabel, parseDayTypeFilter } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+// Verste stopp vises som topp 5, men SAMME spørring gir fargene til rutekartet
+// (se stopDelays lenger nede), så vi henter hele linjens stopp. Spørringen
+// grupperer uansett over alt — LIMIT kutter bare resultatet, ingen ekstra kost.
+const WORST_STOPS_LIMIT = 400;
 
 type LineRef = { lineRef: string; lineName: string | null };
 
@@ -85,6 +93,7 @@ type LineSummary = {
   pctEarly: number | null;
   stddevDelayMin: number | null;
   totalDepartures: number;
+  pctRealtimeCoverage: number | null;
 };
 
 type JourneyStop = {
@@ -397,7 +406,24 @@ export default function JourneyDetails() {
 
   const { data: journeys = [] } = useJourneysForLine(fetchedLine, fromDate);
 
-  const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate, 15, dayType);
+  const { data: worstStops = [] } = useWorstStopsForLine(fetchedLine, fromDate, WORST_STOPS_LIMIT, dayType);
+
+  // Kartet lastes lat: Entur-kallet fyres først når brukeren trykker «Vis kart».
+  const [showMap, setShowMap] = useState(false);
+  const { data: lineGeometry, isLoading: mapLoading } = useLineGeometry(fetchedLine, showMap);
+
+  // Forsinkelse per stopp til kartfargene. Gjenbruker worstStops (som allerede
+  // hentes for «Verste stopp») — den grupperer per stop_ref over hele linjen,
+  // så vi slipper en egen DuckDB-spørring bare for kartet.
+  const stopDelays: StopDelayMap = useMemo(() => {
+    // globalThis.Map: `Map` er her lucide-reacts kartikon (se import-linja),
+    // som skygger for den innebygde Map-konstruktøren.
+    const m: StopDelayMap = new globalThis.Map();
+    for (const s of worstStops) {
+      m.set(s.stopRef, { delay: s.avgDelayMin ?? null, n: s.numSamples ?? 0 });
+    }
+    return m;
+  }, [worstStops]);
 
   const [stopProfileDir, setStopProfileDir] = useUrlParam("stopProfileDir", "");
   const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
@@ -499,15 +525,25 @@ export default function JourneyDetails() {
 
   // Real-time data coverage: % of scheduled stop-visits that had actual GPS times
   // Comes directly from pct_realtime_coverage computed in ingest.py
+  // Reise-bygget får dekningen ferdig per (linje, vindu) fra artefakten —
+  // parquet har bare sanntidsobserverte rader, så nevneren finnes ikke der.
+  // Full-bygget leverer den fortsatt per dag på dagsradene, derfor snittet som
+  // fallback. Er ingen av delene tilgjengelig (f.eks. egendefinert
+  // datointervall på reise), står kortet med «—» framfor et omtrentlig tall.
   const { coveragePct, coverageWarning } = useMemo(() => {
+    const fromSummary = lineSummary?.pctRealtimeCoverage;
     const vals = daily.map(r => (r as any).pctRealtimeCoverage).filter((v): v is number => v != null);
-    if (vals.length === 0) return { coveragePct: null, coverageWarning: null };
-    const avg = Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+    const avg = fromSummary != null
+      ? Math.round(fromSummary)
+      : vals.length > 0
+        ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
+        : null;
+    if (avg == null) return { coveragePct: null, coverageWarning: null };
     const warning = avg < 70
       ? `Sanntidsdekning ${avg}% — over 30% av avgangene mangler GPS-data. Forsinkelsesstatistikk kan være ufullstendig.`
       : null;
     return { coveragePct: avg, coverageWarning: warning };
-  }, [daily]);
+  }, [daily, lineSummary]);
 
   const hourlyData = hourly.map((r) => {
     const avg = r.avgDelayMin ?? 0;
@@ -603,6 +639,8 @@ export default function JourneyDetails() {
   }, [directionOptions, direction, setDirection]);
 
   // Y-axis max states (declared early; updated via useEffect after data is computed below)
+  // Ett bryter for min/maks-båndene i ALLE graf-ene under (se band-toggle.tsx).
+  const [showBands, setShowBands] = useState(true);
   const [trendYMax, setTrendYMax] = useState<number>(1);
   const [stopProfileCumYMax, setStopProfileCumYMax] = useState<number>(1);
   const [stopProfileDerYMax, setStopProfileDerYMax] = useState<number>(1);
@@ -881,6 +919,7 @@ export default function JourneyDetails() {
             </div>
             <TimeWindowPicker value={tw} onChange={setTw} />
             <DayTypePicker value={dayType} onChange={setDayTypeParam} />
+            <BandToggle show={showBands} onChange={setShowBands} />
             <p className="text-[11px] text-muted-foreground -mt-1">
               Reiseprofiler dekker inntil 13 uker med rådata.
             </p>
@@ -1057,7 +1096,8 @@ export default function JourneyDetails() {
                 <CardHeader>
                   <CardTitle>Forsinkelse etter time på dagen</CardTitle>
                   <CardDescription>
-                    Snittforsinkelse per time ({periodLabel}). Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                    Snittforsinkelse per time ({periodLabel}).
+                    {showBands && " Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1068,8 +1108,12 @@ export default function JourneyDetails() {
                         <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
                         <Tooltip content={<HourlyTooltip periodLabel={periodLabel} />} />
-                        <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                        <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                        {showBands && (
+                          <>
+                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                          </>
+                        )}
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                       </ComposedChart>
@@ -1097,8 +1141,12 @@ export default function JourneyDetails() {
                         <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", trendYMax]} allowDataOverflow />
                         <Tooltip content={<DailyTrendTooltip />} />
-                        <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                        <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                        {showBands && (
+                          <>
+                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                          </>
+                        )}
                         <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} isAnimationActive={false} />
                         <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                       </ComposedChart>
@@ -1109,6 +1157,48 @@ export default function JourneyDetails() {
             )}
 
             {/* ---- B: Worst stops on the line ---- */}
+            {/* Rutekart — lastes lat, se showMap. Plassert rett over «Verste
+                stopp» siden begge handler om stoppene langs ruten. */}
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-start justify-between gap-3">
+                  <div>
+                    <CardTitle>Forsinkelseskart</CardTitle>
+                    <CardDescription>
+                      Ruten tegnet på kart, farget etter gjennomsnittlig forsinkelse per stopp ({periodLabel}).
+                    </CardDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={showMap ? "secondary" : "outline"}
+                    onClick={() => setShowMap((v) => !v)}
+                    className="flex-shrink-0"
+                  >
+                    {showMap ? "Skjul kart" : "Vis kart"}
+                  </Button>
+                </div>
+              </CardHeader>
+              {showMap && (
+                <CardContent>
+                  {mapLoading ? (
+                    <div className="flex justify-center py-6">
+                      <BusLoading label="Henter rutegeometri fra Entur" scale={0.55} />
+                    </div>
+                  ) : lineGeometry ? (
+                    <LineRouteMap
+                      variants={lineGeometry.variants}
+                      stopDelays={stopDelays}
+                      transportMode={lineGeometry.transportMode}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground py-2">
+                      Fant ingen rutegeometri for denne linjen hos Entur.
+                    </p>
+                  )}
+                </CardContent>
+              )}
+            </Card>
+
             {worstStops.length > 0 && (
               <Card>
                 <CardHeader>
@@ -1161,7 +1251,7 @@ export default function JourneyDetails() {
                   <CardTitle>Forsinkelsesprofil langs ruten</CardTitle>
                   <CardDescription>
                     Gjennomsnittlig forsinkelse per stopp langs hele ruten — viser hvor forsinkelsen bygger seg opp.
-                    Båndet viser spennet mellom beste og verste enkeltavgang i valgt tidsvindu.
+                    {showBands && " Båndet viser spennet mellom beste og verste enkeltavgang i valgt tidsvindu."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -1274,8 +1364,12 @@ export default function JourneyDetails() {
                             />
                             <YAxis hide domain={["auto", stopProfileCumYMax]} allowDataOverflow width={0} />
                             <Tooltip content={<ProfileTooltip />} />
-                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                            {showBands && (
+                              <>
+                                <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                                <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />
+                              </>
+                            )}
                             <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
                             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
                           </ComposedChart>
@@ -1677,15 +1771,19 @@ export default function JourneyDetails() {
                             />
                             <YAxis hide domain={[profileYMin, profileYMax]} allowDataOverflow width={0} />
                             <Tooltip content={(props: any) => <ProfileTooltip {...props} numVariants={selectedJourney?.numVariants} />} />
-                            {/* Outer band: capped at avg±2σ (≈95% of weeks, filters outlier weeks) */}
-                            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--muted-foreground))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
-                            {/* Inner band: avg±σ symmetric (≈68% of weeks) */}
-                            <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />
-                            {/* Absolute extremes (raw min/max across all weeks) — faint dashed lines */}
-                            <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
-                            <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
+                            {showBands && (
+                              <>
+                                {/* Outer band: capped at avg±2σ (≈95% of weeks, filters outlier weeks) */}
+                                <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                                <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--muted-foreground))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                                {/* Inner band: avg±σ symmetric (≈68% of weeks) */}
+                                <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+                                <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />
+                                {/* Absolute extremes (raw min/max across all weeks) — faint dashed lines */}
+                                <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
+                                <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />
+                              </>
+                            )}
                             {/* Main average line */}
                             <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
                             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
@@ -1701,26 +1799,30 @@ export default function JourneyDetails() {
                             Heltrukken linje er <span className="font-medium">vektet snitt</span> av forsinkelsen
                             (ikke median) over alle ukene i tidsvinduet, vektet etter antall observasjoner per uke.
                           </p>
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
-                            <span className="inline-flex items-center gap-1.5">
-                              <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--primary))", opacity: 0.28 }} />
-                              <span>Indre bånd: snitt ± 1σ (≈ 68 % av ukene hvis normalfordelt)</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.12 }} />
-                              <span>Ytre bånd: kappet til snitt ± 2σ (≈ 95 %, filtrerer ekstrem-uker)</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <span className="inline-block w-4 border-t border-dashed border-muted-foreground/70" />
-                              <span>Stiplet: faktisk min/maks-uke (snø, streik, e.l.)</span>
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground/80">
-                            Båndet er <span className="italic">symmetrisk i verdi</span> (samme antall minutter
-                            opp som ned) — ikke i prosentil. Forsinkelser er gjerne høyreskeive, så hvis snittet
-                            ligger langt over 0 dekker det øvre båndet typisk litt mer enn 68 %, det nedre litt
-                            mindre. For ekte prosentiler (P50/P80/P95), bruk reiseplanleggeren.
-                          </p>
+                          {showBands && (
+                            <>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--primary))", opacity: 0.28 }} />
+                                  <span>Indre bånd: snitt ± 1σ (≈ 68 % av ukene hvis normalfordelt)</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.12 }} />
+                                  <span>Ytre bånd: kappet til snitt ± 2σ (≈ 95 %, filtrerer ekstrem-uker)</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="inline-block w-4 border-t border-dashed border-muted-foreground/70" />
+                                  <span>Stiplet: faktisk min/maks-uke (snø, streik, e.l.)</span>
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground/80">
+                                Båndet er <span className="italic">symmetrisk i verdi</span> (samme antall minutter
+                                opp som ned) — ikke i prosentil. Forsinkelser er gjerne høyreskeive, så hvis snittet
+                                ligger langt over 0 dekker det øvre båndet typisk litt mer enn 68 %, det nedre litt
+                                mindre. For ekte prosentiler (P50/P80/P95), bruk reiseplanleggeren.
+                              </p>
+                            </>
+                          )}
                         </div>
                       )}
 

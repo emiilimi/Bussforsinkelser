@@ -3,6 +3,7 @@ import { onRequestGet as geocoderGet, onRequestOptions as geocoderOptions } from
 import { onRequestGet as geocoderReverseGet, onRequestOptions as geocoderReverseOptions } from "../functions/api/geocoder/reverse";
 import { onRequestGet as departuresGet, onRequestOptions as departuresOptions } from "../functions/api/departures/[stopPlaceRef]";
 import { onRequestGet as serviceJourneyGet, onRequestOptions as serviceJourneyOptions } from "../functions/api/servicejourney/[id]";
+import { onRequestGet as lineGeometryGet, onRequestOptions as lineGeometryOptions } from "../functions/api/line-geometry";
 import type { PagesContext } from "../functions/api/_entur";
 
 export default {
@@ -21,6 +22,12 @@ export default {
     if (path === "/api/trip") {
       if (request.method === "OPTIONS") return tripOptions();
       if (request.method === "POST") return tripPost(context);
+    }
+
+    // GET /api/line-geometry
+    if (path === "/api/line-geometry") {
+      if (request.method === "OPTIONS") return lineGeometryOptions();
+      if (request.method === "GET") return lineGeometryGet(context);
     }
 
     // GET /api/geocoder/autocomplete

@@ -3,7 +3,69 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-27
+**Sist oppdatert**: 2026-08-29
+
+## Endringslogg — 2026-08-29: forsinkelseskart på Linjeanalyse
+
+Linjeanalysen har nå samme kart som reiseplanleggeren: ruten tegnet over OSM,
+farget etter gjennomsnittlig forsinkelse per stopp.
+
+### Entur eier geometrien OG variantlista — ikke vi
+
+Det mest overraskende funnet: **rutevariantene vi kan utlede fra parquet er
+delvis falske.** Målt på `RUT:Line:5` retning 1:
+
+| Vår «variant» | Kjøringer | Finnes hos Entur? |
+|---|---|---|
+| Sognsvann → Vestli, 33 stopp | 1706 | ja — men Entur har 43 stopp |
+| Stortinget → Vestli, 19 stopp | 3187 | ja, men bare 28 avganger |
+| Stortinget → Nydalen, 8 stopp | 3196 | **nei** |
+
+Entur har ingen variant som starter på Stortinget. Kjøretøyet begynner bare å
+rapportere sanntid der. Samme årsak til 33 vs 43 stopp: de 10 resterende
+rapporterer ikke. Tegnet vi «våre» varianter, tegnet vi ruter som ikke finnes.
+
+Derfor: geometri og variantliste fra Entur, farger fra våre data.
+
+### journeyPatterns, ikke serviceJourneys
+
+Et `journeyPattern` ER en rutevariant. `RUT:Line:5` har **51 patterns mot 2798
+serviceJourneys** — samme informasjon, ~50x mindre. Nytt endepunkt
+`/api/line-geometry` (Pages Function + Express) henter alle patterns i ett kall
+og filtrerer server-side til de mest kjørte før klienten ser dem: fullt
+Entur-svar er ~400 kB for RUT:Line:5, klienten får ~3 varianter. Cachet 24 t —
+rutegeometri endres bare ved ruteendring.
+
+> ⚠️ `pointsOnLink.length` er **antall punkter, ikke meter**. Feltet sa «1520»
+> for en rute jeg målte til 37,3 km ved å dekode polylinja. Ikke bruk det som
+> lengde.
+
+### «Vanligste variant» — begge de åpenbare målene er feil
+
+Rangeringen bruker Enturs avgangstelling, ikke våre observasjoner. To feller:
+
+- **Observasjoner** = rader = kjøringer × stopp. Måler dels rutelengde.
+- **Unike `service_journey_id`** måler ID-CHURN, ikke trafikk. Målt på
+  RUT:Line:5: 33-stoppsvariantens IDer lever 1,44 dager hver, 19-stoppsvariantens
+  4,6 dager. Den «har flest avganger» kun fordi IDene roterer raskere.
+
+Riktig mål i våre data ville vært `COUNT(DISTINCT service_journey_id || date)`.
+Vi slipper unna med Enturs ruteplantelling, som er upåvirket av begge deler.
+
+### Gjenbruk
+
+Tegnekjernen er trukket ut av `trip-route-map.tsx` (301 → 149 linjer) til
+`route-map-canvas.tsx`: fargeskala, `MIN_OBS_FOR_COLOR`, stoppprikker,
+klikk-for-å-zoome, attribusjon. Begge kartene bruker den, så de leser likt.
+Reiseplanleggeren er verifisert uendret (stiplede gangelegg, fotnote, 10 paths).
+
+Fargene kommer fra `useWorstStopsForLine`, som allerede hentes for «Verste
+stopp» — grensen er hevet fra 15 til 400 (visningen slicer uansett til 5), så
+kartet koster **null nye DuckDB-spørringer**. Stopp under 20 observasjoner
+faller ut av spørringen og vises grå, i tråd med `MIN_OBS_FOR_COLOR`.
+
+Verifisert i nettleseren: 43 stopp tegnet, 2 grønne / 17 gule / 7 oransje /
+7 røde, og variantbryteren gikk 65 → 129 segmenter ved å slå på variant to.
 
 ## Endringslogg — 2026-08-27: Stoppanalyse ferdig aggregert i pipelinen
 

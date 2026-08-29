@@ -3,6 +3,12 @@
 > **Levende dokument.** Claude oppdaterer denne fila etter hvert som faser blir
 > ferdige. Sjekk **Statustabellen** for hvor vi er.
 > Sist oppdatert: 2026-06-28 (Fase 1–3 kode ferdig).
+>
+> ⚠️ **Fase 3-avsnittene lenger nede er HISTORISK plan, ikke gjeldende oppsett.**
+> Der står det «start på `r2.dev`, flytt til custom domene senere» — flyttingen
+> ER gjennomført. Gjeldende URL er `https://parquet.sentur.no` overalt.
+> Bruk aldri `pub-…r2.dev`: domenet er DNS-svartelistet på en del nett
+> (verifisert på UiO-nett 2026-08-27), se CLAUDE.md.
 
 ---
 
@@ -27,7 +33,7 @@ siste 90 dager).
 | Hvor mye analyse? | Reiseplanlegger + avganger + **journey + linje + stopp (siste 90 dager)** |
 | Rekkefølge | **Pipeline + hosting først**, deretter nye UI-funksjoner |
 | R2-bøtte | **Egen ny bøtte** (`reise-parquet`) — holder gammel demo frosset |
-| R2 public URL | `https://pub-0644836d41534e3d9ed8d6e056e5d0fb.r2.dev` (= `VITE_PARQUET_BASE_URL`) |
+| R2 public URL | `https://parquet.sentur.no` (= `VITE_PARQUET_BASE_URL`) — custom-domene. Bøttas `pub-…r2.dev`-adresse er DNS-svartelistet på en del nett, se CLAUDE.md |
 | Gammel demo | `bussforsinkelser.no` blir værende på **Railway** med stale data, urørt |
 
 ### Trenger jeg Railway? **Nei.**
@@ -286,7 +292,7 @@ uten å røre default-bygget.
 
 **Lokal forhåndsvisning (valgfritt) — én kommando, speiler produksjon:**
 ```powershell
-$env:VITE_PARQUET_BASE_URL = "https://pub-0644836d41534e3d9ed8d6e056e5d0fb.r2.dev"
+$env:VITE_PARQUET_BASE_URL = "https://parquet.sentur.no"
 npm run build:reise                 # → dist/reise/
 npx wrangler pages dev dist/reise   # kjører Functions + statisk, som på Pages
 ```
