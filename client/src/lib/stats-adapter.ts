@@ -288,8 +288,20 @@ async function apiSummary(params: URLSearchParams) {
 
 async function apiSummaryTrend(params: URLSearchParams) {
   const summary = await fetchSummary();
-  const days = parseInt(params.get("days") ?? "7", 10) || 7;
   const byDate = dailyByDate(summary, parseOperators(params));
+
+  // Egendefinert datospenn (samme parameterform som Express-endepunktet i
+  // server/routes.ts sin parseTimeWindow) — går foran `days` når begge er satt.
+  const from = params.get("from");
+  const to = params.get("to");
+  if (from && to) {
+    const [a, b] = from <= to ? [from, to] : [to, from];
+    return Array.from(byDate.entries())
+      .filter(([date]) => date >= a && date <= b)
+      .map(([, rows]) => combineDaily(rows));
+  }
+
+  const days = parseInt(params.get("days") ?? "7", 10) || 7;
   return Array.from(byDate.values()).slice(-days).map(combineDaily);
 }
 

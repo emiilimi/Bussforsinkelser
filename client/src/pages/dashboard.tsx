@@ -2,9 +2,10 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, Line, ComposedChart } from "recharts";
-import { Clock, TrendingUp, TrendingDown, Bus, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Bus, CheckCircle, XCircle, AlertTriangle, Calendar } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
@@ -15,6 +16,7 @@ import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
 import { DataQualityFlag, isImplausibleDelay, IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
+import { cn } from "@/lib/utils";
 
 type DailySummary = {
   date: string;
@@ -45,6 +47,15 @@ type LeaderboardLine = {
 const PERIOD_DAYS: Record<string, number> = IS_REISE
   ? { week: 7, month: 30, year: 90 }
   : { week: 7, month: 30, year: 365 };
+
+// Samme mønster som «Statistikkperiode» i reiseplanleggeren (trip-planner.tsx):
+// faste forhåndsvalg + «Egne datoer» som viser to datofelt.
+const PERIOD_OPTIONS = [
+  { value: "week", label: "Uke" },
+  { value: "month", label: "Måned" },
+  { value: "year", label: IS_REISE ? "90 dager" : "År" },
+  { value: "custom", label: "Egne datoer" },
+] as const;
 
 // Linjetopplistene (Dårligste/Beste linjer) er BEVISST frakoblet
 // tidsvindu-boksen på siden — de leser et ferdigaggregert vindu (7/30/90
@@ -91,19 +102,27 @@ function formatTrendDate(isoDate: string, period: string): string {
 
 export default function Dashboard() {
   const [period, setPeriod] = useUrlParam("period", "week");
+  const [customFrom, setCustomFrom] = useUrlParam("from", "");
+  const [customTo, setCustomTo] = useUrlParam("to", "");
   const [, navigate] = useLocation();
   const { operators, region } = useRegion();
-  const days = PERIOD_DAYS[period];
+  const days = PERIOD_DAYS[period] ?? 30;
+  const customRangeReady = period === "custom" && !!customFrom && !!customTo;
 
   // opStr is the raw query param (no leading separator) — appended with ? or & as needed per URL
   const opStr = operators.length ? `operator=${operators.join(",")}` : "";
+
+  const trendWindowParam = customRangeReady ? `from=${customFrom}&to=${customTo}` : `days=${days}`;
 
   const { data: summary, isFetching: summaryFetching } = useQuery<DailySummary>({
     queryKey: [`/api/summary${opStr ? `?${opStr}` : ""}`],
     placeholderData: keepPreviousData,
   });
   const { data: trend = [], isFetching: trendFetching } = useQuery<DailySummary[]>({
-    queryKey: [`/api/summary/trend?days=${days}${opStr ? `&${opStr}` : ""}`],
+    queryKey: [`/api/summary/trend?${trendWindowParam}${opStr ? `&${opStr}` : ""}`],
+    // Ved «Egne datoer» venter vi med å spørre til begge datoene er valgt —
+    // ellers ville et halvferdig valg falt tilbake på gårsdagens `days`-vindu.
+    enabled: period !== "custom" || customRangeReady,
     placeholderData: keepPreviousData,
   });
   const { data: worstLines = [], isFetching: worstLinesFetching } = useQuery<LeaderboardLine[]>({
@@ -144,7 +163,11 @@ export default function Dashboard() {
     };
   }, [trend]);
 
-  const periodLabel = period === "week" ? "Siste uke" : period === "month" ? "Siste måned" : `Siste ${days} dager`;
+  const periodLabel = period === "week" ? "Siste uke"
+    : period === "month" ? "Siste måned"
+    : period === "custom"
+      ? (customRangeReady ? `${formatDateShortNO(customFrom)}–${formatDateShortNO(customTo)}` : "Velg datoer")
+      : `Siste ${days} dager`;
 
   const trendData = useMemo(() => {
     const raw = trend.map((r) => ({
@@ -211,18 +234,60 @@ export default function Dashboard() {
             eget faste vindu (LEADERBOARD_PERIOD) og reagerer ikke på denne —
             bevisst, slik at det er tydelig hva velgeren faktisk påvirker. */}
         <Card className="shadow-sm">
-          <CardHeader className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>Tidsvindu</CardTitle>
-              <CardDescription>Styrer nøkkeltallene og grafen under</CardDescription>
+          <CardHeader className="flex flex-col gap-4 border-b pb-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Tidsvindu</CardTitle>
+                <CardDescription>Styrer nøkkeltallene og grafen under</CardDescription>
+              </div>
+              {/* Samme valgmønster som «Statistikkperiode» i reiseplanleggeren —
+                  faste forhåndsvalg + «Egne datoer» som åpner to datofelt. */}
+              <div className="flex flex-wrap gap-2">
+                {PERIOD_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setPeriod(opt.value)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                      period === opt.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <Tabs value={period} onValueChange={setPeriod} className="w-[300px]">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="week">Uke</TabsTrigger>
-                <TabsTrigger value="month">Måned</TabsTrigger>
-                <TabsTrigger value="year">{IS_REISE ? "90 dager" : "År"}</TabsTrigger>
-              </TabsList>
-            </Tabs>
+
+            {period === "custom" && (
+              <div className="flex flex-wrap items-end gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Fra dato
+                  </Label>
+                  <Input
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Til dato</Label>
+                  <Input
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                </div>
+                {!customRangeReady && (
+                  <p className="text-xs text-muted-foreground pb-2">Velg begge datoene for å oppdatere tallene.</p>
+                )}
+              </div>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-6 pt-6">
@@ -338,7 +403,7 @@ export default function Dashboard() {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      interval={period === "year" ? Math.floor(trendData.length / 12) : undefined}
+                      interval={period === "year" || (period === "custom" && trendData.length > 30) ? Math.floor(trendData.length / 12) : undefined}
                     />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
                     <Tooltip
