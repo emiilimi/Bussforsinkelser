@@ -172,8 +172,16 @@ try {
     # det med ett raskt nytt forsok.
     Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90 -Retries 2 -RetryDelayMinutes 20
     Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 45 -Retries 1 -RetryDelayMinutes 5
-    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20 -Retries 2 -RetryDelayMinutes 5
+    # aggregate_stats: 45 -> 90 min (2026-08-29). Steget brukte tidligere
+    # ~8-10 min, men stoppdetalj-shardingen (2000 filer, ~434 MB) tar alene
+    # ~28 min, og operatorlista har vokst (AVI/BFO/TEL: 1,84 mill. rader mot
+    # ~1,2 mill.). Malt 29. august: steget ble drept pa 45 min BEGGE forsok,
+    # begge ganger bare noen minutter fra a bli ferdig - og siden opplastingen
+    # kommer etterpa, ble R2 staende to dogn bak selv om ingesten var vellykket.
+    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 90 -Retries 1 -RetryDelayMinutes 5
+    # Opplastingen har ogsa fatt mer a gjore: 2000 shardfiler i tillegg til
+    # ukefilene og stats_*.json.
+    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 40 -Retries 2 -RetryDelayMinutes 5
 
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }
