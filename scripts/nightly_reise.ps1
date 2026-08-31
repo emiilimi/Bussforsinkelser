@@ -172,8 +172,25 @@ try {
     # det med ett raskt nytt forsok.
     Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -TimeoutMinutes 90 -Retries 2 -RetryDelayMinutes 20
     Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 45 -Retries 1 -RetryDelayMinutes 5
-    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 20 -Retries 2 -RetryDelayMinutes 5
+    # aggregate_stats: 45 -> 90 min (2026-08-29). Steget brukte tidligere
+    # ~8-10 min, men har vokst med stoppdetalj-shardingen (2000 filer,
+    # ~434 MB) og en lengre operatorliste (AVI/BFO/TEL).
+    #
+    # To malinger samme dogn, og de spriker - noter BEGGE, ikke bare den ene:
+    #   natt 29.08: drept pa 45 min BEGGE forsok. R2 ble staende to dogn bak
+    #               selv om ingesten var vellykket, siden opplastingen
+    #               kommer etterpa.
+    #   manuelt 29.08 kl. 19:45: HELE steget pa 1188 s (19,8 min), hvorav
+    #               shardingen ~11 min. Altsa godt under 45 min-fristen.
+    # Samme kode, samme datagrunnlag - forskjellen ma ligge i hva PC-en ellers
+    # gjorde om natta (eller at forste forsok fortsatt holdt filer/CPU nar
+    # forsok to startet). Fristen er derfor satt ut fra verste observasjon, og
+    # 90 min er et TAK, ikke en ventetid: gar steget pa 20 min koster det
+    # ingenting a ha rom til 90.
+    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 90 -Retries 1 -RetryDelayMinutes 5
+    # Opplastingen har ogsa fatt mer a gjore: 2000 shardfiler i tillegg til
+    # ukefilene og stats_*.json.
+    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 40 -Retries 2 -RetryDelayMinutes 5
 
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }

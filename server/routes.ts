@@ -8,6 +8,7 @@ import {
   getDailySummary,
   getLatestSummary,
   getDailySummaryRange,
+  getDailySummaryRangeByHour,
   getLinesForDate,
   getLineStats,
   getLineHourlyProfile,
@@ -246,12 +247,21 @@ export async function registerRoutes(
   });
 
   /**
-   * GET /api/summary/trend?days=30&operator=SKY,RUT
+   * GET /api/summary/trend?days=30&operator=SKY,RUT&hourMin=7&hourMax=9
    * Returns daily summaries for the last N days (for the trend chart).
+   * hourMin/hourMax (inclusive start, exclusive end) restrict to a time-of-day
+   * window — MVP: only avgDelayMin/totalJourneys are available at that
+   * granularity (see getDailySummaryRangeByHour), the rest come back null.
    */
   app.get("/api/summary/trend", async (req, res) => {
     const { fromIso, toIso } = parseTimeWindow(req.query, 7);
     const operators = parseOperators(req.query.operator);
+    const hourMin = req.query.hourMin != null ? parseInt(req.query.hourMin as string, 10) : null;
+    const hourMax = req.query.hourMax != null ? parseInt(req.query.hourMax as string, 10) : null;
+    if (hourMin != null && hourMax != null && !Number.isNaN(hourMin) && !Number.isNaN(hourMax)) {
+      const rows = await getDailySummaryRangeByHour(fromIso, toIso, operators, hourMin, hourMax);
+      return res.json(rows);
+    }
     const rows = await getDailySummaryRange(fromIso, toIso, operators);
     return res.json(rows);
   });
@@ -543,6 +553,79 @@ export async function registerRoutes(
     if (q.length < 2) return res.json([]);
     const rows = await searchStopsForCorridor(q);
     return res.json(rows);
+  });
+
+  /**
+   * GET /api/line-geometry?line=RUT:Line:5[&direction=inbound|outbound][&max=3]
+   * Rutevarianter med geometri for én linje (kart på linjeanalysen).
+   * Speiler functions/api/line-geometry.ts — se den for hvorfor geometrien og
+   * variantlista hentes fra Entur og ikke utledes av våre egne parquet-data.
+   */
+  app.get("/api/line-geometry", geocoderLimiter, async (req, res) => {
+    const lineRef = String(req.query.line || "").trim();
+    if (!/^[A-Za-z0-9:_\-.]{3,128}$/.test(lineRef)) {
+      return res.status(400).json({ error: "Invalid line ref" });
+    }
+    const dirRaw = req.query.direction;
+    const direction = dirRaw === "inbound" || dirRaw === "outbound" ? dirRaw : null;
+    const max = Math.min(Math.max(1, parseIntQuery(req.query.max, 3)), 6);
+
+    const query = `
+      query LineGeometry($id: ID!) {
+        line(id: $id) {
+          id publicCode name transportMode
+          journeyPatterns {
+            id directionType
+            pointsOnLink { points }
+            quays { id name latitude longitude }
+            serviceJourneys { id }
+          }
+        }
+      }`;
+    try {
+      const response = await fetch("https://api.entur.io/journey-planner/v3/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "ET-Client-Name": "emiliemoldestad-sentur" },
+        body: JSON.stringify({ query, variables: { id: lineRef } }),
+      });
+      if (!response.ok) return res.status(502).json({ error: "Entur error" });
+      const body: any = await response.json();
+      if (body.errors?.length) {
+        return res.status(502).json({ error: body.errors[0]?.message ?? "GraphQL error" });
+      }
+      const line = body.data?.line;
+      if (!line) return res.status(404).json({ error: "Line not found" });
+
+      const patterns: any[] = line.journeyPatterns ?? [];
+      const variants = patterns
+        .filter((p) => {
+          if (direction && p.directionType !== direction) return false;
+          if (!p.pointsOnLink?.points) return false;
+          return (p.quays ?? []).filter((q: any) => q.latitude != null && q.longitude != null).length >= 2;
+        })
+        .sort((a, b) => (b.serviceJourneys?.length ?? 0) - (a.serviceJourneys?.length ?? 0))
+        .slice(0, max)
+        .map((p) => ({
+          id: p.id,
+          directionType: p.directionType,
+          points: p.pointsOnLink.points,
+          runs: p.serviceJourneys?.length ?? 0,
+          quays: (p.quays ?? [])
+            .filter((q: any) => q.latitude != null && q.longitude != null)
+            .map((q: any) => ({ id: q.id, name: q.name, lat: q.latitude, lng: q.longitude })),
+        }));
+
+      return res.json({
+        lineRef: line.id,
+        publicCode: line.publicCode ?? null,
+        name: line.name ?? null,
+        transportMode: line.transportMode ?? null,
+        totalPatterns: patterns.length,
+        variants,
+      });
+    } catch {
+      return res.status(502).json({ error: "Entur unreachable" });
+    }
   });
 
   /**

@@ -74,6 +74,10 @@ function windowOverridesDayType(w: StatsTimeWindow): boolean {
   return w.type !== "all";
 }
 
+/** Hvor mange dager bakover standardvinduet dekker. Se resolveStatsWindow for
+ *  hvorfor det er begrenset i det hele tatt, og hva grensen koster statistisk. */
+const DEFAULT_STATS_WINDOW_DAYS = 30;
+
 /**
  * Gjør brukervalget om til et konkret vindu spørringene kan bruke.
  *
@@ -111,8 +115,36 @@ function resolveStatsWindow(
     case "custom":
       return { dayTypes: null, dateFrom: w.dateFrom || null, dateTo: w.dateTo || null };
     case "all":
-    default:
-      return defaultWindowForDayType(tripDayType);
+    default: {
+      // Standardvinduet: samme dagtype som reisedagen, MEN nå også begrenset
+      // bakover i tid (2026-08-22). Grunnen er kaldstartkostnaden: `dateFrom`
+      // styrer `filesForFamily()`, altså hvor mange ukefiler DuckDB må åpne,
+      // og hver fil koster ~6 sekvensielle HTTP-kall (målt, se NOTES.md
+      // punkt 4). Uten grense åpnes ALLE ukefilene ved hvert søk.
+      //
+      // MERK at vi IKKE bruker `case "days"` til dette: den setter
+      // `dayTypes: null` og ville dermed sluppet lørdags- og søndagsdata inn i
+      // en onsdagsreise. Her beholdes dagtype-låsen; det eneste nye er
+      // datogrensen.
+      //
+      // Kostnaden er målt, ikke antatt (samme datagrunnlag, 68 dager mot 30):
+      //   overgangene:  alle 14 testede holdt seg over 5-dagersterskelen på
+      //                 begge spor; median falt 19 → 13 dager (eksakt match)
+      //                 og 49 → 22 (pool)
+      //   persentiler:  andel (stopp × linje × dagtype)-celler med ≥20 obs
+      //                 falt fra 59,5 % til 53,4 %
+      //   filer:        5 av 11 ukefiler i stedet for alle
+      const latest =
+        latestDataDate ?? latestAvailableDate("by-stop") ?? null;
+      if (!latest) return defaultWindowForDayType(tripDayType);
+      const d = new Date(`${latest}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - (DEFAULT_STATS_WINDOW_DAYS - 1));
+      return {
+        dayTypes: [tripDayType],
+        dateFrom: d.toISOString().slice(0, 10),
+        dateTo: null,
+      };
+    }
   }
 }
 
@@ -257,17 +289,26 @@ function useEstimatedLegTimes(
     queryFn: async () => {
       const out = new Map<string, LegTimingResult>();
       for (const s of specs) {
-        const r0 = await duckQuery(legTimingSql(s), undefined, { family: "by-stop" });
+        // Samme vindu som SQL-en filtrerer på, men her styrer det hvilke
+        // UKEFILER som åpnes. Uten dette leste hver av disse spørringene alle
+        // filene, og viewet ble bygget om fram og tilbake mellom 5 og 11 filer
+        // mellom hver spørring (observert i __duckTimings).
+        const opts: QueryOptions = {
+          family: "by-stop",
+          fromDate: s.statsWindow?.dateFrom ?? undefined,
+          toDate: s.statsWindow?.dateTo ?? undefined,
+        };
+        const r0 = await duckQuery(legTimingSql(s), undefined, opts);
         if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj" });
           continue;
         }
-        const r1 = await duckQuery(legTimingSql(s, 1), undefined, { family: "by-stop" });
+        const r1 = await duckQuery(legTimingSql(s, 1), undefined, opts);
         if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1" });
           continue;
         }
-        const r2 = await duckQuery(legTimingSql(s, 2), undefined, { family: "by-stop" });
+        const r2 = await duckQuery(legTimingSql(s, 2), undefined, opts);
         const n2 = r2[0]?.n ?? 0;
         out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none" });
       }
@@ -2914,12 +2955,21 @@ export default function TripPlanner() {
   // og er billig; COUNT(DISTINCT date) må skanne date-kolonnen over ~64 mill.
   // rader. Se NOTES.md punkt 4.
   //
-  // 1) Datointervallet hentes med det samme (billig).
+  // 1) Datointervallet. «Billig» viste seg å være betinget: MIN/MAX besvares
+  //    riktignok fra row group-statistikk, men spørringen dekker HELE
+  //    historikken og åpner derfor ALLE ukefilene — også de seks som det
+  //    30-dagers standardvinduet aldri rører. Målt på preview: 28 s, og den
+  //    sto rett foran persentilene i køen. Den er ren informasjon i
+  //    metodeboksen, så den venter nå på at DuckDB er ledig, akkurat som
+  //    dagantallet under.
   const { data: dataRange } = useQuery<{ min: string; max: string } | null>({
     queryKey: ["duck-data-range"],
     enabled: duckReady,
     staleTime: Infinity,
+    retry: false,
     queryFn: async () => {
+      const idle = await whenDuckIdle();
+      if (!idle) return null;
       const rows = await duckQuery(
         `SELECT MIN(date) AS mind, MAX(date) AS maxd FROM delays_by_stop`,
       );
@@ -3093,7 +3143,13 @@ export default function TripPlanner() {
     // spørringen etter «Finn reise» hele metadata-kostnaden (målt 45 s kald
     // mot ~5 s varm) — se primeParquetMetadata(). Kun "by-stop": alle
     // spørringene på denne siden filtrerer på stop_ref.
-    primeParquetMetadata("by-stop");
+    //
+    // Primes med SAMME vindulengde som standardspørringene bruker, slik at vi
+    // ikke åpner ukefiler ingen skal lese. Vi sender ANTALL DAGER, ikke en
+    // ferdig dato: ankeret (siste datadag) kommer fra manifestet, som ikke er
+    // lest ennå på dette tidspunktet — se primeParquetMetadata. Utvider
+    // brukeren vinduet senere, åpnes de resterende filene da, inkrementelt.
+    primeParquetMetadata("by-stop", DEFAULT_STATS_WINDOW_DAYS);
   }, [fromStop, toStop]);
 
   // Count total DuckDB observations for transparency display

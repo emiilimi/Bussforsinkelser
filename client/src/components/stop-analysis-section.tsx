@@ -28,6 +28,7 @@ import {
 import { useUrlParam } from "@/hooks/use-url-state";
 import { DayTypePicker } from "@/components/day-type-picker";
 import { dayTypeFilterLabel, parseDayTypeFilter } from "@/lib/day-type";
+import { BandToggle } from "@/components/band-toggle";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -262,9 +263,14 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   })();
 
   const { data: linesAtStop = [], isFetching: linesFetching } =
-    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
+    // windowDays: lar hooken bruke den ferdigaggregerte stoppdetalj-artefakten
+    // for presets (7/14/30/90) i stedet for DuckDB. Egendefinerte intervall
+    // har kind === "custom" og sendes som undefined → DuckDB som før.
+    useLinesAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType,
+                   window.kind === "preset" ? window.days : undefined);
   const { data: lineHourlyRaw = [], isFetching: hourlyFetching } =
-    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType);
+    useLineHourlyAtStop(stopRef, stopFromDate, stopName, lat, lng, dayType,
+                        window.kind === "preset" ? window.days : undefined);
 
   // Noe er på vei inn mens vi allerede viser tall fra forrige valg.
   // (Førstegangslasting dekkes av den store BusLoading-en lenger nede — der
@@ -313,8 +319,19 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
     };
   });
 
-  const trendDataMax = Math.ceil(Math.max(...trendData.map(d => Math.max(d.maxDelay ?? 0, d.avgDelay ?? 0)), 1));
-  const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0)), 1));
+  // Én bryter for min/maks-båndene i begge grafene under (se band-toggle.tsx).
+  const [showBands, setShowBands] = useState(true);
+
+  // Y-aksen MÅ følge bryteren. Ved Krohnsminde er snittet 3,3 min mens verste
+  // enkeltdag er 59 — beholdt vi 59 som tak etter at båndet ble skjult, ville
+  // snittlinja blitt liggende klemt mot bunnen og bryteren sett ut som om den
+  // ikke gjorde noe. Skjult bånd = skaler til snittet.
+  const trendDataMax = Math.ceil(Math.max(
+    ...trendData.map(d => showBands ? Math.max(d.maxDelay ?? 0, d.avgDelay ?? 0) : (d.avgDelay ?? 0)),
+    1));
+  const hourlyDataMax = Math.ceil(Math.max(
+    ...hourlyData.map(d => showBands ? Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0) : (d.avgDelay ?? 0)),
+    1));
   const [trendYMax, setTrendYMax] = useState(1);
   const [hourlyYMax, setHourlyYMax] = useState(1);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -389,6 +406,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
 
       <TimeWindowPicker value={window} onChange={setWindow} />
       <DayTypePicker value={dayType} onChange={setStopDayTypeParam} />
+      <BandToggle show={showBands} onChange={setShowBands} />
 
       {/* Oppdateringsstripe: vises ØVERST, over den gamle statistikken, når
           et nytt tidsvindu/retning hentes. Uten den blir forrige visning
@@ -523,8 +541,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                     <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", trendYMax]} allowDataOverflow />
                     <Tooltip content={<DailyTrendTooltip />} />
-                    <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                    <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                    {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                    {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
                     <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} isAnimationActive={false} />
                     <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                   </ComposedChart>
@@ -539,7 +557,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
               <CardHeader>
                 <CardTitle>Forsinkelse etter time på dagen</CardTitle>
                 <CardDescription>
-                  Snittforsinkelse per time siste 30 dager. Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden.
+                  Snittforsinkelse per time siste 30 dager.
+                  {showBands && " Det skyggelagte båndet viser spennet mellom beste og verste enkeltdag i perioden."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -550,8 +569,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                       <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
                       <Tooltip content={<HourlyTooltip />} />
-                      <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
-                      <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />
+                      {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                      {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
                       <Line type="monotone" dataKey="avgDelay" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--destructive))" }} activeDot={{ r: 4 }} isAnimationActive={false} />
                       <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
                     </ComposedChart>

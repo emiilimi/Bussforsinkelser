@@ -193,10 +193,24 @@ python pipeline/upload_to_r2.py --prune
 ```
 
 **⚠️ FELLE 2 — `aggregate_stats.py` MÅ kjøres på nytt.** Parquet driver
-Linjeanalyse/stoppanalyse/kart (DuckDB leser filene direkte), men Oversikt og
-Topplister leser de ferdigaggregerte `stats_*.json`. Hopper du over steget,
+Linjeanalyse og kart (DuckDB leser filene direkte), men Oversikt, Topplister
+OG Stoppanalyse leser ferdigaggregerte artefakter. Hopper du over steget,
 dukker de etterfylte radene opp noen steder og ikke andre — og `upload_to_r2`
 laster villig opp de GAMLE JSON-filene uten å klage.
+
+`aggregate_stats.py` skriver (2026-08-27):
+`stats_summary.json`, `stats_stops_map.json`, `stats_line_names.json` og
+`stops/<shard>.json` — sistnevnte er Stoppanalysens datagrunnlag, 2000
+shardfiler à ~180 KB. Uten dem faller Stoppanalyse tilbake til DuckDB i
+nettleseren, som er korrekt men tar ~40 s kaldt (se STATUS.md 2026-08-27).
+Shardnøkkelen er `crc32(stopPlaceRef) % 2000` og MÅ være identisk i
+`pipeline/aggregate_stats.py` (`shard_of`) og `client/src/lib/stop-detail.ts`
+(`shardOf`) — endrer du `STATS_STOP_SHARDS` må begge følge med, og gamle
+shardfiler ryddes av `upload_to_r2.py --prune`.
+
+**Kun ÉN parquet-familie leses.** `export_parquet` skriver hver uke to ganger
+(`-by-line` og `-by-stop`, samme rader ulikt sortert). Et blankt `*.parquet`
+leste alt dobbelt — dobbelt minne (OOM på 11 uker) og dobbel `COUNT(*)`.
 
 **⚠️ FELLE i steg 3**: `export_parquet` nekter å overskrive en ukefil med en
 versjon som dekker FÆRRE dager (vern mot datatap). Basen har bare 14 dagers
@@ -466,7 +480,7 @@ query testTrip {
 ```
 ingest.py → journey_stop_daily (SQLite 90d)
     → export_parquet.py → data/parquet/YYYY-WXX-by-line.parquet + YYYY-WXX-by-stop.parquet (ZSTD)
-        → upload_to_r2.py → Cloudflare R2 (public .r2.dev URL)
+        → upload_to_r2.py → Cloudflare R2 (via custom-domenet parquet.sentur.no)
             → DuckDB-WASM i nettleser (~6MB, jsDelivr CDN)
                 → PERCENTILE_CONT queries via delays_by_line / delays_by_stop views
 ```
@@ -497,7 +511,18 @@ ingest.py → journey_stop_daily (SQLite 90d)
 **Server-endepunkter (kun full-bygget, ikke reise)**:
 - `GET /api/parquet/manifest` — JSON-array av tilgjengelige ukefiler
 - `GET /api/parquet/:file` — Statisk serving med Accept-Ranges (for DuckDB HTTP range requests)
-- Reise-bygget henter i stedet direkte fra R2 sin public URL (`VITE_PARQUET_BASE_URL`).
+- Reise-bygget henter i stedet direkte fra R2 via `VITE_PARQUET_BASE_URL`.
+
+> **⚠️ Bruk ALLTID custom-domenet `https://parquet.sentur.no` — aldri bøttas
+> `https://pub-<id>.r2.dev`.** Hele `.r2.dev`-domenet er svartelistet av en
+> del sikkerhets-DNS fordi det misbrukes til malware-hosting. Målt 2026-08-27
+> på UiO-nett: `pub-…r2.dev` resolver via CNAME til `cert-rpz01.uio.no`
+> (UiO CERT sin RPZ-sinkhole) og TCP-oppkoblingen feiler — altså *før* trafikken
+> når Cloudflare. Symptomet er `HTTP 000` / «connection refused» på ALLE
+> R2-kall, mens resten av internett virker, så det ser lett ut som en
+> Cloudflare-nedetid. Custom-domenet er upåvirket og støtter range requests
+> (verifisert: `206 Partial Content`, `Accept-Ranges: bytes`).
+> Se STATUS.md 2026-08-27.
 
 **Bruk i komponenter**:
 - `<DelayPercentiles lineRef="SKY:Line:6" />` — viser P50/P80/P95 kort

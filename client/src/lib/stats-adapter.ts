@@ -16,6 +16,7 @@ import {
   type DelayFamily,
 } from "@/hooks/use-parquet-query";
 import { computeDayType, dayTypePredicate } from "@/lib/day-type";
+import { fetchStopDetail, snapToWindow, offsetToDate } from "@/lib/stop-detail";
 
 // ---------------------------------------------------------------------------
 // «For tidlig»-terskel
@@ -70,6 +71,9 @@ type Summary = {
   dates: { min: string; max: string };
   daily: DailyRow[];
   lines: LineRow[];
+  /** Sanntidsdekning i prosent per linje, én verdi per vindu i `windows`.
+   *  Mangler i artefakter laget før feltet fantes — behandles som tomt. */
+  coverage?: Record<string, Array<number | null>>;
 };
 
 // Kompakt radformat: [stopRef, operator, stopName, lat, lng, w7, w30, w90,
@@ -283,10 +287,90 @@ async function apiSummary(params: URLSearchParams) {
 }
 
 async function apiSummaryTrend(params: URLSearchParams) {
+  // Tid-på-dagen-filter går via en egen live DuckDB-spørring — den
+  // ferdigaggregerte stats_summary.json har ingen timesdimensjon.
+  const hourMinParam = params.get("hourMin");
+  const hourMaxParam = params.get("hourMax");
+  if (hourMinParam != null && hourMaxParam != null) {
+    return apiSummaryTrendByHour(params, hourMinParam, hourMaxParam);
+  }
+
   const summary = await fetchSummary();
-  const days = parseInt(params.get("days") ?? "7", 10) || 7;
   const byDate = dailyByDate(summary, parseOperators(params));
+
+  // Egendefinert datospenn (samme parameterform som Express-endepunktet i
+  // server/routes.ts sin parseTimeWindow) — går foran `days` når begge er satt.
+  const from = params.get("from");
+  const to = params.get("to");
+  if (from && to) {
+    const [a, b] = from <= to ? [from, to] : [to, from];
+    return Array.from(byDate.entries())
+      .filter(([date]) => date >= a && date <= b)
+      .map(([, rows]) => combineDaily(rows));
+  }
+
+  const days = parseInt(params.get("days") ?? "7", 10) || 7;
   return Array.from(byDate.values()).slice(-days).map(combineDaily);
+}
+
+/**
+ * Tid-på-dagen-filtrert dagstrend — MVP, samme feltutvalg som
+ * Express-ekvivalenten (getDailySummaryRangeByHour i server/storage.ts):
+ * kun avgDelayMin + totalJourneys. Her er det ikke en datahull som på
+ * full-bygget (Parquet har rå per-avgang-rader, så punktlighet o.l. KUNNE
+ * vært regnet ut også i samme spørring) — men dette er allerede en full
+ * GROUP BY dato over ALLE linjer uten linje/stopp-avgrensning, samme
+ * kostnadskategori som kartets filtrerte modus (apiStopsMapFiltered), så
+ * MVP holder feltutvalget likt med full-bygget i stedet for å legge enda
+ * flere aggregater på en spørring som allerede er den dyre typen.
+ */
+async function apiSummaryTrendByHour(params: URLSearchParams, hourMinStr: string, hourMaxStr: string) {
+  await ensureParquetFilesRegistered();
+  const days = parseInt(params.get("days") ?? "7", 10) || 7;
+  const from = params.get("from");
+  const to = params.get("to");
+  const effectiveFrom = from ?? daysAgoFromLatest(days, "by-line");
+  const operators = parseOperators(params);
+
+  const hourMin = parseInt(hourMinStr, 10);
+  const hourMax = parseInt(hourMaxStr, 10);
+  const hourExpr = "CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)";
+  const hourCond =
+    hourMin <= hourMax
+      ? `${hourExpr} >= ${hourMin} AND ${hourExpr} < ${hourMax}`
+      : `(${hourExpr} >= ${hourMin} OR ${hourExpr} < ${hourMax})`; // wraps midnight
+
+  const conds: string[] = [
+    "COALESCE(delay_departure_min, delay_arrival_min) IS NOT NULL",
+    `date >= '${esc(effectiveFrom)}'`,
+    hourCond,
+  ];
+  if (to) conds.push(`date <= '${esc(to)}'`);
+  if (operators.length > 0) {
+    conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  }
+
+  const rows = await standaloneDuckQuery<{ date: string; avgDelayMin: number | null; totalJourneys: number }>(`
+    SELECT date,
+      ROUND(AVG(COALESCE(delay_departure_min, delay_arrival_min)), 2) AS avgDelayMin,
+      COUNT(*) AS totalJourneys
+    FROM delays_by_line
+    WHERE ${conds.join(" AND ")}
+    GROUP BY date
+    ORDER BY date
+  `, undefined, { family: "by-line", fromDate: effectiveFrom, toDate: to ?? undefined });
+
+  return rows.map((r) => ({
+    date: r.date,
+    avgDelayMin: r.avgDelayMin,
+    pctOnTime: null as number | null,
+    pctDelayed10plus: null as number | null,
+    pctEarly: null as number | null,
+    totalJourneys: r.totalJourneys,
+    totalCancellations: null as number | null,
+    pctRealtimeCoverage: null as number | null,
+    journeysMissingRealtime: null as number | null,
+  }));
 }
 
 type CombinedDay = ReturnType<typeof combineDaily>;
@@ -645,6 +729,20 @@ async function resolveStopQuays(
   return { quays: [ref], nameHint: metas.get(ref)?.stopName ?? null };
 }
 
+/** Quay-refs med sitt stoppested — shardnøkkelen stoppdetalj-artefakten
+ *  bruker (se lib/stop-detail.ts). Samme oppslag som resolveStopQuays, men
+ *  beholder stopPlaceRef i stedet for å kaste den. */
+async function resolveQuaysWithPlace(
+  ref: string,
+  nameHint?: string | null,
+  coordHint?: { lat: number; lng: number } | null,
+): Promise<Array<{ stopRef: string; stopPlaceRef: string | null }>> {
+  const doc = await fetchStops();
+  const metas = quayMetaMap(doc);
+  const { quays } = await resolveStopQuays(ref, nameHint, coordHint);
+  return quays.map((q) => ({ stopRef: q, stopPlaceRef: metas.get(q)?.stopPlaceRef ?? null }));
+}
+
 /**
  * GET /api/stops/search?q=... — typeahead-søk for stoppanalysen.
  * Grupperer per stoppested-NAVN (som serverens searchStops): store knutepunkt
@@ -736,6 +834,89 @@ async function apiStopsLookup(params: URLSearchParams) {
  * GET /api/stop/:ref — dagstrend + timesprofil for ett stoppested/quay.
  * Speiler Express-svaret fra getStopStats + getStopHourlyProfile.
  */
+/**
+ * Dagstrend + timesprofil fra stoppdetalj-artefakten. null = ikke dekket
+ * (mangler shard/stopp, eller vinduet finnes ikke) → kalleren faller
+ * tilbake til DuckDB.
+ *
+ * Flere quays slås sammen her, vektet på antall observasjoner — samme
+ * resultat som `stop_ref IN (...)` i SQL-en, siden begge er et snitt over de
+ * samme radene.
+ */
+async function stopStatsFromArtifact(
+  ref: string,
+  params: URLSearchParams,
+  quays: string[],
+  nameHint: string | null,
+  days: number,
+) {
+  const withPlace = await resolveQuaysWithPlace(ref, params.get("name"), parseCoordHint(params));
+  const { stops, maxDate, windows } = await fetchStopDetail(withPlace);
+  if (stops.size === 0 || !maxDate) return null;
+  const win = snapToWindow(days, windows);
+  if (win == null || Math.abs(win - days) > 0) return null; // kun eksakte vinduer
+
+  // --- dagstrend: slå sammen quays per dato ---
+  const byDate = new Map<number, { sum: number; n: number; mx: number | null; mn: number | null;
+                                   p2s: number; p2n: number; deps: number }>();
+  for (const e of Array.from(stops.values())) {
+    for (const [off, avg, mx, mn, pct2, , , deps] of e.d) {
+      const cur = byDate.get(off) ?? { sum: 0, n: 0, mx: null, mn: null, p2s: 0, p2n: 0, deps: 0 };
+      if (avg != null && deps) { cur.sum += avg * deps; cur.n += deps; }
+      if (mx != null) cur.mx = cur.mx == null ? mx : Math.max(cur.mx, mx);
+      if (mn != null) cur.mn = cur.mn == null ? mn : Math.min(cur.mn, mn);
+      if (pct2 != null && deps) { cur.p2s += pct2 * deps; cur.p2n += deps; }
+      cur.deps += deps;
+      byDate.set(off, cur);
+    }
+  }
+  const cutoff = days - 1;
+  const daily = Array.from(byDate.entries())
+    .filter(([off]) => off <= cutoff)
+    .sort((a, b) => b[0] - a[0])                       // eldst → nyest
+    .map(([off, v]) => ({
+      date: offsetToDate(maxDate, off),
+      avgDelayMin: v.n ? Math.round((v.sum / v.n) * 100) / 100 : null,
+      maxDelayMin: v.mx,
+      minDelayMin: v.mn,
+      pctDelayed2plus: v.p2n ? Math.round((v.p2s / v.p2n) * 10) / 10 : null,
+      stddevDelayMin: null,   // ikke meningsfullt å slå sammen på tvers av quays
+      numDepartures: v.deps,
+    }));
+  if (daily.length === 0) return null;
+
+  // --- timesprofil: vektet snitt per time på tvers av quays ---
+  const byHour = new Map<number, { sum: number; n: number; mx: number | null; mn: number | null; samples: number }>();
+  for (const e of Array.from(stops.values())) {
+    for (const [hour, avg, mxa, mna, n] of e.h[String(win)] ?? []) {
+      const cur = byHour.get(hour) ?? { sum: 0, n: 0, mx: null, mn: null, samples: 0 };
+      if (avg != null && n) { cur.sum += avg * n; cur.n += n; }
+      if (mxa != null) cur.mx = cur.mx == null ? mxa : Math.max(cur.mx, mxa);
+      if (mna != null) cur.mn = cur.mn == null ? mna : Math.min(cur.mn, mna);
+      cur.samples += n;
+      byHour.set(hour, cur);
+    }
+  }
+  const hourly = Array.from(byHour.entries()).sort((a, b) => a[0] - b[0]).map(([hour, v]) => ({
+    hour,
+    avgDelayMin: v.n ? Math.round((v.sum / v.n) * 100) / 100 : null,
+    maxAvgDelayMin: v.mx,
+    minAvgDelayMin: v.mn,
+    numSamples: v.samples,
+  }));
+
+  const totalDepartures = daily.reduce((s, r) => s + (r.numDepartures ?? 0), 0);
+  const wsum = daily.reduce((s, r) => s + (r.avgDelayMin ?? 0) * (r.numDepartures ?? 0), 0);
+  return {
+    stopRef: ref,
+    stopName: nameHint,
+    avgDelayMin: totalDepartures ? Math.round((wsum / totalDepartures) * 100) / 100 : 0,
+    totalDepartures,
+    daily,
+    hourly,
+  };
+}
+
 async function apiStopStats(ref: string, params: URLSearchParams) {
   const days = params.get("days") ? parseInt(params.get("days")!, 10) : 30;
   const from = params.get("from");
@@ -745,6 +926,15 @@ async function apiStopStats(ref: string, params: URLSearchParams) {
 
   const { quays, nameHint } = await resolveStopQuays(ref, params.get("name"), parseCoordHint(params));
   if (quays.length === 0) throw new Error("Stoppested ikke funnet");
+
+  // Ferdigaggregert artefakt først — ETT lite filoppslag i stedet for to
+  // DuckDB-spørringer over parquet (målt ~40 s kaldt, se lib/stop-detail.ts).
+  // Dekker standardvisningen; retnings-/operatørfilter og egendefinerte
+  // datointervall faller gjennom til DuckDB under.
+  if (!direction && operators.length === 0 && !from && !to) {
+    const fromArtifact = await stopStatsFromArtifact(ref, params, quays, nameHint, days);
+    if (fromArtifact) return fromArtifact;
+  }
 
   await ensureParquetFilesRegistered();
   const effectiveFrom = from ?? daysAgoFromLatest(days, "by-stop");
@@ -838,6 +1028,18 @@ async function apiStopDirections(ref: string, params: URLSearchParams) {
   const operators = parseOperators(params);
   const { quays } = await resolveStopQuays(ref, params.get("name"), parseCoordHint(params));
   if (quays.length === 0) return [];
+
+  // Artefakten har retningene ferdig — samme shard som resten av
+  // stoppdetaljene, altså gratis når den allerede er hentet.
+  if (operators.length === 0) {
+    const withPlace = await resolveQuaysWithPlace(ref, params.get("name"), parseCoordHint(params));
+    const { stops } = await fetchStopDetail(withPlace);
+    if (stops.size > 0) {
+      const set = new Set<string>();
+      for (const e of Array.from(stops.values())) for (const d of e.dir) set.add(d);
+      if (set.size > 0) return Array.from(set).sort();
+    }
+  }
   const conds: string[] = [
     `stop_ref IN (${quays.map((s) => `'${esc(s)}'`).join(", ")})`,
     "direction_ref IS NOT NULL",
@@ -1132,6 +1334,11 @@ async function apiLineSummary(lineRef: string, params: URLSearchParams) {
     pctEarly: row.pctEarly,
     stddevDelayMin: row.stddevDelayMin,
     totalDepartures: row.totalDepartures,
+    // Dekningen kommer fra coverage_daily (via artefakten), ikke fra parquet —
+    // parquet har bare sanntidsobserverte rader, så nevneren finnes ikke der.
+    // Vinduene ligger i samme rekkefølge som summary.windows.
+    pctRealtimeCoverage:
+      summary.coverage?.[lineRef]?.[summary.windows.indexOf(days)] ?? null,
   };
 }
 

@@ -194,7 +194,9 @@ export async function ensureParquetFilesRegistered(): Promise<void> {
 // ut resten av søket, i stedet for å ligge på den kritiske stien.
 // ---------------------------------------------------------------------------
 
-const primingPromises = new Map<DelayFamily, Promise<void>>();
+// Nøkkel: `${family}|${fromDate ?? "*"}` — se primeParquetMetadata for hvorfor
+// vinduet er en del av nøkkelen.
+const primingPromises = new Map<string, Promise<void>>();
 
 // Faktisk siste datadag per familie, målt med MAX(date). Se
 // latestDataDate() under for hvorfor dette ikke kan utledes fra filnavnet.
@@ -235,8 +237,15 @@ const latestDateListeners = new Set<() => void>();
  *
  * Selve kaldstarten står altså fortsatt uløst — se NOTES.md punkt 4.
  */
-export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void {
-  if (primingPromises.has(family)) return;
+export function primeParquetMetadata(
+  family: DelayFamily = DEFAULT_FAMILY,
+  windowDays?: number,
+): void {
+  // Nøkkelen tar med vinduet: en priming for «siste 30 dager» har varmet opp
+  // FÆRRE filer enn en for hele historikken, så et senere, bredere vindu skal
+  // få lov til å prime på nytt i stedet for å bli avvist som «allerede gjort».
+  const key = `${family}|${windowDays ?? "*"}`;
+  if (primingPromises.has(key)) return;
   const view = `delays_${family.replace("-", "_")}`;
   const p = (async () => {
     // Manifestet MÅ være lest før vi kan avgjøre om MAX(date) trengs:
@@ -245,13 +254,27 @@ export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void
     // (Målt: gjorde nettopp det — 68,6 s i nettleseren, se commit-historikk.)
     const db = await initDuckDB();
     await registerFilesWithRetry(db);
-    const needMax = manifestMaxDate(family) === null;
+    // Vinduet regnes ut HER, ikke av kallestedet. Kallestedet kjenner ikke
+    // siste datadag ennå: den kommer fra manifestet, som først er lest på
+    // linja over. Tar vi imot en ferdig `fromDate` i stedet, er den alltid
+    // null ved første kall — og da primes alle ukefilene likevel. Målt: 48 s,
+    // altså nøyaktig det vi prøvde å unngå.
+    const anchor = manifestMaxDate(family);
+    let fromDate: string | undefined;
+    if (windowDays && anchor) {
+      const d = new Date(`${anchor}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - (windowDays - 1));
+      fromDate = d.toISOString().slice(0, 10);
+    }
+    const needMax = anchor === null;
     const rows = await standaloneDuckQuery<{ n: number; mx: string | null }>(
       needMax
         ? `SELECT COUNT(*) AS n, MAX(date) AS mx FROM ${view}`
         : `SELECT COUNT(*) AS n FROM ${view}`,
       undefined,
-      { family },
+      // Samme vindu som spørringene kommer til å bruke — ellers varmer vi opp
+      // ukefiler ingen skal lese (~6 HTTP-kall per fil, se NOTES.md punkt 4).
+      { family, fromDate },
     );
     const mx = rows[0]?.mx;
     if (mx) {
@@ -261,9 +284,9 @@ export function primeParquetMetadata(family: DelayFamily = DEFAULT_FAMILY): void
   })().catch(() => {
     // Priming er ren opportunisme — feiler den, tar den ordinære spørringen
     // kostnaden i stedet. Nullstill så et senere forsøk kan prøve på nytt.
-    primingPromises.delete(family);
+    primingPromises.delete(key);
   });
-  primingPromises.set(family, p);
+  primingPromises.set(key, p);
 }
 
 /**
