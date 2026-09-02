@@ -86,9 +86,17 @@ shardfiler sammenlignet felt for felt, 85 775 stopp):
 
 Nattjobben plukker opp endringene automatisk (den kjører fra arbeidstreet).
 
-**Ikke gjort ennå**: en full kjøring av `aggregate_stats.py` +
-`upload_to_r2.py --prune` mot produksjon for å få R2 à jour. Ingest/export
-for 01.09 ligger allerede i `reise.db`/`data/reise-parquet`.
+**Kjørt mot produksjon 02.09 kl. 14:39–15:14** (`logs/catchup-2026-09-02.*`,
+90 dager, `STATS_DUCKDB_MEMORY=4GB` fordi maskinen bare hadde 1,2 GB ledig):
+- `aggregate_stats.py`: 1888 s totalt, exit 0. Shard-basistabellene på
+  9,5 min (det_daily 3,97 mill. rader, det_linehour 4,29 mill.), shard-løkka
+  5,5 min (mot ~11 før — sorteringen på shard virker), 2000 filer / 449 MB.
+- `upload_to_r2.py --prune`: 2028 filer opp, shardene på **1 min 42 s**
+  (~20 filer/s mot ~2 før), exit 0.
+- Verifisert direkte mot R2 etterpå: `stats_summary.json` `dates.max` =
+  2026-09-01, manifestet 24 filer t.o.m. W36, `stops/1286.json` HTTP 200
+  (262 KB) — **første gang shardene faktisk ligger i produksjon**.
+  Stoppanalysen bruker dermed artefakt-veien (`stopStatsFromArtifact`) fra nå.
 
 ## Endringslogg — 2026-08-29: forsinkelseskart på Linjeanalyse
 
