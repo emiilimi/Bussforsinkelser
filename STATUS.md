@@ -3,7 +3,92 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-29
+**Sist oppdatert**: 2026-09-02
+
+## Endringslogg — 2026-09-02: nattjobben feilet tre netter på rad — to ulike feil, begge fra stoppdetalj-shardene
+
+R2 (og dermed reise-siten) ble stående på 2026-08-30 mens maskinen var på
+2026-09-02. Ingest og export gikk fint hver natt; det var de to siste stegene
+som feilet, av to helt forskjellige grunner. Funnet ved å lese
+`logs/reise-YYYY-MM-DD.log` (Task Scheduler kjører `scripts/nightly_reise.ps1`
+lokalt) og sjekke `https://parquet.sentur.no/stats_summary.json` direkte.
+
+### Feil 1 (31.08): `upload_to_r2.py` «hang» 40 min, tre forsøk — det var et rør-deadlock
+
+Loggen viste at hvert forsøk lastet opp **nøyaktig 32 shardfiler** og så ble
+stille i ~37 min til fristen drepte det. Ingen henging: `Invoke-PythonStepOnce`
+i `nightly_reise.ps1` omdirigerte stdout/stderr, men leste dem først
+**etter** at barnet avsluttet. Et omdirigert rør har ~4 KB buffer; når barnet
+har skrevet 4 KB uten at noen leser, blokkerer neste `write()` for alltid.
+Reprodusert med et barn som skriver 200 logglinjer: drept på fristen med
+**4094 byte** mottatt. 40 linjer: ferdig på 1 s. Stegene som gikk bra logger
+under 4 KB; opplastingen begynte å logge 2000+ linjer da shardene kom 27.08.
+
+Fiks: `ReadToEndAsync()` på begge rørene startes **før** venteløkka, så de
+tømmes fortløpende. Verifisert med 3000 linjer (176 KB): ferdig på 1 s, alle
+linjer fanget. Gjelder alle steg — ethvert framtidig skript som logger mye
+ville ellers truffet det samme.
+
+I tillegg, i `upload_to_r2.py`:
+- **Uendret-sjekken virket ikke for ukefilene.** Den sammenlignet lokal md5
+  med ETag, men `s3.upload_file` bruker multipart over 8 MB og da er ETag
+  ikke md5. Alle 22 ukefilene (29–92 MB, ~1,4 GB) ble lastet opp på nytt hver
+  natt. Nå lagres md5 som objekt-metadata ved opplasting og sammenlignes
+  mot den (ETag som fallback for gamle små objekter). Første kjøring laster
+  alt opp én gang til; deretter hoppes uendrede filer over.
+- Shardene lastes opp **8 i parallell** (`R2_UPLOAD_WORKERS`) med
+  `put_object` for filer under 8 MB, og logger én linje per 250 shards i
+  stedet for 2000 linjer. Sekvensielt lå det på ~2 filer/s ≈ 17 min.
+- Enhetstest mot en falsk S3-klient (6 tilfeller: metadata-treff, ETag-treff,
+  multipart-ETag uten metadata, 404 liten/stor fil, force, 403) — alle OK.
+
+### Feil 2 (01.09 og 02.09): `aggregate_stats.py` døde av minne, begge forsøk begge netter
+
+`_duckdb.OutOfMemoryException … (12.4 GiB/12.5 GiB used)` i `det_daily`-
+spørringen i `build_stop_detail_shards`. 12,5 GiB er DuckDBs standardgrense
+(80 % av 15,7 GB RAM), og tilkoblingen var en ren `duckdb.connect()` uten
+`memory_limit`/`temp_directory` — grensa var en vegg, ikke en terskel for å
+bruke disk. Tre endringer:
+
+1. **`configure_duckdb()`**: `memory_limit` (`STATS_DUCKDB_MEMORY`, default
+   8GB), eksplisitt `temp_directory` (`STATS_DUCKDB_TEMP`, default
+   `<PARQUET_DIR>/.duckdb_tmp`) så aggregater og sorteringer spiller til disk,
+   `preserve_insertion_order=false`, og valgfri `STATS_DUCKDB_THREADS`.
+2. **`COUNT(*)` i stedet for `COUNT(DISTINCT service_journey_id)`** i
+   det_daily. (date, service_journey_id, stop_ref) er primærnøkkelen i
+   `journey_stop_daily` og eksporten bevarer den — målt: 0 duplikater over
+   11,8 mill. rader i W35+W36. Innenfor en (stopp, dato)-gruppe er hver rad
+   sin egen avgang, så tallet er identisk; DISTINCT-varianten holdt et
+   hash-sett per gruppe og var det som sprengte minnet.
+3. **3 parquet-skann i stedet for 14.** Før: én skanning per (tabell ×
+   vindu) med alle fire vindusresultatene i minnet samtidig via UNION ALL.
+   Nå: én per-dato-basistabell per aggregat, og vinduene skjæres ut med
+   `WHERE date >= cutoff` (et vindu er en delmengde av dager — eksakt samme
+   tall, sum/antall bæres per dag så snitt kan slås sammen). Sluttabellene
+   sorteres fysisk på shard, så `WHERE shard = ?` i shard-løkka treffer
+   1–2 radgrupper via zonemaps i stedet for å skanne alt 2000 ganger.
+
+**Ekvivalenstest** (gammel vs ny `build_stop_detail_shards` på samme to
+ukefiler, W35+W36 = 11,8 mill. rader, samme `stop_coords`, alle 2000
+shardfiler sammenlignet felt for felt, 85 775 stopp):
+- Første pass: 1968 av 2000 filer «ulike» — men alle avvikene var linjer
+  med samme antall (`n`) i ulik rekkefølge i `l`-lista. Lesingen sorterte på
+  `n DESC` uten sekundærnøkkel, så rekkefølgen var vilkårlig i BEGGE
+  versjoner, også fra natt til natt på identiske data. Det ville gjort
+  md5-sjekken i `upload_to_r2.py` verdiløs for de shardene. Fikset:
+  `ORDER BY … n DESC, line_ref`.
+- Med kanonisk rekkefølge: **3 stopp av 85 775 avviker**, alle i én
+  timesverdi hver, med 0,01 min (f.eks. 3,38 mot 3,37) — flyttalls-
+  summeringsrekkefølge på en avrundingsgrense (sum-av-dagssummer mot ett
+  løpende snitt). Ikke semantisk. Alt annet identisk.
+- Tid på to uker: gammel 155,5 s, ny 133,8 s, med 4 GB-grense og 0 MB
+  spilt til disk.
+
+Nattjobben plukker opp endringene automatisk (den kjører fra arbeidstreet).
+
+**Ikke gjort ennå**: en full kjøring av `aggregate_stats.py` +
+`upload_to_r2.py --prune` mot produksjon for å få R2 à jour. Ingest/export
+for 01.09 ligger allerede i `reise.db`/`data/reise-parquet`.
 
 ## Endringslogg — 2026-08-29: forsinkelseskart på Linjeanalyse
 

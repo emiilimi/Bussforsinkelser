@@ -117,6 +117,31 @@ python pipeline/ingest.py                # default: gårsdagens dato
 python pipeline/export_parquet.py        # eksporter nye/ufullstendige uker
 ```
 
+**Reise-siten (det som faktisk er i produksjon)** kjøres av Windows Task
+Scheduler på denne PC-en, 06:00 daglig: `scripts/nightly_reise.ps1`
+(registrert av `scripts/register_tasks.ps1`). Stegene i rekkefølge:
+`ingest_lite.py` → `export_parquet.py` → `aggregate_stats.py` →
+`upload_to_r2.py --prune`, hvert med egen tidsfrist og nye forsøk. Logg per
+natt i `logs/reise-YYYY-MM-DD.log` — **sjekk den først** når noen spør om
+«dagens ingest». Status: `Get-ScheduledTask -TaskName 'Bussforsinkelser Reise
+nightly' | Get-ScheduledTaskInfo`. Produksjonens ferskhet sjekkes uavhengig
+med `curl https://parquet.sentur.no/stats_summary.json` (`dates.max`).
+
+**⚠️ FELLE 3 — et steg som logger mer enn ~4 KB.** `nightly_reise.ps1`
+omdirigerer barnets stdout/stderr. Fram til 2026-09-02 ble rørene lest først
+etter at barnet avsluttet; et rør har ~4 KB buffer, så et steg som logget mer
+blokkerte for alltid og ble drept på fristen («hang»). Nå tømmes rørene
+fortløpende (`ReadToEndAsync` før venteløkka) — men logg likevel ikke én
+linje per fil i løkker over tusenvis av filer; `upload_to_r2.py` logger
+én linje per 250 shards. Se STATUS.md 2026-09-02.
+
+**Minne i `aggregate_stats.py`**: DuckDB konfigureres i `configure_duckdb()`
+(`STATS_DUCKDB_MEMORY` default 8GB, `STATS_DUCKDB_TEMP` spill-mappe,
+`STATS_DUCKDB_THREADS`). Uten dette var grensa 80 % av RAM og en vegg — OOM
+1. og 2. september 2026. `build_stop_detail_shards` gjør 3 parquet-skann, og
+`COUNT(*)` per (stopp, dato) er lik `COUNT(DISTINCT service_journey_id)` fordi
+(date, service_journey_id, stop_ref) er primærnøkkel (målt: 0 duplikater).
+
 ### Populering av stoppdata (sjelden)
 ```powershell
 python pipeline/populate_stops.py --refresh      # BQ-kall, oppdater cache + DB
@@ -596,6 +621,10 @@ python pipeline/upload_to_r2.py --prune
 | `LOG_LEVEL` | ingest, backfill, export_parquet | `INFO` |
 | `PARQUET_DIR` | export_parquet | `data/parquet/` |
 | `PORT` | server/index.ts | `5000` |
+| `STATS_DUCKDB_MEMORY` | aggregate_stats | `8GB` |
+| `STATS_DUCKDB_TEMP` | aggregate_stats | `<PARQUET_DIR>/.duckdb_tmp` |
+| `STATS_DUCKDB_THREADS` | aggregate_stats | DuckDB-default (alle kjerner) |
+| `R2_UPLOAD_WORKERS` | upload_to_r2 | `8` |
 
 ---
 
