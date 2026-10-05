@@ -124,6 +124,7 @@ export default function Passengers() {
                 return (
                   <button
                     key={code}
+                    aria-pressed={code === op}
                     onClick={() => setParams({ op: code === defaultOp ? "" : code, line: "", dt: "", dep: "", dir: "" })}
                     className={cn(
                       "px-3 py-1.5 rounded-full border text-sm transition-colors",
@@ -334,10 +335,10 @@ function CostlyLinesCard({ lines, month, onSelect }: { lines: PaxLineSummary[]; 
             </CardDescription>
           </div>
           <div className="inline-flex rounded-md border p-0.5 text-xs">
-            <button onClick={() => setSortBy("hours")} className={cn("px-2.5 py-1 rounded", sortBy === "hours" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+            <button aria-pressed={sortBy === "hours"} onClick={() => setSortBy("hours")} className={cn("px-2.5 py-1 rounded", sortBy === "hours" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
               Passasjertimer tapt
             </button>
-            <button onClick={() => setSortBy("delay")} className={cn("px-2.5 py-1 rounded", sortBy === "delay" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+            <button aria-pressed={sortBy === "delay"} onClick={() => setSortBy("delay")} className={cn("px-2.5 py-1 rounded", sortBy === "delay" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
               Snitt per avgang
             </button>
           </div>
@@ -432,8 +433,8 @@ function LoadDelayCard({ summary, op }: { summary: PaxSummary; op: PaxOperator }
             </CardDescription>
           </div>
           <div className="inline-flex rounded-md border p-0.5 text-xs">
-            <button onClick={() => setScope("ALL")} className={cn("px-2.5 py-1 rounded", scope === "ALL" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>Alle tre</button>
-            <button onClick={() => setScope("op")} className={cn("px-2.5 py-1 rounded", scope === "op" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>{opName}</button>
+            <button aria-pressed={scope === "ALL"} onClick={() => setScope("ALL")} className={cn("px-2.5 py-1 rounded", scope === "ALL" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>Alle tre</button>
+            <button aria-pressed={scope === "op"} onClick={() => setScope("op")} className={cn("px-2.5 py-1 rounded", scope === "op" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>{opName}</button>
           </div>
         </div>
       </CardHeader>
@@ -633,7 +634,7 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
 
             <div className="flex flex-wrap gap-1.5">
               {dayTypes.map((x) => (
-                <button key={x} onClick={() => setDt(x === dayTypes[0] ? "" : x)}
+                <button key={x} aria-pressed={x === dt} onClick={() => setDt(x === dayTypes[0] ? "" : x)}
                   className={cn("px-3 py-1 rounded-full border text-xs", x === dt ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted")}>
                   {DAY_TYPE_NO[x] ?? x}
                 </button>
@@ -654,7 +655,7 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
                 {directions.length > 1 && (
                   <div className="inline-flex flex-wrap rounded-md border p-0.5 text-xs">
                     {directions.slice(0, 4).map((x) => (
-                      <button key={x.name} onClick={() => setParams({ dir: x.name, dep: "" })}
+                      <button key={x.name} aria-pressed={x.name === dir} onClick={() => setParams({ dir: x.name, dep: "" })}
                         className={cn("px-2.5 py-1 rounded", x.name === dir ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
                         mot {x.name}
                       </button>

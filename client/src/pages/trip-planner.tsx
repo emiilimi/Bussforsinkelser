@@ -3845,12 +3845,14 @@ export default function TripPlanner() {
               </h3>
               <div className="inline-flex rounded-md border p-0.5 text-xs" role="group" aria-label="Sortering">
                 <button
+                  aria-pressed={sortMode === "departure"}
                   onClick={() => setSortMode("departure")}
                   className={cn("px-2.5 py-1 rounded", sortMode === "departure" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
                 >
                   Avgang
                 </button>
                 <button
+                  aria-pressed={sortMode === "safe"}
                   onClick={() => setSortMode("safe")}
                   title="Sorter etter når du er framme 4 av 5 dager (P80), med overgangsrisiko regnet inn. Forslag som ikke er ferdig beregnet havner nederst."
                   className={cn("px-2.5 py-1 rounded inline-flex items-center gap-1", sortMode === "safe" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}

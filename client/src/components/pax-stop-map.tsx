@@ -58,10 +58,10 @@ export default function PaxStopMap({ op, opName }: { op: PaxOperator; opName: st
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex rounded-md border p-0.5 text-xs">
-          <button onClick={() => setMetric("lost")} className={cn("px-2.5 py-1 rounded", metric === "lost" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+          <button aria-pressed={metric === "lost"} onClick={() => setMetric("lost")} className={cn("px-2.5 py-1 rounded", metric === "lost" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
             Størrelse: timer tapt
           </button>
-          <button onClick={() => setMetric("people")} className={cn("px-2.5 py-1 rounded", metric === "people" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
+          <button aria-pressed={metric === "people"} onClick={() => setMetric("people")} className={cn("px-2.5 py-1 rounded", metric === "people" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}>
             Størrelse: passasjerer
           </button>
         </div>
