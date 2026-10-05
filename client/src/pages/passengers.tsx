@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
   ResponsiveContainer, ComposedChart, BarChart, Bar, Area, Line, LineChart, XAxis, YAxis, Tooltip,
@@ -22,6 +22,9 @@ import {
   formatMonthLong, formatMonthShort, fmtInt, fmtMin, DAY_TYPE_NO, HOURS_PER_WORK_YEAR,
   type PaxOperator, type PaxSummary, type PaxLineSummary, type PaxLine, type PaxDeparture,
 } from "@/lib/pax";
+
+// Leaflet lastes først når kartet faktisk vises
+const PaxStopMap = lazy(() => import("@/components/pax-stop-map"));
 
 const TOOLTIP_STYLE = {
   backgroundColor: "hsl(var(--card))",
@@ -151,6 +154,18 @@ export default function Passengers() {
                 onLineChange={(r) => selectLine(r)}
               />
             </div>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Hvor taper folk tid?</CardTitle>
+                <CardDescription>Hvert stopp, sortert etter hvor mange som bruker det og hvor mye forsinkelse de merker. Klikk en sirkel for tall.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={<div className="h-[460px] flex items-center justify-center text-sm text-muted-foreground">Laster kart …</div>}>
+                  <PaxStopMap op={op} opName={opSummary.name} />
+                </Suspense>
+              </CardContent>
+            </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <CrowdedCard summary={summary} op={op} onSelect={(r, dt, dep) => selectLine(r, { scroll: true, dt, dep })} />

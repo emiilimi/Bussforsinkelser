@@ -628,6 +628,23 @@ def main() -> int:
         """).fetchall()
     ]
 
+    # Per stopp (siste måned) til kartet: [ref, navn, lat, lon, påstigninger,
+    # avstigninger, passasjertimer tapt, merket forsinkelse, lavt-befolket]
+    stops_by_op: dict[str, list] = {}
+    for op, ref, name, lat, lon, b, a, pm, pd, lowpop in con.execute("""
+        SELECT op, stop_ref, ANY_VALUE(stop_name), ANY_VALUE(lat), ANY_VALUE(lon),
+               SUM(b), SUM(a), SUM(a * mean_pos_arr),
+               SUM(a * mean_arr) / NULLIF(SUM(a) FILTER (WHERE mean_arr IS NOT NULL), 0),
+               BOOL_OR(low_pop)
+        FROM j JOIN (SELECT op, MAX(month) AS month FROM op_month GROUP BY op) lm USING (op, month)
+        WHERE lat IS NOT NULL AND lon IS NOT NULL
+        GROUP BY op, stop_ref
+        HAVING SUM(b) + SUM(a) > 0
+    """).fetchall():
+        stops_by_op.setdefault(op, []).append(
+            [ref, name, r(lat, 5), r(lon, 5), int(b or 0), int(a or 0), r((pm or 0) / 60, 1), r(pd, 1), bool(lowpop)]
+        )
+
     crowded = [
         {"op": op, "lineRef": lr, "code": code, "headsign": hs, "dayType": dt, "time": t,
          "peak": r(pk, 0), "runs": r(runs, 1), "boardingsPerRun": r(bpr, 0), "meanDelay": r(sd, 1),
@@ -660,6 +677,10 @@ def main() -> int:
         "municipalities": municipalities,
         "crowded": crowded,
     }
+    for op, rows in stops_by_op.items():
+        rows.sort(key=lambda x: -(x[4] + x[5]))
+        (OUT_DIR / f"stops_{op}.json").write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        log.info("stops_%s.json: %d stopp", op, len(rows))
     (OUT_DIR / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     log.info("summary.json: %d linjer, %d kommuner, %.0f KB",
              len(lines_out), len(municipalities), (OUT_DIR / "summary.json").stat().st_size / 1024)

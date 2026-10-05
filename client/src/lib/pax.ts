@@ -194,6 +194,18 @@ export function usePaxSummary() {
   });
 }
 
+/** [stopRef, navn, lat, lon, påstigninger, avstigninger, timer tapt, merket forsinkelse, lavt-befolket] — siste måned */
+export type PaxStopRow = [string, string | null, number, number, number, number, number | null, number | null, boolean];
+
+export function usePaxStops(op: PaxOperator | null) {
+  return useQuery({
+    queryKey: ["pax", "stops", op],
+    queryFn: () => fetchJsonOrNull<PaxStopRow[]>(`${PAX_BASE}/stops_${op}.json`),
+    enabled: PAX_ENABLED && !!op,
+    staleTime: Infinity,
+  });
+}
+
 export function fetchPaxLine(lineRef: string): Promise<PaxLine | null> {
   return fetchJsonOrNull<PaxLine>(paxLineFile(lineRef));
 }
