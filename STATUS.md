@@ -96,6 +96,21 @@ Sammenheng, ikke årsak (travle linjer har også mer trafikk).
 - **Stoppanalysens Y-akse** starter rundt snittet i stedet for på verste
   enkeltavgang (Bergen busstasjon: 450 min → 14 min).
 
+### Reiseplanleggeren (samme branch, uavhengig av passasjertallene)
+
+- **«Tryggest · HH:MM»**: når alle forslagene er ferdig beregnet, merkes det
+  med tidligst overgangsjustert P80-ankomst. Merket venter til ALLE er
+  ferdige, så det ikke hopper mellom kort. Testet Bergen busstasjon → Åsane
+  terminal tirsdag 08:00: direkte 300 kl. 08:10 (P80 08:28) slår 39→3 kl.
+  08:00 (P80 08:30), selv om sistnevnte er planlagt framme før.
+- **Sortering «Avgang | Trygg ankomst»** på samme tall.
+- **«Når må jeg dra?»** ved ankomst-søk: senest avgang som er framme innen
+  fristen minst 4 av 5 dager («Dra senest 08:10 for å være framme innen
+  08:30 …»), eller beskjed om at ingen på lista er trygge nok.
+- **«Del reisen»**: delingsark/utklippstavle med tekstoppsummering + lenke.
+- Linjeanalyse har fått et passasjerkort for linjer med tellinger, og
+  /passasjerer har «Spill av dagen» (animerer belegg per avgang, fast skala).
+
 ### Gjenstår
 
 - E-post til Entur om lisens/vilkår før publisering.
