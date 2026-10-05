@@ -90,8 +90,13 @@ Sammenheng, ikke årsak (travle linjer har også mer trafikk).
 - **Oversikt**: linjetopplistene viser busslinjer med minst 5 avganger/dag
   uten datafeil (>120 min), og «Beste» er byttet med «Mest presise» (andel
   fra −1 til +2 min). Før: fergerute med 6 avganger/uke på +163 min øverst,
-  og fly/buss som går for tidlig som «beste». Kjent rest: noen båtruter er
-  merket `bus` fordi `vehicleMode` mangler.
+  og fly/buss som går for tidlig som «beste». Kjent rest: noen båtruter
+  (TEL 8711, INN 900) er merket `bus` fordi `vehicleMode` mangler. Togoperatørenes
+  `bus`-rader er derimot ekte **buss for tog** (uke 39: VYG R12 hadde 4 589
+  rail- og 752 bus-rader) og vises nå som det.
+- **«Uka som gikk»** (`/uke`): siste 7 mot forrige 7 dager per region, dag for
+  dag, og busslinjer som ble tydelig verre/bedre (7 mot 30 dager). Fra
+  stats_summary.json, ingen ny pipeline.
 - **UUID-linje-id-er** (Flixbus) vises som operatørkode, og navnene renses.
 - **Stoppanalysens Y-akse** starter rundt snittet i stedet for på verste
   enkeltavgang (Bergen busstasjon: 450 min → 14 min).

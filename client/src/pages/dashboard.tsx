@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
-import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
+import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO, isRailOperator } from "@/lib/date-utils";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
@@ -94,9 +94,11 @@ function shortenTrailingParens(label: string, maxLen: number): string {
 
 /** Display name for bar chart: "60 — Fanahammeren - Lagunen" or just "Linje 60" */
 function lineLabel(l: LeaderboardLine): string {
-  const num = lineNumber(l.lineRef);
+  // Oversikt viser bare buss i reise-bygget (mode=bus) — en toglinje der er
+  // buss for tog, og skal ikke se ut som toget selv.
+  const num = lineNumber(l.lineRef) + (IS_REISE && isRailOperator(l.lineRef) ? " (buss for tog)" : "");
   const name = l.lineName;
-  if (name && name !== `Linje ${num}`) {
+  if (name && name !== `Linje ${lineNumber(l.lineRef)}`) {
     return shortenTrailingParens(`${num} — ${name}`, CHART_LABEL_MAX_LEN);
   }
   return `Linje ${num}`;

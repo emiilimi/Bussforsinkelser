@@ -97,6 +97,17 @@ export function lineNumber(lineRef: string): string {
   return UUID_RE.test(last) ? parts[0] : last;
 }
 
+/**
+ * Togoperatører. En linje fra disse med vehicle_mode=bus er buss for tog
+ * (målt uke 39 2026: VYG R12 hadde 4 589 rail- og 752 bus-rader — bussene
+ * er de samme linjene, kjørt med erstatningsbuss).
+ */
+const RAIL_OPERATORS = new Set(["VYG", "GOA", "SJN", "FLT", "NSB"]);
+
+export function isRailOperator(lineRef: string): boolean {
+  return RAIL_OPERATORS.has(lineRef.split(":")[0]);
+}
+
 /** Fjern UUID-er fra linjenavn: «FLI 0a73c829-…: Bergen - Oslo» → «FLI: Bergen - Oslo». Andre navn returneres uendret. */
 export function cleanLineName(name: string | null | undefined): string | null {
   if (!name) return name ?? null;

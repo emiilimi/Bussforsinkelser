@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { BusLoading } from "@/components/bus-loading";
 import { PARQUET_BASE } from "@/hooks/use-parquet-query";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
-import { formatWeekdayDateNO, lineNumber, cleanLineName } from "@/lib/date-utils";
+import { formatWeekdayDateNO, lineNumber, cleanLineName, isRailOperator } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
 type DailyRow = {
@@ -141,7 +141,8 @@ export default function WeekReport() {
   const lineLabel = (ref: string) => {
     // «INN 111: Dokka - Lillehammer» → «Dokka - Lillehammer» (koden vises for seg)
     const nm = cleanLineName(names[ref])?.replace(/^[A-ZÆØÅ]{2,4}\s*[^:]*:\s*/, "") || null;
-    return { code: lineNumber(ref), name: nm };
+    // Listene er bare buss — en toglinje her er buss for tog
+    return { code: lineNumber(ref), name: isRailOperator(ref) ? `Buss for tog: ${nm ?? ""}`.trim() : nm };
   };
 
   const shareText = report
