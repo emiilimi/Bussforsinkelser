@@ -19,7 +19,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
   Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { SectionLabel, StopRow } from "@/components/stop-picker";
@@ -317,6 +317,16 @@ function useEstimatedLegTimes(
     },
   });
 }
+
+/**
+ * Det et reiseforslag-kort rapporterer opp til lista om sin P80-ankomst
+ * (overgangsjustert, se arrivalQuantileLevel). Brukes til «Tryggest»-merket og
+ * sorteringen «Trygg ankomst».
+ *  - pending: overgangsanalysen/statistikken er ikke ferdig ennå
+ *  - arrivalMs: planlagt ankomst + P80-forsinkelse; null = ukjent eller P80
+ *    ligger i «mistet overgang»-grenen (beyond)
+ */
+type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean };
 
 /** Stabil nøkkel for et reiseforslag — brukes til dedup ved paginering og som React key. */
 function patternKey(p: TripPattern): string {
@@ -1986,9 +1996,15 @@ function TripCard({
   showPct,
   statsWindow,
   windowOverrides,
+  onP80Report,
+  safest = false,
 }: {
   pattern: TripPattern;
   index: number;
+  /** Rapporterer P80-ankomsten opp til lista (Tryggest-merke / sortering). */
+  onP80Report?: (r: P80Report) => void;
+  /** Dette forslaget har tidligst P80-ankomst av alle ferdigberegnede. */
+  safest?: boolean;
   duckStats?: Map<string, DuckDelayRow>;
   statsWindow: ResolvedStatsWindow;
   /** Har brukeren overstyrt dagtype-låsen? Styrer ordlyd i UI-et. */
@@ -2287,15 +2303,32 @@ function TripCard({
       }
     }
     const p80 = p80BeyondPlanA ? null : estimateP80(worstAggP80, worstRealP80);
+    // Samme prioritet som estimateP80: per-avgang-tall foran aggregatet.
+    const p80Min = p80BeyondPlanA ? null : (worstRealP80 ?? worstAggP80);
 
     return {
-      estDeparture, estArrival, p80, depResult, arrResult: lastArrResult,
+      estDeparture, estArrival, p80, p80Min, depResult, arrResult: lastArrResult,
       p80BeyondPlanA, p80Pending, p80Unadjusted, pMakeAll, p80Level: level,
     };
   }, [pattern, duckStats, legTimes, transferAnalysis, gapMap]);
 
+  // Rapporter P80-ankomsten til lista. Forslag uten forsinkelsesdata (p80Min
+  // null, ikke pending) teller som «ukjent» — de kan ikke kåres til tryggest.
+  const reportRef = useRef(onP80Report);
+  reportRef.current = onP80Report;
+  const reportArrivalMs = estimatedTimes.p80Min != null
+    ? new Date(pattern.expectedEndTime).getTime() + Math.max(0, estimatedTimes.p80Min) * 60000
+    : null;
+  useEffect(() => {
+    reportRef.current?.({
+      pending: estimatedTimes.p80Pending || !duckStats,
+      arrivalMs: reportArrivalMs,
+      beyond: estimatedTimes.p80BeyondPlanA,
+    });
+  }, [estimatedTimes.p80Pending, estimatedTimes.p80BeyondPlanA, reportArrivalMs, duckStats]);
+
   return (
-    <Card className={cn("transition-all", index === 0 && "border-primary/50")}>
+    <Card className={cn("transition-all", index === 0 && "border-primary/50", safest && "border-emerald-500/70 ring-1 ring-emerald-500/30")}>
       <div
         className="cursor-pointer p-4 pb-3"
         onClick={onToggleExpanded}
@@ -2336,6 +2369,15 @@ function TripCard({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
+            {safest && reportArrivalMs != null && (
+              <Badge
+                className="text-[10px] gap-1 bg-emerald-600 hover:bg-emerald-600 text-white"
+                title={`Tidligst framme 4 av 5 dager av forslagene på lista: innen ${formatTime(new Date(reportArrivalMs).toISOString())}. Overgangsrisiko er regnet med.`}
+              >
+                <ShieldCheck className="h-3 w-3" />
+                Tryggest · {formatTime(new Date(reportArrivalMs).toISOString())}
+              </Badge>
+            )}
             <Badge variant="secondary" className="text-xs">
               <Clock className="h-3 w-3 mr-1" />
               {formatDuration(pattern.duration)}
@@ -2866,6 +2908,34 @@ export default function TripPlanner() {
   // Hvilke reiseforslag som er utvidet (nøkkel = patternKey). Ligger her (ikke i
   // TripCard) slik at tilstanden overlever bytte av avgang på et legg.
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  // P80-ankomst per forslag (rapportert av TripCard) → «Tryggest» + sortering
+  const [p80Reports, setP80Reports] = useState<Map<string, P80Report>>(new Map());
+  const [sortMode, setSortMode] = useState<"departure" | "safe">("departure");
+  // Tryggest = tidligst P80-ankomst, men først når ALLE forslagene på lista er
+  // ferdig beregnet — ellers kunne merket hoppe fra kort til kort mens
+  // statistikken strømmer inn. Krever minst to sammenlignbare forslag.
+  const safestKey = useMemo(() => {
+    if (tripPatterns.length < 2) return null;
+    let best: { k: string; ms: number } | null = null;
+    let comparable = 0;
+    for (const p of tripPatterns) {
+      const r = p80Reports.get(patternKey(p));
+      if (!r || r.pending) return null;
+      if (r.arrivalMs == null) continue;
+      comparable++;
+      if (!best || r.arrivalMs < best.ms) best = { k: patternKey(p), ms: r.arrivalMs };
+    }
+    return comparable >= 2 ? best?.k ?? null : null;
+  }, [tripPatterns, p80Reports]);
+  const displayOrder = useMemo(() => {
+    const idx = tripPatterns.map((_, i) => i);
+    if (sortMode !== "safe") return idx;
+    const key = (i: number) => {
+      const r = p80Reports.get(patternKey(tripPatterns[i]));
+      return r && !r.pending && r.arrivalMs != null ? r.arrivalMs : Number.POSITIVE_INFINITY;
+    };
+    return idx.sort((a, b) => key(a) - key(b) || a - b);
+  }, [tripPatterns, p80Reports, sortMode]);
 
   // Filter state
   const [departDate, setDepartDate] = useState(todayISO());
@@ -3703,6 +3773,22 @@ export default function TripPlanner() {
                   </span>
                 )}
               </h3>
+              <div className="inline-flex rounded-md border p-0.5 text-xs" role="group" aria-label="Sortering">
+                <button
+                  onClick={() => setSortMode("departure")}
+                  className={cn("px-2.5 py-1 rounded", sortMode === "departure" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+                >
+                  Avgang
+                </button>
+                <button
+                  onClick={() => setSortMode("safe")}
+                  title="Sorter etter når du er framme 4 av 5 dager (P80), med overgangsrisiko regnet inn. Forslag som ikke er ferdig beregnet havner nederst."
+                  className={cn("px-2.5 py-1 rounded inline-flex items-center gap-1", sortMode === "safe" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+                >
+                  <ShieldCheck className="h-3 w-3" />
+                  Trygg ankomst
+                </button>
+              </div>
               {/* Persentil-velger: styrer hvilke estimatkolonner som vises per stopp */}
               <div className="flex items-center gap-3 text-xs">
                 <span className="text-muted-foreground">Vis estimater:</span>
@@ -3735,11 +3821,24 @@ export default function TripPlanner() {
                 {tripMutation.isPending ? "Leter..." : "Tidligere avganger"}
               </Button>
             )}
-            {tripPatterns.map((pattern, i) => (
+            {displayOrder.map((i) => {
+              const pattern = tripPatterns[i];
+              const pk = patternKey(pattern);
+              return (
               <TripCard
-                key={patternKey(pattern)}
+                key={pk}
                 pattern={pattern}
                 index={i}
+                safest={safestKey === pk}
+                onP80Report={(r) =>
+                  setP80Reports((prev) => {
+                    const old = prev.get(pk);
+                    if (old && old.pending === r.pending && old.arrivalMs === r.arrivalMs && old.beyond === r.beyond) return prev;
+                    const next = new Map(prev);
+                    next.set(pk, r);
+                    return next;
+                  })
+                }
                 duckStats={duckData}
                 statsWindow={resolvedStatsWindow}
                 windowOverrides={statsWindowOverrides}
@@ -3764,7 +3863,8 @@ export default function TripPlanner() {
                 gapMap={gapResults.get(patternKey(pattern))}
                 showPct={showPct}
               />
-            ))}
+              );
+            })}
             {pageCursors.next && (
               <Button
                 variant="outline"
