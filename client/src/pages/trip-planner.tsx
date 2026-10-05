@@ -1998,6 +1998,7 @@ function TripCard({
   windowOverrides,
   onP80Report,
   safest = false,
+  safestMode = "earliest",
 }: {
   pattern: TripPattern;
   index: number;
@@ -2005,6 +2006,8 @@ function TripCard({
   onP80Report?: (r: P80Report) => void;
   /** Dette forslaget har tidligst P80-ankomst av alle ferdigberegnede. */
   safest?: boolean;
+  /** «earliest» = tidligst trygg ankomst; «latest» = senest avreise som rekker fristen (ankomst-søk). */
+  safestMode?: "earliest" | "latest";
   duckStats?: Map<string, DuckDelayRow>;
   statsWindow: ResolvedStatsWindow;
   /** Har brukeren overstyrt dagtype-låsen? Styrer ordlyd i UI-et. */
@@ -2372,10 +2375,12 @@ function TripCard({
             {safest && reportArrivalMs != null && (
               <Badge
                 className="text-[10px] gap-1 bg-emerald-600 hover:bg-emerald-600 text-white"
-                title={`Tidligst framme 4 av 5 dager av forslagene på lista: innen ${formatTime(new Date(reportArrivalMs).toISOString())}. Overgangsrisiko er regnet med.`}
+                title={safestMode === "latest"
+                  ? `Senest avreise som er framme før fristen 4 av 5 dager (P80 ${formatTime(new Date(reportArrivalMs).toISOString())}). Overgangsrisiko er regnet med.`
+                  : `Tidligst framme 4 av 5 dager av forslagene på lista: innen ${formatTime(new Date(reportArrivalMs).toISOString())}. Overgangsrisiko er regnet med.`}
               >
                 <ShieldCheck className="h-3 w-3" />
-                Tryggest · {formatTime(new Date(reportArrivalMs).toISOString())}
+                {safestMode === "latest" ? "Senest trygge" : "Tryggest"} · {formatTime(new Date(reportArrivalMs).toISOString())}
               </Badge>
             )}
             <Badge variant="secondary" className="text-xs">
@@ -2911,22 +2916,34 @@ export default function TripPlanner() {
   // P80-ankomst per forslag (rapportert av TripCard) → «Tryggest» + sortering
   const [p80Reports, setP80Reports] = useState<Map<string, P80Report>>(new Map());
   const [sortMode, setSortMode] = useState<"departure" | "safe">("departure");
+  // «Når må jeg gå?»: ved ankomst-søk (arriveBy) er fristen søketidspunktet.
+  const [arrivalDeadline, setArrivalDeadline] = useState<number | null>(null);
   // Tryggest = tidligst P80-ankomst, men først når ALLE forslagene på lista er
   // ferdig beregnet — ellers kunne merket hoppe fra kort til kort mens
   // statistikken strømmer inn. Krever minst to sammenlignbare forslag.
-  const safestKey = useMemo(() => {
-    if (tripPatterns.length < 2) return null;
-    let best: { k: string; ms: number } | null = null;
-    let comparable = 0;
+  //
+  // Ved ankomst-søk snus spørsmålet til «når må jeg gå?»: blant forslagene
+  // som er framme innen fristen 4 av 5 dager, velges det som går SENEST.
+  const { safestKey, safeVerdict } = useMemo(() => {
+    const none = { safestKey: null as string | null, safeVerdict: null as null | { kind: "latest" | "none"; depMs?: number; arrMs?: number } };
+    if (tripPatterns.length < (arrivalDeadline != null ? 1 : 2)) return none;
+    const ready: { k: string; arrMs: number; depMs: number }[] = [];
     for (const p of tripPatterns) {
       const r = p80Reports.get(patternKey(p));
-      if (!r || r.pending) return null;
+      if (!r || r.pending) return none;
       if (r.arrivalMs == null) continue;
-      comparable++;
-      if (!best || r.arrivalMs < best.ms) best = { k: patternKey(p), ms: r.arrivalMs };
+      ready.push({ k: patternKey(p), arrMs: r.arrivalMs, depMs: new Date(p.expectedStartTime).getTime() });
     }
-    return comparable >= 2 ? best?.k ?? null : null;
-  }, [tripPatterns, p80Reports]);
+    if (arrivalDeadline != null) {
+      const ok = ready.filter((x) => x.arrMs <= arrivalDeadline);
+      if (ok.length === 0) return ready.length > 0 ? { safestKey: null, safeVerdict: { kind: "none" as const } } : none;
+      const best = ok.reduce((a, b) => (b.depMs > a.depMs || (b.depMs === a.depMs && b.arrMs < a.arrMs) ? b : a));
+      return { safestKey: best.k, safeVerdict: { kind: "latest" as const, depMs: best.depMs, arrMs: best.arrMs } };
+    }
+    if (ready.length < 2) return none;
+    const best = ready.reduce((a, b) => (b.arrMs < a.arrMs ? b : a));
+    return { safestKey: best.k, safeVerdict: null };
+  }, [tripPatterns, p80Reports, arrivalDeadline]);
   const displayOrder = useMemo(() => {
     const idx = tripPatterns.map((_, i) => i);
     if (sortMode !== "safe") return idx;
@@ -3325,7 +3342,7 @@ export default function TripPlanner() {
       // dessuten en nesten-duplikat av persentil-spørringen: to fulle skann
       // av samme datasett på én DuckDB-worker, der denne kun ga snitt-tall
       // som brukes som *fallback* når persentilene mangler.
-      return { patterns, cursors };
+      return { patterns, cursors, deadlineMs: arriveBy ? localDate.getTime() : null };
     },
     onSuccess: (data, variables) => {
       const dir = variables?.dir;
@@ -3339,6 +3356,7 @@ export default function TripPlanner() {
       } else {
         setTripPatterns(data.patterns);
         setPageCursors(data.cursors);
+        setArrivalDeadline(data.deadlineMs);
         setExpandedKeys(
           new Set(data.patterns.length > 0 ? [patternKey(data.patterns[0])] : []),
         );
@@ -3809,6 +3827,27 @@ export default function TripPlanner() {
                 ))}
               </div>
             </div>
+            {arrivalDeadline != null && safeVerdict && (
+              <div className={cn(
+                "rounded-md border px-3 py-2 text-sm flex items-center gap-2",
+                safeVerdict.kind === "latest"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-900"
+                  : "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900",
+              )}>
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                {safeVerdict.kind === "latest" ? (
+                  <span>
+                    <strong>Dra senest {formatTime(new Date(safeVerdict.depMs!).toISOString())}</strong> for å være framme innen{" "}
+                    {formatTime(new Date(arrivalDeadline).toISOString())} minst 4 av 5 dager (P80-ankomst {formatTime(new Date(safeVerdict.arrMs!).toISOString())}).
+                  </span>
+                ) : (
+                  <span>
+                    Ingen av forslagene på lista er framme innen {formatTime(new Date(arrivalDeadline).toISOString())} 4 av 5 dager.
+                    Prøv «Tidligere avganger».
+                  </span>
+                )}
+              </div>
+            )}
             {pageCursors.prev && (
               <Button
                 variant="outline"
@@ -3830,6 +3869,7 @@ export default function TripPlanner() {
                 pattern={pattern}
                 index={i}
                 safest={safestKey === pk}
+                safestMode={arrivalDeadline != null ? "latest" : "earliest"}
                 onP80Report={(r) =>
                   setP80Reports((prev) => {
                     const old = prev.get(pk);
