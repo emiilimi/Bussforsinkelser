@@ -17,6 +17,7 @@ import {
 } from "@/hooks/use-parquet-query";
 import { computeDayType, dayTypePredicate } from "@/lib/day-type";
 import { fetchStopDetail, snapToWindow, offsetToDate } from "@/lib/stop-detail";
+import { IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 
 // ---------------------------------------------------------------------------
 // «For tidlig»-terskel
@@ -503,6 +504,11 @@ async function apiExcludedDays(params: URLSearchParams) {
 
 const PERIOD_TO_DAYS: Record<string, number> = { week: 7, month: 30, year: 90 };
 
+function punctualPct(l: LineRow): number {
+  if (l.pctOnTime == null) return -Infinity;
+  return l.pctOnTime - (l.pctEarly ?? 0);
+}
+
 async function apiLeaderboardLines(params: URLSearchParams) {
   const [summary, lineNames] = await Promise.all([fetchSummary(), fetchLineNames()]);
   const type = params.get("type") ?? "worst";
@@ -515,11 +521,21 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     summary.windows,
   );
 
+  // Valgfrie kvalitetsfiltre (brukes av Oversikt, ikke av Topplister):
+  //   minDeparturesPerDay — små linjer med en håndfull avganger i uka toppet
+  //     lista med tilfeldige utslag (målt 2026-09: median linje har 36
+  //     avganger/uke, de tre «dårligste» hadde 6–7).
+  //   plausibleOnly — snitt over IMPLAUSIBLE_DELAY_MIN er nesten alltid
+  //     avganger som aldri ble avsluttet i sanntidsfeeden, ikke forsinkelse.
+  const minPerDay = Number(params.get("minDeparturesPerDay") ?? "0");
+  const plausibleOnly = params.get("plausibleOnly") === "1";
   let rows = summary.lines.filter(
     (l) =>
       l.window === win &&
       l.mode === mode &&
-      (operators.length === 0 || operators.includes(lineOperator(l.lineRef))),
+      (operators.length === 0 || operators.includes(lineOperator(l.lineRef))) &&
+      (!minPerDay || (l.totalDepartures ?? 0) >= minPerDay * win) &&
+      (!plausibleOnly || l.avgDelayMin == null || Math.abs(l.avgDelayMin) <= IMPLAUSIBLE_DELAY_MIN),
   );
 
   const sorters: Record<string, (a: LineRow, b: LineRow) => number> = {
@@ -527,6 +543,11 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     best: (a, b) => (a.avgDelayMin ?? Infinity) - (b.avgDelayMin ?? Infinity),
     reliable: (a, b) => (a.stddevDelayMin ?? Infinity) - (b.stddevDelayMin ?? Infinity),
     unreliable: (a, b) => (b.stddevDelayMin ?? -Infinity) - (a.stddevDelayMin ?? -Infinity),
+    // Andel presise passeringer: i rute (≤ 2 min) MINUS de som gikk mer enn
+    // 1 min for tidlig. «Lavest snitt» belønnet linjer som kjører for tidlig
+    // (målt 2026-09: de fem «beste» busslinjene gikk for tidlig 34–46 % av
+    // gangene) — og en buss som har gått kan du ikke rekke.
+    punctual: (a, b) => punctualPct(b) - punctualPct(a),
   };
   rows = [...rows].sort(sorters[type] ?? sorters.worst);
 
@@ -537,6 +558,8 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     stddevDelayMin: l.stddevDelayMin,
     pctOnTime: l.pctOnTime,
     pctDelayed10plus: l.pctDelayed10plus,
+    pctEarly: l.pctEarly,
+    pctPunctual: l.pctOnTime == null ? null : Math.max(0, l.pctOnTime - (l.pctEarly ?? 0)),
     totalDepartures: l.totalDepartures,
     totalCancellations: null,
   }));
