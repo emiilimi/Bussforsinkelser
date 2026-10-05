@@ -19,7 +19,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
   Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, Share2, Check,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { SectionLabel, StopRow } from "@/components/stop-picker";
@@ -327,6 +327,50 @@ function useEstimatedLegTimes(
  *    ligger i «mistet overgang»-grenen (beyond)
  */
 type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean };
+
+/**
+ * «Del reisen»: delingsark på mobil (navigator.share), ellers utklippstavle.
+ * Teksten er laget for å limes inn i en melding: rute, linjer, tider og — når
+ * statistikken er klar — når man er framme 4 av 5 dager. Lenken er søke-URL-en
+ * (from/to/date/time), som gjenoppretter søket hos mottakeren.
+ */
+function ShareTripButton({ pattern, p80ArrivalMs, pMakeAll }: {
+  pattern: TripPattern; p80ArrivalMs: number | null; pMakeAll: number | null;
+}) {
+  const [done, setDone] = useState(false);
+  const transit = pattern.legs.filter((l) => l.mode !== "foot");
+  const first = pattern.legs[0];
+  const last = pattern.legs[pattern.legs.length - 1];
+  const lines = transit.map((l) => `${modeLabel(l.mode).toLowerCase()} ${l.line?.publicCode ?? ""}`.trim()).join(" → ");
+  const text =
+    `${first?.fromPlace.name ?? ""} → ${last?.toPlace.name ?? ""}: ` +
+    `${formatTime(pattern.expectedStartTime)}–${formatTime(pattern.expectedEndTime)}` +
+    (lines ? ` med ${lines}` : "") + "." +
+    (p80ArrivalMs != null ? ` Framme innen ${formatTime(new Date(p80ArrivalMs).toISOString())} 4 av 5 dager.` : "") +
+    (pMakeAll != null ? ` Rekker overgangen ${Math.round(pMakeAll * 100)} % av dagene.` : "");
+
+  async function share() {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Reise fra Sen Tur", text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setDone(true);
+      setTimeout(() => setDone(false), 1800);
+    } catch {
+      /* avbrutt av brukeren eller blokkert — ingenting å gjøre */
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" className="h-7 px-2 text-[11px]" onClick={share} title={text}>
+      {done ? <Check className="h-3 w-3 mr-1" /> : <Share2 className="h-3 w-3 mr-1" />}
+      {done ? "Kopiert" : "Del reisen"}
+    </Button>
+  );
+}
 
 /** Stabil nøkkel for et reiseforslag — brukes til dedup ved paginering og som React key. */
 function patternKey(p: TripPattern): string {
@@ -2836,15 +2880,22 @@ function TripCard({
           {/* Rutekart — nederst i reiseforslaget. Lat: Leaflet/kartflisene
               lastes først når brukeren klikker «Vis kart». */}
           <div className="pt-1">
-            <Button
-              variant={showMap ? "secondary" : "outline"}
-              size="sm"
-              className="h-7 px-2 text-[11px]"
-              onClick={() => setShowMap((v) => !v)}
-            >
-              <MapIcon className="h-3 w-3 mr-1" />
-              {showMap ? "Skjul kart" : "Vis kart"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={showMap ? "secondary" : "outline"}
+                size="sm"
+                className="h-7 px-2 text-[11px]"
+                onClick={() => setShowMap((v) => !v)}
+              >
+                <MapIcon className="h-3 w-3 mr-1" />
+                {showMap ? "Skjul kart" : "Vis kart"}
+              </Button>
+              <ShareTripButton
+                pattern={pattern}
+                p80ArrivalMs={reportArrivalMs}
+                pMakeAll={transferAnalysis.hasTransfers && transferAnalysis.overallProb >= 0 ? transferAnalysis.overallProb : null}
+              />
+            </div>
             {showMap && <TripRouteMap pattern={pattern} stats={duckStats} />}
           </div>
 
