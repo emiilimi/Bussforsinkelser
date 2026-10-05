@@ -1,6 +1,8 @@
 import { Link, useLocation, useSearch } from "wouter";
-import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users } from "lucide-react";
-import { useEffect } from "react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
 import { IS_REISE } from "@/lib/app-mode";
@@ -42,11 +44,66 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/metode", label: "Metode", icon: BookOpen },
       ];
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const activeLabel = navItems.find((i) => i.href === location)?.label ?? "";
+
+  const renderNav = (onNavigate?: () => void) => (
+    <nav className="flex flex-col gap-1">
+      {navItems.map((item) => {
+        const isActive = location === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={getRememberedUrl(item.href)}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
+              isActive
+                ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
   return (
     <div className="min-h-screen bg-background font-sans text-foreground flex flex-col">
       <div className="flex-1 flex flex-col md:flex-row w-full">
-        <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/50 backdrop-blur-sm z-50">
-        <div className="p-4 md:sticky md:top-0 flex flex-col gap-6">
+        <aside className="w-full md:w-64 border-b md:border-r border-border bg-card/80 md:bg-card/50 backdrop-blur-sm z-50 sticky top-0 md:static">
+        {/* Mobil: kompakt topplinje + skuffemeny. Tidligere sto alle
+            menypunktene som knapper over innholdet, og på en 375 px-skjerm
+            dyttet de søkefeltet i reiseplanleggeren ned under folden
+            (~630 av 812 px var meny). */}
+        <div className="md:hidden flex items-center gap-3 px-3 py-2">
+          <Link href={IS_REISE ? "/reise" : "/"} className="shrink-0">
+            {IS_REISE ? (
+              <img src="/sen-tur-logo-compact.svg" alt="Sen Tur" className="h-8 w-auto" />
+            ) : (
+              <span className="font-bold text-primary">bussforsinkelser</span>
+            )}
+          </Link>
+          <span className="flex-1 truncate text-sm font-medium text-muted-foreground text-right">{activeLabel}</span>
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="shrink-0 gap-1.5" aria-label="Åpne meny">
+                <Menu className="h-4 w-4" />
+                Meny
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-4 flex flex-col gap-4">
+              <SheetTitle className="sr-only">Meny</SheetTitle>
+              {IS_REISE && <img src="/sen-tur-logo-compact.svg" alt="Sen Tur" className="h-10 w-auto self-start" />}
+              {renderNav(() => setMenuOpen(false))}
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="hidden md:flex p-4 md:sticky md:top-0 flex-col gap-6">
           {IS_REISE ? (
             <div className="px-2 py-1">
               <img src="/sen-tur-logo-compact.svg" alt="Sen Tur" className="h-12 md:h-14 w-auto" />
@@ -72,29 +129,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Operatørvelgeren ligger nå øverst på sidene som filtrerer på
               operatør (se components/region-selector.tsx) — ikke i sidemenyen. */}
-          {/* Mobil: flex-wrap slik at ALLE navelementene er synlige (tidligere
-              en horisontal scroll-rad med skjult scrollbar → 5 av 7 lenker lå
-              usynlig utenfor skjermen). Desktop: vertikal liste som før. */}
-          <nav className="flex flex-row flex-wrap md:flex-col gap-1">
-            {navItems.map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={getRememberedUrl(item.href)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {renderNav()}
 
           <div className="mt-auto hidden md:block px-2 space-y-3">
             {/* Freshness gjelder analyse-DB-en — irrelevant for live reise-siten. */}

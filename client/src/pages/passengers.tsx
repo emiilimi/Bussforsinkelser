@@ -139,15 +139,15 @@ export default function Passengers() {
             <KpiRow op={opSummary} />
 
             <div className="grid gap-6 lg:grid-cols-5">
-              <div className="lg:col-span-3">
+              <div className="lg:col-span-3 min-w-0">
                 <CostlyLinesCard lines={opLines} month={opSummary.latestMonth} onSelect={(r) => selectLine(r, { scroll: true })} />
               </div>
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 min-w-0">
                 <LoadDelayCard summary={summary} op={op} />
               </div>
             </div>
 
-            <div ref={explorerRef} className="scroll-mt-4">
+            <div ref={explorerRef} className="scroll-mt-20 md:scroll-mt-4 min-w-0">
               <LineExplorer
                 lines={opLines}
                 lineRef={opLines.some((l) => l.lineRef === lineParam) ? lineParam : opLines[0]?.lineRef ?? null}
@@ -167,7 +167,7 @@ export default function Passengers() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
               <CrowdedCard summary={summary} op={op} onSelect={(r, dt, dep) => selectLine(r, { scroll: true, dt, dep })} />
               <MunicipalityCard summary={summary} op={op} />
             </div>
@@ -217,7 +217,7 @@ function KpiRow({ op }: { op: PaxSummary["operators"][number] }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         <Kpi
           title="Påstigninger"
           icon={Users}
@@ -275,16 +275,16 @@ function Kpi({ title, icon: Icon, accent, value, sub, tip }: {
 }) {
   return (
     <Card className={cn("border-l-4 shadow-sm", accent)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1 md:p-6 md:pb-2">
+        <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-1.5">
           {title}
           <InfoTip>{tip}</InfoTip>
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Icon className="hidden sm:block h-4 w-4 text-muted-foreground shrink-0" />
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold font-mono whitespace-nowrap">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{sub}</p>
+      <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+        <div className="text-lg sm:text-2xl font-bold font-mono whitespace-nowrap">{value}</div>
+        <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{sub}</p>
       </CardContent>
     </Card>
   );
