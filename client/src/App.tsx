@@ -23,6 +23,7 @@ const Departures = lazy(() => import("@/pages/departures"));
 const Methodology = lazy(() => import("@/pages/methodology"));
 const About = lazy(() => import("@/pages/about"));
 const Passengers = lazy(() => import("@/pages/passengers"));
+const WeekReport = lazy(() => import("@/pages/week-report"));
 
 // Enkel, lett fallback mens en rute-chunk lastes (vanligvis <1 sek).
 function RouteLoading() {
@@ -61,6 +62,7 @@ function ReiseRouter() {
       <Route path="/reise" component={TripPlanner} />
       <Route path="/avganger" component={Departures} />
       <Route path="/oversikt" component={Dashboard} />
+      <Route path="/uke" component={WeekReport} />
       <Route path="/journey" component={JourneyDetails} />
       <Route path="/stops" component={Departures} />
       <Route path="/worst" component={WorstLists} />

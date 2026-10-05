@@ -1,5 +1,5 @@
 import { Link, useLocation, useSearch } from "wouter";
-import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users, Menu } from "lucide-react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users, Menu, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
         { href: "/avganger", label: "Avganger og stopp", icon: Timer },
         { href: "/oversikt", label: "Oversikt", icon: BarChart3 },
+        { href: "/uke", label: "Uka som gikk", icon: CalendarDays },
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },

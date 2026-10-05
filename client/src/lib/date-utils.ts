@@ -97,9 +97,12 @@ export function lineNumber(lineRef: string): string {
   return UUID_RE.test(last) ? parts[0] : last;
 }
 
-/** Fjern UUID-er fra linjenavn: «FLI 0a73c829-…: Bergen - Oslo» → «FLI: Bergen - Oslo». */
+/** Fjern UUID-er fra linjenavn: «FLI 0a73c829-…: Bergen - Oslo» → «FLI: Bergen - Oslo». Andre navn returneres uendret. */
 export function cleanLineName(name: string | null | undefined): string | null {
   if (!name) return name ?? null;
-  const cleaned = name.replace(UUID_IN_NAME_RE, "").replace(/^([A-ZÆØÅ]{2,4})\s*:?\s*/, (m, op) => (m.includes(":") || /^[A-ZÆØÅ]{2,4}\s+\S/.test(name) ? `${op}: ` : m)).trim();
+  UUID_IN_NAME_RE.lastIndex = 0;
+  if (!UUID_IN_NAME_RE.test(name)) return name;
+  UUID_IN_NAME_RE.lastIndex = 0;
+  const cleaned = name.replace(UUID_IN_NAME_RE, "").replace(/^([A-ZÆØÅ]{2,4})\s*:?\s*/, "$1: ").trim();
   return cleaned || name;
 }
