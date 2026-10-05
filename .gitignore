@@ -41,3 +41,9 @@ data/diagnostics/
 emiliesBussprosjekt/
 data/stop_coordsNullNames.json
 logs/
+
+# Passasjertellinger (pipeline/passenger_stats.py) — cache av offentlig bøtte
+# og genererte artefakter. Lisens ikke avklart: ikke commit, ikke last opp.
+data/pax-cache/
+data/pax-out/
+client/public/pax-dev/

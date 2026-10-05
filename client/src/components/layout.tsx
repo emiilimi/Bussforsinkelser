@@ -1,9 +1,10 @@
 import { Link, useLocation, useSearch } from "wouter";
-import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info } from "lucide-react";
+import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FreshnessBadge } from "@/components/freshness-badge";
 import { IS_REISE } from "@/lib/app-mode";
+import { PAX_ENABLED } from "@/lib/pax";
 import { rememberCurrentUrl, getRememberedUrl } from "@/lib/nav-memory";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
+        ...(PAX_ENABLED ? [{ href: "/passasjerer", label: "Passasjerer", icon: Users }] : []),
         { href: "/metode", label: "Metode", icon: BookOpen },
         { href: "/om", label: "Om", icon: Info },
       ]
@@ -36,6 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
         { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
         { href: "/avganger", label: "Avganger og stopp", icon: Timer },
+        ...(PAX_ENABLED ? [{ href: "/passasjerer", label: "Passasjerer", icon: Users }] : []),
         { href: "/metode", label: "Metode", icon: BookOpen },
       ];
 
