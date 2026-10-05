@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
   ResponsiveContainer, ComposedChart, BarChart, Bar, Area, Line, LineChart, XAxis, YAxis, Tooltip,
@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import {
   Users, Clock, Hourglass, CheckCircle, AlertTriangle, Check, ChevronsUpDown, Copy, Link2, Bus, TrendingUp,
-  MapPin, Info,
+  MapPin, Info, Play, Pause,
 } from "lucide-react";
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -551,7 +551,48 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
     const p = Math.max(...d.l.map((x) => x ?? 0));
     return !best || p > Math.max(...best.l.map((x) => x ?? 0)) ? d : best;
   }, null), [deps]);
-  const dep = selectedDep ?? busiest;
+  // «Spill av dagen»: gå gjennom avgangene i tidsrekkefølge med fast skala,
+  // så man ser belegget bygge seg opp mot rushet og falle igjen.
+  const [playing, setPlaying] = useState(false);
+  const [playIdx, setPlayIdx] = useState(0);
+  useEffect(() => {
+    if (!playing) return;
+    // Siste avgang: bli stående på den og stopp (ingen setState inne i en updater)
+    if (playIdx >= deps.length - 1) {
+      const t = window.setTimeout(() => setPlaying(false), 850);
+      return () => window.clearTimeout(t);
+    }
+    const id = window.setTimeout(() => setPlayIdx((i) => i + 1), 850);
+    return () => window.clearTimeout(id);
+  }, [playing, playIdx, deps.length]);
+  useEffect(() => { setPlaying(false); }, [lineRef, dt, dir]);
+  const dep = playing ? deps[Math.min(playIdx, deps.length - 1)] : selectedDep ?? busiest;
+  useEffect(() => {
+    if (!playing || !dep) return;
+    document.getElementById(`dep-chip-${dep.k}`)?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [playing, dep]);
+  const fixedDomain = useMemo(() => {
+    let maxL = 1;
+    const delays: number[] = [];
+    for (const d of deps) {
+      for (const x of d.l) if (x != null && x > maxL) maxL = x;
+      for (const x of d.d) if (x != null) delays.push(x);
+    }
+    // Forsinkelsesaksen på 2.–98. persentil: én enkelt avgang med −21 min
+    // klemte ellers hele linja flat under avspillingen.
+    delays.sort((a, b) => a - b);
+    const q = (p: number) => (delays.length ? delays[Math.round(p * (delays.length - 1))] : 0);
+    return {
+      load: Math.ceil(maxL / 10) * 10,
+      delay: [Math.min(0, Math.floor(q(0.02))), Math.max(1, Math.ceil(q(0.98)))] as [number, number],
+    };
+  }, [deps]);
+  function togglePlay() {
+    if (playing) { setPlaying(false); return; }
+    const start = dep ? deps.indexOf(dep) : -1;
+    setPlayIdx(start >= 0 && start < deps.length - 1 ? start : 0);
+    setPlaying(true);
+  }
 
 
   const kpi = lines.find((l) => l.lineRef === lineRef);
@@ -604,6 +645,12 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <div className="text-sm font-medium">Velg avgang <span className="text-muted-foreground font-normal">(farge = typisk belegg på det fulleste)</span></div>
+                {deps.length > 2 && (
+                  <Button size="sm" variant={playing ? "secondary" : "outline"} className="h-7 px-2 text-xs" onClick={togglePlay}>
+                    {playing ? <Pause className="h-3.5 w-3.5 mr-1" /> : <Play className="h-3.5 w-3.5 mr-1" />}
+                    {playing ? `Stopp (${playIdx + 1}/${deps.length})` : "Spill av dagen"}
+                  </Button>
+                )}
                 {directions.length > 1 && (
                   <div className="inline-flex flex-wrap rounded-md border p-0.5 text-xs">
                     {directions.slice(0, 4).map((x) => (
@@ -622,7 +669,8 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
                   return (
                     <button
                       key={`${d.k}-${d.dt}`}
-                      onClick={() => setDep(d.k)}
+                      id={`dep-chip-${d.k}`}
+                      onClick={() => { setPlaying(false); setDep(d.k); }}
                       title={`${d.t} mot ${d.hs ?? "?"} · ${Math.round(peak)} om bord`}
                       className={cn(
                         "shrink-0 rounded-md border px-2 py-1 text-xs font-mono tabular-nums transition-all",
@@ -637,7 +685,7 @@ function LineExplorer({ lines, lineRef, onLineChange }: { lines: PaxLineSummary[
               </div>
             </div>
 
-            {dep && <RouteProfile line={line} dep={dep} />}
+            {dep && <RouteProfile line={line} dep={dep} fixed={playing ? fixedDomain : null} />}
             {dep && kpi && <YourBusCard line={line} dep={dep} kpi={kpi} dt={dt} />}
           </>
         )}
@@ -687,7 +735,11 @@ function HourProfile({ line, dt }: { line: PaxLine; dt: string }) {
   );
 }
 
-function RouteProfile({ line, dep }: { line: PaxLine; dep: PaxDeparture }) {
+function RouteProfile({ line, dep, fixed }: {
+  line: PaxLine; dep: PaxDeparture;
+  /** Fast skala under avspilling, så rammene kan sammenlignes */
+  fixed?: { load: number; delay: [number, number] } | null;
+}) {
   const data = dep.s.map((si, i) => ({
     i,
     stop: line.stops[si]?.[1] ?? line.stops[si]?.[0] ?? "?",
@@ -719,8 +771,10 @@ function RouteProfile({ line, dep }: { line: PaxLine; dep: PaxDeparture }) {
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
             <XAxis dataKey="i" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false}
               tickFormatter={(i) => shortStop(data[i]?.stop)} interval="preserveStartEnd" minTickGap={24} />
-            <YAxis yAxisId="l" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
-            <YAxis yAxisId="d" orientation="right" stroke="hsl(var(--chart-4))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}m`} />
+            <YAxis yAxisId="l" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false}
+              domain={fixed ? [0, fixed.load] : undefined} allowDataOverflow={!!fixed} />
+            <YAxis yAxisId="d" orientation="right" stroke="hsl(var(--chart-4))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}m`}
+              domain={fixed ? fixed.delay : undefined} allowDataOverflow={!!fixed} />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
               labelFormatter={(i) => {
