@@ -86,7 +86,20 @@ export function formatMonthNO(isoDate: string): string {
 /**
  * Extract line number from line_ref: "SKY:Line:60" → "60"
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_IN_NAME_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:?\s*/gi;
+
 export function lineNumber(lineRef: string): string {
   const parts = lineRef.split(":");
-  return parts.length >= 3 ? parts[parts.length - 1] : lineRef;
+  const last = parts.length >= 3 ? parts[parts.length - 1] : lineRef;
+  // Flixbus (FLI) m.fl. bruker en UUID som linje-id — «0a73c829-ebbd-…» er
+  // verken lesbart eller et linjenummer. Vis operatørkoden i stedet.
+  return UUID_RE.test(last) ? parts[0] : last;
+}
+
+/** Fjern UUID-er fra linjenavn: «FLI 0a73c829-…: Bergen - Oslo» → «FLI: Bergen - Oslo». */
+export function cleanLineName(name: string | null | undefined): string | null {
+  if (!name) return name ?? null;
+  const cleaned = name.replace(UUID_IN_NAME_RE, "").replace(/^([A-ZÆØÅ]{2,4})\s*:?\s*/, (m, op) => (m.includes(":") || /^[A-ZÆØÅ]{2,4}\s+\S/.test(name) ? `${op}: ` : m)).trim();
+  return cleaned || name;
 }

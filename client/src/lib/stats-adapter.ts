@@ -17,6 +17,7 @@ import {
 } from "@/hooks/use-parquet-query";
 import { computeDayType, dayTypePredicate } from "@/lib/day-type";
 import { fetchStopDetail, snapToWindow, offsetToDate } from "@/lib/stop-detail";
+import { cleanLineName } from "@/lib/date-utils";
 import { IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 
 // ---------------------------------------------------------------------------
@@ -147,6 +148,14 @@ function fetchLineNames(): Promise<LineNamesDoc> {
       .then((r) => {
         if (!r.ok) throw new Error(`stats_line_names.json: ${r.status}`);
         return r.json();
+      })
+      .then((doc: LineNamesDoc) => {
+        // UUID-linje-id-er (Flixbus) lekker inn i navnet: «FLI 0a73c829-…: Bergen - Oslo»
+        for (const k of Object.keys(doc)) {
+          const v = doc[k];
+          if (typeof v === "string" && /[0-9a-f]{8}-[0-9a-f]{4}-/i.test(v)) doc[k] = cleanLineName(v) ?? v;
+        }
+        return doc;
       })
       .catch((err) => {
         lineNamesPromise = null;
