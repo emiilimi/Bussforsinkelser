@@ -25,6 +25,7 @@ client/src/
     stop-analysis.tsx      /stops       Stoppanalyse: søk, trend, timesprofil, linjer ved stopp
     worst-lists.tsx        /worst       Topplister: dager, stopp, pålitelighet
     delay-map.tsx          /map         Leaflet-kart med fargede stoppmarkører
+    passengers.tsx         /passasjerer Passasjertellinger (beta, bak VITE_PAX_BASE_URL): belegg, passasjertimer tapt, stoppkart
     trip-planner.tsx       /reise       Reiseplanlegger: Entur JP v3, DuckDB-WASM persentiler (P50/P80/P95-avkryssing), reiseanalyse-popup m/ "Vis data"-historikk, plan-tre m/ forsinkelsesgrafer, metodeboks
     not-found.tsx          *            404-side
   components/
@@ -33,8 +34,11 @@ client/src/
     scrollable-chart.tsx   Horisontal-scrollbar + draggable Y-akse for grafer
     delay-percentiles.tsx  DuckDB-WASM P50/P80/P95 persentilkort
     plan-delay-chart.tsx   Forsinkelse-langs-ruten-graf per plan-node (reiseplanlegger plan-tre)
+    crowd-badge.tsx        «Hvor full er bussen?»-merker (reiseplanlegger-legg, avgangstavle)
+    pax-stop-map.tsx       Stoppkart på /passasjerer (lazy Leaflet)
     ui/                    shadcn/ui (60+ filer)
   lib/
+    pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)
@@ -66,6 +70,8 @@ pipeline/          (Python)
   populate_stop_places.py  Skyss GTFS stops.txt — kun NULL-felter (fallback for SKY-spesifikke gaps)
   populate_line_names.py   NeTEx XML (SKY) eller DB-derivert (andre) → line_name
   export_parquet.py        journey_stop_daily → ukentlige .parquet (ZSTD)
+  passenger_stats.py       Passasjertellinger (samferdselsdata.no) × forsinkelser → data/pax-out/ (månedlig, manuelt)
+  upload_pax.py            pax-out → R2 pax/ (krever --confirm-license)
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
 
 data/
@@ -327,6 +333,28 @@ avganger 9.–11. august, så `stableSjId()` virker og per-avgang-historikk
 `ingest_lite.py` gjenbruker). Det gjelder generelt, ikke bare Skyss.
 
 ---
+
+## Passasjertellinger (samferdselsdata.no) — beta, AV som standard
+
+Enturs månedlige passasjertellinger ligger i en offentlig GCS-bøtte:
+`https://storage.googleapis.com/ent-sdno-prd-paxcount-public/` (rå-filer
+`kol/ ost/ tro/` med `trip_id` = ServiceJourney-id). Dekker Kolumbus, Østfold
+kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
+
+- **Lisens er ikke avklart** (samferdselsdata.no oppgir ingen). Derfor:
+  frontend skjuler alt uten `VITE_PAX_BASE_URL`, pipelinen skriver til
+  `data/pax-out/` (ikke `PARQUET_DIR`, som nattjobben laster opp fra), og
+  `upload_pax.py` krever `--confirm-license`. Ikke endre noe av dette før
+  Entur har sagt ja.
+- **⚠️ Bøtta har duplikat-shards** — naiv SUM gir 2–3x. Dedupliser eksakte
+  rader og sjekk mot `aggregert/detail.parquet` (pipelinen gjør dette).
+- **Avgangsnøkkel = siste `_`-ledd** for KOL/OST/TRO (`paxDepKey()`), ikke
+  `stableSjId()` som splitter på `-`.
+- **0 på + 0 av hele måneden = utelt buss**, aldri «tom». Fravær av
+  belegg-merke betyr «vet ikke».
+- Kjøring lokalt: `PARQUET_DIR=data/reise-parquet PAX_OUT_DIR=client/public/pax-dev
+  python pipeline/passenger_stats.py`, deretter `VITE_PAX_BASE_URL=/pax-dev`
+  (mappa er gitignored). Se STATUS.md 2026-10-05.
 
 ## Datakilde og operatør-quirks
 
@@ -625,6 +653,10 @@ python pipeline/upload_to_r2.py --prune
 | `STATS_DUCKDB_TEMP` | aggregate_stats | `<PARQUET_DIR>/.duckdb_tmp` |
 | `STATS_DUCKDB_THREADS` | aggregate_stats | DuckDB-default (alle kjerner) |
 | `R2_UPLOAD_WORKERS` | upload_to_r2 | `8` |
+| `PAX_OUT_DIR` | passenger_stats, upload_pax | `data/pax-out` |
+| `PAX_CACHE_DIR` | passenger_stats | `data/pax-cache` |
+| `PAX_MAX_MONTHS` | passenger_stats | `3` |
+| `VITE_PAX_BASE_URL` | frontend (pax.ts) | ikke satt = passasjerfunksjonen skjult |
 
 ---
 

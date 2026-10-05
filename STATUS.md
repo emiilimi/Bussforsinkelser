@@ -3,7 +3,107 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-09-02
+**Sist oppdatert**: 2026-10-05
+
+## Endringslogg — 2026-10-05: passasjertellinger (beta) — «hvem rammes av forsinkelsene?»
+
+Branch `feat/passasjertall`. Ikke pushet, ikke lastet opp, og **av som
+standard** i bygget: alt er skjult med mindre `VITE_PAX_BASE_URL` er satt.
+Grunn: samferdselsdata.no oppgir **ingen lisens** for passasjertallene, og
+dokumentasjonen ber om at man sjekker med dataeier før publisering. Send
+Entur en e-post før dette går ut.
+
+### Datakilden
+
+Enturs «Passasjertellinger» på samferdselsdata.no. Utforskeren der leser en
+**offentlig GCS-bøtte**: `https://storage.googleapis.com/ent-sdno-prd-paxcount-public/`
+(`?max-keys=1000` lister den). Rå-filene per operatør (`kol/`, `ost/`, `tro/`)
+har mer enn CSV-nedlastingen: `trip_id` er ekte `ServiceJourney`-id, pluss
+`stop_sequence` → månedlige på-/avstigninger **per avgang per stopp**.
+
+Dekning (oktober 2026): Kolumbus, Østfold kollektivtrafikk, Svipper (Troms)
+og Vy-tog. **Ikke Skyss, ikke Ruter.** Vy har ingen avgangs-id
+(`JDIR:operating_date:…`) og er ikke med.
+
+### Tre datafeller (målt — ikke gjenta uten å lese dette)
+
+1. **Bøtta har hele eksport-shards flere ganger.** `kol/…016` og `…018` er
+   identiske; juli 2026 ligger i tre filer. Naiv `SUM` gir 2–3x for mange
+   passasjerer. Pipelinen dedupliserer eksakt like rader (IKKE bare
+   (avgang, stopp) — ringruter passerer samme stopp to ganger) og sjekker
+   summen mot `aggregert/detail.parquet`, som er riktig. Etter fiks: eksakt
+   lik for alle tre operatører og alle måneder.
+2. **Avgangs-id-ens midtledd bytter 1,4–1,75 ganger i måneden**
+   (`KOL:ServiceJourney:1003_<datasettversjon>_1001`). Nøkkelen er
+   (linje, siste `_`-ledd); kolliderer på <0,06 % av (linje, dato).
+   `stableSjId()` i trip-shared.ts splitter på `-` og virker IKKE for disse
+   operatørene — derfor egen `paxDepKey()`. Kobling: >99 % av passasjerene.
+3. **0 på og 0 av hele måneden = utelt buss, ikke tom buss.** 12 % av
+   KOL-avgangene i august (0,9 % i juli), 1–2 % for OST/TRO. På KOL-linje 52
+   var bare skoleavgangene telt. Holdes utenfor belegg; vises som advarsel.
+   Påstigningstallet for KOL august er derfor for lavt.
+
+### Det som er bygget
+
+- **`pipeline/passenger_stats.py`**: speiler bøtta til `data/pax-cache/`,
+  velger måneder der både passasjertall og våre forsinkelser er komplette,
+  og skriver `summary.json`, `stops_<OP>.json` og `lines/<ref>.json` til
+  `PAX_OUT_DIR` (default `data/pax-out/`, bevisst IKKE `PARQUET_DIR`).
+  ~1 min. Belegg per tur = månedstall / turer, der turer = observerte datoer
+  skalert for hele dager vi mangler (`day_scale`).
+- **Ny side `/passasjerer`**: merket forsinkelse (vektet med avstigende),
+  passasjertimer tapt, toppliste etter timer tapt med plassering på vanlig
+  liste, «fulle busser er senere», linjeutforsker (timesprofil, belegg og
+  forsinkelse langs ruten per avgang, delbart «Din buss»-kort), stoppkart,
+  fulleste avganger, kommuner, historikk fra 2022, metodeboks.
+- **Belegg-merker** i reiseplanleggeren (per legg + kompakt i kortet) og på
+  avgangstavla («~N» om bord når bussen kjører fra stoppet). Matcher samme
+  avgang, ellers nærmeste avgang samme dagtype ±6 min. Ingen DuckDB.
+- **`pipeline/upload_pax.py`**: laster opp til `pax/` på R2, nekter uten
+  `--confirm-license`.
+
+### Funn (august 2026; Svipper september)
+
+| Operatør | Påstigninger | Merket forsinkelse | Snittbussen | Timer tapt |
+|---|---|---|---|---|
+| Kolumbus | 2 486 874 | 4,8 min | 3,9 min | 205 771 |
+| Østfold | 658 852 | 5,4 min | 3,6 min | 55 798 |
+| Svipper (sep) | 1 173 846 | 3,1 min | 2,6 min | 64 006 |
+
+Passasjerene merker mer forsinkelse enn snittbussen viser hos alle tre — folk
+reiser der og når bussene er mest forsinket. Fulle busser går senere også
+innenfor og utenfor rush (snitt per avgang, alle tre operatører):
+
+| Om bord på det fulleste | Utenom rush | Rush |
+|---|---|---|
+| < 10 | 2,6 min | 3,1 min |
+| 10–25 | 3,0 min | 4,3 min |
+| 25–50 | 4,4 min | 4,5 min |
+| 50+ | 5,9 min | 5,0 min |
+
+Sammenheng, ikke årsak (travle linjer har også mer trafikk).
+
+### Samme branch: raske forbedringer fra produktgjennomgangen
+
+- **Mobil**: kompakt sticky topplinje med «Meny»-skuff. Før tok
+  menyknappene ~630 av 812 px over søkefeltet.
+- **Oversikt**: linjetopplistene viser busslinjer med minst 5 avganger/dag
+  uten datafeil (>120 min), og «Beste» er byttet med «Mest presise» (andel
+  fra −1 til +2 min). Før: fergerute med 6 avganger/uke på +163 min øverst,
+  og fly/buss som går for tidlig som «beste». Kjent rest: noen båtruter er
+  merket `bus` fordi `vehicleMode` mangler.
+- **UUID-linje-id-er** (Flixbus) vises som operatørkode, og navnene renses.
+- **Stoppanalysens Y-akse** starter rundt snittet i stedet for på verste
+  enkeltavgang (Bergen busstasjon: 450 min → 14 min).
+
+### Gjenstår
+
+- E-post til Entur om lisens/vilkår før publisering.
+- Månedlig kjøring: `passenger_stats.py` + `upload_pax.py` (bøtta oppdateres
+  rundt den 25.). Ikke lagt inn i nattjobben med vilje.
+- Belegg bruker siste måned; ruteendringer (august: sommer → høst) gir to
+  avganger på samme klokkeslett — siden viser den med flest turer.
+
 
 ## Endringslogg — 2026-09-02: nattjobben feilet tre netter på rad — to ulike feil, begge fra stoppdetalj-shardene
 
