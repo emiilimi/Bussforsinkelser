@@ -2567,8 +2567,9 @@ function TripCard({
             return (
               <div key={legIdx}>
                 <div className="border rounded-lg p-3 bg-muted/20">
-                  {/* Leg header */}
-                  <div className="flex items-center justify-between mb-2">
+                  {/* Leg header — flex-wrap: på mobil får ikke linjenavn, belegg-merke,
+                      klokkeslett og «Bytt avgang» plass på én rad */}
+                  <div className="flex flex-wrap items-center justify-between gap-y-1 mb-2">
                     {(() => {
                       const canOpenJourney = !!leg.serviceJourney?.id;
                       const journeyOpen = journeyOpenLeg === legIdx;

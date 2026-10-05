@@ -54,7 +54,12 @@ export function LegCrowdBadge({ leg, compact = false }: { leg: TripLeg; compact?
           )}
         >
           <Users className="h-2.5 w-2.5" />
-          {compact ? lvl.short : `${lvl.label} · ~${Math.round(res.peak)}`}
+          {compact ? lvl.short : (
+            <>
+              <span className="sm:hidden">{lvl.short}</span>
+              <span className="hidden sm:inline">{lvl.label} · ~{Math.round(res.peak)}</span>
+            </>
+          )}
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-xs space-y-1">
