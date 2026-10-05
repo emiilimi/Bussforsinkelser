@@ -35,6 +35,7 @@ import { PlanDelayChart } from "@/components/plan-delay-chart";
 import { ServiceJourneyDetail } from "@/components/service-journey-detail";
 import { TripRouteMap } from "@/components/trip-route-map";
 import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
+import { LegCrowdBadge } from "@/components/crowd-badge";
 import {
   getRecentStops, addRecentStop, getFavoriteStops, toggleFavorite,
   getCurrentPositionAsStop,
@@ -2407,13 +2408,17 @@ function TripCard({
         {/* Compact line summary with mode icons */}
         <div className="flex flex-wrap gap-1.5 mt-2">
           {pattern.legs.map((leg, i) => (
-            <Badge key={i} variant="outline" className="text-xs gap-1">
-              <ModeIcon mode={leg.mode} className="h-3 w-3" />
-              {leg.line?.publicCode
-                ? `${leg.line.publicCode}`
-                : modeLabel(leg.mode)
-              }
-            </Badge>
+            <span key={i} className="inline-flex items-center gap-1">
+              <Badge variant="outline" className="text-xs gap-1">
+                <ModeIcon mode={leg.mode} className="h-3 w-3" />
+                {leg.line?.publicCode
+                  ? `${leg.line.publicCode}`
+                  : modeLabel(leg.mode)
+                }
+              </Badge>
+              {/* Passasjertellinger (beta) — rendrer ingenting uten data */}
+              {leg.mode !== "foot" && <LegCrowdBadge leg={leg} compact />}
+            </span>
           ))}
         </div>
       </div>
@@ -2487,6 +2492,7 @@ function TripCard({
                           {leg.line?.name && (
                             <span className="text-xs text-muted-foreground truncate max-w-48">{leg.line.name}</span>
                           )}
+                          <LegCrowdBadge leg={leg} />
                           {canOpenJourney && (
                             journeyOpen
                               ? <ChevronUp className="h-3 w-3 text-muted-foreground flex-shrink-0" />

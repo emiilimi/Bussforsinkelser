@@ -10,6 +10,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Search, Clock, AlertCircle, Loader2, Star, MapPin } from "lucide-react";
 import { ModeIcon } from "@/components/mode-icon";
+import { DepartingLoadBadge } from "@/components/crowd-badge";
 import { SectionLabel, StopRow, FavoriteToggle } from "@/components/stop-picker";
 import {
   getFavoriteStops, toggleFavorite, getRecentStops, addRecentStop, getLastKnownPosition,
@@ -1043,6 +1044,10 @@ export default function Departures() {
                         {d.platform && (
                           <span className="text-xs text-muted-foreground ml-2">Plt. {d.platform}</span>
                         )}
+                        {/* Typisk belegg når bussen kjører herfra (passasjertellinger, beta) */}
+                        <span className="ml-2 align-middle">
+                          <DepartingLoadBadge lineRef={d.lineRef} sjId={d.serviceJourneyId} quay={d.quayRef} aimed={d.aimedTime} />
+                        </span>
                       </div>
 
                       {/* Sanntid (live) / Faktisk avgang (historisk) */}
