@@ -116,6 +116,31 @@ Sammenheng, ikke årsak (travle linjer har også mer trafikk).
 - Linjeanalyse har fått et passasjerkort for linjer med tellinger, og
   /passasjerer har «Spill av dagen» (animerer belegg per avgang, fast skala).
 
+### Overgangssannsynligheten: veid snitt i stedet for hard terskel (backtestet)
+
+Før: din egen avgang fra 5 dager, ellers sammenlignbare. Ny leave-one-day-out-
+test (`pipeline/backtest_transfer.py`, ~146 600 måldager, ~4 080 ekte
+overgangspar ved 21 knutepunkter, hverdager, ~30 s) viste at den regelen var
+dårligst nettopp der den byttet kilde. Nå:
+`p = (k·p_egen + 10·p_sammenlignbare) / (k + 10)` (`shrunkProb`,
+`POOL_PRIOR_DAYS` i trip-shared.ts).
+
+| Egne dager | Kun egen | Sammenlignbare | Gammel regel | Veid, m=10 |
+|---|---|---|---|---|
+| 3 | 0,1375 | 0,1116 | 0,1116 | 0,1105 |
+| 5 | 0,1232 | 0,1116 | 0,1232 | 0,1097 |
+| 10 | 0,1136 | 0,1116 | 0,1136 | 0,1087 |
+| 20 | 0,1078 | 0,1114 | 0,1078 | 0,1066 |
+| 30 | 0,1048 | 0,1095 | 0,1048 | 0,1045 |
+
+Brier, buffer 3 min. Samme rangering med 2 og 5 min; m=10 var best eller
+innenfor 0,0004 av best overalt (m=2, 5, 20 også testet). Den eldre
+notat-påstanden om m=5 (2026-07-24) stemte ikke med egne tall.
+
+Også: «ingen sanntid» for Bybanen har nå en forklaring — Entur sender
+realtime=false for alle bybaneavganger, og SIRI ET har ingen bybanerader.
+«Siste reiser»-brikker på reiseplanleggeren (ett trykk, motsatt vei).
+
 ### Gjenstår
 
 - E-post til Entur om lisens/vilkår før publisering.
