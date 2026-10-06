@@ -355,6 +355,11 @@ kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
 - Kjøring lokalt: `PARQUET_DIR=data/reise-parquet PAX_OUT_DIR=client/public/pax-dev
   python pipeline/passenger_stats.py`, deretter `VITE_PAX_BASE_URL=/pax-dev`
   (mappa er gitignored). Se STATUS.md 2026-10-05.
+- **⚠️ Git Bash omskriver `/pax-dev`** til `C:/Program Files/Git/pax-dev` i
+  env-variabler (MSYS-stikonvertering) — bygg da med `MSYS_NO_PATHCONV=1`,
+  ellers henter siden `file:///…/summary.json` og viser «fant ikke data».
+  Verifisert 2026-10-06: prod-bygg uten `VITE_PAX_BASE_URL` gir 404 på
+  /passasjerer og ingen menylenke.
 
 ## Datakilde og operatør-quirks
 
