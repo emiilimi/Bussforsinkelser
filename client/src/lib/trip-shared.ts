@@ -681,3 +681,35 @@ export function probFromGaps(gaps: number[], requiredBuffer: number): number {
   }
   return made / gaps.length;
 }
+
+/**
+ * Hvor mange «dager» de sammenlignbare avgangene teller som i det samlede
+ * overgangsestimatet (se shrunkProb).
+ *
+ * Backtestet 2026-10-06 med pipeline/backtest_transfer.py (leave-one-day-out,
+ * ~146 600 måldager, ~4 080 ekte overgangspar ved 21 knutepunkter i Bergen,
+ * Stavanger/Sandnes, Tromsø og Fredrikstad, hverdager): m = 10 var best eller
+ * innenfor 0,0004 Brier av best for ALLE antall egne dager (1–30 og alle) og
+ * for buffer 2, 3 og 5 min. Den gamle regelen (egen avgang fra 5 dager, ellers
+ * sammenlignbare) var dårligst nettopp der den byttet: ved 5 egne dager
+ * 0,1232 mot 0,1097 (buffer 3). Se /metode#overgang og STATUS.md 2026-10-06.
+ */
+export const POOL_PRIOR_DAYS = 10;
+
+/**
+ * Samlet overgangssannsynlighet: brukerens egne dager (k) veid mot de
+ * sammenlignbare, som teller som POOL_PRIOR_DAYS dager.
+ *
+ *     p = (k · p_egen + m · p_sammenlignbare) / (k + m)
+ *
+ * Få egne dager → nesten bare sammenlignbare; mange egne dager → nesten bare
+ * egne. Mangler ett av sporene, brukes det andre alene. -1 = ukjent.
+ */
+export function shrunkProb(ownGaps: number[], poolGaps: number[], requiredBuffer: number): number {
+  const pOwn = probFromGaps(ownGaps, requiredBuffer);
+  const pPool = probFromGaps(poolGaps, requiredBuffer);
+  if (pOwn < 0) return pPool;
+  if (pPool < 0) return pOwn;
+  const k = ownGaps.length;
+  return (k * pOwn + POOL_PRIOR_DAYS * pPool) / (k + POOL_PRIOR_DAYS);
+}

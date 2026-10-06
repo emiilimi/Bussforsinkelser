@@ -48,7 +48,7 @@ import {
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
   type TransferGapSource, type DuckQueryFn, type ResolvedStatsWindow,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps,
-  probFromGaps, isActualDepartureSource, SPECIFIC_MIN_DAYS,
+  probFromGaps, shrunkProb, POOL_PRIOR_DAYS, isActualDepartureSource, SPECIFIC_MIN_DAYS,
   statsWindowSql, defaultWindowForDayType,
 } from "@/lib/trip-shared";
 
@@ -647,11 +647,17 @@ function useFallbackChain(opts: {
         const walks = transferWalkTimes(pattern);
         for (let t = 0; t < specs.length; t++) {
           let gaps: number[] = [];
+          let ownGaps: number[] = [];
+          let poolGaps: number[] = [];
           try {
-            gaps = (await computeTransferGap(specs[t], duckQuery)).gaps;
+            const r = await computeTransferGap(specs[t], duckQuery);
+            gaps = r.gaps;
+            ownGaps = r.actual.gaps;
+            poolGaps = r.pool.gaps;
           } catch { /* ignorér — behandles som manglende data */ }
           if (gaps.length > 0) {
-            const p = probFromGaps(gaps, (walks[t] ?? 0) + transferMarginMin);
+            // Samme samlede estimat som hovedplanen (se shrunkProb)
+            const p = shrunkProb(ownGaps, poolGaps, (walks[t] ?? 0) + transferMarginMin);
             makeProb *= Math.max(0, p);
             daysMin = daysMin == null ? gaps.length : Math.min(daysMin, gaps.length);
           }
@@ -1524,9 +1530,10 @@ function TransferAnalysisDialog({
               {info.actual.source === "sj" && " (matchet på avgangs-ID)"}.
               {" "}<strong>Sammenlignbare</strong> = nærmeste avgang innen ±60 min samme dag; den
               treffer som regel din egen avgang, og gir mest ekstra data på dager din avgang ikke
-              gikk. Vi bruker{" "}
-              <strong>{info.source === "pool" ? "sammenlignbare" : "din avgang"}</strong> i badges
-              og totalen.
+              gikk. Merket på kortet og totalen bruker et <strong>veid snitt</strong>: dine{" "}
+              {info.actual.days} dager teller fullt, de sammenlignbare som {POOL_PRIOR_DAYS} dager
+              {info.probs.default >= 0 && <> (med 2 min margin: {Math.round(info.probs.default * 100)} %)</>}.
+              Det traff bedre enn hvert av tallene alene i en test på historikken.
             </div>
 
             {info.actual.days > 0 && info.actual.days < SPECIFIC_MIN_DAYS && (
@@ -2200,11 +2207,24 @@ function TripCard({
         };
       };
 
+      // Samlet estimat (egne dager veid mot sammenlignbare, se shrunkProb) —
+      // brukes i merket, totalen og P80. De to sporene vises hver for seg i
+      // overgangsanalysen.
+      const ownTrack = gapResult?.actual.gaps ?? [];
+      const poolTrack = gapResult?.pool.gaps ?? [];
+      const fShrunk = (buf: number) =>
+        !hasDelayData || (ownTrack.length === 0 && poolTrack.length === 0) ? -1 : shrunkProb(ownTrack, poolTrack, buf);
+      const combinedProbs: TransferProbs = {
+        default: fShrunk(walkTime + 2),
+        user: fShrunk(walkTime + transferMarginMin),
+        sprint: fShrunk(sprintWalkTime + SPRINT_MARGIN_MIN),
+      };
+
       transfers.push({
         buffer: totalGap,
         walkTime,
         sprintWalkTime,
-        probs: probsFrom(gaps),
+        probs: combinedProbs,
         daysObserved: gaps.length,
         source,
         fromLine: legA.line?.publicCode ?? null,

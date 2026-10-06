@@ -364,22 +364,40 @@ export default function Methodology() {
                     <th className="py-1 pr-4 font-medium">Dager for din avgang</th>
                     <th className="py-1 pr-4 font-medium">Kun din avgang</th>
                     <th className="py-1 pr-4 font-medium">Sammenlignbare</th>
+                    <th className="py-1 pr-4 font-medium">Gammel regel</th>
+                    <th className="py-1 pr-4 font-medium">Veid snitt (brukes)</th>
                   </tr>
                 </thead>
                 <tbody className="font-mono">
-                  {[["3", "0.0692", "0.0546"], ["5", "0.0621", "0.0546"],
-                    ["7", "0.0593", "0.0546"], ["10", "0.0571", "0.0546"]].map((r) => (
+                  {[["1", "0.2050", "0.1116", "0.1116", "0.1111"],
+                    ["3", "0.1375", "0.1116", "0.1116", "0.1105"],
+                    ["5", "0.1232", "0.1116", "0.1232", "0.1097"],
+                    ["10", "0.1136", "0.1116", "0.1136", "0.1087"],
+                    ["20", "0.1078", "0.1114", "0.1078", "0.1066"],
+                    ["30", "0.1048", "0.1095", "0.1048", "0.1045"]].map((r) => (
                     <tr key={r[0]} className="border-b border-border/50">
                       <td className="py-1 pr-4">{r[0]}</td>
                       <td className="py-1 pr-4">{r[1]}</td>
                       <td className="py-1 pr-4">{r[2]}</td>
+                      <td className="py-1 pr-4">{r[3]}</td>
+                      <td className="py-1 pr-4 font-semibold">{r[4]}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <p className="text-xs text-muted-foreground/80">
-              Brier-score, lavere er bedre (0,25 = å alltid gjette 50 %).
+              Brier-score, lavere er bedre (0,25 = å alltid gjette 50 %). Test oktober 2026: 146 602
+              utelatte dager for 4 082 ekte overgangspar ved 21 knutepunkter (Bergen, Stavanger/Sandnes,
+              Tromsø, Fredrikstad), hverdager, 3 minutters buffer. «Gammel regel» = din avgang fra 5
+              dager, ellers sammenlignbare. Samme rangering med 2 og 5 minutters buffer.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Derfor bruker vi nå et <strong>veid snitt</strong>: dine egne dager teller fullt, og de
+              sammenlignbare teller som 10 dager. Har din avgang bare et par dager, er tallet nesten bare
+              de sammenlignbare. Har den 30, er det nesten bare dine egne. Det vant eller delte
+              førsteplassen for alle antall dager vi testet, og slo den gamle regelen med mest akkurat
+              der den byttet kilde (5–10 dager).
             </p>
             <p className="text-sm text-muted-foreground">
               To ting er verdt å merke seg. For det første: forskjellen er nesten utelukkende en{" "}
@@ -405,11 +423,13 @@ export default function Methodology() {
               plattform, så dette rammer i praksis mest skinnegående transport.
             </p>
             <p className="text-sm text-muted-foreground">
-              Med 1–2 observasjoner blir sannsynligheten enten 0 % eller 100 % — det
-              finnes ingen mellomting når man teller binært over én dag. Det kan se
-              rart ut (0 % med margin, men 100 % med spurt), men er korrekt: den ene
-              dagen var gapet stort nok til å rekke ved spurt, men ikke med vanlig
-              gangfart + margin. Antall dager vises alltid, så du kan vurdere
+              I overgangsanalysen vises de to sporene også hver for seg. Med 1–2
+              observasjoner blir et enkelt spor enten 0 % eller 100 % — det finnes
+              ingen mellomting når man teller binært over én dag. Det kan se rart ut
+              (0 % med margin, men 100 % med spurt), men er korrekt: den ene dagen var
+              gapet stort nok til å rekke ved spurt, men ikke med vanlig gangfart +
+              margin. Merket på kortet er det veide snittet, og blir ikke ekstremt av
+              noen få dager. Antall dager vises alltid, så du kan vurdere
               påliteligheten selv.
             </p>
           </div>
