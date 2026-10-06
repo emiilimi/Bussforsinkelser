@@ -141,6 +141,19 @@ Også: «ingen sanntid» for Bybanen har nå en forklaring — Entur sender
 realtime=false for alle bybaneavganger, og SIRI ET har ingen bybanerader.
 «Siste reiser»-brikker på reiseplanleggeren (ett trykk, motsatt vei).
 
+### Topplister og tester
+
+- **Topplister**: stopp-listene bruker et nytt `quality=1`-filter (minst 5
+  avganger/dag, snitt ≤ 120 min, σ ≤ 60 min, flyplasser bare når Avinor er
+  valgt; «Mest punktlige» = færrest > 2 min forsinket blant stopp som ikke går
+  for tidlig). Før: hurtigbåtkaier med σ 110–144 min øverst og flyplasser med
+  −48 min som «mest punktlige». Etter: Jernbanetorget, Lysaker og Asker
+  stasjon øverst. Linjelistene der har samme filtre som Oversikt.
+- `npm run test:pax`: 14 selvsjekker (avgangsnøkkel, belegg-oppslag,
+  beleggsnivå, veid overgangsestimat). Repoet har ellers ingen tester.
+- Prod-bygg verifisert begge veier: med `VITE_PAX_BASE_URL` virker side, kart
+  og merker; uten gir /passasjerer 404 og ingen menylenke.
+
 ### Gjenstår
 
 - E-post til Entur om lisens/vilkår før publisering.
