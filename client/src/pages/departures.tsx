@@ -1067,7 +1067,18 @@ export default function Departures() {
                           {fmtDeltaMin(rt)}
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground italic">ingen sanntid</span>
+                        <span
+                          className="text-xs text-muted-foreground italic"
+                          title={
+                            d.transportMode === "tram"
+                              // Målt 2026-10-06: alle bybaneavganger i Entur-svaret har
+                              // realtime=false, og SIRI ET-feeden har ingen bybanerader.
+                              ? "Bybanen deler ikke sanntidsdata med Entur. Derfor har vi heller ingen forsinkelsesstatistikk for den."
+                              : "Denne avgangen sender ikke sanntid akkurat nå. Tiden er rutetid."
+                          }
+                        >
+                          ingen sanntid
+                        </span>
                       )}
 
                       {/* P50 / P80 */}
