@@ -79,8 +79,10 @@ export default function WorstLists() {
   const qStr = IS_REISE ? "quality=1" : "";
   const { data: worstStops = [], isFetching: worstStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr, qStr)}`], placeholderData: keepPreviousData });
   const { data: bestStops = [], isFetching: bestStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr, qStr)}`], placeholderData: keepPreviousData });
-  const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
-  const { data: unreliableLines = [], isFetching: unreliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
+  // Samme linjefiltre som Oversikt (minst 5 avganger/dag, ingen datafeil > 120 min)
+  const lineQ = IS_REISE ? "minDeparturesPerDay=5&plausibleOnly=1" : "";
+  const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr, lineQ)}`], placeholderData: keepPreviousData });
+  const { data: unreliableLines = [], isFetching: unreliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr, lineQ)}`], placeholderData: keepPreviousData });
 
   const isRefreshing = worstDaysFetching || bestDaysFetching || worstStopsFetching || bestStopsFetching || reliableLinesFetching || unreliableLinesFetching;
 
