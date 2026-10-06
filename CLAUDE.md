@@ -342,10 +342,15 @@ Enturs månedlige passasjertellinger ligger i en offentlig GCS-bøtte:
 kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
 
 - **Lisens er ikke avklart** (samferdselsdata.no oppgir ingen). Derfor:
-  frontend skjuler alt uten `VITE_PAX_BASE_URL`, pipelinen skriver til
+  på sentur.no er alt skjult uten `VITE_PAX_BASE_URL`, pipelinen skriver til
   `data/pax-out/` (ikke `PARQUET_DIR`, som nattjobben laster opp fra), og
-  `upload_pax.py` krever `--confirm-license`. Ikke endre noe av dette før
-  Entur har sagt ja.
+  `upload_pax.py` krever `--confirm-license`.
+- **Beslutning 2026-10-06 (Emilie):** vis passasjerfunksjonen på beta-
+  forhåndsvisningene (`*.workers.dev`, se `IS_PREVIEW_HOST` i pax.ts), ikke på
+  sentur.no før Entur har svart. Filene ligger derfor på R2 under `pax/`
+  (lastet opp 2026-10-06). Siden viser samferdselsdata.no sine egne forbehold
+  (kortet «Om passasjertallene») med lenke til kilden — hold det i takt med
+  dokumentasjonen deres.
 - **⚠️ Bøtta har duplikat-shards** — naiv SUM gir 2–3x. Dedupliser eksakte
   rader og sjekk mot `aggregert/detail.parquet` (pipelinen gjør dette).
 - **Avgangsnøkkel = siste `_`-ledd** for KOL/OST/TRO (`paxDepKey()`), ikke

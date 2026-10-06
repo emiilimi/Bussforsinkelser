@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Users, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  PAX_ENABLED, isPaxOperator, lineOperator, usePaxSummary, fmtInt, fmtMin, formatMonthLong, crowdLevel,
+  PAX_ENABLED, PAX_SOURCE, isPaxOperator, lineOperator, usePaxSummary, fmtInt, fmtMin, formatMonthLong, crowdLevel,
 } from "@/lib/pax";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,9 @@ export function LinePaxCard({ lineRef }: { lineRef: string | null | undefined })
           <Users className="h-4 w-4 text-primary" />
           Passasjerer i {formatMonthLong(l.month)}
           <span className="text-[10px] uppercase tracking-wide rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 px-1.5 py-0.5">beta</span>
+          <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-normal text-muted-foreground underline">
+            kilde: samferdselsdata.no
+          </a>
         </div>
         <Stat label="Påstigninger" value={fmtInt(l.boardings)} />
         <Stat label="Merket forsinkelse" value={fmtMin(l.paxDelay)} hint={`per avgang ${fmtMin(l.stopDelay)}`} />

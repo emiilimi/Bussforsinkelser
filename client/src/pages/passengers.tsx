@@ -18,7 +18,7 @@ import { BusLoading } from "@/components/bus-loading";
 import { useRegion } from "@/lib/RegionContext";
 import { cn } from "@/lib/utils";
 import {
-  PAX_ENABLED, PAX_OPERATORS, isPaxOperator, usePaxSummary, usePaxLine, crowdLevel,
+  PAX_ENABLED, PAX_OPERATORS, PAX_SOURCE, isPaxOperator, usePaxSummary, usePaxLine, crowdLevel,
   formatMonthLong, formatMonthShort, fmtInt, fmtMin, DAY_TYPE_NO, HOURS_PER_WORK_YEAR,
   type PaxOperator, type PaxSummary, type PaxLineSummary, type PaxLine, type PaxDeparture,
 } from "@/lib/pax";
@@ -175,6 +175,8 @@ export default function Passengers() {
 
             <HistoryCard op={opSummary} />
 
+            <CaveatsCard summary={summary} />
+
             <MethodCard summary={summary} />
           </>
         )}
@@ -193,13 +195,17 @@ function BetaNotice({ summary }: { summary: PaxSummary }) {
       <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
       <div className="space-y-1">
         <p>
-          <strong>Beta.</strong> Passasjertallene er månedstall fra{" "}
-          <a href={summary.source.url} target="_blank" rel="noopener noreferrer" className="underline">samferdselsdata.no</a>{" "}
-          (Entur), foreløpig bare for {summary.operators.map((o) => o.name).join(", ")}. Skyss og Ruter er ikke med ennå.
+          <strong>Beta, ikke offisiell statistikk.</strong> Passasjertallene er Enturs{" "}
+          <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">passasjertellinger
+          på samferdselsdata.no</a>, som selv er et pilotprosjekt i beta. Foreløpig bare for{" "}
+          {summary.operators.map((o) => o.name).join(", ")}. Skyss og Ruter er ikke med ennå, og for noen områder
+          viser tallene ikke alle påstigninger.
         </p>
         <p className="text-xs opacity-80">
-          Tellingene kommer fra sensorer over dørene og kan ha feil. Belegg er et snitt over månedens turer, ikke en
-          garanti for din tur. <a href="#metode-pax" className="underline">Slik regner vi</a>.
+          Tallene er bearbeidet av Sen Tur og koblet med våre forsinkelsesdata. Tellinger kan ha feil, og belegg er et snitt
+          over månedens turer, ikke en garanti for din tur. Skal du bruke tallene i en rapport, et saksframlegg eller en
+          artikkel, anbefaler samferdselsdata.no å sjekke med dataeieren først.{" "}
+          <a href="#om-pax" className="underline">Forbehold</a> · <a href="#metode-pax" className="underline">Slik regner vi</a>
         </p>
       </div>
     </div>
@@ -997,6 +1003,93 @@ function HistoryCard({ op }: { op: PaxSummary["operators"][number] }) {
 // ---------------------------------------------------------------------------
 // Metode
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Forbehold — samme punkter som samferdselsdata.no selv flagger, med egne ord
+// (se PAX_SOURCE.docsUrl). Hold dette i takt med deres dokumentasjon.
+// ---------------------------------------------------------------------------
+
+function CaveatsCard({ summary }: { summary: PaxSummary }) {
+  return (
+    <Card id="om-pax" className="shadow-sm scroll-mt-20 md:scroll-mt-4 border-amber-300/60">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500" /> Om passasjertallene</CardTitle>
+        <CardDescription>
+          Forbeholdene samferdselsdata.no selv oppgir for datasettet, gjengitt med egne ord. Les originalen i{" "}
+          <a href={PAX_SOURCE.docsUrl} target="_blank" rel="noopener noreferrer" className="underline">dokumentasjonen</a>.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground space-y-4 max-w-4xl">
+        <div>
+          <div className="font-medium text-foreground">Status</div>
+          <p>
+            Datasettet er i beta og et pilotprosjekt. Det dekker bare enkelte operatører og transportformer, oppdateres
+            månedlig, og for noen områder viser tallene ikke alle påstigninger. Se{" "}
+            <a href={PAX_SOURCE.docsUrl} target="_blank" rel="noopener noreferrer" className="underline">oversikten over operatører</a>{" "}
+            for hva som er tilgjengelig.
+          </p>
+        </div>
+        <div>
+          <div className="font-medium text-foreground">Hvordan passasjerene telles</div>
+          <ul className="list-disc ml-5 space-y-1">
+            <li>De fleste tallene kommer fra automatiske tellere over dørene, som registrerer på- og avstigninger ved hvert stopp
+              og kobles til tid og posisjon via sanntidssystemet.</li>
+            <li>Noen kommer fra billettvalidering eller manuelle tellinger. Da telles bare de som går på.</li>
+            <li>Der tellinger mangler eller er for dårlige, kan operatøren bruke estimater, for eksempel fra historikk, billettdata
+              eller sammenlignbare avganger. Det er operatøren som avgjør når estimater brukes.</li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium text-foreground">Vanlige feilkilder</div>
+          <ul className="list-disc ml-5 space-y-1">
+            <li>Teknisk svikt i tellere, sanntidssystem eller overføring kan gi manglende eller ufullstendige tellinger.</li>
+            <li>Tellerne kan telle feil når det er trangt, når flere går inn samtidig, eller ved barnevogner, sykler og
+              bevegelse i døråpningen.</li>
+            <li>Tellingene må kobles til riktig tur, holdeplass og tidspunkt. Feil i den koblingen kan flytte tall dit de ikke hører hjemme.</li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium text-foreground">Bruk tallene med omhu</div>
+          <ul className="list-disc ml-5 space-y-1">
+            <li>Tallene forklarer ikke årsaker. Endringer kan skyldes ruteendringer, veiarbeid, skoleruter, arrangementer, vær
+              eller endret rapportering, ikke bare at færre eller flere reiser.</li>
+            <li>Operatørene bruker ulike metoder og tellere, så tall fra ulike fylker er ikke nødvendigvis direkte sammenlignbare.</li>
+            <li>Utvikling over tid kan også skyldes nye tellemetoder eller ny teknologi. Vær varsom med å sammenligne perioder.</li>
+            <li>Skal tallene brukes i rapporter, saksframlegg eller journalistikk, anbefales det å avklare metode og forbehold med
+              dataeieren først.</li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium text-foreground">Personvern</div>
+          <p>
+            Tellinger fra holdeplasser med få bosatte i nærheten kan være skjult og lagt til neste holdeplass på ruten. Et stopp
+            kan derfor vise flere påstigende enn som faktisk gikk på der.
+          </p>
+        </div>
+        <div>
+          <div className="font-medium text-foreground">Dataeiere</div>
+          <p>
+            Passasjertallene eies og forvaltes av den fylkeskommunale kollektivoperatøren i hvert fylke, her{" "}
+            {summary.operators.map((o) => `${o.name} (${o.county})`).join(", ")}. De har ansvar for innsamling,
+            kvalitetssikring og tilgjengeliggjøring. Entur samler tallene på{" "}
+            <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">samferdselsdata.no</a>.
+          </p>
+        </div>
+        <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs">
+          <strong className="text-foreground">I tillegg, fra vår bearbeiding:</strong> bøtta inneholder enkelte eksportfiler
+          flere ganger, så vi fjerner duplikater og sjekker summene mot Enturs eget aggregat. Avganger med 0 på og 0 av hele
+          måneden regner vi som ikke telt, ikke som tomme. Se <a href="#metode-pax" className="underline">Slik regner vi</a>.
+        </div>
+        <p className="text-xs">
+          Kilde: {PAX_SOURCE.name}.{" "}
+          <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">Datasettet</a> ·{" "}
+          <a href={PAX_SOURCE.docsUrl} target="_blank" rel="noopener noreferrer" className="underline">Dokumentasjon</a> ·{" "}
+          <a href={PAX_SOURCE.structureUrl} target="_blank" rel="noopener noreferrer" className="underline">Datastruktur</a>
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
 
 function MethodCard({ summary }: { summary: PaxSummary }) {
   return (

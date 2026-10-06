@@ -154,9 +154,22 @@ realtime=false for alle bybaneavganger, og SIRI ET har ingen bybanerader.
 - Prod-bygg verifisert begge veier: med `VITE_PAX_BASE_URL` virker side, kart
   og merker; uten gir /passasjerer 404 og ingen menylenke.
 
+### Beta-forhåndsvisning (2026-10-06)
+
+Branchen er pushet, og Cloudflare Workers Builds lager en egen URL:
+**https://feat-passasjertall-reiseplanlegger.emiliemoldestad.workers.dev**
+(sentur.no/beta som sti er ikke mulig uten egen ruting — produksjon deployes
+bare fra `reise`). Etter beslutning fra Emilie vises passasjerfunksjonen der:
+den slås på automatisk på `*.workers.dev`-verter, og filene er lastet opp til
+R2 under `pax/` (563 filer). På sentur.no forblir den av, også etter en merge,
+til `VITE_PAX_BASE_URL` settes. Siden har fått kortet «Om passasjertallene»
+med samferdselsdata.no sine egne forbehold (beta/pilot, tellemetoder,
+feilkilder, ansvarlig bruk, personvern, dataeiere) med egne ord, og lenker til
+datasettet, dokumentasjonen og datastrukturen. Belegg-merkene oppgir kilden.
+
 ### Gjenstår
 
-- E-post til Entur om lisens/vilkår før publisering.
+- E-post til Entur om lisens/vilkår før publisering på sentur.no.
 - Månedlig kjøring: `passenger_stats.py` + `upload_pax.py` (bøtta oppdateres
   rundt den 25.). Ikke lagt inn i nattjobben med vilje.
 - Belegg bruker siste måned; ruteendringer (august: sommer → høst) gir to

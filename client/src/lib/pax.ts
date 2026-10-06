@@ -5,19 +5,36 @@
 //   <PAX_BASE>/summary.json            operatør-KPI, linjeliste, last vs forsinkelse …
 //   <PAX_BASE>/lines/<OP_Line_X>.json  per linje: avganger med belegg per stopp
 //
-// AV som standard: funksjonen (menypunkt, side, belegg-merker) vises bare når
-// VITE_PAX_BASE_URL er satt. Grunnen er lisensen — samferdselsdata.no oppgir
-// ingen, og ber om at man sjekker med dataeier før publisering. Når Entur har
-// sagt ja: last opp pax-out/ til R2 under pax/ og sett
-// VITE_PAX_BASE_URL=https://parquet.sentur.no/pax i Cloudflare Pages.
-// Lokalt: VITE_PAX_BASE_URL=/pax-dev (filene ligger i client/public/pax-dev/).
+// AV på sentur.no: funksjonen (menypunkt, side, belegg-merker) vises bare når
+//   1) VITE_PAX_BASE_URL er satt ved bygg (lokalt: /pax-dev), eller
+//   2) siden kjører på en forhåndsvisning (*.workers.dev — Workers Builds gir
+//      hver branch en egen URL). Da hentes filene fra R2 under pax/.
+// Grunnen er lisensen — samferdselsdata.no oppgir ingen, og ber om at man
+// sjekker med dataeier før publisering. Beslutning 2026-10-06 (Emilie): vis det
+// på beta-forhåndsvisningen, ikke på sentur.no før Entur har svart. Når Entur
+// har sagt ja: sett VITE_PAX_BASE_URL=https://parquet.sentur.no/pax i bygget.
 // ---------------------------------------------------------------------------
 
 import { useQuery } from "@tanstack/react-query";
 
 const RAW_BASE: string | undefined = (import.meta as any).env?.VITE_PAX_BASE_URL;
-export const PAX_BASE: string = (RAW_BASE ?? "").trim().replace(/\/+$/, "");
+const ENV_BASE = (RAW_BASE ?? "").trim().replace(/\/+$/, "");
+/** Kjører vi på en branch-forhåndsvisning (Cloudflare Workers Builds)? */
+export const IS_PREVIEW_HOST: boolean =
+  typeof window !== "undefined" && window.location.hostname.endsWith(".workers.dev");
+// Samme R2-base som parquet-filene (use-parquet-query.ts), men lest direkte
+// her: å importere den hooken ville dratt DuckDB inn i menyens bunt.
+const R2_BASE: string = ((import.meta as any).env?.VITE_PARQUET_BASE_URL ?? "").trim().replace(/\/+$/, "");
+export const PAX_BASE: string = ENV_BASE || (IS_PREVIEW_HOST && R2_BASE ? `${R2_BASE}/pax` : "");
 export const PAX_ENABLED: boolean = PAX_BASE.length > 0;
+
+/** Kilde og dokumentasjon — vises på siden og i merkene. */
+export const PAX_SOURCE = {
+  name: "Passasjertellinger (beta) — samferdselsdata.no / Entur",
+  url: "https://samferdselsdata.no/dataprodukter/passasjertellinger",
+  docsUrl: "https://samferdselsdata.no/dataprodukter/passasjertellinger/?tab=dokumentasjon",
+  structureUrl: "https://samferdselsdata.no/dataprodukter/passasjertellinger/?tab=datastruktur",
+};
 
 /** Operatører med per-avgang-tellinger. Må holdes i takt med OPERATORS i passenger_stats.py. */
 export const PAX_OPERATORS = ["KOL", "OST", "TRO"] as const;

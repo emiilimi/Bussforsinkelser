@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
 import type { TripLeg } from "@/lib/trip-shared";
 import {
-  PAX_ENABLED, isPaxOperator, lineOperator, usePaxLine, legLoad, crowdLevel, formatMonthLong, paxDepKey,
+  PAX_ENABLED, PAX_SOURCE, isPaxOperator, lineOperator, usePaxLine, legLoad, crowdLevel, formatMonthLong, paxDepKey,
   type PaxLine,
 } from "@/lib/pax";
 
@@ -70,7 +70,9 @@ export function LegCrowdBadge({ leg, compact = false }: { leg: TripLeg; compact?
         <p className="text-muted-foreground">
           {res.match === "exact" ? "Samme avgang" : "Nærmeste avgang på samme tid"} i{" "}
           {formatMonthLong(res.month)}
-          {res.runs != null ? `, snitt over ${Math.round(res.runs)} turer` : ""}. Passasjertellinger fra Entur (beta).
+          {res.runs != null ? `, snitt over ${Math.round(res.runs)} turer` : ""}. Kilde: passasjertellinger (beta) fra{" "}
+          <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">samferdselsdata.no</a>{" "}
+          (Entur). Tellinger kan ha feil.
           {lvl.key === "multi" && " Over 120 betyr nesten alltid at flere busser kjører på samme avgang."}
         </p>
         <Link href={`/passasjerer?op=${lineOperator(lineRef)}&line=${encodeURIComponent(lineRef!)}&dep=${encodeURIComponent(res.dep.k)}`} className="underline">
@@ -135,7 +137,7 @@ export function DepartingLoadBadge({ lineRef, sjId, quay, aimed }: {
   if (!lvl) return null;
   return (
     <span
-      title={`Typisk ${Math.round(res.load)} om bord når bussen kjører herfra (${res.match === "exact" ? "samme avgang" : "nærmeste avgang"}, snitt ${formatMonthLong(line.month)}). Passasjertellinger fra Entur (beta).`}
+      title={`Typisk ${Math.round(res.load)} om bord når bussen kjører herfra (${res.match === "exact" ? "samme avgang" : "nærmeste avgang"}, snitt ${formatMonthLong(line.month)}). Kilde: passasjertellinger (beta), samferdselsdata.no / Entur. Tellinger kan ha feil.`}
       className={cn("inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0 text-[10px] font-mono tabular-nums whitespace-nowrap", lvl.className)}
     >
       <Users className="h-2.5 w-2.5" />~{Math.round(res.load)}
