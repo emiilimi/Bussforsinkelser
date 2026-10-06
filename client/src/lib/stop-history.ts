@@ -77,6 +77,57 @@ export function toggleFavorite(stop: StopSearchResult): StopSearchResult[] {
 }
 
 // ---------------------------------------------------------------------------
+// Siste reiser (fra → til), for ett-trykks gjentakelse på forsiden
+// ---------------------------------------------------------------------------
+
+const RECENT_TRIPS_KEY = "sentur_recent_trips";
+const MAX_RECENT_TRIPS = 5;
+
+export type RecentTrip = { from: StopSearchResult; to: StopSearchResult };
+
+const isStop = (s: any): s is StopSearchResult =>
+  s && typeof s.stopRef === "string" && typeof s.stopName === "string";
+
+export function getRecentTrips(): RecentTrip[] {
+  try {
+    const raw = localStorage.getItem(RECENT_TRIPS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((t) => t && isStop(t.from) && isStop(t.to)) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Legg en reise øverst. Reiser fra/til «Min posisjon» lagres ikke (samme
+ * grunn som i addRecentStop). Samme par i motsatt retning regnes som en egen
+ * reise — morgen og ettermiddag er to ulike søk.
+ */
+export function addRecentTrip(from: StopSearchResult, to: StopSearchResult): RecentTrip[] {
+  if (from.layer === "position" || to.layer === "position") return getRecentTrips();
+  const next = [
+    { from, to },
+    ...getRecentTrips().filter((t) => !(t.from.stopRef === from.stopRef && t.to.stopRef === to.stopRef)),
+  ].slice(0, MAX_RECENT_TRIPS);
+  try {
+    localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(next));
+  } catch {
+    /* valgfri funksjon */
+  }
+  return next;
+}
+
+export function removeRecentTrip(from: string, to: string): RecentTrip[] {
+  const next = getRecentTrips().filter((t) => !(t.from.stopRef === from && t.to.stopRef === to));
+  try {
+    localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(next));
+  } catch {
+    /* valgfri funksjon */
+  }
+  return next;
+}
+
+// ---------------------------------------------------------------------------
 // Min posisjon (Geolocation API)
 // ---------------------------------------------------------------------------
 

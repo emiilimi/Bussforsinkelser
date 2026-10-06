@@ -19,7 +19,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
   Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, Share2, Check,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, Share2, Check, History, X,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { SectionLabel, StopRow } from "@/components/stop-picker";
@@ -38,6 +38,7 @@ import { MODES_WITH_DELAY_DATA } from "@/components/mode-icon";
 import { LegCrowdBadge } from "@/components/crowd-badge";
 import {
   getRecentStops, addRecentStop, getFavoriteStops, toggleFavorite,
+  getRecentTrips, addRecentTrip, removeRecentTrip, type RecentTrip,
   getCurrentPositionAsStop,
   getLastKnownPosition,
 } from "@/lib/stop-history";
@@ -2955,6 +2956,8 @@ export default function TripPlanner() {
   const [toStop, setToStop] = useState<StopSearchResult | null>(null);
   const [fromQuery, setFromQuery] = useState("");
   const [toQuery, setToQuery] = useState("");
+  // Siste reiser — leses én gang; oppdateres når et nytt søk lykkes
+  const [recentTrips, setRecentTrips] = useState<RecentTrip[]>(() => getRecentTrips());
   const [tripPatterns, setTripPatterns] = useState<TripPattern[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   // Entur-paginering: cursors for "tidligere avganger" / "senere avganger".
@@ -3409,6 +3412,7 @@ export default function TripPlanner() {
         setTripPatterns(data.patterns);
         setPageCursors(data.cursors);
         setArrivalDeadline(data.deadlineMs);
+        if (fromStop && toStop && data.patterns.length > 0) setRecentTrips(addRecentTrip(fromStop, toStop));
         setExpandedKeys(
           new Set(data.patterns.length > 0 ? [patternKey(data.patterns[0])] : []),
         );
@@ -3456,6 +3460,27 @@ export default function TripPlanner() {
     }
     return { place: toStop.stopRef };
   }, [toStop]);
+
+  // Ett-trykks-søk fra «Siste reiser»: sett stopp, tid = nå, avgang — og søk
+  // på neste tick (samme triks som URL-gjenopprettingen over: setState er
+  // async, og mutationFn må lese de nye verdiene).
+  function runRecentTrip(from: StopSearchResult, to: StopSearchResult) {
+    setFromStop(from); setFromQuery(from.stopName);
+    setToStop(to); setToQuery(to.stopName);
+    const date = todayISO();
+    const time = roundedNow();
+    setDepartDate(date);
+    setDepartTime(time);
+    setArriveBy(false);
+    // Samme URL-oppdatering som «Finn reise» (refresh, deling, «Del reisen»)
+    const params = new URLSearchParams();
+    params.set("from", encodeStopForUrl(from));
+    params.set("to", encodeStopForUrl(to));
+    params.set("date", date);
+    params.set("time", time);
+    navigate(`${location}?${params.toString()}`, { replace: true });
+    setTimeout(() => tripMutation.mutate(undefined), 0);
+  }
 
   // Bytt ut ett reiseforslag (etter "bytt avgang" på et legg), behold utvidet-status
   function handlePatternChange(idx: number, newPattern: TripPattern) {
@@ -3828,6 +3853,45 @@ export default function TripPlanner() {
         {tripMutation.isPending && tripPatterns.length === 0 && (
           <div className="flex justify-center py-8">
             <BusLoading label="Leter etter reiseforslag" scale={0.7} />
+          </div>
+        )}
+
+        {/* Siste reiser — ett trykk søker samme strekning fra nå. Vises bare
+            når det ikke står reiseforslag på skjermen. */}
+        {tripPatterns.length === 0 && !tripMutation.isPending && recentTrips.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <History className="h-3.5 w-3.5" /> Siste reiser
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {recentTrips.map((t) => (
+                <div key={`${t.from.stopRef}>${t.to.stopRef}`} className="inline-flex items-stretch rounded-full border bg-card text-sm overflow-hidden">
+                  <button
+                    className="px-3 py-1.5 hover:bg-muted text-left"
+                    title={`Søk ${t.from.stopName} → ${t.to.stopName} fra nå`}
+                    onClick={() => runRecentTrip(t.from, t.to)}
+                  >
+                    {t.from.stopName} <ArrowRight className="inline h-3 w-3 mx-0.5 -mt-0.5" /> {t.to.stopName}
+                  </button>
+                  <button
+                    className="px-2 border-l hover:bg-muted text-muted-foreground"
+                    title={`Motsatt vei: ${t.to.stopName} → ${t.from.stopName}`}
+                    aria-label="Søk motsatt vei"
+                    onClick={() => runRecentTrip(t.to, t.from)}
+                  >
+                    <ArrowUpDown className="h-3.5 w-3.5 rotate-90" />
+                  </button>
+                  <button
+                    className="px-2 border-l hover:bg-muted text-muted-foreground"
+                    aria-label="Fjern fra siste reiser"
+                    title="Fjern"
+                    onClick={() => setRecentTrips(removeRecentTrip(t.from.stopRef, t.to.stopRef))}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
