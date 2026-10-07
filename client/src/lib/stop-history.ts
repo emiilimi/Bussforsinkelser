@@ -57,6 +57,17 @@ export function addRecentStop(stop: StopSearchResult): void {
   write(RECENT_KEY, next.slice(0, MAX_RECENT));
 }
 
+/**
+ * Er dette et faktisk busstopp (NSR:StopPlace/Quay) — ikke en adresse, gate
+ * eller POI? Favoritter og nylig-lista deles på tvers av reiseplanleggeren
+ * (der adresser er gyldige fra/til-punkter, jf. gange til holdeplass) og
+ * Avganger (der bare stopp gir mening — en adresse har ingen avganger).
+ * Brukes til å luke ut ikke-stopp-oppføringer der de ikke hører hjemme.
+ */
+export function isStopEntry(s: StopSearchResult): boolean {
+  return s.stopRef.startsWith("NSR:");
+}
+
 export function getFavoriteStops(): StopSearchResult[] {
   return read(FAVORITE_KEY);
 }
