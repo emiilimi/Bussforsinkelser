@@ -25,6 +25,7 @@ client/src/
     stop-analysis.tsx      /stops       Stoppanalyse: søk, trend, timesprofil, linjer ved stopp
     worst-lists.tsx        /worst       Topplister: dager, stopp, pålitelighet
     delay-map.tsx          /map         Leaflet-kart med fargede stoppmarkører
+    passengers.tsx         /passasjerer Passasjertellinger (beta, bak VITE_PAX_BASE_URL): belegg, passasjertimer tapt, stoppkart
     trip-planner.tsx       /reise       Reiseplanlegger: Entur JP v3, DuckDB-WASM persentiler (P50/P80/P95-avkryssing), reiseanalyse-popup m/ "Vis data"-historikk, plan-tre m/ forsinkelsesgrafer, metodeboks
     not-found.tsx          *            404-side
   components/
@@ -33,8 +34,11 @@ client/src/
     scrollable-chart.tsx   Horisontal-scrollbar + draggable Y-akse for grafer
     delay-percentiles.tsx  DuckDB-WASM P50/P80/P95 persentilkort
     plan-delay-chart.tsx   Forsinkelse-langs-ruten-graf per plan-node (reiseplanlegger plan-tre)
+    crowd-badge.tsx        «Hvor full er bussen?»-merker (reiseplanlegger-legg, avgangstavle)
+    pax-stop-map.tsx       Stoppkart på /passasjerer (lazy Leaflet)
     ui/                    shadcn/ui (60+ filer)
   lib/
+    pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)
@@ -66,6 +70,8 @@ pipeline/          (Python)
   populate_stop_places.py  Skyss GTFS stops.txt — kun NULL-felter (fallback for SKY-spesifikke gaps)
   populate_line_names.py   NeTEx XML (SKY) eller DB-derivert (andre) → line_name
   export_parquet.py        journey_stop_daily → ukentlige .parquet (ZSTD)
+  passenger_stats.py       Passasjertellinger (samferdselsdata.no) × forsinkelser → data/pax-out/ (månedlig, manuelt)
+  upload_pax.py            pax-out → R2 pax/ (krever --confirm-license)
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
 
 data/
@@ -116,6 +122,31 @@ For lange perioder (>2 uker), bruk heller `pipeline/backfill.py` som batcher mot
 python pipeline/ingest.py                # default: gårsdagens dato
 python pipeline/export_parquet.py        # eksporter nye/ufullstendige uker
 ```
+
+**Reise-siten (det som faktisk er i produksjon)** kjøres av Windows Task
+Scheduler på denne PC-en, 06:00 daglig: `scripts/nightly_reise.ps1`
+(registrert av `scripts/register_tasks.ps1`). Stegene i rekkefølge:
+`ingest_lite.py` → `export_parquet.py` → `aggregate_stats.py` →
+`upload_to_r2.py --prune`, hvert med egen tidsfrist og nye forsøk. Logg per
+natt i `logs/reise-YYYY-MM-DD.log` — **sjekk den først** når noen spør om
+«dagens ingest». Status: `Get-ScheduledTask -TaskName 'Bussforsinkelser Reise
+nightly' | Get-ScheduledTaskInfo`. Produksjonens ferskhet sjekkes uavhengig
+med `curl https://parquet.sentur.no/stats_summary.json` (`dates.max`).
+
+**⚠️ FELLE 3 — et steg som logger mer enn ~4 KB.** `nightly_reise.ps1`
+omdirigerer barnets stdout/stderr. Fram til 2026-09-02 ble rørene lest først
+etter at barnet avsluttet; et rør har ~4 KB buffer, så et steg som logget mer
+blokkerte for alltid og ble drept på fristen («hang»). Nå tømmes rørene
+fortløpende (`ReadToEndAsync` før venteløkka) — men logg likevel ikke én
+linje per fil i løkker over tusenvis av filer; `upload_to_r2.py` logger
+én linje per 250 shards. Se STATUS.md 2026-09-02.
+
+**Minne i `aggregate_stats.py`**: DuckDB konfigureres i `configure_duckdb()`
+(`STATS_DUCKDB_MEMORY` default 8GB, `STATS_DUCKDB_TEMP` spill-mappe,
+`STATS_DUCKDB_THREADS`). Uten dette var grensa 80 % av RAM og en vegg — OOM
+1. og 2. september 2026. `build_stop_detail_shards` gjør 3 parquet-skann, og
+`COUNT(*)` per (stopp, dato) er lik `COUNT(DISTINCT service_journey_id)` fordi
+(date, service_journey_id, stop_ref) er primærnøkkel (målt: 0 duplikater).
 
 ### Populering av stoppdata (sjelden)
 ```powershell
@@ -302,6 +333,32 @@ avganger 9.–11. august, så `stableSjId()` virker og per-avgang-historikk
 `ingest_lite.py` gjenbruker). Det gjelder generelt, ikke bare Skyss.
 
 ---
+
+## Passasjertellinger (samferdselsdata.no) — beta, AV som standard
+
+Enturs månedlige passasjertellinger ligger i en offentlig GCS-bøtte:
+`https://storage.googleapis.com/ent-sdno-prd-paxcount-public/` (rå-filer
+`kol/ ost/ tro/` med `trip_id` = ServiceJourney-id). Dekker Kolumbus, Østfold
+kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
+
+- **Lisens: tillatelse innhentet 2026-10-07** (Emilie, etter forespørsel til
+  Entur — samferdselsdata.no oppgir selv ingen lisens). Funksjonen er PÅ i
+  produksjon: `pax.ts` bruker `<VITE_PARQUET_BASE_URL>/pax` når
+  `VITE_PAX_BASE_URL` ikke er satt. Nødbryter: `VITE_PAX_DISABLED=1` ved bygg.
+  Siden viser fortsatt kildens egne forbehold (kortet «Om passasjertallene»)
+  med lenker — hold det i takt med dokumentasjonen deres.
+- Pipelinen skriver til `data/pax-out/` (ikke `PARQUET_DIR`, som nattjobben
+  laster opp fra), og `upload_pax.py --confirm-license` laster opp til R2
+  `pax/`. **Ikke i nattjobben**: kjør begge manuelt når samferdselsdata.no har
+  publisert en ny måned (bøtta oppdateres rundt den 25.).
+- Kjøring lokalt: `PARQUET_DIR=data/reise-parquet PAX_OUT_DIR=client/public/pax-dev
+  python pipeline/passenger_stats.py`, deretter `VITE_PAX_BASE_URL=/pax-dev`
+  (mappa er gitignored). Se STATUS.md 2026-10-05.
+- **⚠️ Git Bash omskriver `/pax-dev`** til `C:/Program Files/Git/pax-dev` i
+  env-variabler (MSYS-stikonvertering) — bygg da med `MSYS_NO_PATHCONV=1`,
+  ellers henter siden `file:///…/summary.json` og viser «fant ikke data».
+  Verifisert 2026-10-06: prod-bygg uten `VITE_PAX_BASE_URL` gir 404 på
+  /passasjerer og ingen menylenke.
 
 ## Datakilde og operatør-quirks
 
@@ -596,6 +653,14 @@ python pipeline/upload_to_r2.py --prune
 | `LOG_LEVEL` | ingest, backfill, export_parquet | `INFO` |
 | `PARQUET_DIR` | export_parquet | `data/parquet/` |
 | `PORT` | server/index.ts | `5000` |
+| `STATS_DUCKDB_MEMORY` | aggregate_stats | `8GB` |
+| `STATS_DUCKDB_TEMP` | aggregate_stats | `<PARQUET_DIR>/.duckdb_tmp` |
+| `STATS_DUCKDB_THREADS` | aggregate_stats | DuckDB-default (alle kjerner) |
+| `R2_UPLOAD_WORKERS` | upload_to_r2 | `8` |
+| `PAX_OUT_DIR` | passenger_stats, upload_pax | `data/pax-out` |
+| `PAX_CACHE_DIR` | passenger_stats | `data/pax-cache` |
+| `PAX_MAX_MONTHS` | passenger_stats | `3` |
+| `VITE_PAX_BASE_URL` | frontend (pax.ts) | ikke satt = passasjerfunksjonen skjult |
 
 ---
 

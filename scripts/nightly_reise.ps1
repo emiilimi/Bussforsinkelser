@@ -63,21 +63,42 @@ function Invoke-PythonStepOnce {
     $psi.RedirectStandardError = $true
 
     $proc = [System.Diagnostics.Process]::Start($psi)
+
+    # Tom BEGGE rorene fortlopende, i bakgrunnen, fra forste sekund.
+    #
+    # Bakgrunn (31. august 2026): upload_to_r2.py "hang" 40 min og ble drept
+    # tre ganger pa rad - hver gang etter NOYAKTIG 32 shardfiler. Det var
+    # ingen henging: et omdirigert stdout/stderr er et ror med ~4 KB buffer,
+    # og forrige versjon leste det forst ETTER at barnet hadde avsluttet.
+    # Nar barnet har skrevet 4 KB uten at noen leser, blokkerer neste
+    # write() for alltid -> barnet venter pa oss, vi venter pa barnet.
+    # Reprodusert 2026-09-02: et barn som skriver 200 logglinjer til stderr
+    # ble drept pa fristen med 4094 byte mottatt; 40 linjer gikk pa 1 s.
+    # Stegene som gikk bra (ingest, export, aggregate) logger under 4 KB;
+    # opplastingen begynte a logge 2000+ linjer da stoppdetalj-shardene kom
+    # 27. august - derfor traff dette akkurat da.
+    #
+    # ReadToEndAsync leser kontinuerlig pa en tradpool-trad, sa roret aldri
+    # fylles. .Result under blokkerer til roret lukkes (barnet avsluttet
+    # eller drept) og gir hele teksten - ogsa det som rakk a komme for et
+    # eventuelt drap, som for.
+    $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+    $stderrTask = $proc.StandardError.ReadToEndAsync()
+
     $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
     $killed = $false
     while (-not $proc.HasExited) {
         if ((Get-Date) -gt $deadline) {
-            $proc.Kill()
+            try { $proc.Kill() } catch { }   # kan allerede ha avsluttet i mellomtiden
             $killed = $true
             break
         }
         Start-Sleep -Seconds 15
     }
+    $proc.WaitForExit()                       # sikrer at rorene er lukket for .Result
 
-    # ReadToEnd() blokkerer til strømmen er lukket (dvs. til prosessen er
-    # avsluttet/drept) - trygt å kalle her i begge tilfeller.
-    $stdout = $proc.StandardOutput.ReadToEnd()
-    $stderr = $proc.StandardError.ReadToEnd()
+    $stdout = $stdoutTask.Result
+    $stderr = $stderrTask.Result
     if ($stdout) { Write-Host $stdout }
     if ($stderr) { Write-Host $stderr }
 

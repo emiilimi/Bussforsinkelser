@@ -83,8 +83,38 @@ function ObsDelay({ value }: { value: number | null }) {
 }
 
 /** Wraps a responsive chart with Y-axis drag support + vertical slider */
-function DraggableYChart({ yMax, setYMax, dataMax, height, children }: {
-  yMax: number; setYMax: (v: number) => void; dataMax: number; height: number; children: React.ReactNode;
+function quantileOf(vals: Array<number | null | undefined>, q: number): number | null {
+  const s = vals.filter((v): v is number => v != null && Number.isFinite(v)).sort((a, b) => a - b);
+  if (s.length === 0) return null;
+  return s[Math.min(s.length - 1, Math.max(0, Math.round(q * (s.length - 1))))];
+}
+
+/**
+ * Y-aksens starttopp. Snittlinja skal alltid være lesbar: båndet (verste
+ * enkeltavgang per dag) får gå inntil 3x snittets topp eller +10 min over
+ * den, og aldri over 90-persentilen av båndtoppene. Ved et travelt
+ * knutepunkt er verste enkeltavgang nesten alltid ekstrem (Bergen
+ * busstasjon: snitt 1–3 min, bånd −27 til +80) — da klippes båndet i
+ * stedet for at snittet blir en flat strek. Dra/glidebryter når dataMax.
+ */
+function robustAxisMax(avg: Array<number | null | undefined>, band: Array<number | null | undefined>, dataMax: number): number {
+  const avgMax = Math.max(quantileOf(avg, 1) ?? 1, 0.5);
+  if (!band.length) return Math.min(dataMax, Math.max(1, Math.ceil(avgMax * 1.2)));
+  const bandP90 = quantileOf(band, 0.9) ?? avgMax;
+  const cap = Math.max(avgMax * 3, avgMax + 10);
+  return Math.min(dataMax, Math.max(1, Math.ceil(Math.max(avgMax * 1.2, Math.min(bandP90 * 1.1, cap)))));
+}
+
+/** Y-aksens bunn: 0, eller lavere når snittet er negativt / båndet går under (maks 5 min under). */
+function robustAxisMin(avg: Array<number | null | undefined>, band: Array<number | null | undefined>): number {
+  const avgMin = Math.min(0, quantileOf(avg, 0) ?? 0);
+  if (!band.length) return Math.floor(avgMin);
+  const bandP10 = quantileOf(band, 0.1) ?? avgMin;
+  return Math.floor(Math.min(avgMin, Math.max(bandP10, avgMin - 5)));
+}
+
+function DraggableYChart({ yMax, setYMax, dataMax, resetTo, height, children }: {
+  yMax: number; setYMax: (v: number) => void; dataMax: number; resetTo?: number; height: number; children: React.ReactNode;
 }) {
   const { onMouseDown, isDragging } = useYAxisDrag(yMax, setYMax, dataMax);
   return (
@@ -99,7 +129,7 @@ function DraggableYChart({ yMax, setYMax, dataMax, height, children }: {
       {dataMax > 2 && (
         <div className="flex flex-col items-center gap-1 ml-1" style={{ height }}>
           <button
-            onClick={() => setYMax(dataMax)}
+            onClick={() => setYMax(resetTo ?? dataMax)}
             className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1"
             title="Tilbakestill Y-akse"
           >
@@ -243,7 +273,8 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   });
 
   const lineNameMap = Object.fromEntries(allLines.map(l => [l.lineRef, l.lineName]));
-  function lineNumber(ref: string) { return ref.split(":").pop() ?? ref; }
+  // UUID-linje-id-er (Flixbus) vises som operatørkoden, se lineNumber() i date-utils.ts
+  function lineNumber(ref: string) { const last = ref.split(":").pop() ?? ref; return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(last) ? ref.split(":")[0] : last; }
 
   // «Siste N dager» må ankres på SISTE DAG MED DATA, ikke på dagens dato.
   // Ingesten ligger typisk noen dager bak (målt 21. aug 2026: ferskeste
@@ -332,12 +363,29 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
   const hourlyDataMax = Math.ceil(Math.max(
     ...hourlyData.map(d => showBands ? Math.max(d.maxAvgDelay ?? 0, d.avgDelay ?? 0) : (d.avgDelay ?? 0)),
     1));
+  // Startutsnittet skal ikke styres av ÉN ekstrem verdi. Ved Bergen busstasjon
+  // ga én avgang som aldri ble avsluttet i sanntidsfeeden (446 min) en Y-akse
+  // til 450 — og snittlinja (1–3 min) ble en flat strek i bunnen. Vi starter
+  // derfor på 90-persentilen av båndets toppunkter (minst snittets maks);
+  // glidebryteren og dra-funksjonen går fortsatt helt opp til dataMax.
+  const trendStartMax = robustAxisMax(
+    trendData.map(d => d.avgDelay),
+    showBands ? trendData.map(d => d.maxDelay) : [],
+    trendDataMax,
+  );
+  const hourlyStartMax = robustAxisMax(
+    hourlyData.map(d => d.avgDelay),
+    showBands ? hourlyData.map(d => d.maxAvgDelay) : [],
+    hourlyDataMax,
+  );
+  const trendYMin = robustAxisMin(trendData.map(d => d.avgDelay), showBands ? trendData.map(d => d.minDelay) : []);
+  const hourlyYMin = robustAxisMin(hourlyData.map(d => d.avgDelay), showBands ? hourlyData.map(d => d.minAvgDelay) : []);
   const [trendYMax, setTrendYMax] = useState(1);
   const [hourlyYMax, setHourlyYMax] = useState(1);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setTrendYMax(trendDataMax); }, [trendDataMax]);
+  useEffect(() => { setTrendYMax(trendStartMax); }, [trendStartMax]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setHourlyYMax(hourlyDataMax); }, [hourlyDataMax]);
+  useEffect(() => { setHourlyYMax(hourlyStartMax); }, [hourlyStartMax]);
 
   const avgPctDelayed =
     stats && stats.daily.length > 0
@@ -534,12 +582,12 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
               <CardDescription>Daglig gjennomsnittlig forsinkelse ved {formatStopName(stats.stopName, stats.stopRef)}</CardDescription>
             </CardHeader>
             <CardContent>
-              <DraggableYChart yMax={trendYMax} setYMax={setTrendYMax} dataMax={trendDataMax} height={300}>
+              <DraggableYChart yMax={trendYMax} setYMax={setTrendYMax} dataMax={trendDataMax} resetTo={trendStartMax} height={300}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                     <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", trendYMax]} allowDataOverflow />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={[trendYMin, trendYMax]} allowDataOverflow />
                     <Tooltip content={<DailyTrendTooltip />} />
                     {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
                     {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
@@ -562,12 +610,12 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DraggableYChart yMax={hourlyYMax} setYMax={setHourlyYMax} dataMax={hourlyDataMax} height={250}>
+                <DraggableYChart yMax={hourlyYMax} setYMax={setHourlyYMax} dataMax={hourlyDataMax} resetTo={hourlyStartMax} height={250}>
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={hourlyData} margin={{ left: 0, right: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                       <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={["auto", hourlyYMax]} allowDataOverflow />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} domain={[hourlyYMin, hourlyYMax]} allowDataOverflow />
                       <Tooltip content={<HourlyTooltip />} />
                       {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
                       {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--destructive))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}

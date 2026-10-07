@@ -43,6 +43,7 @@ import { useLineGeometry } from "@/hooks/use-line-geometry";
 import { LineRouteMap, type StopDelayMap } from "@/components/line-route-map";
 import { DayTypePicker } from "@/components/day-type-picker";
 import { BandToggle } from "@/components/band-toggle";
+import { LinePaxCard } from "@/components/line-pax-card";
 import { dayTypeFilterLabel, parseDayTypeFilter } from "@/lib/day-type";
 
 // ---------------------------------------------------------------------------
@@ -1046,6 +1047,9 @@ export default function JourneyDetails() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Passasjertall (beta) — rendrer ingenting uten data for operatøren */}
+            <LinePaxCard lineRef={fetchedLine} />
 
             {/* Worst / best day info */}
             {worstDay && bestDay && (

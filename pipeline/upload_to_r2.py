@@ -26,6 +26,7 @@ import hashlib
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import boto3
@@ -45,6 +46,17 @@ PARQUET_DIR = Path(os.environ.get("PARQUET_DIR", str(REPO_ROOT / "data" / "parqu
 # 0 = ubegrenset. Eldre filer utelates fra manifestet og slettes fra
 # bucketen når --prune brukes.
 KEEP_WEEKS = int(os.environ.get("PARQUET_KEEP_WEEKS", "14"))
+
+# Parallelle opplastinger av shardfilene (2000 små filer, hver med et
+# head_object-kall først). Sekvensielt lå det på ~2 filer/s ≈ 17 min;
+# boto3-klienter er trådsikre, så dette er trygt å kjøre i parallell.
+UPLOAD_WORKERS = int(os.environ.get("R2_UPLOAD_WORKERS", "8"))
+
+# Filer under denne størrelsen lastes opp med ett put_object-kall i stedet
+# for s3transfer (som spinner opp sin egen trådpool per kall). Over grensa
+# bruker s3transfer multipart — og da er ETag IKKE lenger md5 av innholdet,
+# se upload_file.
+PUT_OBJECT_MAX_BYTES = 8 * 1024 * 1024
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
@@ -107,38 +119,49 @@ def upload_file(
     force: bool = False,
     dry_run: bool = False,
     cache_control: str | None = None,
+    quiet: bool = False,
 ) -> bool:
-    """Last opp én fil. Returner True hvis filen ble lastet opp."""
+    """Last opp én fil. Returner True hvis filen ble lastet opp.
+
+    Uendret-sjekken sammenligner lokal md5 med objektets `md5`-metadata, og
+    faller tilbake på ETag. ETag alene holdt IKKE: for filer over 8 MB
+    bruker s3.upload_file multipart, og da er ETag «md5-av-del-md5-er-N»,
+    aldri lik filens md5. Alle 22 ukefilene (29–92 MB) ble derfor lastet opp
+    på nytt hver eneste natt — ~1,4 GB og 2–3 min per forsøk — selv om
+    loggen kalte det en "uendret"-sjekk. Metadataen settes ved opplasting
+    her, så første kjøring etter denne endringen laster alt opp én gang til,
+    deretter hopper den over det som faktisk er uendret.
+    """
     content_type = "application/json" if key.endswith(".json") else "application/octet-stream"
+    local_md5 = md5_of_file(local_path)
 
     if not force:
-        # Sjekk om filen allerede er oppe og identisk (via ETag/MD5)
         try:
             head = s3.head_object(Bucket=bucket, Key=key)
+            remote_md5 = (head.get("Metadata") or {}).get("md5")
             remote_etag = head["ETag"].strip('"').lower()
-            local_md5 = md5_of_file(local_path)
-            if remote_etag == local_md5:
+            if local_md5 in (remote_md5, remote_etag):
                 log.debug("  Uendret, hopper over: %s", key)
                 return False
         except ClientError as e:
             if e.response["Error"]["Code"] != "404":
                 raise
 
-    size_kb = local_path.stat().st_size / 1024
+    size = local_path.stat().st_size
+    size_kb = size / 1024
     if dry_run:
         log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", key, size_kb)
         return True
 
-    log.info("  ↑ %s (%.0f KB)", key, size_kb)
-    extra_args: dict = {"ContentType": content_type}
+    log.log(logging.DEBUG if quiet else logging.INFO, "  ↑ %s (%.0f KB)", key, size_kb)
+    extra_args: dict = {"ContentType": content_type, "Metadata": {"md5": local_md5}}
     if cache_control:
         extra_args["CacheControl"] = cache_control
-    s3.upload_file(
-        str(local_path),
-        bucket,
-        key,
-        ExtraArgs=extra_args,
-    )
+    if size <= PUT_OBJECT_MAX_BYTES:
+        with open(local_path, "rb") as f:
+            s3.put_object(Bucket=bucket, Key=key, Body=f, **extra_args)
+    else:
+        s3.upload_file(str(local_path), bucket, key, ExtraArgs=extra_args)
     return True
 
 
@@ -326,28 +349,44 @@ def main():
         # Class B (10 mill./mnd) og hopper over shards som faktisk er
         # uendret — typisk distrikts-shards uten helgetrafikk. Derfor IKKE
         # force=True her, i motsetning til de tre andre artefaktene.
+        #
+        # Parallelt (UPLOAD_WORKERS) og stille per fil: én logglinje per 250
+        # shards + en oppsummering, ikke 2000 linjer. Sekvensielt tok dette
+        # ~17 min, og 2000 logglinjer var det som fylte 4 KB-røret i
+        # nightly_reise.ps1 og fikk steget til å «henge» (se der). Feil i én
+        # opplasting propagerer via fut.result() og feller hele steget, som
+        # før — nightly_reise.ps1 prøver da på nytt, og uendret-sjekken gjør
+        # at nytt forsøk hopper over det som allerede kom opp.
         stops_dir = PARQUET_DIR / "stops"
         if stops_dir.is_dir():
             shard_files = sorted(stops_dir.glob("*.json"),
                                  key=lambda p: int(p.stem) if p.stem.isdigit() else -1)
             shard_up = shard_skip = 0
-            for sp in shard_files:
-                key = f"stops/{sp.name}"
-                if args.dry_run:
-                    shard_up += 1
-                    continue
-                if upload_file(s3, bucket, sp, key, cache_control=MANIFEST_CACHE):
-                    shard_up += 1
-                else:
-                    shard_skip += 1
-            uploaded += shard_up
             if args.dry_run:
+                shard_up = len(shard_files)
                 total_mb = sum(p.stat().st_size for p in shard_files) / 1e6
                 log.info("  [dry-run] Ville lastet opp %d shardfiler (%.1f MB)",
                          shard_up, total_mb)
-            else:
+            elif shard_files:
+                log.info("Stoppdetaljer: sjekker/laster opp %d shards (%d parallelle) …",
+                         len(shard_files), UPLOAD_WORKERS)
+                with ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as ex:
+                    futures = [
+                        ex.submit(upload_file, s3, bucket, sp, f"stops/{sp.name}",
+                                  False, False, MANIFEST_CACHE, True)
+                        for sp in shard_files
+                    ]
+                    for done, fut in enumerate(as_completed(futures), 1):
+                        if fut.result():
+                            shard_up += 1
+                        else:
+                            shard_skip += 1
+                        if done % 250 == 0 or done == len(futures):
+                            log.info("  stoppdetaljer: %d/%d ferdig (%d lastet opp, %d uendret)",
+                                     done, len(futures), shard_up, shard_skip)
                 log.info("Stoppdetaljer: %d lastet opp, %d uendret (av %d shards)",
                          shard_up, shard_skip, len(shard_files))
+            uploaded += shard_up
 
         # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
         # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende

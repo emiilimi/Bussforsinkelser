@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
-import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO } from "@/lib/date-utils";
+import { lineNumber, formatDateShortNO, formatWeekdayDateNO, formatWeekNO, formatMonthNO, isRailOperator } from "@/lib/date-utils";
 import { IS_REISE } from "@/lib/app-mode";
 import { BusLoading } from "@/components/bus-loading";
 import { useUrlParam } from "@/hooks/use-url-state";
@@ -41,6 +41,8 @@ type LeaderboardLine = {
   pctOnTime: number | null;
   pctDelayed10plus: number | null;
   pctEarly: number | null;
+  /** i rute minus for tidlig (0–100) — bare fra reise-adapteren */
+  pctPunctual?: number | null;
   totalDepartures: number | null;
 };
 
@@ -48,6 +50,17 @@ type LeaderboardLine = {
 const PERIOD_DAYS: Record<string, number> = IS_REISE
   ? { week: 7, month: 30, year: 90 }
   : { week: 7, month: 30, year: 365 };
+
+// Oversikt viser «typiske» linjer: minst 5 avganger per dag, og snitt over
+// IMPLAUSIBLE_DELAY_MIN regnes som datafeil (se stats-adapter.ts). Uten dette
+// var «Dårligste linje» en fergerute i Finnmark med 6 avganger i uka og
+// +163 min — det første en ny besøkende så. Topplister viser fortsatt alt.
+const LEADERBOARD_MIN_PER_DAY = 5;
+// Bare buss: ferger og fly har en helt annen forsinkelsesskala (fly «går»
+// ofte 10+ min før rutetid fordi rutetiden er gate-tid), så de fylte begge
+// listene og sa lite om hverdagsreisen.
+const LEADERBOARD_FILTERS = IS_REISE ? `&minDeparturesPerDay=${LEADERBOARD_MIN_PER_DAY}&plausibleOnly=1&mode=bus` : "";
+const BEST_TYPE = IS_REISE ? "punctual" : "best";
 
 // Samme mønster som «Statistikkperiode» i reiseplanleggeren (trip-planner.tsx):
 // faste forhåndsvalg + «Egne datoer» som viser to datofelt.
@@ -81,9 +94,11 @@ function shortenTrailingParens(label: string, maxLen: number): string {
 
 /** Display name for bar chart: "60 — Fanahammeren - Lagunen" or just "Linje 60" */
 function lineLabel(l: LeaderboardLine): string {
-  const num = lineNumber(l.lineRef);
+  // Oversikt viser bare buss i reise-bygget (mode=bus) — en toglinje der er
+  // buss for tog, og skal ikke se ut som toget selv.
+  const num = lineNumber(l.lineRef) + (IS_REISE && isRailOperator(l.lineRef) ? " (buss for tog)" : "");
   const name = l.lineName;
-  if (name && name !== `Linje ${num}`) {
+  if (name && name !== `Linje ${lineNumber(l.lineRef)}`) {
     return shortenTrailingParens(`${num} — ${name}`, CHART_LABEL_MAX_LEN);
   }
   return `Linje ${num}`;
@@ -135,11 +150,11 @@ export default function Dashboard() {
     placeholderData: keepPreviousData,
   });
   const { data: worstLines = [], isFetching: worstLinesFetching } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=worst&period=${LEADERBOARD_PERIOD}${opStr ? `&${opStr}` : ""}`],
+    queryKey: [`/api/leaderboard/lines?type=worst&period=${LEADERBOARD_PERIOD}${LEADERBOARD_FILTERS}${opStr ? `&${opStr}` : ""}`],
     placeholderData: keepPreviousData,
   });
   const { data: bestLines = [], isFetching: bestLinesFetching } = useQuery<LeaderboardLine[]>({
-    queryKey: [`/api/leaderboard/lines?type=best&period=${LEADERBOARD_PERIOD}${opStr ? `&${opStr}` : ""}`],
+    queryKey: [`/api/leaderboard/lines?type=${BEST_TYPE}&period=${LEADERBOARD_PERIOD}${LEADERBOARD_FILTERS}${opStr ? `&${opStr}` : ""}`],
     placeholderData: keepPreviousData,
   });
 
@@ -509,9 +524,9 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-destructive" />
                   <div>
-                    <CardTitle>Dårligste linjer</CardTitle>
+                    <CardTitle>{IS_REISE ? "Mest forsinkede busslinjer" : "Dårligste linjer"}</CardTitle>
                     <CardDescription>
-                      Høyest gjennomsnittlig forsinkelse siste uke. Klikk en linje for detaljer.
+                      Høyest gjennomsnittlig forsinkelse siste uke{IS_REISE ? `, blant linjer med minst ${LEADERBOARD_MIN_PER_DAY} avganger per dag` : ""}. Klikk en linje for detaljer.
                       {topWorst.some((l) => isImplausibleDelay(l.avgDelayMin)) && (
                         <span className="block mt-1 text-amber-600 dark:text-amber-400">
                           <AlertTriangle className="h-3 w-3 inline mr-1" />
@@ -570,8 +585,12 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <TrendingDown className="h-5 w-5 text-emerald-500" />
                   <div>
-                    <CardTitle>Beste linjer</CardTitle>
-                    <CardDescription>Lavest gjennomsnittlig forsinkelse siste uke. Klikk en linje for detaljer.</CardDescription>
+                    <CardTitle>{IS_REISE ? "Mest presise busslinjer" : "Beste linjer"}</CardTitle>
+                    <CardDescription>
+                      {IS_REISE
+                        ? `Høyest andel passeringer fra 1 min før til 2 min etter rutetid siste uke, blant linjer med minst ${LEADERBOARD_MIN_PER_DAY} avganger per dag. En buss som går for tidlig teller ikke som presis. Klikk en linje for detaljer.`
+                        : "Lavest gjennomsnittlig forsinkelse siste uke. Klikk en linje for detaljer."}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -583,14 +602,16 @@ export default function Dashboard() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart layout="vertical" data={topBest} margin={{ left: 10, right: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v.toFixed(1)}m`} />
+                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
+                          domain={IS_REISE ? [0, 100] : undefined}
+                          tickFormatter={(v) => (IS_REISE ? `${v.toFixed(0)} %` : `${v.toFixed(1)}m`)} />
                         <YAxis dataKey="label" type="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={160} tickLine={false} axisLine={false} />
                         <Tooltip
                           contentStyle={{ backgroundColor: "hsl(var(--card))", borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
-                          formatter={(v: number) => [`${v.toFixed(2)} min`, "Snitt forsinkelse"]}
+                          formatter={(v: number) => (IS_REISE ? [`${v.toFixed(1)} %`, "Presise passeringer"] : [`${v.toFixed(2)} min`, "Snitt forsinkelse"])}
                         />
                         <Bar
-                          dataKey="avgDelayMin"
+                          dataKey={IS_REISE ? "pctPunctual" : "avgDelayMin"}
                           radius={[0, 4, 4, 0]}
                           barSize={24}
                           cursor="pointer"

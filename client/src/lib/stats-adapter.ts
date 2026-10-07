@@ -17,6 +17,8 @@ import {
 } from "@/hooks/use-parquet-query";
 import { computeDayType, dayTypePredicate } from "@/lib/day-type";
 import { fetchStopDetail, snapToWindow, offsetToDate } from "@/lib/stop-detail";
+import { cleanLineName } from "@/lib/date-utils";
+import { IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 
 // ---------------------------------------------------------------------------
 // «For tidlig»-terskel
@@ -146,6 +148,14 @@ function fetchLineNames(): Promise<LineNamesDoc> {
       .then((r) => {
         if (!r.ok) throw new Error(`stats_line_names.json: ${r.status}`);
         return r.json();
+      })
+      .then((doc: LineNamesDoc) => {
+        // UUID-linje-id-er (Flixbus) lekker inn i navnet: «FLI 0a73c829-…: Bergen - Oslo»
+        for (const k of Object.keys(doc)) {
+          const v = doc[k];
+          if (typeof v === "string" && /[0-9a-f]{8}-[0-9a-f]{4}-/i.test(v)) doc[k] = cleanLineName(v) ?? v;
+        }
+        return doc;
       })
       .catch((err) => {
         lineNamesPromise = null;
@@ -503,6 +513,11 @@ async function apiExcludedDays(params: URLSearchParams) {
 
 const PERIOD_TO_DAYS: Record<string, number> = { week: 7, month: 30, year: 90 };
 
+function punctualPct(l: LineRow): number {
+  if (l.pctOnTime == null) return -Infinity;
+  return l.pctOnTime - (l.pctEarly ?? 0);
+}
+
 async function apiLeaderboardLines(params: URLSearchParams) {
   const [summary, lineNames] = await Promise.all([fetchSummary(), fetchLineNames()]);
   const type = params.get("type") ?? "worst";
@@ -515,11 +530,21 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     summary.windows,
   );
 
+  // Valgfrie kvalitetsfiltre (brukes av Oversikt, ikke av Topplister):
+  //   minDeparturesPerDay — små linjer med en håndfull avganger i uka toppet
+  //     lista med tilfeldige utslag (målt 2026-09: median linje har 36
+  //     avganger/uke, de tre «dårligste» hadde 6–7).
+  //   plausibleOnly — snitt over IMPLAUSIBLE_DELAY_MIN er nesten alltid
+  //     avganger som aldri ble avsluttet i sanntidsfeeden, ikke forsinkelse.
+  const minPerDay = Number(params.get("minDeparturesPerDay") ?? "0");
+  const plausibleOnly = params.get("plausibleOnly") === "1";
   let rows = summary.lines.filter(
     (l) =>
       l.window === win &&
       l.mode === mode &&
-      (operators.length === 0 || operators.includes(lineOperator(l.lineRef))),
+      (operators.length === 0 || operators.includes(lineOperator(l.lineRef))) &&
+      (!minPerDay || (l.totalDepartures ?? 0) >= minPerDay * win) &&
+      (!plausibleOnly || l.avgDelayMin == null || Math.abs(l.avgDelayMin) <= IMPLAUSIBLE_DELAY_MIN),
   );
 
   const sorters: Record<string, (a: LineRow, b: LineRow) => number> = {
@@ -527,6 +552,11 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     best: (a, b) => (a.avgDelayMin ?? Infinity) - (b.avgDelayMin ?? Infinity),
     reliable: (a, b) => (a.stddevDelayMin ?? Infinity) - (b.stddevDelayMin ?? Infinity),
     unreliable: (a, b) => (b.stddevDelayMin ?? -Infinity) - (a.stddevDelayMin ?? -Infinity),
+    // Andel presise passeringer: i rute (≤ 2 min) MINUS de som gikk mer enn
+    // 1 min for tidlig. «Lavest snitt» belønnet linjer som kjører for tidlig
+    // (målt 2026-09: de fem «beste» busslinjene gikk for tidlig 34–46 % av
+    // gangene) — og en buss som har gått kan du ikke rekke.
+    punctual: (a, b) => punctualPct(b) - punctualPct(a),
   };
   rows = [...rows].sort(sorters[type] ?? sorters.worst);
 
@@ -537,6 +567,8 @@ async function apiLeaderboardLines(params: URLSearchParams) {
     stddevDelayMin: l.stddevDelayMin,
     pctOnTime: l.pctOnTime,
     pctDelayed10plus: l.pctDelayed10plus,
+    pctEarly: l.pctEarly,
+    pctPunctual: l.pctOnTime == null ? null : Math.max(0, l.pctOnTime - (l.pctEarly ?? 0)),
     totalDepartures: l.totalDepartures,
     totalCancellations: null,
   }));
@@ -1071,10 +1103,11 @@ async function apiLeaderboardStops(params: URLSearchParams) {
   // datointervall — de tilfellene krever eksakt DuckDB-spørring over parquet.
   // (Uten disse filtrene svarer artefakten øyeblikkelig.)
   if ((mode && mode !== "all") || (from && to)) {
-    return apiLeaderboardStopsFiltered(doc, type, operators, mode, from, to, days);
+    return apiLeaderboardStopsFiltered(doc, type, operators, mode, from, to, days, params.get("quality") === "1");
   }
 
   const win = snapWindow(days, doc.windows);
+  const quality = params.get("quality") === "1";
 
   const rows: Array<{
     stopRef: string;
@@ -1086,8 +1119,11 @@ async function apiLeaderboardStops(params: URLSearchParams) {
   }> = [];
   for (const row of doc.stops) {
     if (operators.length > 0 && !operators.includes(row[1])) continue;
+    // quality=1 (Topplister i reise-bygget): flyplasser bare når AVI er valgt
+    if (quality && operators.length === 0 && row[1] === "AVI") continue;
     const w = stopWindow(doc, row, win);
     if (!w) continue;
+    if (quality && !stopPassesQuality(w[0], w[2], w[3], win)) continue;
     rows.push({
       stopRef: row[0],
       stopName: row[2],
@@ -1097,12 +1133,46 @@ async function apiLeaderboardStops(params: URLSearchParams) {
       totalDepartures: w[3],
     });
   }
-  rows.sort((a, b) =>
+  rows.sort(stopSorter(type, quality));
+  return rows.slice(0, 50);
+}
+
+// ---------------------------------------------------------------------------
+// Kvalitetsfilter for stopp-topplistene (quality=1)
+//
+// Målt 2026-10-05, «Alle operatører», siste uke: topp 10 «mest forsinkede»
+// var hurtigbåtkaier i Finnmark med σ 110–144 min (avganger som aldri ble
+// avsluttet i feeden), og «mest punktlige» var flyplasser og stasjoner med
+// −48 til −10 min snitt (fly «går» før rutetid; tog med feil rutetid). Ingen
+// av delene hjelper en som lurer på bussen sin.
+// ---------------------------------------------------------------------------
+const STOP_MIN_PER_DAY = 5;
+const STOP_MAX_STDDEV = 60;
+
+function stopPassesQuality(avg: number | null, sd: number | null, n: number, windowDays: number): boolean {
+  if (avg == null) return false;
+  if (Math.abs(avg) > IMPLAUSIBLE_DELAY_MIN) return false;
+  if (sd != null && sd > STOP_MAX_STDDEV) return false;
+  return n >= STOP_MIN_PER_DAY * windowDays;
+}
+
+type StopRankRow = { avgDelayMin: number | null; pctDelayed2plus: number | null };
+
+/** «best» med quality: færrest passeringer > 2 min forsinket blant stopp som
+ *  ikke går for tidlig i snitt (snitt ≥ −1 min); likt → lavest |snitt|. */
+function stopSorter(type: string, quality: boolean) {
+  if (type === "best" && quality) {
+    return (a: StopRankRow, b: StopRankRow) => {
+      const early = (r: StopRankRow) => ((r.avgDelayMin ?? 0) < -1 ? 1 : 0);
+      return early(a) - early(b)
+        || (a.pctDelayed2plus ?? Infinity) - (b.pctDelayed2plus ?? Infinity)
+        || Math.abs(a.avgDelayMin ?? 0) - Math.abs(b.avgDelayMin ?? 0);
+    };
+  }
+  return (a: StopRankRow, b: StopRankRow) =>
     type === "best"
       ? (a.avgDelayMin ?? Infinity) - (b.avgDelayMin ?? Infinity)
-      : (b.avgDelayMin ?? -Infinity) - (a.avgDelayMin ?? -Infinity),
-  );
-  return rows.slice(0, 50);
+      : (b.avgDelayMin ?? -Infinity) - (a.avgDelayMin ?? -Infinity);
 }
 
 async function apiLeaderboardStopsFiltered(
@@ -1113,6 +1183,7 @@ async function apiLeaderboardStopsFiltered(
   from: string | null,
   to: string | null,
   days: number,
+  quality = false,
 ) {
   await ensureParquetFilesRegistered();
   const useExplicitRange = !!(from && to);
@@ -1125,7 +1196,21 @@ async function apiLeaderboardStopsFiltered(
   if (mode && mode !== "all") conds.push(`vehicle_mode = '${esc(mode)}'`);
   if (operators.length > 0) {
     conds.push(`split_part(line_ref, ':', 1) IN (${operators.map((o) => `'${esc(o)}'`).join(", ")})`);
+  } else if (quality) {
+    conds.push(`split_part(line_ref, ':', 1) <> 'AVI'`);
   }
+  // Med quality: samme terskler som artefakt-stien (se stopPassesQuality)
+  const nDays = useExplicitRange
+    ? Math.max(1, Math.round((new Date(to!).getTime() - new Date(from!).getTime()) / 86_400_000) + 1)
+    : days;
+  const having = quality
+    ? `COUNT(DISTINCT service_journey_id || date) >= ${STOP_MIN_PER_DAY * nDays}
+       AND ABS(AVG(${D})) <= ${IMPLAUSIBLE_DELAY_MIN}
+       AND COALESCE(STDDEV_SAMP(${D}), 0) <= ${STOP_MAX_STDDEV}`
+    : `COUNT(DISTINCT service_journey_id || date) >= 5`;
+  const orderBy = type === "best" && quality
+    ? `(AVG(${D}) < -1) ASC, pct2 ASC, ABS(AVG(${D})) ASC`
+    : `avg_delay ${type === "best" ? "ASC" : "DESC"}`;
 
   const rows = await standaloneDuckQuery<{
     stop_ref: string; avg_delay: number | null; sd: number | null;
@@ -1139,8 +1224,8 @@ async function apiLeaderboardStopsFiltered(
     FROM delays_by_stop
     WHERE ${conds.join(" AND ")}
     GROUP BY stop_ref
-    HAVING COUNT(DISTINCT service_journey_id || date) >= 5
-    ORDER BY avg_delay ${type === "best" ? "ASC" : "DESC"}
+    HAVING ${having}
+    ORDER BY ${orderBy}
     LIMIT 50
   `, undefined, { family: "by-stop", fromDate: effectiveFrom, toDate: effectiveTo });
 

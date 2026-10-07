@@ -20,6 +20,7 @@ import {
 import { InfoTip } from "@/components/info-tip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BusLoading } from "@/components/bus-loading";
+import { IS_REISE } from "@/lib/app-mode";
 import { useUrlParam } from "@/hooks/use-url-state";
 import { DataQualityFlag } from "@/components/data-quality-flag";
 
@@ -74,10 +75,14 @@ export default function WorstLists() {
   // Dager utelatt fra rangeringen pga. åpenbart ufullstendig ingest — vises
   // eksplisitt i stedet for å forsvinne stille (samme prinsipp som data-quality-flag.tsx).
   const { data: excludedDays = [] } = useQuery<DaySummary[]>({ queryKey: [`/api/worst-days/excluded?${join(opStr, wq)}`], placeholderData: keepPreviousData });
-  const { data: worstStops = [], isFetching: worstStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
-  const { data: bestStops = [], isFetching: bestStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr)}`], placeholderData: keepPreviousData });
-  const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
-  const { data: unreliableLines = [], isFetching: unreliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr)}`], placeholderData: keepPreviousData });
+  // quality=1 (reise-bygget): busy stopp, uten datafeil og flyplasser — se stopPassesQuality i stats-adapter.ts
+  const qStr = IS_REISE ? "quality=1" : "";
+  const { data: worstStops = [], isFetching: worstStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=worst`, opStr, wq, modeStr, qStr)}`], placeholderData: keepPreviousData });
+  const { data: bestStops = [], isFetching: bestStopsFetching } = useQuery<LeaderboardStop[]>({ queryKey: [`/api/leaderboard/stops?${join(`type=best`, opStr, wq, modeStr, qStr)}`], placeholderData: keepPreviousData });
+  // Samme linjefiltre som Oversikt (minst 5 avganger/dag, ingen datafeil > 120 min)
+  const lineQ = IS_REISE ? "minDeparturesPerDay=5&plausibleOnly=1" : "";
+  const { data: reliableLines = [], isFetching: reliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=reliable`, opStr, modeStr, lineQ)}`], placeholderData: keepPreviousData });
+  const { data: unreliableLines = [], isFetching: unreliableLinesFetching } = useQuery<LeaderboardLine[]>({ queryKey: [`/api/leaderboard/lines?${join(`type=unreliable`, opStr, modeStr, lineQ)}`], placeholderData: keepPreviousData });
 
   const isRefreshing = worstDaysFetching || bestDaysFetching || worstStopsFetching || bestStopsFetching || reliableLinesFetching || unreliableLinesFetching;
 
@@ -286,9 +291,11 @@ export default function WorstLists() {
               <CardTitle className="flex items-center gap-2">
                 <MapPinOff className="h-5 w-5 text-destructive" />
                 Mest forsinkede stopp
-                <InfoTip>Stopp rangert etter vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt for å være med.</InfoTip>
+                <InfoTip>{IS_REISE
+                  ? "Stopp rangert etter vektet snittforsinkelse i valgt tidsvindu. Med: minst 5 avganger per dag. Tatt ut: stopp med snitt over 120 min eller standardavvik over 60 min (nesten alltid avganger som aldri ble avsluttet i sanntidsdataene), og flyplasser med mindre du har valgt Avinor."
+                  : "Stopp rangert etter vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt for å være med."}</InfoTip>
               </CardTitle>
-              <CardDescription>I valgt tidsvindu — min. 100 avganger totalt.</CardDescription>
+              <CardDescription>{IS_REISE ? "I valgt tidsvindu — stopp med minst 5 avganger per dag, uten åpenbare datafeil." : "I valgt tidsvindu — min. 100 avganger totalt."}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -334,9 +341,11 @@ export default function WorstLists() {
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-green-500" />
                 Mest punktlige stopp
-                <InfoTip>Stopp med lavest vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt.</InfoTip>
+                <InfoTip>{IS_REISE
+                  ? "Stopp med færrest avganger mer enn 2 min forsinket, blant stopp som ikke går for tidlig i snitt. Samme utvalg som listen over."
+                  : "Stopp med lavest vektet snittforsinkelse i valgt tidsvindu. Min. 100 avganger totalt."}</InfoTip>
               </CardTitle>
-              <CardDescription>I valgt tidsvindu — min. 100 avganger totalt.</CardDescription>
+              <CardDescription>{IS_REISE ? "I valgt tidsvindu — stopp med minst 5 avganger per dag, uten åpenbare datafeil." : "I valgt tidsvindu — min. 100 avganger totalt."}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>

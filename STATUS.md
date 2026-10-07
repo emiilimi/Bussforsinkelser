@@ -3,7 +3,282 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-08-29
+**Sist oppdatert**: 2026-10-05
+
+## Endringslogg — 2026-10-05: passasjertellinger (beta) — «hvem rammes av forsinkelsene?»
+
+Branch `feat/passasjertall`. Ikke pushet, ikke lastet opp, og **av som
+standard** i bygget: alt er skjult med mindre `VITE_PAX_BASE_URL` er satt.
+Grunn: samferdselsdata.no oppgir **ingen lisens** for passasjertallene, og
+dokumentasjonen ber om at man sjekker med dataeier før publisering. Send
+Entur en e-post før dette går ut.
+
+### Datakilden
+
+Enturs «Passasjertellinger» på samferdselsdata.no. Utforskeren der leser en
+**offentlig GCS-bøtte**: `https://storage.googleapis.com/ent-sdno-prd-paxcount-public/`
+(`?max-keys=1000` lister den). Rå-filene per operatør (`kol/`, `ost/`, `tro/`)
+har mer enn CSV-nedlastingen: `trip_id` er ekte `ServiceJourney`-id, pluss
+`stop_sequence` → månedlige på-/avstigninger **per avgang per stopp**.
+
+Dekning (oktober 2026): Kolumbus, Østfold kollektivtrafikk, Svipper (Troms)
+og Vy-tog. **Ikke Skyss, ikke Ruter.** Vy har ingen avgangs-id
+(`JDIR:operating_date:…`) og er ikke med.
+
+### Tre datafeller (målt — ikke gjenta uten å lese dette)
+
+1. **Bøtta har hele eksport-shards flere ganger.** `kol/…016` og `…018` er
+   identiske; juli 2026 ligger i tre filer. Naiv `SUM` gir 2–3x for mange
+   passasjerer. Pipelinen dedupliserer eksakt like rader (IKKE bare
+   (avgang, stopp) — ringruter passerer samme stopp to ganger) og sjekker
+   summen mot `aggregert/detail.parquet`, som er riktig. Etter fiks: eksakt
+   lik for alle tre operatører og alle måneder.
+2. **Avgangs-id-ens midtledd bytter 1,4–1,75 ganger i måneden**
+   (`KOL:ServiceJourney:1003_<datasettversjon>_1001`). Nøkkelen er
+   (linje, siste `_`-ledd); kolliderer på <0,06 % av (linje, dato).
+   `stableSjId()` i trip-shared.ts splitter på `-` og virker IKKE for disse
+   operatørene — derfor egen `paxDepKey()`. Kobling: >99 % av passasjerene.
+3. **0 på og 0 av hele måneden = utelt buss, ikke tom buss.** 12 % av
+   KOL-avgangene i august (0,9 % i juli), 1–2 % for OST/TRO. På KOL-linje 52
+   var bare skoleavgangene telt. Holdes utenfor belegg; vises som advarsel.
+   Påstigningstallet for KOL august er derfor for lavt.
+
+### Det som er bygget
+
+- **`pipeline/passenger_stats.py`**: speiler bøtta til `data/pax-cache/`,
+  velger måneder der både passasjertall og våre forsinkelser er komplette,
+  og skriver `summary.json`, `stops_<OP>.json` og `lines/<ref>.json` til
+  `PAX_OUT_DIR` (default `data/pax-out/`, bevisst IKKE `PARQUET_DIR`).
+  ~1 min. Belegg per tur = månedstall / turer, der turer = observerte datoer
+  skalert for hele dager vi mangler (`day_scale`).
+- **Ny side `/passasjerer`**: merket forsinkelse (vektet med avstigende),
+  passasjertimer tapt, toppliste etter timer tapt med plassering på vanlig
+  liste, «fulle busser er senere», linjeutforsker (timesprofil, belegg og
+  forsinkelse langs ruten per avgang, delbart «Din buss»-kort), stoppkart,
+  fulleste avganger, kommuner, historikk fra 2022, metodeboks.
+- **Belegg-merker** i reiseplanleggeren (per legg + kompakt i kortet) og på
+  avgangstavla («~N» om bord når bussen kjører fra stoppet). Matcher samme
+  avgang, ellers nærmeste avgang samme dagtype ±6 min. Ingen DuckDB.
+- **`pipeline/upload_pax.py`**: laster opp til `pax/` på R2, nekter uten
+  `--confirm-license`.
+
+### Funn (august 2026; Svipper september)
+
+| Operatør | Påstigninger | Merket forsinkelse | Snittbussen | Timer tapt |
+|---|---|---|---|---|
+| Kolumbus | 2 486 874 | 4,8 min | 3,9 min | 205 771 |
+| Østfold | 658 852 | 5,4 min | 3,6 min | 55 798 |
+| Svipper (sep) | 1 173 846 | 3,1 min | 2,6 min | 64 006 |
+
+Passasjerene merker mer forsinkelse enn snittbussen viser hos alle tre — folk
+reiser der og når bussene er mest forsinket. Fulle busser går senere også
+innenfor og utenfor rush (snitt per avgang, alle tre operatører):
+
+| Om bord på det fulleste | Utenom rush | Rush |
+|---|---|---|
+| < 10 | 2,6 min | 3,1 min |
+| 10–25 | 3,0 min | 4,3 min |
+| 25–50 | 4,4 min | 4,5 min |
+| 50+ | 5,9 min | 5,0 min |
+
+Sammenheng, ikke årsak (travle linjer har også mer trafikk).
+
+### Samme branch: raske forbedringer fra produktgjennomgangen
+
+- **Mobil**: kompakt sticky topplinje med «Meny»-skuff. Før tok
+  menyknappene ~630 av 812 px over søkefeltet.
+- **Oversikt**: linjetopplistene viser busslinjer med minst 5 avganger/dag
+  uten datafeil (>120 min), og «Beste» er byttet med «Mest presise» (andel
+  fra −1 til +2 min). Før: fergerute med 6 avganger/uke på +163 min øverst,
+  og fly/buss som går for tidlig som «beste». Kjent rest: noen båtruter
+  (TEL 8711, INN 900) er merket `bus` fordi `vehicleMode` mangler. Togoperatørenes
+  `bus`-rader er derimot ekte **buss for tog** (uke 39: VYG R12 hadde 4 589
+  rail- og 752 bus-rader) og vises nå som det.
+- **«Uka som gikk»** (`/uke`): siste 7 mot forrige 7 dager per region, dag for
+  dag, og busslinjer som ble tydelig verre/bedre (7 mot 30 dager). Fra
+  stats_summary.json, ingen ny pipeline.
+- **UUID-linje-id-er** (Flixbus) vises som operatørkode, og navnene renses.
+- **Stoppanalysens Y-akse** starter rundt snittet i stedet for på verste
+  enkeltavgang (Bergen busstasjon: 450 min → 14 min).
+
+### Reiseplanleggeren (samme branch, uavhengig av passasjertallene)
+
+- **«Tryggest · HH:MM»**: når alle forslagene er ferdig beregnet, merkes det
+  med tidligst overgangsjustert P80-ankomst. Merket venter til ALLE er
+  ferdige, så det ikke hopper mellom kort. Testet Bergen busstasjon → Åsane
+  terminal tirsdag 08:00: direkte 300 kl. 08:10 (P80 08:28) slår 39→3 kl.
+  08:00 (P80 08:30), selv om sistnevnte er planlagt framme før.
+- **Sortering «Avgang | Trygg ankomst»** på samme tall.
+- **«Når må jeg dra?»** ved ankomst-søk: senest avgang som er framme innen
+  fristen minst 4 av 5 dager («Dra senest 08:10 for å være framme innen
+  08:30 …»), eller beskjed om at ingen på lista er trygge nok.
+- **«Del reisen»**: delingsark/utklippstavle med tekstoppsummering + lenke.
+- Linjeanalyse har fått et passasjerkort for linjer med tellinger, og
+  /passasjerer har «Spill av dagen» (animerer belegg per avgang, fast skala).
+
+### Overgangssannsynligheten: veid snitt i stedet for hard terskel (backtestet)
+
+Før: din egen avgang fra 5 dager, ellers sammenlignbare. Ny leave-one-day-out-
+test (`pipeline/backtest_transfer.py`, ~146 600 måldager, ~4 080 ekte
+overgangspar ved 21 knutepunkter, hverdager, ~30 s) viste at den regelen var
+dårligst nettopp der den byttet kilde. Nå:
+`p = (k·p_egen + 10·p_sammenlignbare) / (k + 10)` (`shrunkProb`,
+`POOL_PRIOR_DAYS` i trip-shared.ts).
+
+| Egne dager | Kun egen | Sammenlignbare | Gammel regel | Veid, m=10 |
+|---|---|---|---|---|
+| 3 | 0,1375 | 0,1116 | 0,1116 | 0,1105 |
+| 5 | 0,1232 | 0,1116 | 0,1232 | 0,1097 |
+| 10 | 0,1136 | 0,1116 | 0,1136 | 0,1087 |
+| 20 | 0,1078 | 0,1114 | 0,1078 | 0,1066 |
+| 30 | 0,1048 | 0,1095 | 0,1048 | 0,1045 |
+
+Brier, buffer 3 min. Samme rangering med 2 og 5 min; m=10 var best eller
+innenfor 0,0004 av best overalt (m=2, 5, 20 også testet). Den eldre
+notat-påstanden om m=5 (2026-07-24) stemte ikke med egne tall.
+
+Også: «ingen sanntid» for Bybanen har nå en forklaring — Entur sender
+realtime=false for alle bybaneavganger, og SIRI ET har ingen bybanerader.
+«Siste reiser»-brikker på reiseplanleggeren (ett trykk, motsatt vei).
+
+### Topplister og tester
+
+- **Topplister**: stopp-listene bruker et nytt `quality=1`-filter (minst 5
+  avganger/dag, snitt ≤ 120 min, σ ≤ 60 min, flyplasser bare når Avinor er
+  valgt; «Mest punktlige» = færrest > 2 min forsinket blant stopp som ikke går
+  for tidlig). Før: hurtigbåtkaier med σ 110–144 min øverst og flyplasser med
+  −48 min som «mest punktlige». Etter: Jernbanetorget, Lysaker og Asker
+  stasjon øverst. Linjelistene der har samme filtre som Oversikt.
+- `npm run test:pax`: 14 selvsjekker (avgangsnøkkel, belegg-oppslag,
+  beleggsnivå, veid overgangsestimat). Repoet har ellers ingen tester.
+- Prod-bygg verifisert begge veier: med `VITE_PAX_BASE_URL` virker side, kart
+  og merker; uten gir /passasjerer 404 og ingen menylenke.
+
+### Beta-forhåndsvisning (2026-10-06)
+
+Branchen er pushet, og Cloudflare Workers Builds lager en egen URL:
+**https://feat-passasjertall-reiseplanlegger.emiliemoldestad.workers.dev**
+(sentur.no/beta som sti er ikke mulig uten egen ruting — produksjon deployes
+bare fra `reise`). Etter beslutning fra Emilie vises passasjerfunksjonen der:
+den slås på automatisk på `*.workers.dev`-verter, og filene er lastet opp til
+R2 under `pax/` (563 filer). På sentur.no forblir den av, også etter en merge,
+til `VITE_PAX_BASE_URL` settes. Siden har fått kortet «Om passasjertallene»
+med samferdselsdata.no sine egne forbehold (beta/pilot, tellemetoder,
+feilkilder, ansvarlig bruk, personvern, dataeiere) med egne ord, og lenker til
+datasettet, dokumentasjonen og datastrukturen. Belegg-merkene oppgir kilden.
+
+### I produksjon (2026-10-07)
+
+Emilie fikk tillatelse til å bruke passasjertallene. Etter en siste gjennomgang
+(tsc 0 feil, 14/14 selvsjekker, prod-bygg, kart-stabling mot den nye sticky
+mobilheaderen sjekket, R2 serverer pax-filene Brotli-komprimert — største
+linjefil ~120 KB) ble branchen flettet inn i `reise-preview` og `reise`.
+Passasjerfunksjonen er nå på overalt der `VITE_PARQUET_BASE_URL` er satt;
+`VITE_PAX_DISABLED=1` slår den av. Flettet inn `origin/reise` først
+(adressefavoritt-fiksen 9bafaf1) — ingen konflikter.
+
+### Gjenstår
+
+- Månedlig: `passenger_stats.py` + `upload_pax.py --confirm-license` når
+  samferdselsdata.no har publisert en ny måned (ikke automatisert).
+- Månedlig kjøring: `passenger_stats.py` + `upload_pax.py` (bøtta oppdateres
+  rundt den 25.). Ikke lagt inn i nattjobben med vilje.
+- Belegg bruker siste måned; ruteendringer (august: sommer → høst) gir to
+  avganger på samme klokkeslett — siden viser den med flest turer.
+
+
+## Endringslogg — 2026-09-02: nattjobben feilet tre netter på rad — to ulike feil, begge fra stoppdetalj-shardene
+
+R2 (og dermed reise-siten) ble stående på 2026-08-30 mens maskinen var på
+2026-09-02. Ingest og export gikk fint hver natt; det var de to siste stegene
+som feilet, av to helt forskjellige grunner. Funnet ved å lese
+`logs/reise-YYYY-MM-DD.log` (Task Scheduler kjører `scripts/nightly_reise.ps1`
+lokalt) og sjekke `https://parquet.sentur.no/stats_summary.json` direkte.
+
+### Feil 1 (31.08): `upload_to_r2.py` «hang» 40 min, tre forsøk — det var et rør-deadlock
+
+Loggen viste at hvert forsøk lastet opp **nøyaktig 32 shardfiler** og så ble
+stille i ~37 min til fristen drepte det. Ingen henging: `Invoke-PythonStepOnce`
+i `nightly_reise.ps1` omdirigerte stdout/stderr, men leste dem først
+**etter** at barnet avsluttet. Et omdirigert rør har ~4 KB buffer; når barnet
+har skrevet 4 KB uten at noen leser, blokkerer neste `write()` for alltid.
+Reprodusert med et barn som skriver 200 logglinjer: drept på fristen med
+**4094 byte** mottatt. 40 linjer: ferdig på 1 s. Stegene som gikk bra logger
+under 4 KB; opplastingen begynte å logge 2000+ linjer da shardene kom 27.08.
+
+Fiks: `ReadToEndAsync()` på begge rørene startes **før** venteløkka, så de
+tømmes fortløpende. Verifisert med 3000 linjer (176 KB): ferdig på 1 s, alle
+linjer fanget. Gjelder alle steg — ethvert framtidig skript som logger mye
+ville ellers truffet det samme.
+
+I tillegg, i `upload_to_r2.py`:
+- **Uendret-sjekken virket ikke for ukefilene.** Den sammenlignet lokal md5
+  med ETag, men `s3.upload_file` bruker multipart over 8 MB og da er ETag
+  ikke md5. Alle 22 ukefilene (29–92 MB, ~1,4 GB) ble lastet opp på nytt hver
+  natt. Nå lagres md5 som objekt-metadata ved opplasting og sammenlignes
+  mot den (ETag som fallback for gamle små objekter). Første kjøring laster
+  alt opp én gang til; deretter hoppes uendrede filer over.
+- Shardene lastes opp **8 i parallell** (`R2_UPLOAD_WORKERS`) med
+  `put_object` for filer under 8 MB, og logger én linje per 250 shards i
+  stedet for 2000 linjer. Sekvensielt lå det på ~2 filer/s ≈ 17 min.
+- Enhetstest mot en falsk S3-klient (6 tilfeller: metadata-treff, ETag-treff,
+  multipart-ETag uten metadata, 404 liten/stor fil, force, 403) — alle OK.
+
+### Feil 2 (01.09 og 02.09): `aggregate_stats.py` døde av minne, begge forsøk begge netter
+
+`_duckdb.OutOfMemoryException … (12.4 GiB/12.5 GiB used)` i `det_daily`-
+spørringen i `build_stop_detail_shards`. 12,5 GiB er DuckDBs standardgrense
+(80 % av 15,7 GB RAM), og tilkoblingen var en ren `duckdb.connect()` uten
+`memory_limit`/`temp_directory` — grensa var en vegg, ikke en terskel for å
+bruke disk. Tre endringer:
+
+1. **`configure_duckdb()`**: `memory_limit` (`STATS_DUCKDB_MEMORY`, default
+   8GB), eksplisitt `temp_directory` (`STATS_DUCKDB_TEMP`, default
+   `<PARQUET_DIR>/.duckdb_tmp`) så aggregater og sorteringer spiller til disk,
+   `preserve_insertion_order=false`, og valgfri `STATS_DUCKDB_THREADS`.
+2. **`COUNT(*)` i stedet for `COUNT(DISTINCT service_journey_id)`** i
+   det_daily. (date, service_journey_id, stop_ref) er primærnøkkelen i
+   `journey_stop_daily` og eksporten bevarer den — målt: 0 duplikater over
+   11,8 mill. rader i W35+W36. Innenfor en (stopp, dato)-gruppe er hver rad
+   sin egen avgang, så tallet er identisk; DISTINCT-varianten holdt et
+   hash-sett per gruppe og var det som sprengte minnet.
+3. **3 parquet-skann i stedet for 14.** Før: én skanning per (tabell ×
+   vindu) med alle fire vindusresultatene i minnet samtidig via UNION ALL.
+   Nå: én per-dato-basistabell per aggregat, og vinduene skjæres ut med
+   `WHERE date >= cutoff` (et vindu er en delmengde av dager — eksakt samme
+   tall, sum/antall bæres per dag så snitt kan slås sammen). Sluttabellene
+   sorteres fysisk på shard, så `WHERE shard = ?` i shard-løkka treffer
+   1–2 radgrupper via zonemaps i stedet for å skanne alt 2000 ganger.
+
+**Ekvivalenstest** (gammel vs ny `build_stop_detail_shards` på samme to
+ukefiler, W35+W36 = 11,8 mill. rader, samme `stop_coords`, alle 2000
+shardfiler sammenlignet felt for felt, 85 775 stopp):
+- Første pass: 1968 av 2000 filer «ulike» — men alle avvikene var linjer
+  med samme antall (`n`) i ulik rekkefølge i `l`-lista. Lesingen sorterte på
+  `n DESC` uten sekundærnøkkel, så rekkefølgen var vilkårlig i BEGGE
+  versjoner, også fra natt til natt på identiske data. Det ville gjort
+  md5-sjekken i `upload_to_r2.py` verdiløs for de shardene. Fikset:
+  `ORDER BY … n DESC, line_ref`.
+- Med kanonisk rekkefølge: **3 stopp av 85 775 avviker**, alle i én
+  timesverdi hver, med 0,01 min (f.eks. 3,38 mot 3,37) — flyttalls-
+  summeringsrekkefølge på en avrundingsgrense (sum-av-dagssummer mot ett
+  løpende snitt). Ikke semantisk. Alt annet identisk.
+- Tid på to uker: gammel 155,5 s, ny 133,8 s, med 4 GB-grense og 0 MB
+  spilt til disk.
+
+Nattjobben plukker opp endringene automatisk (den kjører fra arbeidstreet).
+
+**Kjørt mot produksjon 02.09 kl. 14:39–15:14** (`logs/catchup-2026-09-02.*`,
+90 dager, `STATS_DUCKDB_MEMORY=4GB` fordi maskinen bare hadde 1,2 GB ledig):
+- `aggregate_stats.py`: 1888 s totalt, exit 0. Shard-basistabellene på
+  9,5 min (det_daily 3,97 mill. rader, det_linehour 4,29 mill.), shard-løkka
+  5,5 min (mot ~11 før — sorteringen på shard virker), 2000 filer / 449 MB.
+- `upload_to_r2.py --prune`: 2028 filer opp, shardene på **1 min 42 s**
+  (~20 filer/s mot ~2 før), exit 0.
+- Verifisert direkte mot R2 etterpå: `stats_summary.json` `dates.max` =
+  2026-09-01, manifestet 24 filer t.o.m. W36, `stops/1286.json` HTTP 200
+  (262 KB) — **første gang shardene faktisk ligger i produksjon**.
+  Stoppanalysen bruker dermed artefakt-veien (`stopStatsFromArtifact`) fra nå.
 
 ## Endringslogg — 2026-08-29: forsinkelseskart på Linjeanalyse
 

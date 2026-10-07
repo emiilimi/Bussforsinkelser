@@ -97,6 +97,43 @@ def r(v, digits=2):
     return None if v is None else round(float(v), digits)
 
 
+def configure_duckdb(con) -> None:
+    """Minne- og spill-innstillinger for DuckDB.
+
+    Natt til 1. og 2. september 2026 døde steget begge forsøk med
+    «Out of Memory Error: could not allocate block (12.4 GiB/12.5 GiB used)»
+    i build_stop_detail_shards. 12.5 GiB er DuckDBs STANDARDGRENSE (80 % av
+    fysisk RAM, PC-en har 15,7 GB) — og en ren in-memory-tilkobling uten
+    eksplisitt temp_directory har ingen god plass å spille til, så grensa
+    ble en hard vegg i stedet for en terskel for å bruke disk.
+
+    Tre ting, alle DuckDBs egne anbefalinger fra feilmeldingen:
+      memory_limit           lavere enn RAM med god margin til Python/OS
+                             (STATS_DUCKDB_MEMORY, default 8GB)
+      temp_directory         eksplisitt mappe → hash-aggregater og sorteringer
+                             spiller til disk i stedet for å feile
+      preserve_insertion_order=false
+                             ingen av aggregatene bryr seg om radrekkefølge
+                             (per-shard-lesingen har egen ORDER BY), og
+                             innstillingen sparer betydelig minne i store
+                             GROUP BY. Slås PÅ igjen der vi eksplisitt
+                             sorterer tabeller for zonemap-pruning.
+    threads settes kun hvis STATS_DUCKDB_THREADS er satt; grensa over
+    håndheves uansett antall tråder.
+    """
+    mem = os.environ.get("STATS_DUCKDB_MEMORY", "8GB")
+    tmp = Path(os.environ.get("STATS_DUCKDB_TEMP", str(PARQUET_DIR / ".duckdb_tmp")))
+    tmp.mkdir(parents=True, exist_ok=True)
+    con.execute(f"SET memory_limit = '{mem}'")
+    con.execute(f"SET temp_directory = '{tmp.as_posix()}'")
+    con.execute("SET preserve_insertion_order = false")
+    threads = os.environ.get("STATS_DUCKDB_THREADS")
+    if threads:
+        con.execute(f"SET threads = {int(threads)}")
+    eff_threads = con.execute("SELECT current_setting('threads')").fetchone()[0]
+    log.info("DuckDB: memory_limit=%s, temp_directory=%s, threads=%s", mem, tmp, eff_threads)
+
+
 # ---------------------------------------------------------------------------
 # Stoppdetaljer, shardet — datagrunnlaget for Stoppanalyse.
 #
@@ -271,10 +308,28 @@ def build_line_names(sq: sqlite3.Connection) -> dict[str, str]:
 def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: date) -> int:
     """Skriv stops/<shard>.json — ferdig aggregert stoppdetalj per shard.
 
-    Strategi for minnebruk: de fem tunge aggregatene beregnes ÉN gang hver
-    (fem parquet-skann totalt) inn i midlertidige DuckDB-tabeller. Deretter
-    leses de per shard derfra — små, lokale spørringer uten nye parquet-skann.
-    Python holder aldri mer enn én shard om gangen.
+    Strategi for minnebruk (omlagt 2026-09-02 etter to netter med OOM):
+
+    1. TRE parquet-skann, ikke fjorten. Første versjon skannet parquet én
+       gang per (tabell × vindu) — 1 + 4 + 4 + 4 + 1 — og holdt alle fire
+       vindusresultatene i minnet samtidig via UNION ALL. Nå bygges én
+       per-DATO-basistabell per aggregat (én skanning hver), og vinduene
+       skjæres ut av basistabellen med `WHERE date >= cutoff`. Det er eksakt
+       samme tall: et vindu er bare en delmengde av dager.
+    2. COUNT(*) i stedet for COUNT(DISTINCT service_journey_id) i det_daily.
+       (date, service_journey_id, stop_ref) er primærnøkkelen i
+       journey_stop_daily og eksporten bevarer den — målt 2026-09-02:
+       0 duplikater over 11,8 mill. rader i W35+W36. Innenfor en (stopp,
+       dato)-gruppe er altså hver rad sin egen avgang, og DISTINCT-varianten
+       var bare et hash-sett per gruppe som kostet gigabytes for ingenting.
+       Det var denne spørringen som døde på 12,4 GiB.
+    3. Sluttabellene sorteres fysisk på shard (preserve_insertion_order=true
+       under den CTAS-en), slik at `WHERE shard = ?` i shard-løkka under
+       treffer 1–2 radgrupper via zonemaps i stedet for å skanne hele
+       tabellen 2000 ganger.
+
+    Basistabellene droppes så snart vinduene er skåret ut. Python holder
+    aldri mer enn én shard om gangen.
     """
     out_dir = PARQUET_DIR / "stops"
     if out_dir.exists():
@@ -299,9 +354,17 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
     cut = {w: (max_date - timedelta(days=w - 1)).isoformat() for w in STOP_DETAIL_WINDOWS}
     HOUR = "CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER)"
 
-    # --- daglig trend: kun største vindu; klienten skjærer ut kortere ---
+    def window_union(select_per_window: str) -> str:
+        """UNION ALL av `select_per_window` formatert med {w} og {cutoff}
+        for hvert vindu — vinduene skjæres ut av en per-dato-basistabell."""
+        return " UNION ALL ".join(
+            select_per_window.format(w=w, cutoff=cut[w]) for w in STOP_DETAIL_WINDOWS)
+
+    # Skann 1: daglig trend, kun største vindu (klienten skjærer ut kortere).
+    # COUNT(*) == COUNT(DISTINCT service_journey_id) her — se docstring pkt. 2.
+    con.execute("SET preserve_insertion_order = false")
     con.execute(f"""
-        CREATE OR REPLACE TEMP TABLE det_daily AS
+        CREATE OR REPLACE TEMP TABLE det_daily_raw AS
         SELECT m.shard, d.stop_ref, d.date,
                ROUND(AVG({D}), 2) AS avg_delay,
                ROUND(MAX({D}), 1) AS max_delay,
@@ -309,24 +372,48 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
                ROUND(100.0 * AVG(CASE WHEN {D} > 2 THEN 1 ELSE 0 END), 1) AS pct2,
                ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1) AS pct_early,
                ROUND(STDDEV_SAMP({D}), 2) AS stddev,
-               COUNT(DISTINCT d.service_journey_id) AS departures
+               COUNT(*) AS departures
         FROM delays d JOIN shardmap m USING (stop_ref)
         WHERE d.date >= '{cut[max_win]}' AND {D} IS NOT NULL
         GROUP BY 1, 2, 3
     """)
 
-    # --- timesprofil, per vindu ---
-    # Per (vindu, stopp, time): snitt av DAGSSNITTENE, samt beste/verste dag —
-    # samme definisjon som den gamle DuckDB-spørringen i stats-adapter.
-    win_union = " UNION ALL ".join(
-        f"""SELECT {w} AS win, m.shard AS shard, d.stop_ref AS stop_ref,
-                   {HOUR} AS hour, d.date AS date,
-                   AVG({D}) AS a, COUNT(*) AS n
-            FROM delays d JOIN shardmap m USING (stop_ref)
-            WHERE d.date >= '{cut[w]}' AND {D} IS NOT NULL
-              AND COALESCE(d.aimed_departure, d.aimed_arrival) IS NOT NULL
-            GROUP BY 1, 2, 3, 4, 5"""
-        for w in STOP_DETAIL_WINDOWS)
+    # Skann 2: per (stopp, linje, time, dato) — basis for BÅDE timesprofilen
+    # (summert over linjer) og linje×time. Sum + antall, ikke snitt, slik at
+    # vinduene kan slås sammen eksakt: AVG over et vindu = SUM(s)/SUM(n).
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE det_lh_day AS
+        SELECT m.shard, d.stop_ref, d.line_ref, {HOUR} AS hour, d.date,
+               SUM({D}) AS s, COUNT(*) AS n
+        FROM delays d JOIN shardmap m USING (stop_ref)
+        WHERE d.date >= '{cut[max_win]}' AND {D} IS NOT NULL
+          AND COALESCE(d.aimed_departure, d.aimed_arrival) IS NOT NULL
+        GROUP BY 1, 2, 3, 4, 5
+    """)
+
+    # Skann 3: per (stopp, linje, retning, dato) — basis for linjelista OG
+    # retningene. Merk: INGEN {D} IS NOT NULL-filter, akkurat som før: n
+    # teller alle rader (COUNT(*)), mens snittet ignorerer null (COUNT(D)).
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE det_lines_day AS
+        SELECT m.shard, d.stop_ref, d.line_ref, d.direction_ref, d.date,
+               SUM({D}) AS s, COUNT({D}) AS c, COUNT(*) AS n
+        FROM delays d JOIN shardmap m USING (stop_ref)
+        WHERE d.date >= '{cut[max_win]}'
+        GROUP BY 1, 2, 3, 4, 5
+    """)
+
+    # Sluttabellene sorteres fysisk på shard — se docstring pkt. 3.
+    con.execute("SET preserve_insertion_order = true")
+
+    con.execute("""
+        CREATE OR REPLACE TEMP TABLE det_daily AS
+        SELECT * FROM det_daily_raw ORDER BY shard, stop_ref, date
+    """)
+    con.execute("DROP TABLE det_daily_raw")
+
+    # --- timesprofil, per vindu: snitt av DAGSSNITTENE, samt beste/verste dag ---
+    # Dagssnittet per (stopp, time, dato) = SUM(s)/SUM(n) over linjene.
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE det_hourly AS
         SELECT win, shard, stop_ref, hour,
@@ -334,37 +421,23 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
                ROUND(MAX(a), 2) AS max_avg,
                ROUND(MIN(a), 2) AS min_avg,
                CAST(SUM(n) AS BIGINT) AS n
-        FROM ({win_union})
+        FROM ({window_union('''
+            SELECT {w} AS win, shard, stop_ref, hour, date,
+                   SUM(s) / SUM(n) AS a, SUM(n) AS n
+            FROM det_lh_day WHERE date >= '{cutoff}'
+            GROUP BY 1, 2, 3, 4, 5''')})
         GROUP BY 1, 2, 3, 4
-    """)
-
-    # --- linjer ved stoppet, per vindu ---
-    lines_union = " UNION ALL ".join(
-        f"""SELECT {w} AS win, m.shard, d.stop_ref, d.line_ref,
-                   AVG({D}) AS avg_delay, COUNT(*) AS n
-            FROM delays d JOIN shardmap m USING (stop_ref)
-            WHERE d.date >= '{cut[w]}'
-            GROUP BY 1,2,3,4"""
-        for w in STOP_DETAIL_WINDOWS)
-    con.execute(f"""
-        CREATE OR REPLACE TEMP TABLE det_lines AS
-        SELECT win, shard, stop_ref, line_ref,
-               ROUND(avg_delay, 2) AS avg_delay, CAST(n AS BIGINT) AS n
-        FROM ({lines_union})
+        ORDER BY shard, stop_ref, win, hour
     """)
 
     # --- linje × time, KUN de mest trafikkerte linjene per stopp/vindu ---
-    lh_union = " UNION ALL ".join(
-        f"""SELECT {w} AS win, m.shard, d.stop_ref, d.line_ref, {HOUR} AS hour,
-                   AVG({D}) AS avg_delay, COUNT(*) AS n
-            FROM delays d JOIN shardmap m USING (stop_ref)
-            WHERE d.date >= '{cut[w]}' AND {D} IS NOT NULL
-              AND COALESCE(d.aimed_departure, d.aimed_arrival) IS NOT NULL
-            GROUP BY 1,2,3,4,5"""
-        for w in STOP_DETAIL_WINDOWS)
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE det_linehour AS
-        WITH raw AS ({lh_union}),
+        WITH raw AS ({window_union('''
+            SELECT {w} AS win, shard, stop_ref, line_ref, hour,
+                   SUM(s) / SUM(n) AS avg_delay, SUM(n) AS n
+            FROM det_lh_day WHERE date >= '{cutoff}'
+            GROUP BY 1, 2, 3, 4, 5''')}),
         ranked AS (
             SELECT *, DENSE_RANK() OVER (
                 PARTITION BY win, stop_ref ORDER BY line_total DESC, line_ref
@@ -374,15 +447,30 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
         SELECT win, shard, stop_ref, line_ref, hour,
                ROUND(avg_delay, 2) AS avg_delay, CAST(n AS BIGINT) AS n
         FROM ranked WHERE rnk <= {STOP_TOP_LINES}
+        ORDER BY shard, stop_ref, win, line_ref, hour
+    """)
+    con.execute("DROP TABLE det_lh_day")
+
+    # --- linjer ved stoppet, per vindu ---
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE det_lines AS
+        {window_union('''
+            SELECT {w} AS win, shard, stop_ref, line_ref,
+                   ROUND(SUM(s) / NULLIF(SUM(c), 0), 2) AS avg_delay,
+                   CAST(SUM(n) AS BIGINT) AS n
+            FROM det_lines_day WHERE date >= '{cutoff}'
+            GROUP BY 1, 2, 3, 4''')}
+        ORDER BY shard, stop_ref, win, n DESC, line_ref
     """)
 
     # --- retninger (vindu-uavhengig) ---
-    con.execute(f"""
+    con.execute("""
         CREATE OR REPLACE TEMP TABLE det_dirs AS
-        SELECT DISTINCT m.shard, d.stop_ref, d.direction_ref
-        FROM delays d JOIN shardmap m USING (stop_ref)
-        WHERE d.date >= '{cut[max_win]}' AND d.direction_ref IS NOT NULL
+        SELECT DISTINCT shard, stop_ref, direction_ref
+        FROM det_lines_day WHERE direction_ref IS NOT NULL
+        ORDER BY shard, stop_ref, direction_ref
     """)
+    con.execute("DROP TABLE det_lines_day")
 
     for t in ("det_daily", "det_hourly", "det_lines", "det_linehour", "det_dirs"):
         n = con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
@@ -414,9 +502,14 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
         ).fetchall():
             slot(ref)["h"].setdefault(str(win), []).append([hour, avg, mxa, mna, int(n)])
 
+        # line_ref som siste sorteringsnøkkel: linjer med likt n kom ellers i
+        # vilkårlig rekkefølge fra natt til natt, og da så en UENDRET shard
+        # endret ut for md5-sjekken i upload_to_r2.py (målt 2026-09-02: 1968
+        # av 2000 shards «ulike» mellom to kjøringer på identiske data — alle
+        # bare bytte av rekkefølge mellom linjer med samme n).
         for ref, win, line_ref, avg, n in con.execute(
             "SELECT stop_ref, win, line_ref, avg_delay, n FROM det_lines"
-            " WHERE shard = ? ORDER BY stop_ref, win, n DESC", [shard],
+            " WHERE shard = ? ORDER BY stop_ref, win, n DESC, line_ref", [shard],
         ).fetchall():
             slot(ref)["l"].setdefault(str(win), []).append([line_ref, avg, int(n)])
 
@@ -479,6 +572,7 @@ def main() -> int:
         return 1
 
     con = duckdb.connect()
+    configure_duckdb(con)
     file_list = ", ".join(f"'{f.as_posix()}'" for f in files)
     con.execute(f"CREATE VIEW delays AS SELECT * FROM read_parquet([{file_list}])")
 

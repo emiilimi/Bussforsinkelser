@@ -11,6 +11,7 @@
     "build:reise": "cross-env VITE_APP=reise NODE_ENV=production vite build",
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
+    "test:pax": "tsx script/test-pax.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

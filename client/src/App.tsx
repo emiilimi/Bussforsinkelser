@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RegionProvider } from "./lib/RegionContext";
 import { IS_REISE } from "./lib/app-mode";
+import { PAX_ENABLED } from "./lib/pax";
 import generatedImage from '@assets/generated_images/minimalist_abstract_transit_map_texture.png';
 
 // Rute-nivå code splitting (juli 2026): sidene lazy-lastes slik at hver rute
@@ -21,6 +22,8 @@ const TripPlanner = lazy(() => import("@/pages/trip-planner"));
 const Departures = lazy(() => import("@/pages/departures"));
 const Methodology = lazy(() => import("@/pages/methodology"));
 const About = lazy(() => import("@/pages/about"));
+const Passengers = lazy(() => import("@/pages/passengers"));
+const WeekReport = lazy(() => import("@/pages/week-report"));
 
 // Enkel, lett fallback mens en rute-chunk lastes (vanligvis <1 sek).
 function RouteLoading() {
@@ -43,6 +46,7 @@ function FullRouter() {
       <Route path="/reise" component={TripPlanner} />
       <Route path="/avganger" component={Departures} />
       <Route path="/metode" component={Methodology} />
+      {PAX_ENABLED && <Route path="/passasjerer" component={Passengers} />}
       <Route component={NotFound} />
     </Switch>
   );
@@ -58,11 +62,13 @@ function ReiseRouter() {
       <Route path="/reise" component={TripPlanner} />
       <Route path="/avganger" component={Departures} />
       <Route path="/oversikt" component={Dashboard} />
+      <Route path="/uke" component={WeekReport} />
       <Route path="/journey" component={JourneyDetails} />
       <Route path="/stops" component={Departures} />
       <Route path="/worst" component={WorstLists} />
       <Route path="/map" component={DelayMap} />
       <Route path="/metode" component={Methodology} />
+      {PAX_ENABLED && <Route path="/passasjerer" component={Passengers} />}
       <Route path="/om" component={About} />
       <Route component={NotFound} />
     </Switch>

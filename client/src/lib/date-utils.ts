@@ -86,7 +86,34 @@ export function formatMonthNO(isoDate: string): string {
 /**
  * Extract line number from line_ref: "SKY:Line:60" → "60"
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_IN_NAME_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:?\s*/gi;
+
 export function lineNumber(lineRef: string): string {
   const parts = lineRef.split(":");
-  return parts.length >= 3 ? parts[parts.length - 1] : lineRef;
+  const last = parts.length >= 3 ? parts[parts.length - 1] : lineRef;
+  // Flixbus (FLI) m.fl. bruker en UUID som linje-id — «0a73c829-ebbd-…» er
+  // verken lesbart eller et linjenummer. Vis operatørkoden i stedet.
+  return UUID_RE.test(last) ? parts[0] : last;
+}
+
+/**
+ * Togoperatører. En linje fra disse med vehicle_mode=bus er buss for tog
+ * (målt uke 39 2026: VYG R12 hadde 4 589 rail- og 752 bus-rader — bussene
+ * er de samme linjene, kjørt med erstatningsbuss).
+ */
+const RAIL_OPERATORS = new Set(["VYG", "GOA", "SJN", "FLT", "NSB"]);
+
+export function isRailOperator(lineRef: string): boolean {
+  return RAIL_OPERATORS.has(lineRef.split(":")[0]);
+}
+
+/** Fjern UUID-er fra linjenavn: «FLI 0a73c829-…: Bergen - Oslo» → «FLI: Bergen - Oslo». Andre navn returneres uendret. */
+export function cleanLineName(name: string | null | undefined): string | null {
+  if (!name) return name ?? null;
+  UUID_IN_NAME_RE.lastIndex = 0;
+  if (!UUID_IN_NAME_RE.test(name)) return name;
+  UUID_IN_NAME_RE.lastIndex = 0;
+  const cleaned = name.replace(UUID_IN_NAME_RE, "").replace(/^([A-ZÆØÅ]{2,4})\s*:?\s*/, "$1: ").trim();
+  return cleaned || name;
 }
