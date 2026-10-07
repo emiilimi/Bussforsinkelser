@@ -167,9 +167,20 @@ med samferdselsdata.no sine egne forbehold (beta/pilot, tellemetoder,
 feilkilder, ansvarlig bruk, personvern, dataeiere) med egne ord, og lenker til
 datasettet, dokumentasjonen og datastrukturen. Belegg-merkene oppgir kilden.
 
+### I produksjon (2026-10-07)
+
+Emilie fikk tillatelse til å bruke passasjertallene. Etter en siste gjennomgang
+(tsc 0 feil, 14/14 selvsjekker, prod-bygg, kart-stabling mot den nye sticky
+mobilheaderen sjekket, R2 serverer pax-filene Brotli-komprimert — største
+linjefil ~120 KB) ble branchen flettet inn i `reise-preview` og `reise`.
+Passasjerfunksjonen er nå på overalt der `VITE_PARQUET_BASE_URL` er satt;
+`VITE_PAX_DISABLED=1` slår den av. Flettet inn `origin/reise` først
+(adressefavoritt-fiksen 9bafaf1) — ingen konflikter.
+
 ### Gjenstår
 
-- E-post til Entur om lisens/vilkår før publisering på sentur.no.
+- Månedlig: `passenger_stats.py` + `upload_pax.py --confirm-license` når
+  samferdselsdata.no har publisert en ny måned (ikke automatisert).
 - Månedlig kjøring: `passenger_stats.py` + `upload_pax.py` (bøtta oppdateres
   rundt den 25.). Ikke lagt inn i nattjobben med vilje.
 - Belegg bruker siste måned; ruteendringer (august: sommer → høst) gir to

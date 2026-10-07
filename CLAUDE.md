@@ -341,22 +341,16 @@ Enturs månedlige passasjertellinger ligger i en offentlig GCS-bøtte:
 `kol/ ost/ tro/` med `trip_id` = ServiceJourney-id). Dekker Kolumbus, Østfold
 kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
 
-- **Lisens er ikke avklart** (samferdselsdata.no oppgir ingen). Derfor:
-  på sentur.no er alt skjult uten `VITE_PAX_BASE_URL`, pipelinen skriver til
-  `data/pax-out/` (ikke `PARQUET_DIR`, som nattjobben laster opp fra), og
-  `upload_pax.py` krever `--confirm-license`.
-- **Beslutning 2026-10-06 (Emilie):** vis passasjerfunksjonen på beta-
-  forhåndsvisningene (`*.workers.dev`, se `IS_PREVIEW_HOST` i pax.ts), ikke på
-  sentur.no før Entur har svart. Filene ligger derfor på R2 under `pax/`
-  (lastet opp 2026-10-06). Siden viser samferdselsdata.no sine egne forbehold
-  (kortet «Om passasjertallene») med lenke til kilden — hold det i takt med
-  dokumentasjonen deres.
-- **⚠️ Bøtta har duplikat-shards** — naiv SUM gir 2–3x. Dedupliser eksakte
-  rader og sjekk mot `aggregert/detail.parquet` (pipelinen gjør dette).
-- **Avgangsnøkkel = siste `_`-ledd** for KOL/OST/TRO (`paxDepKey()`), ikke
-  `stableSjId()` som splitter på `-`.
-- **0 på + 0 av hele måneden = utelt buss**, aldri «tom». Fravær av
-  belegg-merke betyr «vet ikke».
+- **Lisens: tillatelse innhentet 2026-10-07** (Emilie, etter forespørsel til
+  Entur — samferdselsdata.no oppgir selv ingen lisens). Funksjonen er PÅ i
+  produksjon: `pax.ts` bruker `<VITE_PARQUET_BASE_URL>/pax` når
+  `VITE_PAX_BASE_URL` ikke er satt. Nødbryter: `VITE_PAX_DISABLED=1` ved bygg.
+  Siden viser fortsatt kildens egne forbehold (kortet «Om passasjertallene»)
+  med lenker — hold det i takt med dokumentasjonen deres.
+- Pipelinen skriver til `data/pax-out/` (ikke `PARQUET_DIR`, som nattjobben
+  laster opp fra), og `upload_pax.py --confirm-license` laster opp til R2
+  `pax/`. **Ikke i nattjobben**: kjør begge manuelt når samferdselsdata.no har
+  publisert en ny måned (bøtta oppdateres rundt den 25.).
 - Kjøring lokalt: `PARQUET_DIR=data/reise-parquet PAX_OUT_DIR=client/public/pax-dev
   python pipeline/passenger_stats.py`, deretter `VITE_PAX_BASE_URL=/pax-dev`
   (mappa er gitignored). Se STATUS.md 2026-10-05.

@@ -5,27 +5,27 @@
 //   <PAX_BASE>/summary.json            operatør-KPI, linjeliste, last vs forsinkelse …
 //   <PAX_BASE>/lines/<OP_Line_X>.json  per linje: avganger med belegg per stopp
 //
-// AV på sentur.no: funksjonen (menypunkt, side, belegg-merker) vises bare når
-//   1) VITE_PAX_BASE_URL er satt ved bygg (lokalt: /pax-dev), eller
-//   2) siden kjører på en forhåndsvisning (*.workers.dev — Workers Builds gir
-//      hver branch en egen URL). Da hentes filene fra R2 under pax/.
-// Grunnen er lisensen — samferdselsdata.no oppgir ingen, og ber om at man
-// sjekker med dataeier før publisering. Beslutning 2026-10-06 (Emilie): vis det
-// på beta-forhåndsvisningen, ikke på sentur.no før Entur har svart. Når Entur
-// har sagt ja: sett VITE_PAX_BASE_URL=https://parquet.sentur.no/pax i bygget.
+// PÅ når passasjerfilene har en adresse:
+//   1) VITE_PAX_BASE_URL ved bygg (lokalt: /pax-dev), ellers
+//   2) <VITE_PARQUET_BASE_URL>/pax — samme R2-bøtte som parquet-filene. Det er
+//      slik sentur.no og forhåndsvisningene får den.
+// Nødbryter: VITE_PAX_DISABLED=1 ved bygg skjuler alt (menypunkt, side, merker).
+//
+// Lisens: samferdselsdata.no oppgir ingen lisens og ber om avklaring med
+// dataeier før publisering. Emilie fikk tillatelse 2026-10-07; funksjonen ble
+// da slått på i produksjon. Siden viser fortsatt kildens egne forbehold
+// (kortet «Om passasjertallene» i passengers.tsx) og lenker til kilden.
 // ---------------------------------------------------------------------------
 
 import { useQuery } from "@tanstack/react-query";
 
-const RAW_BASE: string | undefined = (import.meta as any).env?.VITE_PAX_BASE_URL;
-const ENV_BASE = (RAW_BASE ?? "").trim().replace(/\/+$/, "");
-/** Kjører vi på en branch-forhåndsvisning (Cloudflare Workers Builds)? */
-export const IS_PREVIEW_HOST: boolean =
-  typeof window !== "undefined" && window.location.hostname.endsWith(".workers.dev");
+const ENV = (import.meta as any).env ?? {};
+const ENV_BASE = String(ENV.VITE_PAX_BASE_URL ?? "").trim().replace(/\/+$/, "");
 // Samme R2-base som parquet-filene (use-parquet-query.ts), men lest direkte
 // her: å importere den hooken ville dratt DuckDB inn i menyens bunt.
-const R2_BASE: string = ((import.meta as any).env?.VITE_PARQUET_BASE_URL ?? "").trim().replace(/\/+$/, "");
-export const PAX_BASE: string = ENV_BASE || (IS_PREVIEW_HOST && R2_BASE ? `${R2_BASE}/pax` : "");
+const R2_BASE = String(ENV.VITE_PARQUET_BASE_URL ?? "").trim().replace(/\/+$/, "");
+const DISABLED = String(ENV.VITE_PAX_DISABLED ?? "") === "1";
+export const PAX_BASE: string = DISABLED ? "" : ENV_BASE || (R2_BASE ? `${R2_BASE}/pax` : "");
 export const PAX_ENABLED: boolean = PAX_BASE.length > 0;
 
 /** Kilde og dokumentasjon — vises på siden og i merkene. */
