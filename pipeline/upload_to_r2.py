@@ -388,6 +388,43 @@ def main():
                          shard_up, shard_skip, len(shard_files))
             uploaded += shard_up
 
+        # ---------- Overgangsfiler (transfer/) ----------
+        # transfer/<N>/<shard>.json fra transfer_shards.py (kalt av
+        # aggregate_stats.py) — reiseplanleggerens statistikk uten DuckDB.
+        # Shardene FØR index.json: indeksen peker på mappa og sier hvilke
+        # datoer som dekkes, så den skal aldri ligge foran filene den beskriver.
+        # Samme skrive-budsjett som stoppdetaljene: ~2000 shards per natt.
+        transfer_dir = PARQUET_DIR / "transfer"
+        transfer_index = transfer_dir / "index.json"
+        if transfer_index.exists():
+            t_files = sorted(p for p in transfer_dir.glob("*/*.json"))
+            if args.dry_run:
+                log.info("  [dry-run] Ville lastet opp %d overgangsfiler (%.1f MB) + index.json",
+                         len(t_files), sum(p.stat().st_size for p in t_files) / 1e6)
+            else:
+                t_up = t_skip = 0
+                log.info("Overgangsfiler: sjekker/laster opp %d shards (%d parallelle) …",
+                         len(t_files), UPLOAD_WORKERS)
+                with ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as ex:
+                    futures = [
+                        ex.submit(upload_file, s3, bucket, tp,
+                                  tp.relative_to(PARQUET_DIR).as_posix(),
+                                  False, False, MANIFEST_CACHE, True)
+                        for tp in t_files
+                    ]
+                    for done, fut in enumerate(as_completed(futures), 1):
+                        if fut.result():
+                            t_up += 1
+                        else:
+                            t_skip += 1
+                        if done % 500 == 0 or done == len(futures):
+                            log.info("  overgangsfiler: %d/%d ferdig (%d lastet opp, %d uendret)",
+                                     done, len(futures), t_up, t_skip)
+                if upload_file(s3, bucket, transfer_index, "transfer/index.json",
+                               force=True, cache_control=MANIFEST_CACHE):
+                    t_up += 1
+                uploaded += t_up
+
         # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
         # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende
         # og kan plukkes opp av klienter med gammelt manifest i cache.
@@ -398,6 +435,11 @@ def main():
             # på R2, så det koster ingenting å rydde.
             local_shards = {f"stops/{p.name}" for p in (PARQUET_DIR / "stops").glob("*.json")} \
                 if (PARQUET_DIR / "stops").is_dir() else set()
+            # Overgangsfiler: shards som ble tomme, og hele mapper for et
+            # tidligere antall shards (transfer/<gammel N>/…).
+            local_transfer = {p.relative_to(PARQUET_DIR).as_posix()
+                              for p in (PARQUET_DIR / "transfer").glob("**/*.json")} \
+                if (PARQUET_DIR / "transfer" / "index.json").exists() else set()
             stale_keys: list[str] = []
             if not args.dry_run:
                 paginator = s3.get_paginator("list_objects_v2")
@@ -407,6 +449,8 @@ def main():
                         if key.endswith(".parquet") and key not in local_names:
                             stale_keys.append(key)
                         elif key.startswith("stops/") and local_shards and key not in local_shards:
+                            stale_keys.append(key)
+                        elif key.startswith("transfer/") and local_transfer and key not in local_transfer:
                             stale_keys.append(key)
                 for key in stale_keys:
                     log.info("  ✂ Sletter fra bucket: %s", key)
