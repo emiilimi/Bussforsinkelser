@@ -39,6 +39,7 @@ client/src/
     ui/                    shadcn/ui (60+ filer)
   lib/
     pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
+    transfer-data.ts       Overgangsfiler fra R2: overgangs-gap, persentiler og legg-tider uten DuckDB
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)
@@ -72,6 +73,8 @@ pipeline/          (Python)
   export_parquet.py        journey_stop_daily → ukentlige .parquet (ZSTD)
   passenger_stats.py       Passasjertellinger (samferdselsdata.no) × forsinkelser → data/pax-out/ (månedlig, manuelt)
   upload_pax.py            pax-out → R2 pax/ (krever --confirm-license)
+  transfer_shards.py       Overgangsfiler per plattform → transfer/ (kalles av aggregate_stats.py)
+  check_transfer_parity.py Paritetssjekk: overgangsfilene mot DuckDB-SQL-en på ekte overganger
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
 
 data/
@@ -621,9 +624,14 @@ Tre konsekvenser som styrer design:
 group-pruning — å legge `stop_ref IN (...)` foran OR-kjeden endret ingenting
 (23,8 s vs 25,1 s) — og DuckDBs `enable_object_cache` (5,0 s vs 4,9–5,2 s).
 
-**Kjent, uløst**: full statistikk i reiseplanleggeren bruker ~30 s (varm) til
-~83 s (kald sidelast). Trolig ikke løsbart med flere frontend-triks; se
-NOTES.md-punktet om forhåndsaggregerte persentiler.
+**Løst for Ruter (2026-10-10)**: full statistikk i reiseplanleggeren brukte
+~30 s (varm) til ~83 s (kald sidelast). Nå leses den av ferdige
+overgangsfiler (`lib/transfer-data.ts`, `pipeline/transfer_shards.py`) for
+operatørene i `TRANSFER_OPERATORS`; resten bruker fortsatt DuckDB. Filene
+speiler SQL-en — endrer du `sjGapSql`/`aimedGapSql`/`poolGapSql`, persentil-
+eller legg-tid-SQL-en, MÅ `transfer-data.ts` følge med, og
+`pipeline/check_transfer_parity.py` skal fortsatt gi 100 %. Se STATUS.md
+2026-10-10.
 
 **npm-pakke**: `@duckdb/duckdb-wasm@1.33.1-dev42.0`
 **Python-avhengigheter**: `pip install pyarrow duckdb boto3` (for export_parquet.py / migrate_parquet_sort.py / upload_to_r2.py)
@@ -660,7 +668,10 @@ python pipeline/upload_to_r2.py --prune
 | `PAX_OUT_DIR` | passenger_stats, upload_pax | `data/pax-out` |
 | `PAX_CACHE_DIR` | passenger_stats | `data/pax-cache` |
 | `PAX_MAX_MONTHS` | passenger_stats | `3` |
-| `VITE_PAX_BASE_URL` | frontend (pax.ts) | ikke satt = passasjerfunksjonen skjult |
+| `VITE_PAX_BASE_URL` | frontend (pax.ts) | ikke satt = `<VITE_PARQUET_BASE_URL>/pax` |
+| `TRANSFER_OPERATORS` | transfer_shards | `RUT` (tom = av) |
+| `TRANSFER_DAYS` | transfer_shards | `35` |
+| `TRANSFER_SHARDS` | transfer_shards | `2000` |
 
 ---
 

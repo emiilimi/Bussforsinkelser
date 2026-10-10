@@ -3,7 +3,84 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-05
+**Sist oppdatert**: 2026-10-10
+
+## Endringslogg — 2026-10-10: overgangsfiler — reiseplanleggerens statistikk uten DuckDB (Ruter)
+
+Branch `feat/overgangsfiler`. Mål: fjerne ventetida på «rekker jeg
+overgangen?» (DuckDB-WASM: ~30 s varmt, ~80 s kaldt for et vanlig søk).
+
+### Hvorfor rådata per plattform, ikke per overgang
+
+Alle tre matche-nivåene i `computeTransferGap` (stabil avgangs-id, eksakt
+rutetid, ±60 min-pool) trenger bare én plattform om gangen: hvilke avganger
+som passerte, med linje, retning, rutetider og forsinkelse per dato. En
+overgang er to plattformer stilt opp dato for dato — det gjør nettleseren på
+millisekunder. Antall filer vokser derfor med plattformer, ikke med
+kombinasjoner. Persentilene per (stopp, linje) og estimert avgang/ankomst per
+legg regnes av de samme filene.
+
+### Pipeline
+
+- `pipeline/transfer_shards.py` → `transfer/<N>/<shard>.json` +
+  `transfer/index.json`. Kalles sist i `aggregate_stats.py` (feil der feller
+  ikke steget) — `nightly_reise.ps1` er uendret. Shardnøkkel
+  `crc32(quayRef) % N` (MÅ matche `transferShardOf` i
+  `client/src/lib/transfer-data.ts`); mappa heter N, så et bytte av N er
+  atomisk når `index.json` lastes opp sist.
+- `upload_to_r2.py` laster opp shardene (parallelt, md5-sjekk) og DERETTER
+  `index.json`; `--prune` rydder shards som ble tomme og mapper for gammel N.
+- Env: `TRANSFER_OPERATORS` (default `RUT`), `TRANSFER_DAYS` (35),
+  `TRANSFER_SHARDS` (2000), `TRANSFER_OUT_DIR` (kun testing).
+- Målt 2026-10-10, RUT, 35 dager: 14,3 mill. rader → 2,68 mill.
+  avgangsgrupper, 6 936 plattformer, 1 930 filer. 234 MB rå JSON / 60 MB
+  gzip; median-fil 23 KB gzip, største 203 KB. Bygging 163 s, opplasting 77 s.
+  Cloudflare leverer filene Brotli-komprimert.
+
+### Klient
+
+`client/src/lib/transfer-data.ts` leser index + shards og speiler SQL-en.
+`transferCovers()` avgjør per forespørsel: dekkede operatører, og et vindu med
+startdato innenfor filene (standardvinduet og «Siste 7/30 dager» — ikke
+«Alle hverdager», «Siste 90 dager» eller eldre egendefinerte datoer). Er
+parquet-manifestets `maxDate` nyere enn filene (pipelinen feilet halvveis),
+brukes DuckDB så ingen dag faller stille ut. Alt utenfor → DuckDB som før.
+
+I `trip-planner.tsx` venter overgangs-prefetchen ikke lenger på DuckDB eller
+persentilene når filene dekker reiseforslaget; persentil- og legg-tid-hookene
+bruker filene når de dekker (modusen er med i query-nøkkelen). Standardvinduet
+løses opp med `index.to` som siste fallback, så alt kan regnes før DuckDB er
+lastet.
+
+### Paritet (ikke anta — kjør `pipeline/check_transfer_parity.py`)
+
+142 ekte Ruter-overganger (hverdag/lørdag/søndag, standardvindu og «Siste 7
+dager», hver sjette med ukjent avgangs-id): **142/142 overganger, 284/284
+persentilpar, 426/426 legg-tider like**. Rådata sammenlignes rad for rad før
+sluttsvaret.
+
+To funn underveis:
+
+1. **DuckDB-svaret var ikke deterministisk.** Har to avganger samme rutetid
+   (nivå 2), eller er to naboavganger like nær planlagt tid (nivå 3: 08:33 og
+   08:43 mot 08:38), velger SQL-en vilkårlig rad — svaret kan variere fra
+   kjøring til kjøring. Filene velger nå tidligste rutetid ved uavgjort.
+2. **Nivå 1 (stabil avgangs-id) slår nesten aldri inn for Ruter.** Ruters
+   id-er er 32 hex-tegn uten «-», og hver (plattform, id) har i snitt bare 5,3
+   observasjoner over 35 dager — id-en byttes jevnlig. I utvalget ble ingen
+   overgang avgjort på nivå 1 (93 eksakt rutetid, 49 pool). Ikke rettet her;
+   eget arbeid å finne en stabil nøkkel for Ruter (jf. `paxDepKey`).
+
+Avvik fra DuckDB-veien, bevisst: «eksakt avgangs-id» i persentil-/legg-tid-
+oppslaget bruker den stabile id-en. For Ruter (ingen «-») er det identisk.
+
+### Utvide til flere operatører
+
+Sett `TRANSFER_OPERATORS=RUT,SKY,…` for nattjobben. Størrelsen skalerer med
+rader: Ruter er ~30 % av alle rader, så hele landet blir ~200 MB gzip og
+~800 MB rå opplasting per natt med dagens format — vurder da `Content-Encoding:
+gzip` ved opplasting og flere shards. R2-skrivinger skalerer med antall
+shards (2000 per natt ≈ 60 000/mnd), ikke med plattformer.
 
 ## Endringslogg — 2026-10-05: passasjertellinger (beta) — «hvem rammes av forsinkelsene?»
 
