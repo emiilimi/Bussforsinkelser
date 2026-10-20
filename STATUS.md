@@ -3,7 +3,59 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-10
+**Sist oppdatert**: 2026-10-20
+
+## Endringslogg — 2026-10-20: knapp-audit (død «Del reisen»), nattjobben tar igjen hull, passasjertall med periode
+
+### Døde kontroller — funnet ved å klikke ALT
+
+Emilie fant «Del reisen» død i produksjon. Rotårsak, målt med et ekte
+musklikk: `navigator.clipboard.writeText` → `NotAllowedError: Write
+permission denied`, svelget av en tom `catch {}`. Samme mønster i «Del»
+(Uka som gikk) og «Kopier tekst/lenke» (Passasjerer). Nå bruker alle
+`<ShareButton>` (`components/share-button.tsx`, logikk i `lib/share.ts`):
+delingsark → `execCommand("copy")` (synkront i klikket; virket der den
+moderne API-en ble avvist) → clipboard-API → popover med teksten markert.
+
+Deretter et sveip over hver side i reise-bygget: hver knapp/fane klikkes,
+og det registreres om NOE skjer (DOM, URL, nettverk, dialog, fokus).
+Reelle funn, alle rettet:
+
+- **ⓘ (`InfoTip`, 22 steder) var død på mobil** — Radix Tooltip åpnes ikke
+  ved trykk. Ny `components/tap-tip.tsx`: hover viser (mus), klikk/trykk
+  fester, Escape/klikk utenfor lukker. Også «Hvor full er bussen?»-merket
+  (`crowd-badge.tsx`), som hadde «Se hele avgangen →» i en tooltip på et
+  `<span>`.
+- «Les mer →» (`/metode#…`) landet øverst på siden — wouter scroller ikke til
+  ankere. `methodology.tsx` scroller nå selv.
+- Favoritt kunne ikke fjernes når localStorage er sperret (`stop-history.ts`
+  leste alltid tom liste). Minne-fallback.
+- «↺» (Y-akse) inaktiv når det ikke er noe å tilbakestille.
+- Datovelgeren var engelsk (skjermleser: «Tuesday, November 10th») og
+  startet uka på søndag → `locale={nb}`.
+
+Falske positiver å kjenne til ved neste sveip: Radix Tabs/Select aktiveres
+på `mousedown`, ikke `click`; Leaflet-zoom og lukke-animasjoner står stille
+i et skjult nettleservindu (rAF), så lukket innhold blir liggende i DOM-en.
+
+### Nattjobben tar igjen manglende dager
+
+`pipeline/missing_dates.py` finner dager uten rader de siste 7 dagene (klemt
+til `JSD_RETENTION_DAYS - 1`). `nightly_reise.ps1` henter gårsdagen først
+(kritisk) og deretter **eldste hull først** (best effort) — nyeste-først lot
+2026-10-14 bli skjøvet bakerst seks netter på rad. Eldre uker re-eksporteres
+eksplisitt med `--week`. Budsjettet for etterfylling leses fra oppgavens
+`ExecutionTimeLimit` (minus 120 min), som ble hevet fra 3 t til 6 t.
+`-DryRun` viser planen uten å hente noe.
+
+### Passasjerer: periode og datagrunnlag
+
+Siden viste tre perioder uten å si det (siste måned per selskap, forrige
+måned i sammenlikningen, påstigninger fra 2022 i grafen). Ny
+«Tallene under gjelder»-boks øverst: måned, periode, påstigninger telt,
+linjer, andel koblet til forsinkelser, ikke-telte avganger, hvorfor
+selskapene ligger på ulike måneder, og når tallene sist ble oppdatert.
+Kortene merker måneden; «Alle tre» lister måned per selskap.
 
 ## Endringslogg — 2026-10-10: overgangsfiler — reiseplanleggerens statistikk uten DuckDB (Ruter)
 

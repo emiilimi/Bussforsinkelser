@@ -36,6 +36,8 @@ client/src/
     plan-delay-chart.tsx   Forsinkelse-langs-ruten-graf per plan-node (reiseplanlegger plan-tre)
     crowd-badge.tsx        «Hvor full er bussen?»-merker (reiseplanlegger-legg, avgangstavle)
     pax-stop-map.tsx       Stoppkart på /passasjerer (lazy Leaflet)
+    share-button.tsx       Del/kopier-knapp som aldri feiler stille (lib/share.ts) — bruk denne, ikke navigator.share/clipboard direkte
+    tap-tip.tsx            Forklaringsboble som virker ved trykk (InfoTip bygger på den) — ikke Radix Tooltip for innhold som må leses
     ui/                    shadcn/ui (60+ filer)
   lib/
     pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
@@ -135,6 +137,13 @@ natt i `logs/reise-YYYY-MM-DD.log` — **sjekk den først** når noen spør om
 «dagens ingest». Status: `Get-ScheduledTask -TaskName 'Bussforsinkelser Reise
 nightly' | Get-ScheduledTaskInfo`. Produksjonens ferskhet sjekkes uavhengig
 med `curl https://parquet.sentur.no/stats_summary.json` (`dates.max`).
+
+**Hull tas igjen automatisk (2026-10-20).** Nattjobben henter ikke bare
+gårsdagen: `pipeline/missing_dates.py` finner dager uten rader de siste 7
+dagene, og de hentes etter gårsdagen, eldste først. Se planen uten å hente:
+`scripts/nightly_reise.ps1 -DryRun`. Faller en dag ut av 7-dagersvinduet,
+må den etterfylles for hånd (`ingest_lite.py <dato>` + `export_parquet.py
+--week` + `aggregate_stats.py` + `upload_to_r2.py --prune`).
 
 **⚠️ FELLE 3 — et steg som logger mer enn ~4 KB.** `nightly_reise.ps1`
 omdirigerer barnets stdout/stderr. Fram til 2026-09-02 ble rørene lest først

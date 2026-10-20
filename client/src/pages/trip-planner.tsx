@@ -6,6 +6,7 @@ import {
 } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
+import { ShareButton } from "@/components/share-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
   Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, Share2, Check, History, X,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, History, X,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { SectionLabel, StopRow } from "@/components/stop-picker";
@@ -379,7 +380,8 @@ function useEstimatedLegTimes(
 type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean };
 
 /**
- * «Del reisen»: delingsark på mobil (navigator.share), ellers utklippstavle.
+ * «Del reisen»: delingsark på mobil, ellers kopiering — med synlig respons og
+ * manuell reserve når nettleseren nekter (se ShareButton / lib/share.ts).
  * Teksten er laget for å limes inn i en melding: rute, linjer, tider og — når
  * statistikken er klar — når man er framme 4 av 5 dager. Lenken er søke-URL-en
  * (from/to/date/time), som gjenoppretter søket hos mottakeren.
@@ -387,7 +389,6 @@ type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean }
 function ShareTripButton({ pattern, p80ArrivalMs, pMakeAll }: {
   pattern: TripPattern; p80ArrivalMs: number | null; pMakeAll: number | null;
 }) {
-  const [done, setDone] = useState(false);
   const transit = pattern.legs.filter((l) => l.mode !== "foot");
   const first = pattern.legs[0];
   const last = pattern.legs[pattern.legs.length - 1];
@@ -399,26 +400,15 @@ function ShareTripButton({ pattern, p80ArrivalMs, pMakeAll }: {
     (p80ArrivalMs != null ? ` Framme innen ${formatTime(new Date(p80ArrivalMs).toISOString())} 4 av 5 dager.` : "") +
     (pMakeAll != null ? ` Rekker overgangen ${Math.round(pMakeAll * 100)} % av dagene.` : "");
 
-  async function share() {
-    const url = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Reise fra Sen Tur", text, url });
-        return;
-      }
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setDone(true);
-      setTimeout(() => setDone(false), 1800);
-    } catch {
-      /* avbrutt av brukeren eller blokkert — ingenting å gjøre */
-    }
-  }
-
   return (
-    <Button variant="outline" size="sm" className="h-7 px-2 text-[11px]" onClick={share} title={text}>
-      {done ? <Check className="h-3 w-3 mr-1" /> : <Share2 className="h-3 w-3 mr-1" />}
-      {done ? "Kopiert" : "Del reisen"}
-    </Button>
+    <ShareButton
+      variant="outline"
+      size="sm"
+      className="h-7 px-2 text-[11px]"
+      iconClassName="h-3 w-3 mr-1"
+      label="Del reisen"
+      payload={() => ({ title: "Reise fra Sen Tur", text, url: window.location.href })}
+    />
   );
 }
 

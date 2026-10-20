@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Layout from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { IS_REISE } from "@/lib/app-mode";
@@ -17,6 +18,22 @@ import {
  * (#hva-vises, #persentiler, #dwell-time, #overgang, #plan-b, #begrensninger).
  */
 export default function Methodology() {
+  // «Les mer →»-lenkene (InfoTip) peker hit med et anker, f.eks.
+  // /metode#punktlighet. Wouter navigerer med pushState, og da scroller ikke
+  // nettleseren til ankeret selv: lenken landet øverst på siden, 5 000 px over
+  // seksjonen den lovet (målt i knapp-auditen 2026-10-19). setTimeout, ikke
+  // requestAnimationFrame: rAF fyrer ikke i bakgrunnsfaner.
+  useEffect(() => {
+    const scrollToHash = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (!id) return;
+      setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "start" }), 0);
+    };
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-8">

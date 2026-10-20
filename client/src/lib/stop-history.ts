@@ -17,7 +17,16 @@ const RECENT_KEY = "sentur_recent_stops";
 const FAVORITE_KEY = "sentur_favorite_stops";
 const MAX_RECENT = 8;
 
+// Minnekopi for når localStorage ikke virker. Uten den leste toggleFavorite()
+// alltid en tom liste der lagring er blokkert (f.eks. Firefox med
+// informasjonskapsler sperret): første trykk fylte stjernen, men det andre
+// kunne aldri fjerne favoritten igjen — en død knapp. Nå virker alt i hele
+// økta; det huskes bare ikke til neste besøk.
+const memory = new Map<string, StopSearchResult[]>();
+let storageBroken = false;
+
 function read(key: string): StopSearchResult[] {
+  if (storageBroken) return memory.get(key) ?? [];
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return [];
@@ -29,15 +38,18 @@ function read(key: string): StopSearchResult[] {
         s && typeof s.stopRef === "string" && typeof s.stopName === "string",
     );
   } catch {
-    return [];
+    storageBroken = true;
+    return memory.get(key) ?? [];
   }
 }
 
 function write(key: string, items: StopSearchResult[]): void {
+  memory.set(key, items);
   try {
     localStorage.setItem(key, JSON.stringify(items));
   } catch {
-    /* full disk / privat modus — ignorér, funksjonen er valgfri */
+    // Full disk / privat modus: fra nå av er minnekopien fasit (se over).
+    storageBroken = true;
   }
 }
 
@@ -99,13 +111,27 @@ export type RecentTrip = { from: StopSearchResult; to: StopSearchResult };
 const isStop = (s: any): s is StopSearchResult =>
   s && typeof s.stopRef === "string" && typeof s.stopName === "string";
 
+let memoryTrips: RecentTrip[] = [];
+
 export function getRecentTrips(): RecentTrip[] {
+  if (storageBroken) return memoryTrips;
   try {
     const raw = localStorage.getItem(RECENT_TRIPS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.filter((t) => t && isStop(t.from) && isStop(t.to)) : [];
   } catch {
-    return [];
+    storageBroken = true;
+    return memoryTrips;
+  }
+}
+
+/** Samme minne-fallback som read()/write() over. */
+function writeTrips(next: RecentTrip[]): void {
+  memoryTrips = next;
+  try {
+    localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(next));
+  } catch {
+    storageBroken = true;
   }
 }
 
@@ -120,21 +146,13 @@ export function addRecentTrip(from: StopSearchResult, to: StopSearchResult): Rec
     { from, to },
     ...getRecentTrips().filter((t) => !(t.from.stopRef === from.stopRef && t.to.stopRef === to.stopRef)),
   ].slice(0, MAX_RECENT_TRIPS);
-  try {
-    localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(next));
-  } catch {
-    /* valgfri funksjon */
-  }
+  writeTrips(next);
   return next;
 }
 
 export function removeRecentTrip(from: string, to: string): RecentTrip[] {
   const next = getRecentTrips().filter((t) => !(t.from.stopRef === from && t.to.stopRef === to));
-  try {
-    localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(next));
-  } catch {
-    /* valgfri funksjon */
-  }
+  writeTrips(next);
   return next;
 }
 

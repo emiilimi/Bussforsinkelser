@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { nb } from "react-day-picker/locale";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -141,6 +142,9 @@ export function TimeWindowPicker({
             </div>
             <Calendar
               mode="range"
+              // Uten lokale leser skjermlesere dagene på engelsk («Tuesday,
+              // November 10th») på en norsk side, og uka starter på søndag.
+              locale={nb}
               selected={
                 draftFrom && draftTo
                   ? { from: new Date(draftFrom), to: new Date(draftTo) }
