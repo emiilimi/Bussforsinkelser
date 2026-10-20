@@ -11,6 +11,7 @@ import {
 import Layout from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { InfoTip } from "@/components/info-tip";
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
 import {
   PAX_ENABLED, PAX_OPERATORS, PAX_SOURCE, isPaxOperator, usePaxSummary, usePaxLine, crowdLevel,
   formatMonthLong, formatMonthShort, fmtInt, fmtMin, DAY_TYPE_NO, HOURS_PER_WORK_YEAR,
-  type PaxOperator, type PaxSummary, type PaxLineSummary, type PaxLine, type PaxDeparture,
+  type PaxOperator, type PaxOperatorSummary, type PaxSummary, type PaxLineSummary, type PaxLine, type PaxDeparture,
 } from "@/lib/pax";
 
 // Leaflet lastes først når kartet faktisk vises
@@ -137,6 +138,8 @@ export default function Passengers() {
               })}
             </div>
 
+            <DataBasis summary={summary} op={opSummary} />
+
             <KpiRow op={opSummary} />
 
             <div className="grid gap-6 lg:grid-cols-5">
@@ -159,7 +162,7 @@ export default function Passengers() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Hvor taper folk tid?</CardTitle>
-                <CardDescription>Hvert stopp, sortert etter hvor mange som bruker det og hvor mye forsinkelse de merker. Klikk en sirkel for tall.</CardDescription>
+                <CardDescription>Hvert stopp, sortert etter hvor mange som bruker det og hvor mye forsinkelse de merker. {formatMonthLong(opSummary.latestMonth)}. Klikk en sirkel for tall.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Suspense fallback={<div className="h-[460px] flex items-center justify-center text-sm text-muted-foreground">Laster kart …</div>}>
@@ -213,6 +216,115 @@ function BetaNotice({ summary }: { summary: PaxSummary }) {
 }
 
 // ---------------------------------------------------------------------------
+// Datagrunnlag: hvilken periode og hvor mye data tallene bygger på
+// ---------------------------------------------------------------------------
+
+/** «1.–31. august 2026» for en «YYYY-MM». */
+function monthRange(ym: string): string {
+  const [y, m] = ym.split("-").map(Number);
+  const last = new Date(y, m, 0).getDate();
+  return `1.–${last}. ${formatMonthLong(ym)}`;
+}
+
+/** «19. juni 2026» for en ISO-dato (YYYY-MM-DD). */
+function dateLong(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/**
+ * Samler det som før lå spredt eller manglet: hvilken måned tallene gjelder,
+ * hvor mye som er telt, hvor stor del som kunne kobles til forsinkelsene våre,
+ * og hvorfor perioden er ulik mellom selskapene og grafene.
+ *
+ * Bakgrunn (2026-10-19): siden viste tre ulike perioder uten å si det — siste
+ * måned per selskap (august for Kolumbus/Østfold, september for Svipper),
+ * forrige måned i sammenlikningen, og påstigninger helt fra 2022 i grafen
+ * nederst — og «Alle tre» i «Fulle busser er senere» blandet måneder.
+ */
+function DataBasis({ summary, op }: { summary: PaxSummary; op: PaxOperatorSummary }) {
+  const k = op.kpi[op.kpi.length - 1];
+  const prev = op.kpi.length > 1 ? op.kpi[op.kpi.length - 2] : null;
+  const latestByMonth = new Map<string, string[]>();
+  for (const o of summary.operators) latestByMonth.set(o.latestMonth, [...(latestByMonth.get(o.latestMonth) ?? []), o.name]);
+  const monthsDiffer = latestByMonth.size > 1;
+  const histFirst = op.history[0]?.[0] ?? null;
+
+  return (
+    <section aria-labelledby="pax-basis" className="rounded-lg border bg-card px-4 py-3 space-y-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 id="pax-basis" className="text-xs uppercase tracking-wide text-muted-foreground">Tallene under gjelder</h2>
+        <span className="text-lg font-semibold">{formatMonthLong(k.month)}</span>
+        <span className="text-sm text-muted-foreground">
+          {op.name} · {op.county}. Siste måned {op.name} har levert passasjertellinger for.
+        </span>
+      </div>
+
+      <dl className="grid gap-x-6 gap-y-2 grid-cols-2 md:grid-cols-4 text-sm">
+        <div>
+          <dt className="text-xs text-muted-foreground">Periode</dt>
+          <dd className="font-medium">{monthRange(k.month)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Påstigninger telt</dt>
+          <dd className="font-medium font-mono tabular-nums">{fmtInt(k.boardings)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Linjer med tellinger</dt>
+          <dd className="font-medium font-mono tabular-nums">{fmtInt(k.lines)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground flex items-center gap-1">
+            Koblet til forsinkelser
+            <InfoTip>
+              Andelen av påstigningene som var på avganger vi også har sanntidsdata for. Bare disse er med i
+              forsinkelse, timer tapt og «framme i rute». Påstigningstallet ved siden av gjelder alle.
+            </InfoTip>
+          </dt>
+          <dd className="font-medium font-mono tabular-nums">
+            {k.coverageBoardings != null ? `${k.coverageBoardings.toLocaleString("nb-NO", { maximumFractionDigits: 1 })} %` : "—"}
+          </dd>
+        </div>
+      </dl>
+
+      <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4 marker:text-muted-foreground/50">
+        {k.uncountedDeps != null && k.uncountedDeps >= 5 && (
+          <li className="text-amber-700 dark:text-amber-400">
+            <strong>{k.uncountedDeps.toLocaleString("nb-NO", { maximumFractionDigits: 0 })} % av avgangene har ingen telling</strong>{" "}
+            (0 på og 0 av hele måneden). Påstigninger og timer tapt er derfor for lave. Belegg og forsinkelse regnes
+            bare for avganger som ble telt.
+          </li>
+        )}
+        {monthsDiffer && (
+          <li>
+            Selskapene leverer i ulikt tempo:{" "}
+            {Array.from(latestByMonth.entries())
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([m, names]) => `${names.join(" og ")} til og med ${formatMonthLong(m)}`)
+              .join("; ")}.
+          </li>
+        )}
+        {prev && (
+          <li>
+            Sammenlikningen med forrige måned bruker {formatMonthLong(prev.month)}. Forsinkelsesdataene våre starter{" "}
+            {dateLong(summary.source.delayWindow.min)}, så eldre måneder kan ikke kobles.
+          </li>
+        )}
+        {histFirst && (
+          <li>
+            Grafen nederst, «Påstigninger per måned», går tilbake til {formatMonthLong(histFirst)} og kommer rett fra
+            kilden, uten forsinkelser.
+          </li>
+        )}
+        <li>
+          Sist oppdatert hos oss {dateLong(summary.generatedAt.slice(0, 10))}. Kilden publiserer nye måneder omtrent
+          månedlig, og ofte litt etter hverandre for de ulike selskapene.
+        </li>
+      </ul>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Nøkkeltall
 // ---------------------------------------------------------------------------
 
@@ -258,13 +370,6 @@ function KpiRow({ op }: { op: PaxSummary["operators"][number] }) {
           tip="Andel passasjerer (av de avstigende) som kom fram høyst 2 minutter etter rutetid. Sammenlign med andel stopp-passeringer i rute på Oversikt-siden."
         />
       </div>
-      {k.uncountedDeps != null && k.uncountedDeps >= 5 && (
-        <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-          {k.uncountedDeps.toFixed(0)} % av avgangene i {formatMonthLong(k.month)} har ingen telling (0 på og 0 av hele måneden).
-          Påstigninger og timer tapt er derfor for lave. Belegg og forsinkelse regnes bare for avganger som ble telt.
-        </p>
-      )}
       {gap != null && gap > 0.2 && (
         <p className="text-sm text-muted-foreground max-w-4xl">
           <strong className="text-foreground">Passasjerene merker mer forsinkelse enn bussene viser.</strong>{" "}
@@ -435,7 +540,10 @@ function LoadDelayCard({ summary, op }: { summary: PaxSummary; op: PaxOperator }
           <div>
             <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-amber-500" /> Fulle busser er senere</CardTitle>
             <CardDescription className="mt-1">
-              Snitt forsinkelse per avgang, etter hvor mange som typisk er om bord på det fulleste.
+              Snitt forsinkelse per avgang, etter hvor mange som typisk er om bord på det fulleste.{" "}
+              {scope === "ALL"
+                ? `Siste måned per selskap: ${summary.operators.map((o) => `${o.name} ${formatMonthShort(o.latestMonth)}`).join(", ")}.`
+                : `${formatMonthLong(summary.operators.find((o) => o.code === op)?.latestMonth)}.`}
             </CardDescription>
           </div>
           <div className="inline-flex rounded-md border p-0.5 text-xs">
@@ -820,7 +928,6 @@ function shortStop(name: string | undefined): string {
 // ---------------------------------------------------------------------------
 
 function YourBusCard({ line, dep, kpi, dt }: { line: PaxLine; dep: PaxDeparture; kpi: PaxLineSummary; dt: string }) {
-  const [copied, setCopied] = useState<"text" | "link" | null>(null);
   const peak = Math.max(...dep.l.map((x) => x ?? 0));
   const peakIdx = dep.l.findIndex((x) => x === peak);
   const peakStop = line.stops[dep.s[peakIdx]]?.[1];
@@ -839,17 +946,6 @@ function YourBusCard({ line, dep, kpi, dt }: { line: PaxLine; dep: PaxDeparture;
     (paxDelay != null ? `De som gikk av var i snitt ${paxDelay.toFixed(1).replace(".", ",")} min forsinket. ` : "") +
     (lostHours != null && lostHours >= 1 ? `Til sammen tapte passasjerene på denne avgangen ${Math.round(lostHours)} timer i ${formatMonthLong(line.month)}.` : "");
 
-  const url = typeof window !== "undefined" ? window.location.href : "";
-
-  async function copy(what: "text" | "link") {
-    try {
-      await navigator.clipboard.writeText(what === "text" ? `${text} ${url}` : url);
-      setCopied(what);
-      setTimeout(() => setCopied(null), 1800);
-    } catch {
-      /* utklippstavle blokkert — ignorer */
-    }
-  }
 
   return (
     <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4 md:p-5">
@@ -871,14 +967,14 @@ function YourBusCard({ line, dep, kpi, dt }: { line: PaxLine; dep: PaxDeparture;
             )}
           </div>
           <div className="flex gap-2 pt-1">
-            <Button size="sm" variant="outline" onClick={() => copy("text")}>
-              {copied === "text" ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
-              {copied === "text" ? "Kopiert" : "Kopier tekst"}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => copy("link")}>
-              {copied === "link" ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Link2 className="h-3.5 w-3.5 mr-1.5" />}
-              {copied === "link" ? "Kopiert" : "Kopier lenke"}
-            </Button>
+            <ShareButton
+              size="sm" variant="outline" mode="copy" icon={Copy} label="Kopier tekst"
+              payload={() => ({ text, url: window.location.href })}
+            />
+            <ShareButton
+              size="sm" variant="ghost" mode="copy" icon={Link2} label="Kopier lenke"
+              payload={() => ({ url: window.location.href })}
+            />
           </div>
         </div>
       </div>
@@ -898,7 +994,7 @@ function CrowdedCard({ summary, op, onSelect }: {
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Fulleste avganger</CardTitle>
-        <CardDescription>Flest om bord på det fulleste, snitt over måneden (minst 3 turer).</CardDescription>
+        <CardDescription>Flest om bord på det fulleste, snitt over {formatMonthLong(summary.operators.find((o) => o.code === op)?.latestMonth) || "måneden"} (minst 3 turer).</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="divide-y">
@@ -932,7 +1028,7 @@ function MunicipalityCard({ summary, op }: { summary: PaxSummary; op: PaxOperato
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Kommuner</CardTitle>
-        <CardDescription>Passasjertimer tapt, etter kommunen der folk gikk av.</CardDescription>
+        <CardDescription>Passasjertimer tapt, etter kommunen der folk gikk av. {formatMonthLong(summary.operators.find((o) => o.code === op)?.latestMonth)}.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -979,7 +1075,9 @@ function HistoryCard({ op }: { op: PaxSummary["operators"][number] }) {
       <CardHeader>
         <CardTitle>Påstigninger per måned hos {op.name}</CardTitle>
         <CardDescription>
-          Hele historikken i datasettet. Endringer kan skyldes nye tellere og ny rapportering, ikke bare reisevaner. Sommermånedene er alltid lave.
+          Rett fra kilden, {formatMonthLong(data[0].m)}–{formatMonthLong(data[data.length - 1].m)}. Ikke koblet med
+          forsinkelser, og derfor en lengre periode enn resten av siden. Endringer kan skyldes nye tellere og ny
+          rapportering, ikke bare reisevaner. Sommermånedene er alltid lave.
         </CardDescription>
       </CardHeader>
       <CardContent>

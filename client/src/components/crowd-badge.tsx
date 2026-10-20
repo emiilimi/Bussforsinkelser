@@ -1,6 +1,6 @@
 import { Users } from "lucide-react";
 import { Link } from "wouter";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TapTip } from "@/components/tap-tip";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
 import type { TripLeg } from "@/lib/trip-shared";
@@ -45,14 +45,37 @@ export function LegCrowdBadge({ leg, compact = false }: { leg: TripLeg; compact?
   if (!lvl) return null;
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap",
-            lvl.className,
-          )}
-        >
+    <TapTip
+      className="space-y-1"
+      content={
+        <>
+          <p>
+            Typisk <strong>{Math.round(res.peak)}</strong> om bord på det fulleste mellom {leg.fromPlace.name} og{" "}
+            {leg.toPlace.name} (snitt {Math.round(res.avg)}).
+          </p>
+          <p className="text-muted-foreground">
+            {res.match === "exact" ? "Samme avgang" : "Nærmeste avgang på samme tid"} i{" "}
+            {formatMonthLong(res.month)}
+            {res.runs != null ? `, snitt over ${Math.round(res.runs)} turer` : ""}. Kilde: passasjertellinger (beta) fra{" "}
+            <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">samferdselsdata.no</a>{" "}
+            (Entur). Tellinger kan ha feil.
+            {lvl.key === "multi" && " Over 120 betyr nesten alltid at flere busser kjører på samme avgang."}
+          </p>
+          <Link href={`/passasjerer?op=${lineOperator(lineRef)}&line=${encodeURIComponent(lineRef!)}&dep=${encodeURIComponent(res.dep.k)}`} className="underline">
+            Se hele avgangen →
+          </Link>
+        </>
+      }
+    >
+      {/* Knapp, ikke span: må kunne nås med tastatur og trykk (se TapTip) */}
+      <button
+        type="button"
+        aria-label={`${lvl.label}, typisk ${Math.round(res.peak)} om bord. Vis detaljer`}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap",
+          lvl.className,
+        )}
+      >
           <Users className="h-2.5 w-2.5" />
           {compact ? lvl.short : (
             <>
@@ -60,26 +83,8 @@ export function LegCrowdBadge({ leg, compact = false }: { leg: TripLeg; compact?
               <span className="hidden sm:inline">{lvl.label} · ~{Math.round(res.peak)}</span>
             </>
           )}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs text-xs space-y-1">
-        <p>
-          Typisk <strong>{Math.round(res.peak)}</strong> om bord på det fulleste mellom {leg.fromPlace.name} og{" "}
-          {leg.toPlace.name} (snitt {Math.round(res.avg)}).
-        </p>
-        <p className="text-muted-foreground">
-          {res.match === "exact" ? "Samme avgang" : "Nærmeste avgang på samme tid"} i{" "}
-          {formatMonthLong(res.month)}
-          {res.runs != null ? `, snitt over ${Math.round(res.runs)} turer` : ""}. Kilde: passasjertellinger (beta) fra{" "}
-          <a href={PAX_SOURCE.url} target="_blank" rel="noopener noreferrer" className="underline">samferdselsdata.no</a>{" "}
-          (Entur). Tellinger kan ha feil.
-          {lvl.key === "multi" && " Over 120 betyr nesten alltid at flere busser kjører på samme avgang."}
-        </p>
-        <Link href={`/passasjerer?op=${lineOperator(lineRef)}&line=${encodeURIComponent(lineRef!)}&dep=${encodeURIComponent(res.dep.k)}`} className="underline">
-          Se hele avgangen →
-        </Link>
-      </TooltipContent>
-    </Tooltip>
+      </button>
+    </TapTip>
   );
 }
 

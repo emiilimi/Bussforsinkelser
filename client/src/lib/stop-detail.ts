@@ -25,7 +25,7 @@ const CRC_TABLE: number[] = (() => {
   return t;
 })();
 
-function crc32(s: string): number {
+export function crc32(s: string): number {
   const bytes = new TextEncoder().encode(s); // UTF-8, som Python .encode()
   let c = 0xffffffff;
   for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);

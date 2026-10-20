@@ -130,8 +130,10 @@ function DraggableYChart({ yMax, setYMax, dataMax, resetTo, height, children }: 
         <div className="flex flex-col items-center gap-1 ml-1" style={{ height }}>
           <button
             onClick={() => setYMax(resetTo ?? dataMax)}
-            className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1"
+            className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1 disabled:opacity-30 disabled:cursor-default disabled:hover:text-muted-foreground"
             title="Tilbakestill Y-akse"
+            aria-label="Tilbakestill Y-akse"
+            disabled={yMax === (resetTo ?? dataMax)}
           >
             ↺
           </button>

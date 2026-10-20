@@ -7,14 +7,14 @@
 // siste uke skiller seg tydelig fra siste 30 dager.
 // ---------------------------------------------------------------------------
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, TrendingUp, TrendingDown, Share2, Check, ArrowRight, Minus } from "lucide-react";
+import { CalendarDays, TrendingUp, TrendingDown, ArrowRight, Minus } from "lucide-react";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
 import { BusLoading } from "@/components/bus-loading";
 import { PARQUET_BASE } from "@/hooks/use-parquet-query";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
@@ -224,7 +224,7 @@ export default function WeekReport() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-[15px] leading-relaxed rounded-lg border bg-muted/30 p-4">{shareText}</p>
-                  <ShareButton text={shareText} />
+                  <WeekShareButton text={shareText} />
                   {report.worstNow && (
                     <p className="text-xs text-muted-foreground">
                       Mest forsinkede busslinje siste uke: <Link className="underline" href={`/journey?line=${encodeURIComponent(report.worstNow.lineRef)}`}>
@@ -330,21 +330,13 @@ function ChangeCard({ title, icon, rows, lineLabel, empty }: {
   );
 }
 
-function ShareButton({ text }: { text: string }) {
-  const [done, setDone] = useState(false);
-  async function share() {
-    const url = window.location.href;
-    try {
-      if (navigator.share) { await navigator.share({ title: "Uka som gikk — Sen Tur", text, url }); return; }
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setDone(true);
-      setTimeout(() => setDone(false), 1800);
-    } catch { /* avbrutt */ }
-  }
+function WeekShareButton({ text }: { text: string }) {
   return (
-    <Button size="sm" variant="outline" onClick={share}>
-      {done ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Share2 className="h-3.5 w-3.5 mr-1.5" />}
-      {done ? "Kopiert" : "Del"}
-    </Button>
+    <ShareButton
+      size="sm"
+      variant="outline"
+      label="Del"
+      payload={() => ({ title: "Uka som gikk — Sen Tur", text, url: window.location.href })}
+    />
   );
 }

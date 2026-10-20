@@ -855,6 +855,19 @@ def main() -> int:
     else:
         log.warning("Fant ikke %s — hopper over linjenavn", DB_PATH)
 
+    # ------------------------------------------------------------------
+    # Overgangsfiler — reiseplanleggerens statistikk uten DuckDB (se
+    # pipeline/transfer_shards.py). Sist, og en feil her feller IKKE steget:
+    # artefaktene over er allerede skrevet, og uten ferske overgangsfiler
+    # faller klienten tilbake til DuckDB (index.json-datoen er da eldre enn
+    # manifestets maxDate, se transferCovers i transfer-data.ts).
+    # ------------------------------------------------------------------
+    try:
+        from transfer_shards import build_transfer_shards
+        build_transfer_shards(con, generated_at, max_date)
+    except Exception:  # noqa: BLE001
+        log.exception("Overgangsfiler feilet — hopper over (klienten bruker DuckDB)")
+
     log.info("Ferdig på %.1fs", time.time() - started)
     return 0
 

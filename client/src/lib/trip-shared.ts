@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { QueryOptions } from "@/hooks/use-parquet-query";
+import { localTransferGapRows } from "@/lib/transfer-data";
 
 // ---------------------------------------------------------------------------
 // Entur trip-typer (speiler GraphQL-responsen fra /api/trip)
@@ -468,7 +469,7 @@ export function poolGapSql(s: TransferSpec): string | null {
   `;
 }
 
-type CombinedGapRow = {
+export type CombinedGapRow = {
   src: "S" | "A" | "P";
   date: unknown;
   gap: number | null;
@@ -540,10 +541,8 @@ function normalizeDate(d: unknown): string {
 //     poolen) — det var aldri datamangel.
 const GAP_QUERY_TIMEOUT_MS = 45_000;
 
-export async function computeTransferGap(
-  s: TransferSpec,
-  duckQuery: DuckQueryFn,
-): Promise<TransferGapResult> {
+/** De tre matche-nivåene UNION-et i én spørring (null = mangler felt til alle). */
+export function transferGapSql(s: TransferSpec): string | null {
   const parts: string[] = [];
   const sSql = sjGapSql(s);
   const aSql = aimedGapSql(s);
@@ -551,16 +550,29 @@ export async function computeTransferGap(
   if (sSql) parts.push(`SELECT 'S' AS src, date, gap, arr_min, dep_min FROM (${sSql})`);
   if (aSql) parts.push(`SELECT 'A' AS src, date, gap, arr_min, dep_min FROM (${aSql})`);
   if (pSql) parts.push(`SELECT 'P' AS src, date, gap, arr_min, dep_min FROM (${pSql})`);
-  const emptyTrack: TransferGapTrack = { gaps: [], observations: [], days: 0 };
-  if (parts.length === 0) {
-    return {
-      gaps: [], observations: [], source: "none",
-      actual: { ...emptyTrack, source: "none" }, pool: emptyTrack,
-    };
-  }
+  return parts.length > 0 ? parts.join("\nUNION ALL\n") : null;
+}
+
+/** DuckQueryFn for når DuckDB ikke er klar: avviser, så computeTransferGap
+ *  bare bruker overgangsfilene og ellers gir «mangler data». */
+export const NO_DUCK: DuckQueryFn = async () => {
+  throw new Error("DuckDB er ikke klar");
+};
+
+export async function computeTransferGap(
+  s: TransferSpec,
+  duckQuery: DuckQueryFn,
+): Promise<TransferGapResult> {
+  // Overgangsfilene først (ett filoppslag per plattform, se lib/transfer-data.ts);
+  // DuckDB bare for det filene ikke dekker. Samme rader, samme etterbehandling.
+  const local = await localTransferGapRows(s).catch(() => null);
+  if (local) return gapResultFromRows(local);
+
+  const sql = transferGapSql(s);
+  if (!sql) return gapResultFromRows([]);
 
   const rows = (await duckQuery(
-    parts.join("\nUNION ALL\n"),
+    sql,
     undefined,
     {
       family: "by-stop",
@@ -573,7 +585,12 @@ export async function computeTransferGap(
       toDate: s.statsWindow?.dateTo ?? undefined,
     },
   )) as CombinedGapRow[];
+  return gapResultFromRows(rows);
+}
 
+/** Velg matche-nivå og bygg resultatet av radene fra én overgangs-spørring
+ *  (DuckDB eller overgangsfilene — samme form). */
+export function gapResultFromRows(rows: CombinedGapRow[]): TransferGapResult {
   const toObs = (r: CombinedGapRow): TransferGapObservation => ({
     date: normalizeDate(r.date),
     gap: Number(r.gap),

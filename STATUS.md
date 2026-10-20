@@ -3,7 +3,136 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-05
+**Sist oppdatert**: 2026-10-20
+
+## Endringslogg — 2026-10-20: knapp-audit (død «Del reisen»), nattjobben tar igjen hull, passasjertall med periode
+
+### Døde kontroller — funnet ved å klikke ALT
+
+Emilie fant «Del reisen» død i produksjon. Rotårsak, målt med et ekte
+musklikk: `navigator.clipboard.writeText` → `NotAllowedError: Write
+permission denied`, svelget av en tom `catch {}`. Samme mønster i «Del»
+(Uka som gikk) og «Kopier tekst/lenke» (Passasjerer). Nå bruker alle
+`<ShareButton>` (`components/share-button.tsx`, logikk i `lib/share.ts`):
+delingsark → `execCommand("copy")` (synkront i klikket; virket der den
+moderne API-en ble avvist) → clipboard-API → popover med teksten markert.
+
+Deretter et sveip over hver side i reise-bygget: hver knapp/fane klikkes,
+og det registreres om NOE skjer (DOM, URL, nettverk, dialog, fokus).
+Reelle funn, alle rettet:
+
+- **ⓘ (`InfoTip`, 22 steder) var død på mobil** — Radix Tooltip åpnes ikke
+  ved trykk. Ny `components/tap-tip.tsx`: hover viser (mus), klikk/trykk
+  fester, Escape/klikk utenfor lukker. Også «Hvor full er bussen?»-merket
+  (`crowd-badge.tsx`), som hadde «Se hele avgangen →» i en tooltip på et
+  `<span>`.
+- «Les mer →» (`/metode#…`) landet øverst på siden — wouter scroller ikke til
+  ankere. `methodology.tsx` scroller nå selv.
+- Favoritt kunne ikke fjernes når localStorage er sperret (`stop-history.ts`
+  leste alltid tom liste). Minne-fallback.
+- «↺» (Y-akse) inaktiv når det ikke er noe å tilbakestille.
+- Datovelgeren var engelsk (skjermleser: «Tuesday, November 10th») og
+  startet uka på søndag → `locale={nb}`.
+
+Falske positiver å kjenne til ved neste sveip: Radix Tabs/Select aktiveres
+på `mousedown`, ikke `click`; Leaflet-zoom og lukke-animasjoner står stille
+i et skjult nettleservindu (rAF), så lukket innhold blir liggende i DOM-en.
+
+### Nattjobben tar igjen manglende dager
+
+`pipeline/missing_dates.py` finner dager uten rader de siste 7 dagene (klemt
+til `JSD_RETENTION_DAYS - 1`). `nightly_reise.ps1` henter gårsdagen først
+(kritisk) og deretter **eldste hull først** (best effort) — nyeste-først lot
+2026-10-14 bli skjøvet bakerst seks netter på rad. Eldre uker re-eksporteres
+eksplisitt med `--week`. Budsjettet for etterfylling leses fra oppgavens
+`ExecutionTimeLimit` (minus 120 min), som ble hevet fra 3 t til 6 t.
+`-DryRun` viser planen uten å hente noe.
+
+### Passasjerer: periode og datagrunnlag
+
+Siden viste tre perioder uten å si det (siste måned per selskap, forrige
+måned i sammenlikningen, påstigninger fra 2022 i grafen). Ny
+«Tallene under gjelder»-boks øverst: måned, periode, påstigninger telt,
+linjer, andel koblet til forsinkelser, ikke-telte avganger, hvorfor
+selskapene ligger på ulike måneder, og når tallene sist ble oppdatert.
+Kortene merker måneden; «Alle tre» lister måned per selskap.
+
+## Endringslogg — 2026-10-10: overgangsfiler — reiseplanleggerens statistikk uten DuckDB (Ruter)
+
+Branch `feat/overgangsfiler`. Mål: fjerne ventetida på «rekker jeg
+overgangen?» (DuckDB-WASM: ~30 s varmt, ~80 s kaldt for et vanlig søk).
+
+### Hvorfor rådata per plattform, ikke per overgang
+
+Alle tre matche-nivåene i `computeTransferGap` (stabil avgangs-id, eksakt
+rutetid, ±60 min-pool) trenger bare én plattform om gangen: hvilke avganger
+som passerte, med linje, retning, rutetider og forsinkelse per dato. En
+overgang er to plattformer stilt opp dato for dato — det gjør nettleseren på
+millisekunder. Antall filer vokser derfor med plattformer, ikke med
+kombinasjoner. Persentilene per (stopp, linje) og estimert avgang/ankomst per
+legg regnes av de samme filene.
+
+### Pipeline
+
+- `pipeline/transfer_shards.py` → `transfer/<N>/<shard>.json` +
+  `transfer/index.json`. Kalles sist i `aggregate_stats.py` (feil der feller
+  ikke steget) — `nightly_reise.ps1` er uendret. Shardnøkkel
+  `crc32(quayRef) % N` (MÅ matche `transferShardOf` i
+  `client/src/lib/transfer-data.ts`); mappa heter N, så et bytte av N er
+  atomisk når `index.json` lastes opp sist.
+- `upload_to_r2.py` laster opp shardene (parallelt, md5-sjekk) og DERETTER
+  `index.json`; `--prune` rydder shards som ble tomme og mapper for gammel N.
+- Env: `TRANSFER_OPERATORS` (default `RUT`), `TRANSFER_DAYS` (35),
+  `TRANSFER_SHARDS` (2000), `TRANSFER_OUT_DIR` (kun testing).
+- Målt 2026-10-10, RUT, 35 dager: 14,3 mill. rader → 2,68 mill.
+  avgangsgrupper, 6 936 plattformer, 1 930 filer. 234 MB rå JSON / 60 MB
+  gzip; median-fil 23 KB gzip, største 203 KB. Bygging 163 s, opplasting 77 s.
+  Cloudflare leverer filene Brotli-komprimert.
+
+### Klient
+
+`client/src/lib/transfer-data.ts` leser index + shards og speiler SQL-en.
+`transferCovers()` avgjør per forespørsel: dekkede operatører, og et vindu med
+startdato innenfor filene (standardvinduet og «Siste 7/30 dager» — ikke
+«Alle hverdager», «Siste 90 dager» eller eldre egendefinerte datoer). Er
+parquet-manifestets `maxDate` nyere enn filene (pipelinen feilet halvveis),
+brukes DuckDB så ingen dag faller stille ut. Alt utenfor → DuckDB som før.
+
+I `trip-planner.tsx` venter overgangs-prefetchen ikke lenger på DuckDB eller
+persentilene når filene dekker reiseforslaget; persentil- og legg-tid-hookene
+bruker filene når de dekker (modusen er med i query-nøkkelen). Standardvinduet
+løses opp med `index.to` som siste fallback, så alt kan regnes før DuckDB er
+lastet.
+
+### Paritet (ikke anta — kjør `pipeline/check_transfer_parity.py`)
+
+142 ekte Ruter-overganger (hverdag/lørdag/søndag, standardvindu og «Siste 7
+dager», hver sjette med ukjent avgangs-id): **142/142 overganger, 284/284
+persentilpar, 426/426 legg-tider like**. Rådata sammenlignes rad for rad før
+sluttsvaret.
+
+To funn underveis:
+
+1. **DuckDB-svaret var ikke deterministisk.** Har to avganger samme rutetid
+   (nivå 2), eller er to naboavganger like nær planlagt tid (nivå 3: 08:33 og
+   08:43 mot 08:38), velger SQL-en vilkårlig rad — svaret kan variere fra
+   kjøring til kjøring. Filene velger nå tidligste rutetid ved uavgjort.
+2. **Nivå 1 (stabil avgangs-id) slår nesten aldri inn for Ruter.** Ruters
+   id-er er 32 hex-tegn uten «-», og hver (plattform, id) har i snitt bare 5,3
+   observasjoner over 35 dager — id-en byttes jevnlig. I utvalget ble ingen
+   overgang avgjort på nivå 1 (93 eksakt rutetid, 49 pool). Ikke rettet her;
+   eget arbeid å finne en stabil nøkkel for Ruter (jf. `paxDepKey`).
+
+Avvik fra DuckDB-veien, bevisst: «eksakt avgangs-id» i persentil-/legg-tid-
+oppslaget bruker den stabile id-en. For Ruter (ingen «-») er det identisk.
+
+### Utvide til flere operatører
+
+Sett `TRANSFER_OPERATORS=RUT,SKY,…` for nattjobben. Størrelsen skalerer med
+rader: Ruter er ~30 % av alle rader, så hele landet blir ~200 MB gzip og
+~800 MB rå opplasting per natt med dagens format — vurder da `Content-Encoding:
+gzip` ved opplasting og flere shards. R2-skrivinger skalerer med antall
+shards (2000 per natt ≈ 60 000/mnd), ikke med plattformer.
 
 ## Endringslogg — 2026-10-05: passasjertellinger (beta) — «hvem rammes av forsinkelsene?»
 

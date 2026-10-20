@@ -6,6 +6,7 @@ import {
 } from "@/hooks/use-parquet-query";
 import { warmupDuckDB } from "@/hooks/use-duckdb";
 import Layout from "@/components/layout";
+import { ShareButton } from "@/components/share-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ import {
   Navigation, Search, Clock, ArrowRight, AlertTriangle, CheckCircle,
   ArrowDown, ChevronDown, ChevronUp, Footprints, Bus, Train, Ship, TramFront,
   Accessibility, ArrowDownUp, ArrowUpDown, Calendar,
-  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, Share2, Check, History, X,
+  Info, Database, BarChart3, Loader2, Map as MapIcon, LocateFixed, Star, ShieldCheck, History, X,
 } from "lucide-react";
 import { BusLoading } from "@/components/bus-loading";
 import { SectionLabel, StopRow } from "@/components/stop-picker";
@@ -47,10 +48,13 @@ import {
   type StopSearchResult,
   type TransferSpec, type TransferGapResult, type TransferGapObservation,
   type TransferGapSource, type DuckQueryFn, type ResolvedStatsWindow,
-  legStops, minutesToHM, computeTransferGap, computeTransferGaps,
+  legStops, minutesToHM, computeTransferGap, computeTransferGaps, gapResultFromRows, NO_DUCK,
   probFromGaps, shrunkProb, POOL_PRIOR_DAYS, isActualDepartureSource, SPECIFIC_MIN_DAYS,
   statsWindowSql, defaultWindowForDayType,
 } from "@/lib/trip-shared";
+import {
+  useTransferIndex, transferCovers, localTransferGapRows, localDelayDistribution, localLegTiming,
+} from "@/lib/transfer-data";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -271,26 +275,72 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
   `;
 }
 
+/** Samme nivåtrapp som DuckDB-veien under, men fra overgangsfilene.
+ *  null = ikke dekket (eller henting feilet) → bruk DuckDB. */
+async function legTimingLocal(s: LegTimingSpec): Promise<LegTimingResult | null> {
+  if (!s.statsWindow) return null;
+  const spec = { ...s, window: s.statsWindow };
+  const r0 = await localLegTiming(spec, undefined);
+  if (!r0) return null;
+  if (r0.n >= SPECIFIC_MIN_DAYS) return { p50: r0.p50, p80: r0.p80, n: r0.n, method: "sj" };
+  const r1 = await localLegTiming(spec, 1);
+  if (!r1) return null;
+  if (r1.n >= SPECIFIC_MIN_DAYS) return { p50: r1.p50, p80: r1.p80, n: r1.n, method: "hour1" };
+  const r2 = await localLegTiming(spec, 2);
+  if (!r2) return null;
+  return { p50: r2.p50, p80: r2.p80, n: r2.n, method: r2.n > 0 ? "hour2" : "none" };
+}
+
+/**
+ * Hvor statistikken for et sett linjer skal komme fra: overgangsfilene når de
+ * dekker linjene og vinduet (ingen DuckDB nødvendig), ellers DuckDB når den er
+ * klar. Modusen er med i query-nøkkelen, så et bytte gir ny beregning.
+ */
+type StatsSource = "local" | "duck" | "off";
+function useStatsSource(
+  window: ResolvedStatsWindow | undefined,
+  lineRefs: string[],
+  duckReady: boolean,
+): StatsSource {
+  const idx = useTransferIndex();
+  if (lineRefs.length > 0 && transferCovers(idx, window, lineRefs)) return "local";
+  return duckReady ? "duck" : "off";
+}
+
 /** Hook: per-SJ estimated departure/arrival delay with ±1h / ±2h fallback. */
 function useEstimatedLegTimes(
   specs: LegTimingSpec[],
+  active: boolean,
   duckReady: boolean,
   duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
 ) {
+  const source = useStatsSource(specs[0]?.statsWindow, specs.map((s) => s.lineRef), duckReady);
   return useQuery<Map<string, LegTimingResult>>({
     queryKey: [
       "duck-leg-timing",
+      source,
       // Vinduet MÅ være med: ellers gjenbrukes gamle tall når brukeren bytter
       // statistikkperiode (staleTime er Infinity).
       ...specs.map(s =>
         `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.dayType}|` +
         statsWindowKey(s.statsWindow ?? defaultWindowForDayType(s.dayType))),
     ],
-    enabled: duckReady && specs.length > 0,
+    enabled: active && source !== "off" && specs.length > 0,
     staleTime: Infinity,
     queryFn: async () => {
       const out = new Map<string, LegTimingResult>();
       for (const s of specs) {
+        if (source === "local") {
+          const local = await legTimingLocal(s).catch(() => null);
+          if (local) {
+            out.set(s.key, local);
+            continue;
+          }
+          if (!duckReady) {
+            out.set(s.key, { p50: null, p80: null, n: 0, method: "none" });
+            continue;
+          }
+        }
         // Samme vindu som SQL-en filtrerer på, men her styrer det hvilke
         // UKEFILER som åpnes. Uten dette leste hver av disse spørringene alle
         // filene, og viewet ble bygget om fram og tilbake mellom 5 og 11 filer
@@ -330,7 +380,8 @@ function useEstimatedLegTimes(
 type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean };
 
 /**
- * «Del reisen»: delingsark på mobil (navigator.share), ellers utklippstavle.
+ * «Del reisen»: delingsark på mobil, ellers kopiering — med synlig respons og
+ * manuell reserve når nettleseren nekter (se ShareButton / lib/share.ts).
  * Teksten er laget for å limes inn i en melding: rute, linjer, tider og — når
  * statistikken er klar — når man er framme 4 av 5 dager. Lenken er søke-URL-en
  * (from/to/date/time), som gjenoppretter søket hos mottakeren.
@@ -338,7 +389,6 @@ type P80Report = { pending: boolean; arrivalMs: number | null; beyond: boolean }
 function ShareTripButton({ pattern, p80ArrivalMs, pMakeAll }: {
   pattern: TripPattern; p80ArrivalMs: number | null; pMakeAll: number | null;
 }) {
-  const [done, setDone] = useState(false);
   const transit = pattern.legs.filter((l) => l.mode !== "foot");
   const first = pattern.legs[0];
   const last = pattern.legs[pattern.legs.length - 1];
@@ -350,26 +400,15 @@ function ShareTripButton({ pattern, p80ArrivalMs, pMakeAll }: {
     (p80ArrivalMs != null ? ` Framme innen ${formatTime(new Date(p80ArrivalMs).toISOString())} 4 av 5 dager.` : "") +
     (pMakeAll != null ? ` Rekker overgangen ${Math.round(pMakeAll * 100)} % av dagene.` : "");
 
-  async function share() {
-    const url = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Reise fra Sen Tur", text, url });
-        return;
-      }
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setDone(true);
-      setTimeout(() => setDone(false), 1800);
-    } catch {
-      /* avbrutt av brukeren eller blokkert — ingenting å gjøre */
-    }
-  }
-
   return (
-    <Button variant="outline" size="sm" className="h-7 px-2 text-[11px]" onClick={share} title={text}>
-      {done ? <Check className="h-3 w-3 mr-1" /> : <Share2 className="h-3 w-3 mr-1" />}
-      {done ? "Kopiert" : "Del reisen"}
-    </Button>
+    <ShareButton
+      variant="outline"
+      size="sm"
+      className="h-7 px-2 text-[11px]"
+      iconClassName="h-3 w-3 mr-1"
+      label="Del reisen"
+      payload={() => ({ title: "Reise fra Sen Tur", text, url: window.location.href })}
+    />
   );
 }
 
@@ -642,7 +681,6 @@ function useFallbackChain(opts: {
       ): Promise<{ makeProb: number; daysMin: number | null }> => {
         let makeProb = 1;
         let daysMin: number | null = null;
-        if (!duckReady) return { makeProb, daysMin };
         const specs = buildTransferSpecsForPattern(pattern, statsWindow);
         const walks = transferWalkTimes(pattern);
         for (let t = 0; t < specs.length; t++) {
@@ -650,7 +688,8 @@ function useFallbackChain(opts: {
           let ownGaps: number[] = [];
           let poolGaps: number[] = [];
           try {
-            const r = await computeTransferGap(specs[t], duckQuery);
+            // Overgangsfilene først; uten dem og uten DuckDB → «mangler data»
+            const r = await computeTransferGap(specs[t], duckReady ? duckQuery : NO_DUCK);
             gaps = r.gaps;
             ownGaps = r.actual.gaps;
             poolGaps = r.pool.gaps;
@@ -799,14 +838,21 @@ function useTripDelayDistribution(
   duckQuery: (sql: string, params?: unknown[], options?: QueryOptions) => Promise<any[]>,
   statsWindow: ResolvedStatsWindow,
 ) {
+  const source = useStatsSource(statsWindow, pairs.map((p) => p.lineRef), duckReady);
   return useQuery<Map<string, DuckDelayRow>>({
     queryKey: [
       "duck-trip-delays",
+      source,
       statsWindowKey(statsWindow),
       ...pairs.map(p => `${p.stopRef}|${p.lineRef}`),
     ],
     queryFn: async () => {
       if (pairs.length === 0) return new Map();
+      if (source === "local") {
+        const local = await localDelayDistribution(pairs, statsWindow).catch(() => null);
+        if (local) return local;
+        if (!duckReady) throw new Error("overgangsfilene feilet og DuckDB er ikke klar");
+      }
 
       const conditions = pairs
         .map(p => `(stop_ref = '${esc(p.stopRef)}' AND line_ref = '${esc(p.lineRef)}')`)
@@ -843,7 +889,7 @@ function useTripDelayDistribution(
       }
       return map;
     },
-    enabled: duckReady && pairs.length > 0,
+    enabled: source !== "off" && pairs.length > 0,
     staleTime: Infinity,
     // Paret-settet vokser når et kort utvides (mellomstopp kommer til), og
     // ny nøkkel = ny spørring. Uten dette ville alle allerede hentede
@@ -2101,7 +2147,6 @@ function TripCard({
 
   // Estimert avgangs-/ankomsttid spørres fortsatt bare for UTVIDEDE kort —
   // overgangs-gapene kommer ferdig beregnet fra sidenivået (gapMap-prop).
-  const duckActive = duckReady && expanded;
 
   // ---------- Per-SJ estimated departure/arrival times ----------
   const legTimingSpecs = useMemo<LegTimingSpec[]>(() => {
@@ -2127,7 +2172,7 @@ function TripCard({
     return specs;
   }, [pattern, statsWindow]);
 
-  const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, duckActive, duckQuery);
+  const { data: legTimes } = useEstimatedLegTimes(legTimingSpecs, expanded, duckReady, duckQuery);
 
   // ---------- Compute transfer probabilities + overall probability ----------
   // Empirical per-day pairing: for each historical day where both the arriving
@@ -3174,7 +3219,10 @@ export default function TripPlanner() {
   // Dagtypen for reisedatoen brukes når brukeren IKKE har overstyrt vinduet.
   // departDate er «YYYY-MM-DD» — send den rå, ikke som tidsstempel.
   const tripDayType = useMemo(() => computeDayType(departDate), [departDate]);
-  const latestDataDay = measuredLatest ?? dataRange?.max ?? null;
+  // Overgangsfilenes siste dag er siste fallback: da kan standardvinduet løses
+  // opp (og statistikken regnes fra filene) før DuckDB i det hele tatt er lastet.
+  const transferIndex = useTransferIndex();
+  const latestDataDay = measuredLatest ?? dataRange?.max ?? transferIndex?.to ?? null;
   const resolvedStatsWindow = useMemo(
     () => resolveStatsWindow(statsTimeWindow, tripDayType, latestDataDay),
     [statsTimeWindow, tripDayType, latestDataDay],
@@ -3269,9 +3317,12 @@ export default function TripPlanner() {
   }, [statsWindowId]);
 
   useEffect(() => {
-    if (!duckReady || tripPatterns.length === 0) return;
-    // Vent til persentilene har landet — se rekkefølge-notatet over.
-    if (duckStatsFetching) return;
+    if (tripPatterns.length === 0) return;
+    // DuckDB er «ledig» først når persentilene har landet — se
+    // rekkefølge-notatet over. Overgangsfilene (lib/transfer-data.ts) trenger
+    // ingen av delene: reiseforslag de dekker regnes ut med én gang.
+    const duckFree = duckReady && !duckStatsFetching;
+    if (!duckFree && !transferIndex) return;
     const gen = ++gapGen.current;
     const ordered = [...tripPatterns].sort(
       (a, b) =>
@@ -3284,9 +3335,19 @@ export default function TripPlanner() {
         if (gapResultsRef.current.has(key)) continue;
         const specs = buildTransferSpecsForPattern(p, resolvedStatsWindow);
         try {
-          const m = specs.length > 0
-            ? await computeTransferGaps(specs, duckQuery)
-            : new Map<string, TransferGapResult>();
+          let m: Map<string, TransferGapResult> | null = new Map();
+          if (specs.length > 0 && duckFree) {
+            m = await computeTransferGaps(specs, duckQuery); // filene først, så DuckDB
+          } else {
+            // Bare filene. Dekker de ikke ALLE overgangene, tar DuckDB
+            // reiseforslaget senere — ingen halve svar.
+            for (const s of specs) {
+              const rows = await localTransferGapRows(s).catch(() => null);
+              if (!rows) { m = null; break; }
+              m.set(s.key, gapResultFromRows(rows));
+            }
+          }
+          if (m == null) continue;
           if (gapGen.current !== gen) return;
           setGapResults((prev) => new Map(prev).set(key, m));
         } catch (err) {
@@ -3298,7 +3359,7 @@ export default function TripPlanner() {
         }
       }
     })();
-  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching, statsWindowId, resolvedStatsWindow]);
+  }, [duckReady, tripPatterns, expandedKeys, duckQuery, duckStatsFetching, statsWindowId, resolvedStatsWindow, transferIndex]);
 
   // Lat DuckDB-init: WASM-en (~7 MB gzippet) lastes IKKE ved sidelast lenger.
   // Start nedlastingen i det øyeblikket brukeren velger et stopp — da
