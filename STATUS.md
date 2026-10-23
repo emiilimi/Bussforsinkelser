@@ -5,6 +5,36 @@
 
 **Sist oppdatert**: 2026-10-23
 
+## Endringslogg — 2026-10-23: Kringsjå (Oslo) viste Bergen-linjer igjen — radius-sjekken virket aldri uten koordinater
+
+Meldt: Stoppanalyse for Kringsjå viste både Oslo- og Bergen-linjer, selv om
+dette ble «fikset» 2026-08-15. Reprodusert på sentur.no: via søket (som
+legger ved `lat`/`lng`) var alt riktig; uten koordinater i adressen (gamle
+favoritter, delte lenker) kom Bergens linje 20 og 6 med.
+
+**Rotårsak:** `parseCoordHint` gjorde `Number(params.get("lat"))`, og
+`Number(null) === 0`. En adresse uten koordinater ble dermed hint (0, 0) i
+Guineabukta, radius-sjekken fant ingen stopp i nærheten, og falt tilbake til
+ALLE likt navngitte stopp. Augustfiksen virket altså bare når søket la ved
+koordinater — det ble aldri testet uten.
+
+Rettet:
+- `parseCoordHint` gir null når parameteren mangler.
+- Mangler koordinaten, slås den opp i Entur-geocoderet for ID-en
+  (`coordForStopPlace`) — i både `resolveStopQuays` og `apiStopsLookup`.
+- Uten koordinat, og treff som spenner over flere steder: ingen data heller
+  enn feil bys data.
+- Favoritter lagret koordinatene til det stoppet som var VALGT, ikke det som
+  ble stjernemerket (stjerne i søkelista uten valgt stopp = ingen koordinater).
+- Samme `Number(null)`-felle i `functions/api/geocoder/reverse.ts`.
+
+Verifisert lokalt mot R2: Oslo uten koordinater → bare RUT 3919 og 5; Bergen
+→ bare 20 og 6; ukjent ID uten koordinater → tom.
+
+Gjenstår: ID-driften selv. `data/stop_coords.json` er fra 2026-06-28, så Oslo
+Kringsjå (i dag `NSR:StopPlace:59706`) finnes bare under de gamle 6211/6213.
+TODO-en fra 2026-08-15 om å kjøre `populate_stops.py --refresh` jevnlig står.
+
 ## Endringslogg — 2026-10-23: passasjertall — september, og dobbelttelling rettet
 
 Ny kjøring etter at samferdselsdata-bøtta ble oppdatert 08.10. Kolumbus har

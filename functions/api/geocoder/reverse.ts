@@ -29,8 +29,13 @@ export const onRequestOptions = () => preflight();
 
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
   const url = new URL(context.request.url);
-  const lat = Number(url.searchParams.get("lat"));
-  const lng = Number(url.searchParams.get("lng"));
+  // Number(null) === 0 — uten sjekken under ble en forespørsel uten lat/lng
+  // til et oppslag på (0, 0) i stedet for 400. Samme felle som
+  // parseCoordHint i client/src/lib/stats-adapter.ts.
+  const rawLat = url.searchParams.get("lat");
+  const rawLng = url.searchParams.get("lng");
+  const lat = rawLat ? Number(rawLat) : NaN;
+  const lng = rawLng ? Number(rawLng) : NaN;
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return json({ error: "lat/lng required" }, { status: 400 });
   }

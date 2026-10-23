@@ -452,8 +452,13 @@ export default function Departures() {
   }
 
   const isFav = (ref: string) => favorites.some((f) => f.stopRef === ref);
-  const flipFavorite = (ref: string, name: string) =>
-    setFavorites(toggleFavorite(asStopResult(ref, name, selectedStop?.lat ?? null, selectedStop?.lng ?? null)).filter(isStopEntry));
+  // Koordinatene til stoppet SOM STJERNEMERKES — ikke til det som tilfeldigvis
+  // er valgt. Før 2026-10-23 ble selectedStop sine brukt: en stjerne satt i
+  // søkelista uten valgt stopp ga en favoritt uten koordinater, og med Bergen
+  // valgt fikk en Oslo-favoritt Bergens. Uten riktig koordinat virker ikke
+  // radius-sjekken mot navnelikheter (NAME_MATCH_RADIUS_M i stats-adapter.ts).
+  const flipFavorite = (ref: string, name: string, lat: number | null, lng: number | null) =>
+    setFavorites(toggleFavorite(asStopResult(ref, name, lat, lng)).filter(isStopEntry));
   const [minutesParam, setMinutesParam] = useUrlParam("minutes", "90");
   const minutes = Number(minutesParam) || 90;
   const setMinutes = (n: number) => setMinutesParam(String(n));
@@ -804,7 +809,7 @@ export default function Departures() {
                               subtitle={r.platformCodes ? `Plattformer: ${r.platformCodes}` : undefined}
                               isFav={isFav(r.stopRef)}
                               onPick={() => chooseStop(r.stopRef, r.stopName, r.lat ?? null, r.lng ?? null)}
-                              onToggleFav={() => flipFavorite(r.stopRef, name)}
+                              onToggleFav={() => flipFavorite(r.stopRef, name, r.lat ?? null, r.lng ?? null)}
                             />
                           );
                         })}
@@ -824,7 +829,7 @@ export default function Departures() {
                               title={s.stopName}
                               isFav
                               onPick={() => chooseStop(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
-                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
+                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
                             />
                           ))}
                         </>
@@ -839,7 +844,7 @@ export default function Departures() {
                               title={s.stopName}
                               isFav={isFav(s.stopRef)}
                               onPick={() => chooseStop(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
-                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName)}
+                              onToggleFav={() => flipFavorite(s.stopRef, s.stopName, s.lat ?? null, s.lng ?? null)}
                             />
                           ))}
                         </>
@@ -933,7 +938,7 @@ export default function Departures() {
                   {selectedStop && (
                     <FavoriteToggle
                       isFav={isFav(selectedStop.ref)}
-                      onToggle={() => flipFavorite(selectedStop.ref, selectedStop.name)}
+                      onToggle={() => flipFavorite(selectedStop.ref, selectedStop.name, selectedStop.lat, selectedStop.lng)}
                     />
                   )}
                 </span>
