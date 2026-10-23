@@ -289,6 +289,26 @@ if (-not $DryRun) {
     Start-Transcript -Path ("logs/reise-{0}.log" -f (Get-Date -Format "yyyy-MM-dd")) -Append
 }
 
+# Hold PC-en vaken mens jobben kjorer. Hvilemodus midt i et steg har kostet
+# kjoringer gjentatte ganger (6.-7. juli, 15.09, 22.10): watchdogen star stille
+# mens maskinen sover, steget "henger" i timevis, og ved oppvakning er
+# tidsbudsjettet brukt opp. 22.10 kveld: stoppdetaljene ferdige 21:13, deretter
+# 11 timer stille. SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+# hindrer AUTOMATISK hvilemodus til vi slipper i finally - ikke lukket lokk
+# eller av-knapp. Feiler kallet, kjorer jobben videre som for.
+$script:KeepAwake = $false
+if (-not $DryRun) {
+    try {
+        Add-Type -Namespace SenTur -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint esFlags);' -ErrorAction Stop
+        # 2147483649 = ES_CONTINUOUS (0x80000000) | ES_SYSTEM_REQUIRED (0x1)
+        $script:KeepAwake = ([SenTur.Power]::SetThreadExecutionState([uint32]2147483649) -ne 0)
+        Write-Host ("  Holder maskinen vaken under kjoringen: {0}" -f $script:KeepAwake)
+    }
+    catch {
+        Write-Host ("  Klarte ikke a holde maskinen vaken ({0}) - kjorer videre." -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+}
+
 try {
     Write-Host ("=== Reise nightly: {0} ===" -f (Get-Date -Format "yyyy-MM-dd HH:mm")) -ForegroundColor Cyan
 
@@ -406,7 +426,13 @@ try {
     # forsok to startet). Fristen er derfor satt ut fra verste observasjon, og
     # 90 min er et TAK, ikke en ventetid: gar steget pa 20 min koster det
     # ingenting a ha rom til 90.
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 90 -Retries 1 -RetryDelayMinutes 5
+    #
+    # 90 -> 150 min (2026-10-23). Overgangsfilene (transfer_shards, fra 10.10)
+    # kom pa toppen, og malt varighet for hele steget er na 45-76 min:
+    #   13.10: 46 min | 14.10: 45 min | 17.10: 76 min | 20.10: 46 min
+    # men 14.10 forsok 1 brukte 88 min BARE pa stoppdetaljene og ble drept.
+    # Oppgavens grense er na 6 t, sa det er rom for et tak med ekte margin.
+    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 150 -Retries 1 -RetryDelayMinutes 5
     # Opplastingen har ogsa fatt mer a gjore: 2000 shardfiler i tillegg til
     # ukefilene og stats_*.json.
     Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 40 -Retries 2 -RetryDelayMinutes 5
@@ -414,5 +440,7 @@ try {
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }
 finally {
+    # Slipp vaken-kravet (ES_CONTINUOUS alene = tilbake til normal hvilemodus)
+    if ($script:KeepAwake) { try { [void][SenTur.Power]::SetThreadExecutionState([uint32]2147483648) } catch { } }
     if (-not $DryRun) { Stop-Transcript }
 }
