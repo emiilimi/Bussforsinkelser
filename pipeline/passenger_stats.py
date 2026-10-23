@@ -354,21 +354,71 @@ def main() -> int:
         if not files or not op_months.get(op):
             continue
         fl = "[" + ", ".join(f"'{p.as_posix()}'" for p in files) + "]"
-        union.append(f"SELECT * FROM read_parquet({fl}, union_by_name=true)")
-    # DUPLIKATER: bøtta inneholder hele eksport-shards flere ganger (målt
-    # 2026-10-05: kol/paxcount_…016 og …018 er identiske, juli 2026 ligger i
-    # tre filer). En naiv SUM gir 2–3x for mange passasjerer. Vi fjerner
-    # eksakt like rader (alle kolonner vi bruker) — IKKE bare (avgang, stopp),
-    # fordi ringruter kan passere samme stopp to ganger i én tur.
+        union.append(f"SELECT * FROM read_parquet({fl}, union_by_name=true, filename=true)")
+    # DUPLIKATER: bøtta inneholder samme måned i flere filer (målt 2026-10-05:
+    # kol/paxcount_…016 og …018 er identiske, juli 2026 ligger i tre filer).
+    # En naiv SUM gir 2–3x for mange passasjerer.
+    #
+    # Fram til 2026-10-23 fjernet vi «eksakt like rader» med DISTINCT over
+    # alle filer. Det holder ikke, målt 2026-10-23 etter at bøtta ble
+    # oppdatert 08.10:
+    #  * TRO 2026-09 ligger i to ULIKE øyeblikksbilder: fil 5 = 1 594 134
+    #    påstigninger (= aggregert/detail), fil 6 = 1 404 111. ~35 000
+    #    (tur, stopp) har ulike tall, så DISTINCT beholdt begge → 2 739 477.
+    #  * Rader som bare skiller seg i en beskrivende kolonne (stop_name,
+    #    municipality, is_low_pop_stop) ble også telt dobbelt: OST 2026-08 ble
+    #    662 173 mot fasit 658 852, TRO 2026-08 1 719 for mye.
+    # Nå velges, per (operatør, måned), DEN ENE fila hvis sum treffer
+    # aggregert/detail (kildens egen dedupliserte fasit). Finnes ingen slik
+    # fil (måneden er delt over flere filer, som KOL 2026-08 i fil 15+16),
+    # dedupliseres det på radens nøkkel (tur, stopp, stoppsekvens — ringruter
+    # passerer samme stopp to ganger, derfor sekvensen) i stedet for på alle
+    # kolonner.
     con.execute(f"""
-        CREATE TABLE pax_raw AS
-        SELECT DISTINCT p.source_id, p.operating_month, p.route_id, p.trip_id, p.stop_id,
-               p.stop_sequence, p.departure_hour, p.direction_id,
-               p.number_of_boarders, p.number_of_alighters,
-               p.trip_headsign, p.route_short_name, p.stop_name, p.stop_latitude, p.stop_longitude,
-               p.municipality, p.county, p.is_low_pop_stop
-        FROM ({' UNION ALL BY NAME '.join(union)}) p
+        CREATE TEMP TABLE pax_all AS
+        SELECT p.* FROM ({' UNION ALL BY NAME '.join(union)}) p
         JOIN op_month om ON om.op = p.source_id AND om.month = p.operating_month
+    """)
+    picks: list[tuple[str, date, str]] = []
+    by_month: dict[tuple[str, date], list[tuple[str, int]]] = {}
+    for op, m, f, b in con.execute(
+        "SELECT source_id, operating_month, filename, SUM(number_of_boarders) FROM pax_all GROUP BY ALL"
+    ).fetchall():
+        by_month.setdefault((op, m), []).append((f, int(b or 0)))
+    for (op, m), files_b in sorted(by_month.items()):
+        ref = detail_totals.get((op, m))
+        exact = sorted(
+            ((abs(b - ref), f) for f, b in files_b if ref and abs(b - ref) <= 0.001 * ref),
+        ) if ref else []
+        if exact:
+            picks.append((op, m, exact[0][1]))
+            if len(files_b) > 1:
+                log.info("  %s %s: bruker %s (treffer aggregert/detail), %d andre fil(er) forkastet",
+                         op, m.isoformat()[:7], Path(exact[0][1]).name, len(files_b) - 1)
+        else:
+            log.info("  %s %s: ingen enkeltfil treffer aggregert/detail — dedupliserer på (tur, stopp, sekvens) over %d fil(er)",
+                     op, m.isoformat()[:7], len(files_b))
+    con.execute("CREATE TEMP TABLE pax_pick (op VARCHAR, month DATE, filename VARCHAR)")
+    if picks:
+        con.executemany("INSERT INTO pax_pick VALUES (?, ?, ?)", picks)
+    con.execute("""
+        CREATE TABLE pax_raw AS
+        WITH chosen AS (
+            SELECT a.* FROM pax_all a
+            JOIN pax_pick k ON k.op = a.source_id AND k.month = a.operating_month AND k.filename = a.filename
+        ), fallback AS (
+            SELECT a.* FROM pax_all a
+            ANTI JOIN pax_pick k ON k.op = a.source_id AND k.month = a.operating_month
+            QUALIFY ROW_NUMBER() OVER (
+                PARTITION BY a.source_id, a.operating_month, a.trip_id, a.stop_id, a.stop_sequence
+                ORDER BY a.filename DESC) = 1
+        )
+        SELECT DISTINCT source_id, operating_month, route_id, trip_id, stop_id,
+               stop_sequence, departure_hour, direction_id,
+               number_of_boarders, number_of_alighters,
+               trip_headsign, route_short_name, stop_name, stop_latitude, stop_longitude,
+               municipality, county, is_low_pop_stop
+        FROM (SELECT * FROM chosen UNION ALL BY NAME SELECT * FROM fallback)
     """)
     for op, m, b in con.execute("SELECT source_id, operating_month, SUM(number_of_boarders) FROM pax_raw GROUP BY ALL").fetchall():
         ref = detail_totals.get((op, m))

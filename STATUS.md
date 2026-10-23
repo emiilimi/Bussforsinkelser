@@ -3,7 +3,53 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-20
+**Sist oppdatert**: 2026-10-23
+
+## Endringslogg — 2026-10-23: Kringsjå (Oslo) viste Bergen-linjer igjen — radius-sjekken virket aldri uten koordinater
+
+Meldt: Stoppanalyse for Kringsjå viste både Oslo- og Bergen-linjer, selv om
+dette ble «fikset» 2026-08-15. Reprodusert på sentur.no: via søket (som
+legger ved `lat`/`lng`) var alt riktig; uten koordinater i adressen (gamle
+favoritter, delte lenker) kom Bergens linje 20 og 6 med.
+
+**Rotårsak:** `parseCoordHint` gjorde `Number(params.get("lat"))`, og
+`Number(null) === 0`. En adresse uten koordinater ble dermed hint (0, 0) i
+Guineabukta, radius-sjekken fant ingen stopp i nærheten, og falt tilbake til
+ALLE likt navngitte stopp. Augustfiksen virket altså bare når søket la ved
+koordinater — det ble aldri testet uten.
+
+Rettet:
+- `parseCoordHint` gir null når parameteren mangler.
+- Mangler koordinaten, slås den opp i Entur-geocoderet for ID-en
+  (`coordForStopPlace`) — i både `resolveStopQuays` og `apiStopsLookup`.
+- Uten koordinat, og treff som spenner over flere steder: ingen data heller
+  enn feil bys data.
+- Favoritter lagret koordinatene til det stoppet som var VALGT, ikke det som
+  ble stjernemerket (stjerne i søkelista uten valgt stopp = ingen koordinater).
+- Samme `Number(null)`-felle i `functions/api/geocoder/reverse.ts`.
+
+Verifisert lokalt mot R2: Oslo uten koordinater → bare RUT 3919 og 5; Bergen
+→ bare 20 og 6; ukjent ID uten koordinater → tom.
+
+Gjenstår: ID-driften selv. `data/stop_coords.json` er fra 2026-06-28, så Oslo
+Kringsjå (i dag `NSR:StopPlace:59706`) finnes bare under de gamle 6211/6213.
+TODO-en fra 2026-08-15 om å kjøre `populate_stops.py --refresh` jevnlig står.
+
+## Endringslogg — 2026-10-23: passasjertall — september, og dobbelttelling rettet
+
+Ny kjøring etter at samferdselsdata-bøtta ble oppdatert 08.10. Kolumbus har
+nå september (2 835 325 påstigninger, 298 linjer); Svipper september.
+
+`passenger_stats.py` dedupliserte med `DISTINCT` over alle filer. Det sviktet
+på to måter, målt mot `aggregert/detail` (kildens egen fasit):
+- TRO 2026-09 ligger i to ULIKE øyeblikksbilder (fil 5 = 1 594 134 = fasit,
+  fil 6 = 1 404 111). Begge ble telt → 2 739 477 ville blitt publisert.
+- Rader som bare skilte seg i en beskrivende kolonne ble telt dobbelt
+  (OST 2026-08: 662 173 mot 658 852; TRO 2026-08: +1 719 — også i tallene
+  som lå ute fra 06.10).
+
+Nå velges per (operatør, måned) den ene fila hvis sum treffer fasiten; ellers
+dedupliseres på (tur, stopp, stoppsekvens). Alle åtte måneder stemmer eksakt.
 
 ## Endringslogg — 2026-10-20: knapp-audit (død «Del reisen»), nattjobben tar igjen hull, passasjertall med periode
 

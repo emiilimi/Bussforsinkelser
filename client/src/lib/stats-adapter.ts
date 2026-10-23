@@ -669,8 +669,16 @@ function normName(s: string): string {
 
 /** ?lat=&lng= → koordinat-hint for quaysByName, eller null hvis fraværende/ugyldig. */
 function parseCoordHint(params: URLSearchParams): { lat: number; lng: number } | null {
-  const lat = Number(params.get("lat"));
-  const lng = Number(params.get("lng"));
+  // Manglende parameter må gi null, ikke 0: Number(null) === 0 er endelig, så
+  // før 2026-10-23 ble en adresse UTEN lat/lng til hint (0, 0) — et punkt i
+  // Guineabukta. Radius-sjekken i quaysByName fant da ingenting i nærheten og
+  // falt tilbake til ALLE likt navngitte stopp: Oslo-Kringsjå viste Bergens
+  // linjer. Sjekken fra august virket altså bare når søket la ved koordinater.
+  const rawLat = params.get("lat");
+  const rawLng = params.get("lng");
+  if (!rawLat || !rawLng) return null;
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
   return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
 }
 
@@ -718,6 +726,18 @@ function quaysByName(
   }
 
   const distinctStopPlaces = new Set(matches.map((m) => m.stopPlaceRef ?? m.stopRef));
+  // Uten koordinat-hint kan vi ikke vite hvilken by som er ment. Fram til
+  // 2026-10-23 ble da ALLE likt navngitte stopp slått sammen: en lenke til
+  // Oslo-Kringsjå uten lat/lng (gammel favoritt, delt lenke) viste Bergens
+  // linje 20 og 6. Spenner treffene over mer enn radien, er det flere steder,
+  // ikke ett knutepunkt med flere StopPlace-IDer — da heller ingen data enn
+  // feil bys data. (resolveStopQuays prøver å slå opp koordinaten først.)
+  if (!hint && distinctStopPlaces.size > 1) {
+    const located = matches.filter((m) => m.lat != null && m.lng != null);
+    const spread = located.some((a) => located.some((b) =>
+      distanceMeters(a.lat!, a.lng!, b.lat!, b.lng!) > NAME_MATCH_RADIUS_M));
+    if (spread) return { quays: [], nameHint: found };
+  }
   if (hint && distinctStopPlaces.size > 1) {
     const nearby = matches.filter(
       (m) => m.lat != null && m.lng != null &&
@@ -729,6 +749,34 @@ function quaysByName(
     if (nearby.length > 0) return { quays: nearby.map((m) => m.stopRef), nameHint: found };
   }
   return { quays: matches.map((m) => m.stopRef), nameHint: found };
+}
+
+/** Koordinat for et NSR:StopPlace-id, slått opp i Entur-geocoderet på navnet
+ *  og plukket ut på ID. Brukes når adressen mangler lat/lng (gamle
+ *  favoritter, delte lenker, lenker fra andre sider): ID-en identifiserer
+ *  stedet entydig, vi trenger bare koordinaten for radius-sjekken i
+ *  quaysByName. Hurtigbufret per (id, navn); null ved feil eller ikke-treff. */
+const stopPlaceCoordCache = new Map<string, Promise<{ lat: number; lng: number } | null>>();
+function coordForStopPlace(ref: string, name: string): Promise<{ lat: number; lng: number } | null> {
+  const key = `${ref}|${name}`;
+  let p = stopPlaceCoordCache.get(key);
+  if (!p) {
+    p = (async () => {
+      try {
+        const res = await fetch(`/api/geocoder/autocomplete?text=${encodeURIComponent(name)}&size=20`);
+        if (!res.ok) return null;
+        const rows: unknown = await res.json();
+        if (!Array.isArray(rows)) return null;
+        const hit = rows.find((r: any) => r?.id === ref && typeof r.lat === "number" && typeof r.lng === "number") as
+          { lat: number; lng: number } | undefined;
+        return hit ? { lat: hit.lat, lng: hit.lng } : null;
+      } catch {
+        return null;   // nettfeil: quaysByName nekter da å blande byer (se over)
+      }
+    })();
+    stopPlaceCoordCache.set(key, p);
+  }
+  return p;
 }
 
 /** NSR:StopPlace:X → medlems-quays (med data); quay-refs slippes gjennom.
@@ -755,7 +803,10 @@ async function resolveStopQuays(
       for (const m of members) name = m.stopPlaceName ?? m.stopName ?? name;
       return { quays, nameHint: name };
     }
-    if (nameHint) return quaysByName(metas, nameHint, coordHint);
+    if (nameHint) {
+      const hint = coordHint ?? (await coordForStopPlace(ref, nameHint));
+      return quaysByName(metas, nameHint, hint);
+    }
     return { quays: [], nameHint: null };
   }
   return { quays: [ref], nameHint: metas.get(ref)?.stopName ?? null };
@@ -847,7 +898,8 @@ async function apiStopsLookup(params: URLSearchParams) {
         out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
       }
       if (members.length === 0 && nameHint) {
-        const { quays } = quaysByName(metas, nameHint, coordHint);
+        const hint = coordHint ?? (await coordForStopPlace(ref, nameHint));
+        const { quays } = quaysByName(metas, nameHint, hint);
         for (const q of quays) {
           const m = metas.get(q);
           if (m) out.push({ stopRef: m.stopRef, stopName: m.stopName, stopPlaceRef: m.stopPlaceRef });
