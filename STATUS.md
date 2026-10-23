@@ -3,7 +3,23 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-20
+**Sist oppdatert**: 2026-10-23
+
+## Endringslogg — 2026-10-23: passasjertall — september, og dobbelttelling rettet
+
+Ny kjøring etter at samferdselsdata-bøtta ble oppdatert 08.10. Kolumbus har
+nå september (2 835 325 påstigninger, 298 linjer); Svipper september.
+
+`passenger_stats.py` dedupliserte med `DISTINCT` over alle filer. Det sviktet
+på to måter, målt mot `aggregert/detail` (kildens egen fasit):
+- TRO 2026-09 ligger i to ULIKE øyeblikksbilder (fil 5 = 1 594 134 = fasit,
+  fil 6 = 1 404 111). Begge ble telt → 2 739 477 ville blitt publisert.
+- Rader som bare skilte seg i en beskrivende kolonne ble telt dobbelt
+  (OST 2026-08: 662 173 mot 658 852; TRO 2026-08: +1 719 — også i tallene
+  som lå ute fra 06.10).
+
+Nå velges per (operatør, måned) den ene fila hvis sum treffer fasiten; ellers
+dedupliseres på (tur, stopp, stoppsekvens). Alle åtte måneder stemmer eksakt.
 
 ## Endringslogg — 2026-10-20: knapp-audit (død «Del reisen»), nattjobben tar igjen hull, passasjertall med periode
 
