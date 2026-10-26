@@ -612,6 +612,9 @@ type QuayMeta = {
   stopPlaceRef: string | null;
   stopPlaceName: string | null;
   platformCode: string | null;
+  /** Forelder-StopPlace for multimodale knutepunkt (artefakt fra 2026-10-26;
+   *  eldre artefakter → null). Se stopPlaceIndex. */
+  parentStopPlaceRef: string | null;
   lat: number | null;
   lng: number | null;
 };
@@ -626,6 +629,7 @@ function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
   for (const row of doc.stops) {
     if (map.has(row[0])) continue;
     const rawSp = row[base] as number | string | null | undefined;
+    const rawParent = row[base + 3] as number | string | null | undefined;
     map.set(row[0], {
       stopRef: row[0],
       stopName: row[2],
@@ -637,6 +641,10 @@ function quayMetaMap(doc: StopsDoc): Map<string, QuayMeta> {
           : (rawSp ?? null) || null,
       platformCode: (row[base + 1] as string | null | undefined) ?? null,
       stopPlaceName: (row[base + 2] as string | null | undefined) ?? null,
+      parentStopPlaceRef:
+        typeof rawParent === "number"
+          ? `NSR:StopPlace:${rawParent}`
+          : (rawParent ?? null) || null,
     });
   }
   quayMetaCache = map;
@@ -653,11 +661,19 @@ let stopPlaceIndexCache: Map<string, QuayMeta[]> | null = null;
 function stopPlaceIndex(metas: Map<string, QuayMeta>): Map<string, QuayMeta[]> {
   if (stopPlaceIndexCache) return stopPlaceIndexCache;
   const idx = new Map<string, QuayMeta[]>();
-  for (const m of Array.from(metas.values())) {
-    if (!m.stopPlaceRef) continue;
-    const arr = idx.get(m.stopPlaceRef);
+  const add = (key: string, m: QuayMeta) => {
+    const arr = idx.get(key);
     if (arr) arr.push(m);
-    else idx.set(m.stopPlaceRef, [m]);
+    else idx.set(key, [m]);
+  };
+  for (const m of Array.from(metas.values())) {
+    if (m.stopPlaceRef) add(m.stopPlaceRef, m);
+    // Multimodale knutepunkt: stoppsøket (Entur-geocoderet) gir FORELDEREN,
+    // mens quayene ligger under barna. Oslo Kringsjå: søket gir 59706,
+    // quayene ligger under 6211 (T-bane) og 6213 (buss). Indeksert under
+    // forelderen også, finnes de direkte — uten navnematch, som traff
+    // Bergens Kringsjå (STATUS.md 2026-10-23/26).
+    if (m.parentStopPlaceRef && m.parentStopPlaceRef !== m.stopPlaceRef) add(m.parentStopPlaceRef, m);
   }
   stopPlaceIndexCache = idx;
   return idx;

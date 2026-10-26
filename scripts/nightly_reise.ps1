@@ -411,6 +411,20 @@ try {
             Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -ExtraArgs @("--week", $w) -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
         }
     }
+    # Stoppregisteret (koordinater, stoppested + forelder for multimodale
+    # knutepunkt), MANEDLIG: --if-stale henter fra BigQuery bare nar
+    # data/stop_coords.json er eldre enn 30 dager, ellers gjor steget ingenting.
+    # Ma kjore FOR aggregate_stats, som leser stop_coords. Fra 28.06 til 26.10
+    # 2026 ble det aldri kjort (TODO siden 15.08) - og uten forelder-koblingen
+    # viste Oslo Kringsja Bergens linjer. Best effort: feiler BigQuery, brukes
+    # den gamle lista videre, og natten fortsetter.
+    try {
+        Invoke-PythonStep -ScriptPath "pipeline/populate_stops.py" -ExtraArgs @("--if-stale") -TimeoutMinutes 20 -Retries 1 -RetryDelayMinutes 5
+    }
+    catch {
+        Write-Host ("  [stopp] Stoppregisteret ble ikke oppdatert ({0}). Bruker eksisterende liste." -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+
     # aggregate_stats: 45 -> 90 min (2026-08-29). Steget brukte tidligere
     # ~8-10 min, men har vokst med stoppdetalj-shardingen (2000 filer,
     # ~434 MB) og en lengre operatorliste (AVI/BFO/TEL).
