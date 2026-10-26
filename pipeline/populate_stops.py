@@ -62,7 +62,13 @@ def fetch_from_bigquery() -> list[tuple]:
         q.location_longitude  AS lng,
         q.stopPlaceRef        AS stop_place_ref,
         sp.name               AS stop_place_name,
-        q.publicCode          AS platform_code
+        q.publicCode          AS platform_code,
+        -- Multimodale knutepunkt: geocoderet (og dermed stoppsøket) gir
+        -- FORELDEREN, sanntidsdataene peker på barnet. Oslo Kringsjå: søket
+        -- gir NSR:StopPlace:59706, quayene ligger under 6211 (T-bane) og
+        -- 6213 (buss), begge med parentRef 59706 (målt 2026-10-26). Uten
+        -- denne koblingen måtte klienten gjette på navn — og traff Bergen.
+        sp.parentRef.ref      AS parent_stop_place_ref
     FROM `{NSR_QUAYS_TABLE}` q
     LEFT JOIN `{NSR_STOPS_TABLE}` sp ON sp.id = q.stopPlaceRef
     WHERE q.location_latitude  IS NOT NULL
@@ -74,7 +80,8 @@ def fetch_from_bigquery() -> list[tuple]:
         (str(r.stop_ref), str(r.stop_name) if r.stop_name else None, r.lat, r.lng,
          str(r.stop_place_ref) if r.stop_place_ref else None,
          str(r.stop_place_name) if r.stop_place_name else None,
-         str(r.platform_code) if r.platform_code else None)
+         str(r.platform_code) if r.platform_code else None,
+         str(r.parent_stop_place_ref) if r.parent_stop_place_ref else None)
         for r in df.itertuples(index=False)
     ]
 
@@ -90,9 +97,9 @@ def load_cache() -> list[tuple]:
     with open(CACHE_PATH) as f:
         data = json.load(f)
     rows = [tuple(r) for r in data]
-    # Backward compatibility: old cache had 6 columns (no platform_code).
-    # Pad with None so the rest of the code always sees 7-tuples.
-    return [r if len(r) == 7 else r + (None,) for r in rows]
+    # Bakoverkompatibelt: eldre cacher har 6 (uten platform_code) eller 7
+    # (uten parent_stop_place_ref) kolonner. Fyll med None til 8-tupler.
+    return [r + (None,) * (8 - len(r)) for r in rows]
 
 
 CACHE_MAX_AGE_DAYS = 30
@@ -110,9 +117,29 @@ def cache_is_stale() -> bool:
     return False
 
 
-def populate(db_path: str = DB_PATH, force_refresh: bool = False) -> None:
-    if force_refresh or cache_is_stale():
+# Et svar med vesentlig færre quays enn forrige gang er nesten sikkert en
+# feil (avbrutt spørring, tom tabell under oppdatering hos Entur) — og
+# populate() sletter HELE stop_coords før den skriver. Da beholdes den gamle
+# lista. Målt 2026-10-26: 111 786 quays i cachen fra 28.06.
+MIN_REFRESH_RATIO = 0.9
+
+
+def populate(db_path: str = DB_PATH, force_refresh: bool = False, only_if_stale: bool = False) -> None:
+    stale = cache_is_stale()
+    if only_if_stale and not stale and not force_refresh:
+        # Nattjobben kaller oss hver natt med --if-stale; da skal en fersk
+        # cache ikke føre til at 111 000 rader slettes og skrives på nytt.
+        log.info("Stoppregisteret er ferskt (< %d dager) — ingenting å gjøre", CACHE_MAX_AGE_DAYS)
+        return
+    if force_refresh or stale:
         rows = fetch_from_bigquery()
+        if Path(CACHE_PATH).exists():
+            old_n = len(load_cache())
+            if old_n and len(rows) < MIN_REFRESH_RATIO * old_n:
+                raise SystemExit(
+                    f"BigQuery ga {len(rows)} quays mot {old_n} i cachen "
+                    f"(< {MIN_REFRESH_RATIO:.0%}) — beholder den gamle lista"
+                )
         save_cache(rows)
     else:
         log.info("Loading stop coords from cache %s …", CACHE_PATH)
@@ -121,12 +148,17 @@ def populate(db_path: str = DB_PATH, force_refresh: bool = False) -> None:
 
     conn = sqlite3.connect(db_path)
     try:
+        # Kolonnen kom 2026-10-26 — legg den til i eksisterende baser
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(stop_coords)")}
+        if "parent_stop_place_ref" not in cols:
+            conn.execute("ALTER TABLE stop_coords ADD COLUMN parent_stop_place_ref TEXT")
         with conn:
             conn.execute("DELETE FROM stop_coords")
             conn.executemany(
                 """INSERT OR REPLACE INTO stop_coords
-                   (stop_ref, stop_name, lat, lng, stop_place_ref, stop_place_name, platform_code)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                   (stop_ref, stop_name, lat, lng, stop_place_ref, stop_place_name, platform_code,
+                    parent_stop_place_ref)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 rows,
             )
         log.info("  Inserted %d rows into stop_coords", len(rows))
@@ -135,5 +167,7 @@ def populate(db_path: str = DB_PATH, force_refresh: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    force = "--refresh" in sys.argv
-    populate(force_refresh=force)
+    # --refresh   hent fra BigQuery uansett
+    # --if-stale  hent bare når cachen er eldre enn CACHE_MAX_AGE_DAYS, og rør
+    #             ellers ikke databasen (brukes av nattjobben → månedlig)
+    populate(force_refresh="--refresh" in sys.argv, only_if_stale="--if-stale" in sys.argv)

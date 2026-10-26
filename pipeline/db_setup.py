@@ -195,7 +195,8 @@ CREATE TABLE IF NOT EXISTS stop_coords (
     lng             REAL,
     stop_place_ref  TEXT,   -- NSR:StopPlace:XXXXX (parent stop place)
     platform_code   TEXT,   -- platform letter (A, B, C, …)
-    stop_place_name TEXT    -- display name of the parent stop place
+    stop_place_name TEXT,   -- display name of the parent stop place
+    parent_stop_place_ref TEXT  -- forelder for multimodale knutepunkt (populate_stops.py)
 );
 
 -- (journey_stop_weekly removed 2026-05 — replaced by direct queries on

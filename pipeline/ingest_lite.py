@@ -153,7 +153,8 @@ CREATE TABLE IF NOT EXISTS stop_coords (
     lng             REAL,
     stop_place_ref  TEXT,
     platform_code   TEXT,
-    stop_place_name TEXT
+    stop_place_name TEXT,
+    parent_stop_place_ref TEXT
 );
 
 -- Sanntidsdekning per (dag, linje): hvor mange (avgang, stopp)-rader BigQuery

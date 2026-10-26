@@ -339,7 +339,7 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
     # stop_ref → (shard, stopPlaceRef). Quays uten kjent stoppested hashes på
     # sin egen ref, slik at de fortsatt havner i en (egen) shard.
     mapping = []
-    for stop_ref, (_lat, _lng, sp_ref, _sp_name, _platform) in coords.items():
+    for stop_ref, (_lat, _lng, sp_ref, _sp_name, _platform, _parent) in coords.items():
         key = sp_ref or stop_ref
         mapping.append((stop_ref, shard_of(key), key))
     if not mapping:
@@ -757,11 +757,16 @@ def main() -> int:
     if Path(DB_PATH).exists():
         sq = sqlite3.connect(DB_PATH)
         try:
-            for ref, lat, lng, sp_ref, sp_name, platform in sq.execute(
+            # parent_stop_place_ref kom 2026-10-26 (populate_stops.py); eldre
+            # baser mangler kolonnen → None.
+            has_parent = "parent_stop_place_ref" in {
+                r[1] for r in sq.execute("PRAGMA table_info(stop_coords)")}
+            parent_col = "parent_stop_place_ref" if has_parent else "NULL"
+            for ref, lat, lng, sp_ref, sp_name, platform, parent in sq.execute(
                 "SELECT stop_ref, lat, lng, stop_place_ref, stop_place_name,"
-                "       platform_code FROM stop_coords"
+                f"       platform_code, {parent_col} FROM stop_coords"
             ):
-                coords[ref] = (lat, lng, sp_ref, sp_name, platform)
+                coords[ref] = (lat, lng, sp_ref, sp_name, platform, parent)
         finally:
             sq.close()
         log.info("stop_coords: %d koordinater fra %s", len(coords), DB_PATH)
@@ -802,20 +807,24 @@ def main() -> int:
             entry["w"][w] = [r(avg), r(pct2, 1), r(std), int(dep)]
 
     # Radformat: [stopRef, operator, stopName, lat, lng, w1, w2, w3,
-    #             spRef, platformCode, spName]
+    #             spRef, platformCode, spName, spParent]
+    # spParent (2026-10-26): forelder-StopPlace for multimodale knutepunkt.
+    # Stoppsøket gir forelderen (Oslo Kringsjå = 59706), mens quayene ligger
+    # under barna (6211/6213) — klienten indekserer derfor quayene under begge.
     # De tre siste er lagt til ETTER vinduene slik at eldre klienter (som
     # indekserer 5 + vindusindeks) leser uendret. spRef er kompaktet til bare
     # tallet; spName utelates når det er likt stopName.
     stop_rows = []
     for (stop_ref, operator), entry in sorted(stops.items()):
-        lat, lng, sp_ref, sp_name, platform = coords.get(
-            stop_ref, (None, None, None, None, None))
+        lat, lng, sp_ref, sp_name, platform, parent = coords.get(
+            stop_ref, (None, None, None, None, None, None))
         stop_rows.append([
             stop_ref, operator, entry["name"], lat, lng,
             *[entry["w"].get(w) for w in WINDOWS],
             compact_sp_ref(sp_ref),
             platform,
             sp_name if (sp_name and sp_name != entry["name"]) else None,
+            compact_sp_ref(parent),
         ])
 
     stops_doc = {
@@ -823,7 +832,7 @@ def main() -> int:
         "windows": WINDOWS,
         "cols": ["stopRef", "operator", "stopName", "lat", "lng",
                  *[f"w{w}" for w in WINDOWS],
-                 "spRef", "platformCode", "spName"],
+                 "spRef", "platformCode", "spName", "spParent"],
         "wcols": ["avgDelayMin", "pctDelayed2plus", "stddevDelayMin", "totalDepartures"],
         "stops": stop_rows,
     }
