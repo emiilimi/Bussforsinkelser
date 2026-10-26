@@ -892,7 +892,9 @@ export default function JourneyDetails() {
                   </PopoverContent>
                 </Popover>
               </div>
-              <Button onClick={handleSearch} disabled={!selectedLine} className="w-full md:w-auto">
+              {/* Inaktiv når valgt linje allerede vises — ellers ga trykket ingen
+                  synlig respons (funnet i knapp-sveipet 2026-10-26). */}
+              <Button onClick={handleSearch} disabled={!selectedLine || selectedLine === fetchedLine} className="w-full md:w-auto">
                 <Search className="mr-2 h-4 w-4" /> Analyser
               </Button>
             </div>
