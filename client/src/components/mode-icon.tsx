@@ -48,11 +48,19 @@ const LABELS: Record<VehicleMode, string> = {
  *
  * `coach` beholdes fordi Entur bruker den for ekspressbuss; i våre egne data
  * ligger de under `bus`.
+ *
+ * `metro` manglet fram til 2026-10-26, så ALLE T-bane-legg ble behandlet som
+ * «ingen data»: ingen P80, ingen forsinkelsesgraf, og overgangsanalysen sa
+ * «Mangler forsinkelsesdata» mens «Vis data» viste 22 dager med målte tider
+ * (tabellen slår opp på linje/stopp, uten å se på transportmiddel). Dataene
+ * finnes — Ruter sender ikke vehicleMode, så T-banen (RUT:Line:1–5, ~60 000
+ * rader per linje på to uker) ligger hos oss som `bus`. Entur kaller den
+ * `metro`. Samme alias-felle som `ferry`/`water` over.
  */
 // Typed as ReadonlySet<string> (not VehicleMode) because callers compare
 // against Entur's leg.mode, which is a free-form string, not our own enum.
 export const MODES_WITH_DELAY_DATA: ReadonlySet<string> = new Set<VehicleMode>([
-  "bus", "coach", "ferry", "water", "rail", "tram", "air",
+  "bus", "coach", "ferry", "water", "rail", "tram", "metro", "air",
 ]);
 
 export function modeLabel(mode: string | null | undefined): string {

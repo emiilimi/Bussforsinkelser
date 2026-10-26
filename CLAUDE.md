@@ -317,6 +317,13 @@ bruker `ferry`, mens Entur Journey Planner returnerer `water` for de samme
 båtrutene. Sammenlikner du Entur-legg mot vår `MODES_WITH_DELAY_DATA` må
 BEGGE med, ellers ser båt ut som «ingen data» selv om dataene finnes.
 
+**Navnefelle 2 — T-bane er `bus` hos oss, `metro` hos Entur (2026-10-26).**
+Ruter sender ikke `vehicleMode`, så `fillna("bus")` stempler T-banen
+(RUT:Line:1–5, ~60 000 rader per linje på to uker) som `bus`. Entur Journey
+Planner sier `metro`. `metro` manglet i `MODES_WITH_DELAY_DATA`, så ALLE
+T-bane-legg fikk «ingen data» i reiseplanleggeren selv om dataene fantes.
+Lista slår opp Enturs navn — legg til aliaset der, ikke endre dataene.
+
 **`coach`**: finnes ikke som egen verdi i dataene våre (ekspressbusser ligger
 under `bus`), men Entur bruker `coach` i reiseforslag. `mode-icon.tsx` merker
 den «Flybuss» — misvisende, `coach` er ekspress-/langdistansebuss generelt.
@@ -493,7 +500,7 @@ modes: {
 | `maximumTransfers` | `Int` | Maks antall overganger |
 | `wheelchairAccessible` | `Boolean` | Universell utforming |
 
-**Forsinkelsesdata-begrensning**: Vi har kun delay-statistikk for **buss** (Skyss). Trikk, T-bane, tog, båt har ingen data i vår DB. UI-et må markere legs der vi mangler data.
+**Forsinkelsesdata-begrensning**: UTDATERT påstand fjernet 2026-10-26 — vi har data for buss, T-bane, trikk, tog, båt og fly (se «Multimodal» og navnefellene der). UI-et må fortsatt markere legg der vi faktisk mangler data.
 
 ### Kjente Bergen-stoppesteder (for testing)
 > ⚠️ NSR StopPlace-IDer slås jevnlig sammen/reassignes. Tabellen under er
