@@ -3,7 +3,30 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-23
+**Sist oppdatert**: 2026-10-26
+
+## Endringslogg — 2026-10-26: T-bane hadde «ingen data»; Kringsjå via forelder-StopPlace; stopplista månedlig
+
+**Overgangsanalysen sa «Mangler forsinkelsesdata» og viste 22 dager med målte
+tider rett under** (meldt med skjermbilde, linje 4 → 3). Årsak: `metro`
+manglet i `MODES_WITH_DELAY_DATA`. Ruter sender ikke vehicleMode, så T-banen
+ligger hos oss som `bus`; Entur kaller den `metro`. Tabellen («Vis data») slår
+opp på linje/stopp og fant dataene, sannsynlighetsberegningen stoppet på
+transportmiddelet. Konsekvensen var større enn dialogen: ALLE T-bane-legg fikk
+ingen P80, forsinkelsesgraf eller kartfarger. Rettet ved å legge til `metro`,
+og overgangen regnes nå ut når det finnes målte dager uansett lista.
+Verifisert: Storo → Hellerud (5 → 2 på Majorstuen) viser 12/22 dager og
+sannsynligheter.
+
+**Kringsjå (Oslo) — den egentlige årsaken:** ikke ID-drift. Stoppsøket gir
+foreldre-StopPlace 59706, sanntidsdataene peker på barna 6211 (T-bane) og
+6213 (buss). `populate_stops.py` henter nå `parentRef` (4 938 quays, 1 105
+knutepunkt), `stats_stops_map.json` har ny siste kolonne `spParent`, og
+klienten indekserer quays under forelderen også.
+
+**Stopplista oppdateres månedlig:** `populate_stops.py --if-stale` i
+nattjobben før `aggregate_stats` (henter når cachen er >30 dager). Første
+oppdatering siden 28.06: 112 028 quays (+242), 7 med ny StopPlace-ID.
 
 ## Endringslogg — 2026-10-23: Kringsjå (Oslo) viste Bergen-linjer igjen — radius-sjekken virket aldri uten koordinater
 

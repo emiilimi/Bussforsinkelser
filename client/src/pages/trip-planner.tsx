@@ -2230,12 +2230,20 @@ function TripCard({
         continue;
       }
 
-      const hasDelayData = MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id;
-      const assumingOnTime = !hasDelayData;
-
       // Find the empirical gap distribution for this transfer.
       const spec = transferSpecs[t];
       const gapResult = spec ? gapMap?.get(spec.key) : undefined;
+
+      // Finnes det målte overgangsdager, HAR vi data — uansett hva
+      // transportmiddel-lista sier. Fram til 2026-10-26 sa overgangsanalysen
+      // «Mangler forsinkelsesdata» for T-bane mens tabellen under viste 22
+      // dager med målte tider: lista manglet `metro` (se MODES_WITH_DELAY_DATA),
+      // men overgangsfilene slår opp på linje/stopp og fant dataene.
+      const hasMeasuredGaps =
+        (gapResult?.actual.gaps.length ?? 0) + (gapResult?.pool.gaps.length ?? 0) > 0;
+      const hasDelayData =
+        (MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id) || hasMeasuredGaps;
+      const assumingOnTime = !hasDelayData;
       const gaps = gapResult?.gaps ?? [];
       const source = gapResult?.source ?? "none";
 
