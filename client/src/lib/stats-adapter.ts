@@ -1554,6 +1554,65 @@ async function apiLineHourly(lineRef: string, params: URLSearchParams) {
   return hourly.map((row) => ({ ...row, lineRef }));
 }
 
+/** Bredden på forsinkelsesbøttene i /distribution: kvarter-minutter.
+ *  MÅ være lik DIST_BIN_PER_MIN i lib/line-distribution.ts. */
+const DIST_BIN_PER_MIN = 4;
+
+/**
+ * Alt den nye linjeanalysen (2026-10-27) trenger utenom stoppprofilen, i ÉN
+ * DuckDB-spørring: histogram, varmekart ukedag × time og tall per dag. Hver
+ * spørring har et gulv på ~5 s (kostnadsmodellen i CLAUDE.md), så dette
+ * erstatter /daily og /hourly i stedet for å komme i tillegg.
+ *
+ * Tre slags rader (kind):
+ *  0  (dow, hour, b) → antall og andeler per kvartersbøtte. Histogrammet og
+ *     varmekartet summeres av disse i nettleseren; P80 per celle interpoleres
+ *     innen bøtta (feil ≤ 7,5 s).
+ *  1  per dato → eksakte P50/P80, andeler og antall avganger.
+ *  2  hele utvalget → eksakte P50/P80/P95, σ og antall avganger. Avganger
+ *     telles per (dato, avgang): Skyss gjenbruker samme service_journey_id
+ *     mange dager på rad, så COUNT(DISTINCT sj) alene ga 2 102 i stedet for
+ *     5 743 for linje 3 over en måned.
+ * Andelene bruker samme grenser som resten av siden: for tidlig < EARLY_MIN,
+ * i rute EARLY_MIN..2 min, kraftig forsinket > 10 min. Bøttene klemmes til
+ * −10..+30 min, så de ytterste bøttene samler halene.
+ */
+async function apiLineDistribution(lineRef: string, params: URLSearchParams) {
+  await ensureParquetFilesRegistered();
+  const { where, duckOptions } = lineQueryScope(lineRef, params);
+  const counts = `
+      COUNT(*)::INTEGER AS n, SUM(d) AS s,
+      SUM(CASE WHEN d < ${EARLY_MIN} THEN 1 ELSE 0 END)::INTEGER AS early,
+      SUM(CASE WHEN d >= ${EARLY_MIN} AND d <= 2 THEN 1 ELSE 0 END)::INTEGER AS punctual,
+      SUM(CASE WHEN d > 10 THEN 1 ELSE 0 END)::INTEGER AS late10`;
+
+  return standaloneDuckQuery<Record<string, unknown>>(`
+    WITH r AS MATERIALIZED (
+      SELECT date, d, service_journey_id AS sj,
+        isodow(CAST(date AS DATE)) AS dow,
+        CAST(SUBSTR(COALESCE(aimed_departure, aimed_arrival), 1, 2) AS INTEGER) % 24 AS hour,
+        CAST(FLOOR(LEAST(GREATEST(d, -10), 30) * ${DIST_BIN_PER_MIN}) AS INTEGER) AS b
+      FROM (
+        SELECT date, service_journey_id, aimed_departure, aimed_arrival, ${D_EXPR} AS d
+        FROM delays_by_line WHERE ${where}
+      )
+    )
+    SELECT 0 AS kind, NULL::VARCHAR AS date, dow, hour, b, ${counts},
+      NULL::DOUBLE AS p50, NULL::DOUBLE AS p80, NULL::DOUBLE AS p95,
+      NULL::DOUBLE AS sd, NULL::INTEGER AS deps
+    FROM r WHERE hour IS NOT NULL GROUP BY dow, hour, b
+    UNION ALL
+    SELECT 1, CAST(date AS VARCHAR), NULL, NULL, NULL, ${counts},
+      quantile_cont(d, 0.5), quantile_cont(d, 0.8), NULL, NULL, COUNT(DISTINCT sj)::INTEGER
+    FROM r GROUP BY date
+    UNION ALL
+    SELECT 2, NULL, NULL, NULL, NULL, ${counts},
+      quantile_cont(d, 0.5), quantile_cont(d, 0.8), quantile_cont(d, 0.95),
+      STDDEV_SAMP(d), COUNT(DISTINCT CAST(date AS VARCHAR) || '|' || sj)::INTEGER
+    FROM r
+  `, undefined, duckOptions);
+}
+
 // ---------------------------------------------------------------------------
 // Inngangspunkt: match URL → adapter. `undefined` = ikke håndtert.
 // ---------------------------------------------------------------------------
@@ -1603,6 +1662,10 @@ export async function statsAdapterFetch(url: string): Promise<unknown | undefine
   const lineHourlyMatch = path.match(/^\/api\/line\/([^/]+)\/hourly$/);
   if (lineHourlyMatch) {
     return apiLineHourly(decodeURIComponent(lineHourlyMatch[1]), params);
+  }
+  const lineDistMatch = path.match(/^\/api\/line\/([^/]+)\/distribution$/);
+  if (lineDistMatch) {
+    return apiLineDistribution(decodeURIComponent(lineDistMatch[1]), params);
   }
 
   const stopDirMatch = path.match(/^\/api\/stop\/([^/]+)\/directions$/);
