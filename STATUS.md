@@ -3,7 +3,47 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-26
+**Sist oppdatert**: 2026-10-27
+
+## Endringslogg — 2026-10-27: ny linjeanalyse (branch `feat/linjeanalyse`, forhåndsvisning)
+
+Forhåndsvisning: **https://feat-linjeanalyse-reiseplanlegger.emiliemoldestad.workers.dev/journey**
+(Cloudflare Workers Builds lager URL per branch; produksjon deployes bare fra `reise`).
+
+Bygget etter skissen fra 26.10, men stilen er holdt nær resten av siden
+(shadcn-kort, samme farger og tallformat). Emilies ønsker: tall ved hover i
+alle grafer, zoom i forsinkelsesoppbyggingen eller en stor visning med alle
+stoppnavn, og «for tidlig» høyere opp.
+
+- **Svaret først** (`LineSummaryCard`): «4 av 5 ganger var linja mindre enn
+  +3,8 min forsinket», median og P95 i en setning, og en egen linje når mer
+  enn 1 % gikk for tidlig. Fire tall: I rute (−1..+2 min, UTEN de tidlige —
+  artefaktens `pctOnTime` er ≤ 2 min og inkluderer dem), Gikk for tidlig,
+  Median, Kraftig forsinket. Snitt/σ/avganger/datadekning i en linje under.
+- **Fordeling** (`DelayHistogram`): én søyle per minutt fra ≤ −4 til ≥ 20,
+  farget etter sone, med «for tidlig»-feltet skravert og P50/P80/P95-streker.
+  ⚠️ Søylene står på en skjult KATEGORI-akse og strekene på en numerisk akse
+  over samme bredde — med bare tall-aksen traff tooltipen feil søyle.
+- **Varmekart ukedag × time** (`WeekHourHeatmap`): P80 / snitt / i rute,
+  hover eller trykk for tall, «Alle dager»-rad nederst (erstatter timesgrafen).
+- **Dag for dag**: median og P80 per dag i stedet for min/maks-båndet som
+  strakk aksen fra −15 til +45 min.
+- **Ruteprofil**: én graf for de tre visningene, `Brush` for zoom, «Zoom inn
+  hit» på strekningen med størst økning, P20–P80-bånd og stiplet P80 i
+  stedet for min/maks, og «Vis alle N stopp» (dialog med fulle navn, snitt,
+  endring, stopptid og lenke til stoppanalysen). Brush leser start/slutt bare
+  ved montering, så knappene bytter `key` på grafen.
+- «Analyser»-knappen er borte — linja lastes når den velges.
+
+**Datagrunnlag**: ny `/api/line/:ref/distribution` (`apiLineDistribution` i
+`stats-adapter.ts`, tolket av `lib/line-distribution.ts`) — ÉN DuckDB-
+spørring med `WITH … AS MATERIALIZED` og tre radtyper: kvartersbøtter per
+(ukedag, time), eksakte tall per dato, og eksakte P50/P80/P95/σ for hele
+utvalget. Den erstatter `/daily` og `/hourly`, så siden har én spørring
+mindre enn før. Avganger telles per (dato, avgang): Skyss gjenbruker
+`service_journey_id` over flere dager, og `COUNT(DISTINCT sj)` ga 2 102 i
+stedet for 5 743 for linje 3. `useLineStopProfile` henter nå også P20/P50/P80
+per stopp.
 
 ## Endringslogg — 2026-10-26: T-bane hadde «ingen data»; Kringsjå via forelder-StopPlace; stopplista månedlig
 
