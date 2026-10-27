@@ -46,10 +46,14 @@ Shardformat (kompakte arrays, se TransferShard i client/src/lib/transfer-data.ts
 Shardnøkkel: crc32(quayRef) % N — MÅ være lik shardOf() i transfer-data.ts.
 
 Env:
-    TRANSFER_OPERATORS  kommaseparert (default "RUT"). Tom = av.
+    TRANSFER_OPERATORS  kommaseparert, eller "*" for alle operatørene som
+                        finnes i dataene (default "*" fra 2026-10-27 — før
+                        var det bare "RUT"). Tom = av.
     TRANSFER_DAYS       hvor mange dager bakover filene dekker (default 35;
                         reiseplanleggerens standardvindu er 30)
     TRANSFER_SHARDS     antall shards (default 2000)
+    TRANSFER_PASSES     antall omganger shardene bygges i (default 6) — se
+                        build_transfer_shards
     TRANSFER_OUT_DIR    utmappe (default PARQUET_DIR/transfer) — for testing
 """
 
@@ -63,13 +67,16 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import duckdb
+import pyarrow as pa
 
 REPO_ROOT = Path(__file__).parent.parent
 PARQUET_DIR = Path(os.environ.get("PARQUET_DIR", str(REPO_ROOT / "data" / "parquet")))
 
-OPERATORS = [o.strip() for o in os.environ.get("TRANSFER_OPERATORS", "RUT").split(",") if o.strip()]
+OPERATORS = [o.strip() for o in os.environ.get("TRANSFER_OPERATORS", "*").split(",") if o.strip()]
+ALL_OPERATORS = OPERATORS == ["*"]
 DAYS = int(os.environ.get("TRANSFER_DAYS", "35"))
 SHARDS = int(os.environ.get("TRANSFER_SHARDS", "2000"))
+PASSES = max(1, int(os.environ.get("TRANSFER_PASSES", "6")))
 # Kun for testing: skriv et annet sted enn PARQUET_DIR/transfer (som nattjobben laster opp fra)
 OUT_DIR = Path(os.environ.get("TRANSFER_OUT_DIR", str(PARQUET_DIR / "transfer")))
 FORMAT_VERSION = 1
@@ -111,15 +118,21 @@ def build_transfer_shards(con, generated_at: str, max_date: date, view: str = "d
 
     started = time.time()
     from_date = max_date - timedelta(days=DAYS - 1)
-    ops_sql = ", ".join(f"'{o}'" for o in OPERATORS)
-    where = f"""date >= '{from_date.isoformat()}' AND date <= '{max_date.isoformat()}'
-        AND split_part(line_ref, ':', 1) IN ({ops_sql})"""
+    where = f"date >= '{from_date.isoformat()}' AND date <= '{max_date.isoformat()}'"
+    if ALL_OPERATORS:
+        operators = sorted(r[0] for r in con.execute(f"""
+            SELECT DISTINCT split_part(line_ref, ':', 1) FROM {view} WHERE {where}
+        """).fetchall() if r[0])
+    else:
+        operators = OPERATORS
+        ops_sql = ", ".join(f"'{o}'" for o in operators)
+        where += f" AND split_part(line_ref, ':', 1) IN ({ops_sql})"
 
     day_types = dict(con.execute(f"""
         SELECT date, ANY_VALUE(day_type) FROM {view} WHERE {where} GROUP BY 1
     """).fetchall())
     if not day_types:
-        log.warning("overgangsfiler: ingen rader for %s i %s → %s", OPERATORS, from_date, max_date)
+        log.warning("overgangsfiler: ingen rader for %s i %s → %s", operators, from_date, max_date)
         return 0
     dt_str = "".join(
         DAY_TYPE_CODE.get(day_types.get((from_date + timedelta(days=i)).isoformat()), "-")
@@ -131,32 +144,24 @@ def build_transfer_shards(con, generated_at: str, max_date: date, view: str = "d
     # likt aimedMinExpr i trip-shared.ts. Rader uten noen forsinkelse er
     # ubrukelige for alle tre nivåene og tas ikke med.
     t0 = time.time()
-    con.execute("SET preserve_insertion_order = true")
-    cur = con.execute(f"""
-        WITH r AS (
-            SELECT stop_ref, line_ref, direction_ref,
-                   regexp_extract(service_journey_id, '[^-]*$') AS stable,
-                   CASE WHEN aimed_arrival IS NULL THEN NULL ELSE
-                     CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) * 60
-                     + CAST(SUBSTR(aimed_arrival, 4, 2) AS INTEGER) END AS a_arr,
-                   CASE WHEN aimed_departure IS NULL THEN NULL ELSE
-                     CAST(SUBSTR(aimed_departure, 1, 2) AS INTEGER) * 60
-                     + CAST(SUBSTR(aimed_departure, 4, 2) AS INTEGER) END AS a_dep,
-                   CAST(date_diff('day', DATE '{from_date.isoformat()}', CAST(date AS DATE)) AS INTEGER) AS off,
-                   CAST(ROUND(delay_arrival_min * 100) AS INTEGER) AS arr,
-                   CAST(ROUND(delay_departure_min * 100) AS INTEGER) AS dep
-            FROM {view}
-            WHERE {where}
-              AND (delay_arrival_min IS NOT NULL OR delay_departure_min IS NOT NULL)
-        )
-        SELECT stop_ref, line_ref, direction_ref, stable, a_arr, a_dep,
-               LIST(off ORDER BY off, arr, dep), LIST(arr ORDER BY off, arr, dep),
-               LIST(dep ORDER BY off, arr, dep)
-        FROM r
-        GROUP BY ALL
-        ORDER BY stop_ref, line_ref, direction_ref NULLS FIRST, a_dep NULLS FIRST,
-                 a_arr NULLS FIRST, stable
-    """)
+    # Shardnummeret regnes i Python (crc32 finnes ikke i DuckDB) for hver
+    # plattform og kobles på, så resultatet kan sorteres PER SHARD og skrives
+    # ut fortløpende — bare én shard ligger i Python-minnet om gangen.
+    #
+    # Og shardene bygges i PASSES omganger, hver med sitt sammenhengende
+    # shard-område. Med alle operatører i én spørring (2026-10-27) spilte
+    # GROUP BY med LIST-er og ORDER BY over ~45 mill. rader 17,7 GiB til
+    # disk og stoppet først når C: var full (8 GB minnegrense). Ruter alene
+    # (~1/3 av radene) gikk greit i én omgang, så seks omganger gir god
+    # margin. Prisen er at parquet-filene leses én gang per omgang.
+    quays = [r[0] for r in con.execute(f"SELECT DISTINCT stop_ref FROM {view} WHERE {where}").fetchall()]
+    quay_shard = {q: shard_of(q) for q in quays}
+
+    # AV med vilje: rekkefølgen kommer fra ORDER BY og LIST(... ORDER BY), og
+    # innstillingen koster mye minne. Settes eksplisitt fordi aggregate_stats
+    # slår den PÅ i stoppfil-steget (build_stop_detail_shards) før dette
+    # steget kjører på samme tilkobling.
+    con.execute("SET preserve_insertion_order = false")
 
     # Skriv til en midlertidig mappe og bytt inn til slutt, så en avbrutt
     # kjøring aldri etterlater en halv mappe som upload_to_r2 laster opp.
@@ -166,38 +171,95 @@ def build_transfer_shards(con, generated_at: str, max_date: date, view: str = "d
         shutil.rmtree(tmp_dir)
     tmp_dir.mkdir(parents=True)
 
-    # Hold alle shards i minnet: for RUT/35 dager er det ~100 MB Python-objekter
-    # — overkommelig, og resultatet kommer sortert per plattform, ikke per shard.
-    shards: dict[int, dict] = {}
-    groups = rows = 0
-    while True:
-        batch = cur.fetchmany(50_000)
-        if not batch:
-            break
-        for stop_ref, line_ref, dref, stable, a_arr, a_dep, offs, arrs, deps in batch:
-            s = shards.get(shard_of(stop_ref))
-            if s is None:
-                s = shards[shard_of(stop_ref)] = {"L": [], "Li": {}, "q": {}}
-            li = s["Li"].get(line_ref)
-            if li is None:
-                li = s["Li"][line_ref] = len(s["L"])
-                s["L"].append(line_ref)
-            s["q"].setdefault(stop_ref, []).append(
-                [li, dref, stable_key(stable), a_arr, a_dep, offs, arrs, deps])
-            groups += 1
-            rows += len(offs)
-    log.info("overgangsfiler: %d rader i %d avgangsgrupper, %d plattformer (%.1fs)",
-             rows, groups, sum(len(s["q"]) for s in shards.values()), time.time() - t0)
+    groups = rows = platforms = files = total = biggest = 0
 
-    total = biggest = 0
-    for shard, s in shards.items():
+    def flush(shard: int, s: dict) -> None:
+        nonlocal files, total, biggest
         doc = {"v": FORMAT_VERSION, "d0": from_date.isoformat(), "dt": dt_str,
                "L": s["L"], "q": s["q"]}
         p = tmp_dir / f"{shard}.json"
         p.write_text(json.dumps(doc, separators=(",", ":")), encoding="utf-8")
         size = p.stat().st_size
+        files += 1
         total += size
         biggest = max(biggest, size)
+
+    per_pass = -(-SHARDS // PASSES)
+    for k in range(PASSES):
+        lo, hi = k * per_pass, min(SHARDS, (k + 1) * per_pass)
+        part = [(q, sh) for q, sh in quay_shard.items() if lo <= sh < hi]
+        if not part:
+            continue
+        con.register("_quay_shard", pa.table({
+            "stop_ref": pa.array([q for q, _ in part], pa.string()),
+            "shard": pa.array([sh for _, sh in part], pa.int32()),
+        }))
+        # Én rad per (plattform, linje, retning, stabil avgang, rutetider);
+        # datoene som parallelle lister. aimed_* er "HH:MM"/"HH:MM:SS";
+        # minuttene regnes likt aimedMinExpr i trip-shared.ts. Rader uten noen
+        # forsinkelse er ubrukelige for alle tre nivåene og tas ikke med.
+        cur = con.execute(f"""
+            WITH r AS (
+                SELECT d.stop_ref, d.line_ref, d.direction_ref,
+                       regexp_extract(d.service_journey_id, '[^-]*$') AS stable,
+                       CASE WHEN d.aimed_arrival IS NULL THEN NULL ELSE
+                         CAST(SUBSTR(d.aimed_arrival, 1, 2) AS INTEGER) * 60
+                         + CAST(SUBSTR(d.aimed_arrival, 4, 2) AS INTEGER) END AS a_arr,
+                       CASE WHEN d.aimed_departure IS NULL THEN NULL ELSE
+                         CAST(SUBSTR(d.aimed_departure, 1, 2) AS INTEGER) * 60
+                         + CAST(SUBSTR(d.aimed_departure, 4, 2) AS INTEGER) END AS a_dep,
+                       CAST(date_diff('day', DATE '{from_date.isoformat()}', CAST(d.date AS DATE)) AS INTEGER) AS off,
+                       CAST(ROUND(d.delay_arrival_min * 100) AS INTEGER) AS arr,
+                       CAST(ROUND(d.delay_departure_min * 100) AS INTEGER) AS dep
+                FROM {view} d
+                SEMI JOIN _quay_shard qs ON d.stop_ref = qs.stop_ref
+                WHERE {where}
+                  AND (d.delay_arrival_min IS NOT NULL OR d.delay_departure_min IS NOT NULL)
+            )
+            SELECT qs.shard, g.*
+            FROM (
+                SELECT stop_ref, line_ref, direction_ref, stable, a_arr, a_dep,
+                       LIST(off ORDER BY off, arr, dep) AS offs, LIST(arr ORDER BY off, arr, dep) AS arrs,
+                       LIST(dep ORDER BY off, arr, dep) AS deps
+                FROM r
+                GROUP BY ALL
+            ) g
+            JOIN _quay_shard qs USING (stop_ref)
+            ORDER BY qs.shard, stop_ref, line_ref, direction_ref NULLS FIRST, a_dep NULLS FIRST,
+                     a_arr NULLS FIRST, stable
+        """)
+
+        # Radene kommer sortert per shard: hver shard skrives straks neste
+        # begynner. Ingen shard krysser en omgang (områdene er disjunkte).
+        cur_shard: int | None = None
+        s: dict = {}
+        while True:
+            batch = cur.fetchmany(50_000)
+            if not batch:
+                break
+            for shard, stop_ref, line_ref, dref, stable, a_arr, a_dep, offs, arrs, deps in batch:
+                if shard != cur_shard:
+                    if cur_shard is not None:
+                        flush(cur_shard, s)
+                    cur_shard, s = shard, {"L": [], "Li": {}, "q": {}}
+                li = s["Li"].get(line_ref)
+                if li is None:
+                    li = s["Li"][line_ref] = len(s["L"])
+                    s["L"].append(line_ref)
+                q = s["q"].get(stop_ref)
+                if q is None:
+                    q = s["q"][stop_ref] = []
+                    platforms += 1
+                q.append([li, dref, stable_key(stable), a_arr, a_dep, offs, arrs, deps])
+                groups += 1
+                rows += len(offs)
+        if cur_shard is not None:
+            flush(cur_shard, s)
+        con.unregister("_quay_shard")
+        log.info("overgangsfiler: omgang %d/%d (shard %d–%d) ferdig etter %.0fs",
+                 k + 1, PASSES, lo, hi - 1, time.time() - t0)
+    log.info("overgangsfiler: %d rader i %d avgangsgrupper, %d plattformer (%.1fs)",
+             rows, groups, platforms, time.time() - t0)
 
     if final_dir.exists():
         shutil.rmtree(final_dir)
@@ -213,16 +275,16 @@ def build_transfer_shards(con, generated_at: str, max_date: date, view: str = "d
         "generatedAt": generated_at,
         "shards": SHARDS,
         "path": f"transfer/{SHARDS}",
-        "operators": OPERATORS,
+        "operators": operators,
         "from": from_date.isoformat(),
         "to": max_date.isoformat(),
-        "files": len(shards),
+        "files": files,
     }
     (root / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
-    log.info("→ transfer/ (%d shardfiler, %.1f MB, største %.0f KB, %s → %s, %s) på %.1fs",
-             len(shards), total / 1e6, biggest / 1024, from_date, max_date,
-             ",".join(OPERATORS), time.time() - started)
-    return len(shards)
+    log.info("→ transfer/ (%d shardfiler, %.1f MB, største %.0f KB, %s → %s, %d operatører) på %.1fs",
+             files, total / 1e6, biggest / 1024, from_date, max_date,
+             len(operators), time.time() - started)
+    return files
 
 
 def main() -> int:
@@ -233,7 +295,10 @@ def main() -> int:
         log.error("Ingen *-by-stop.parquet i %s", PARQUET_DIR)
         return 1
     con = duckdb.connect()
-    con.execute(f"SET memory_limit = '{os.environ.get('STATS_DUCKDB_MEMORY', '8GB')}'")
+    # Samme minne- og spillinnstillinger som nattjobben (aggregate_stats). Uten
+    # temp_directory er 8 GB en vegg i stedet for en terskel for å spille til disk.
+    from aggregate_stats import configure_duckdb
+    configure_duckdb(con)
     file_list = ", ".join(f"'{f.as_posix()}'" for f in files)
     con.execute(f"CREATE VIEW delays AS SELECT * FROM read_parquet([{file_list}])")
     max_date = date.fromisoformat(con.execute("SELECT MAX(date) FROM delays").fetchone()[0])

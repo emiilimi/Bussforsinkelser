@@ -298,7 +298,7 @@ function aimedMinExpr(col: string): string {
  * til eksakt id-likhet). Pruningen kommer fra stop_ref, som er sorteringsnøkkel
  * i by-stop-familien — derfor MÅ disse spørringene kjøre mot den familien.
  */
-function stableSjPredicate(stable: string): string {
+export function stableSjPredicate(stable: string): string {
   const esc = escSql(stable);
   return `(service_journey_id = '${esc}' OR ENDS_WITH(service_journey_id, '-${esc}'))`;
 }
@@ -593,7 +593,10 @@ export async function computeTransferGap(
 export function gapResultFromRows(rows: CombinedGapRow[]): TransferGapResult {
   const toObs = (r: CombinedGapRow): TransferGapObservation => ({
     date: normalizeDate(r.date),
-    gap: Number(r.gap),
+    // Forsinkelsene har to desimaler, men DuckDB regner gapet i float32:
+    // et gap på 2,00 kom ut som 1,9999999 og telte da som «rakk det ikke»
+    // med 2 min buffer, mens overgangsfilene (hele hundredeler) sa ja.
+    gap: Math.round(Number(r.gap) * 100) / 100,
     arrActualMin: r.arr_min != null ? Number(r.arr_min) : null,
     depActualMin: r.dep_min != null ? Number(r.dep_min) : null,
   });

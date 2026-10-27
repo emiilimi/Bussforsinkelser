@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
-  transferGapSql, gapResultFromRows, probFromGaps, statsWindowSql,
+  transferGapSql, gapResultFromRows, probFromGaps, statsWindowSql, stableSjId, stableSjPredicate,
   type TransferSpec, type CombinedGapRow,
 } from "../client/src/lib/trip-shared";
 import { localTransferGapRows, localDelayDistribution, localLegTiming } from "../client/src/lib/transfer-data";
@@ -44,7 +44,7 @@ function legSql(s: TransferSpec, delta?: number): string {
   const where = delta != null
     ? `line_ref = '${s.arrLineRef}' AND stop_ref = '${s.arrQuayRef}' ${win}
        AND CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) BETWEEN ${hour - delta} AND ${hour + delta}`
-    : `service_journey_id = '${s.arrSjId}' AND stop_ref = '${s.arrQuayRef}' ${win}`;
+    : `${stableSjPredicate(stableSjId(s.arrSjId!))} AND stop_ref = '${s.arrQuayRef}' ${win}`;
   return `SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min) AS p50,
                  PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min) AS p80, COUNT(*) AS n
           FROM delays_by_stop WHERE ${where} AND delay_arrival_min IS NOT NULL`;

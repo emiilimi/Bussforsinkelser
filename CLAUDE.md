@@ -649,6 +649,13 @@ eller legg-tid-SQL-en, MÅ `transfer-data.ts` følge med, og
 `pipeline/check_transfer_parity.py` skal fortsatt gi 100 %. Se STATUS.md
 2026-10-10.
 
+**Alle operatører fra 2026-10-27** (`TRANSFER_OPERATORS=*`, default): 28
+operatører, ~50 mill. rader, 2000 filer / ~800 MB (Ruter alene: ~243 MB).
+Bygges i `TRANSFER_PASSES` (6) omganger over disjunkte shard-områder — i én
+omgang spilte DuckDB 17,7 GiB til disk og stoppet da C: var full. Med seks
+omganger: ~11 min og ~5,2 GB minne. **Disken er marginen**: C: hadde ~19 GB
+ledig; går den lavere, øk `TRANSFER_PASSES` eller frigjør plass.
+
 **npm-pakke**: `@duckdb/duckdb-wasm@1.33.1-dev42.0`
 **Python-avhengigheter**: `pip install pyarrow duckdb boto3` (for export_parquet.py / migrate_parquet_sort.py / upload_to_r2.py)
 **Status**: Implementert, inkl. R2-opplasting (reise-bygget bruker denne i produksjon; lokal serving fra `data/parquet/` er kun for full-bygget/dev).
@@ -685,7 +692,8 @@ python pipeline/upload_to_r2.py --prune
 | `PAX_CACHE_DIR` | passenger_stats | `data/pax-cache` |
 | `PAX_MAX_MONTHS` | passenger_stats | `3` |
 | `VITE_PAX_BASE_URL` | frontend (pax.ts) | ikke satt = `<VITE_PARQUET_BASE_URL>/pax` |
-| `TRANSFER_OPERATORS` | transfer_shards | `RUT` (tom = av) |
+| `TRANSFER_OPERATORS` | transfer_shards | `*` = alle (komma-liste for utvalg, tom = av) |
+| `TRANSFER_PASSES` | transfer_shards | `6` |
 | `TRANSFER_DAYS` | transfer_shards | `35` |
 | `TRANSFER_SHARDS` | transfer_shards | `2000` |
 

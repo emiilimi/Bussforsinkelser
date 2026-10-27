@@ -3,7 +3,57 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-26
+**Sist oppdatert**: 2026-10-27
+
+## Endringslogg — 2026-10-27: overgangsfiler for alle operatører
+
+`pipeline/transfer_shards.py` bygger nå overgangsfiler for ALLE operatører i
+dataene (`TRANSFER_OPERATORS=*`, ny default), ikke bare Ruter. Frontenden
+trenger ingen endring: den leser operatørlista fra `transfer/index.json`.
+
+Målt på 35 dager (2026-09-22 → 10-26):
+
+| | Ruter (før) | Alle (nå) |
+|---|---|---|
+| Operatører | 1 | 28 |
+| Rader | — | 49,9 mill. |
+| Størrelse | ~243 MB | 799 MB (største fil 1,1 MB) |
+| Tid | ~2 min | ~11 min |
+| Minne (topp RSS) | 1,7 GB | 5,2 GB |
+
+**Første forsøk feilet to ganger:**
+1. OOM — `main()` (frittstående kjøring) manglet `configure_duckdb()` og
+   dermed spill-mappe. Bruker nå samme oppsett som `aggregate_stats.py`.
+2. Disk full — GROUP BY med LIST-er + ORDER BY over alle radene i én spørring
+   spilte 17,7 GiB (`max_temp_directory_size`) med 8 GB minnegrense. Løst ved
+   å bygge i `TRANSFER_PASSES` (6) omganger over disjunkte shard-områder
+   (`SEMI JOIN` mot en quay→shard-tabell regnet i Python), og ved å sette
+   `preserve_insertion_order = false` eksplisitt — `build_stop_detail_shards`
+   slår den på før dette steget på samme tilkobling.
+
+Kontroll: med `TRANSFER_OPERATORS=RUT` gir den nye koden byte-identiske filer
+med nattjobbens (tom `diff -r`).
+
+**Paritet mot alle operatører avdekket to gamle avvik** (fantes før denne
+endringen, men Ruter-utvalget traff dem aldri). Første kjøring: 93/95
+overganger, 276/285 legg-tider. Filene hadde rett begge gangene, så
+DuckDB-veien er rettet til å gi samme svar:
+1. **Legg-tid «samme avgang»** (`legTimingSql` i `trip-planner.tsx`) matchet
+   på HELE `service_journey_id`. For Skyss endres den nesten daglig, så
+   DuckDB fant 2–3 dager der filene (stabil id) fant 15–22. Bruker nå
+   `stableSjPredicate(stableSjId(...))`, som overgangs-SQL-en alltid har gjort.
+2. **Gap på nøyaktig 2,00 min** kom ut som 1,9999999 fra DuckDB (float32) og
+   telte som «rakk ikke» med 2 min buffer. `gapResultFromRows` runder nå
+   gapet til hundredeler.
+
+Etter rettingen: 95/95 overganger (fra 12 operatører; RUT 31, ATB 19, SKY 13, KOL 11, …),
+190/190 persentilpar, 285/285 legg-tider.
+
+Også: metodeboksen sa «T-bane vises uten statistikk» — feil siden
+2026-10-26 (`metro` i `MODES_WITH_DELAY_DATA`).
+
+**Disk**: C: har ~19 GB ledig. Nattjobben trenger nå ~0,8 GB ekstra output og
+spill-plass per omgang. Faller ledig plass mye, øk `TRANSFER_PASSES`.
 
 ## Endringslogg — 2026-10-26: T-bane hadde «ingen data»; Kringsjå via forelder-StopPlace; stopplista månedlig
 

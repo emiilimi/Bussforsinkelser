@@ -50,7 +50,7 @@ import {
   type TransferGapSource, type DuckQueryFn, type ResolvedStatsWindow,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps, gapResultFromRows, NO_DUCK,
   probFromGaps, shrunkProb, POOL_PRIOR_DAYS, isActualDepartureSource, SPECIFIC_MIN_DAYS,
-  statsWindowSql, defaultWindowForDayType,
+  statsWindowSql, defaultWindowForDayType, stableSjId, stableSjPredicate,
 } from "@/lib/trip-shared";
 import {
   useTransferIndex, transferCovers, localTransferGapRows, localDelayDistribution, localLegTiming,
@@ -264,7 +264,9 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
     ? `line_ref = '${esc(s.lineRef)}' AND stop_ref = '${esc(s.quayRef)}'
        ${win}
        AND CAST(SUBSTR(${aimedCol}, 1, 2) AS INTEGER) BETWEEN ${s.aimedHour - delta} AND ${s.aimedHour + delta}`
-    : `service_journey_id = '${esc(s.serviceJourneyId)}' AND stop_ref = '${esc(s.quayRef)}'
+    // Stabil id (siste ledd), som overgangs-SQL-en og overgangsfilene: hele
+    // Skyss-id-en endres nesten daglig og ga 2–3 dager i stedet for ~20.
+    : `${stableSjPredicate(stableSjId(s.serviceJourneyId))} AND stop_ref = '${esc(s.quayRef)}'
        ${win}`;
   return `
     SELECT
@@ -4237,7 +4239,7 @@ export default function TripPlanner() {
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-start gap-2">
                 <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
-                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid − planlagt tid. Buss, flybuss, tog, båt, bybane og fly har forsinkelsesdata. T-bane vises uten statistikk.</p>
+                <p><strong>Datakilde:</strong> Sanntidsdata fra SIRI ET (Entur). Forsinkelse = faktisk tid − planlagt tid. Buss, flybuss, tog, T-bane, båt, bybane og fly har forsinkelsesdata.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
