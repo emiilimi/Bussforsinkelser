@@ -3,7 +3,40 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-27
+**Sist oppdatert**: 2026-10-31
+
+## Endringslogg — 2026-10-31: nattjobben publiserer i biter
+
+**Problem:** sentur.no sto på 27.10 fra 28. til 31.10. 29.10: jobben startet
+aldri (PC-en sov; oppgavehistorikken i Windows er slått av, så årsaken kan ikke
+ses). 30.10: drept 10:22 av en Windows Update-omstart, 16 min inn. 31.10:
+startet 13:09 og måtte hente tre dager. En hel kjøring for ÉN dag tar ~2 t
+(28.10: ingest 18, eksport 2, overgangsfiler 35, oversikt 11, stoppfiler 43,
+linjenavn 12, opplasting 5 min), og ALT ble lastet opp først til slutt — PC-en
+brukes ofte bare 2–3 timer om gangen.
+
+**Nå** (`scripts/nightly_reise.ps1`):
+- Hver dag lastes opp (ukefiler + manifest) rett etter ingest:
+  `upload_to_r2.py --only parquet`.
+- `aggregate_stats.py` er delt i fire steg (`--only transfer|summary|stops|names`),
+  hvert lastet opp med en gang (`upload_to_r2.py --only transfer|stats|stops`).
+- `--skip-fresh`: steg som alt er bygget fra de samme ukefilene hoppes over
+  (`.aggregate_state.json`; fingeravtrykk = ukefilenes navn/størrelse/mtime +
+  `stop_coords.json` + koden), så en avbrutt kjøring fortsetter der den slapp.
+  Opplastingen kjøres uansett og hopper selv over uendrede filer.
+- Feil i ett steg (også gårsdagens ingest) stopper ikke resten; natten meldes
+  som feilet til slutt.
+- Klient: `transferCovers` godtar overgangsfiler inntil 3 dager eldre enn
+  manifestet. Før ga ÉN dags forskjell DuckDB-fallback (~2 min i stedet for
+  ~3 s), og med dagvis opplasting ville det skjedd hver natt i ~35 min.
+
+**Også funnet:** DuckDB 1.5.1 svarer `MAX(date)` fra radgruppe-statistikken,
+som for strenger bare har 8 tegn — én enkelt ukefil gav `'2026-10-'`. Med
+flere filer ble svaret riktig, så produksjonen var ikke rammet. `aggregate_stats`
+og `transfer_shards` bruker nå `MAX(CAST(date AS DATE))`.
+
+**Disk:** `data/bussforsinkelser.db` (fullbygget, 22 GB, nattjobben avslått)
+slettet etter avtale — C: fra 10,5 til 35 GB ledig.
 
 ## Endringslogg — 2026-10-27: overgangsfiler for alle operatører
 
