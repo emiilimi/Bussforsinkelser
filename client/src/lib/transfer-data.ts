@@ -148,23 +148,12 @@ function operatorOf(lineRef: string): string {
   return lineRef.split(":")[0];
 }
 
-const TRANSFER_MAX_LAG_DAYS = 3;
-
-/** Hele dager fra a til b (ISO-datoer); negativ når b er før a. */
-function daysBetween(a: string, b: string): number {
-  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
-}
-
 /**
  * Dekker filene dette vinduet og disse linjene? Vinduet må ha en startdato
  * innenfor filenes periode (standardvinduet «samme dagtype, siste 30 dager»
  * og «Siste 7/30 dager» gjør det; «Alle hverdager» og «Siste 90 dager» ikke).
- * `latest` er siste datadag i parquet. Filene får ligge inntil
- * TRANSFER_MAX_LAG_DAYS bak den: nattjobben laster opp hver dag med en gang
- * (2026-10-31) og overgangsfilene ~35 min senere, og et krav om nøyaktig
- * samme dag gjorde reiseplanleggeren ~40× tregere (DuckDB) i mellomtiden.
- * De nyeste dagene mangler da i vinduet — 1–3 av ~35. Er filene eldre enn
- * det (pipelinen har feilet i flere dager), brukes DuckDB som før.
+ * `latest` er siste datadag i parquet: er filene eldre enn den (pipelinen
+ * feilet halvveis), brukes DuckDB så ingen dager faller stille ut.
  */
 export function transferCovers(
   idx: TransferIndex | null,
@@ -176,7 +165,7 @@ export function transferCovers(
   if (window.dateFrom < idx.from) return false;
   // Uten eksplisitt dato: siste datadag fra parquet-manifestet, hvis lest.
   const newest = latest === undefined ? latestDataDate("by-stop") : latest;
-  if (newest && daysBetween(idx.to, newest) > TRANSFER_MAX_LAG_DAYS) return false;
+  if (newest && newest > idx.to) return false;
   for (const l of lineRefs) {
     if (!l || !idx.operators.includes(operatorOf(l))) return false;
   }

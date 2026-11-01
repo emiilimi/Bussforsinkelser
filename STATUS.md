@@ -16,19 +16,27 @@ linjenavn 12, opplasting 5 min), og ALT ble lastet opp først til slutt — PC-e
 brukes ofte bare 2–3 timer om gangen.
 
 **Nå** (`scripts/nightly_reise.ps1`):
-- Hver dag lastes opp (ukefiler + manifest) rett etter ingest:
-  `upload_to_r2.py --only parquet`.
+- Alle manglende dager hentes først, så én eksport. (Første utkast lastet opp
+  per dag, men en ukefil skrives om i sin helhet hver gang — fire dager i samme
+  uke ville gitt fire eksporter og opplastinger av ~150 MB, og hentede dager er
+  uansett trygge i `reise.db`.)
 - `aggregate_stats.py` er delt i fire steg (`--only transfer|summary|stops|names`),
-  hvert lastet opp med en gang (`upload_to_r2.py --only transfer|stats|stops`).
+  hvert lastet opp med en gang (`upload_to_r2.py --only parquet,transfer|stats|stops`).
+  Ukefilene går opp sammen med overgangsfilene, så reiseplanleggeren aldri ser
+  et manifest som er nyere enn `transfer/index.json` (da faller den til DuckDB).
 - `--skip-fresh`: steg som alt er bygget fra de samme ukefilene hoppes over
   (`.aggregate_state.json`; fingeravtrykk = ukefilenes navn/størrelse/mtime +
   `stop_coords.json` + koden), så en avbrutt kjøring fortsetter der den slapp.
   Opplastingen kjøres uansett og hopper selv over uendrede filer.
 - Feil i ett steg (også gårsdagens ingest) stopper ikke resten; natten meldes
   som feilet til slutt.
-- Klient: `transferCovers` godtar overgangsfiler inntil 3 dager eldre enn
-  manifestet. Før ga ÉN dags forskjell DuckDB-fallback (~2 min i stedet for
-  ~3 s), og med dagvis opplasting ville det skjedd hver natt i ~35 min.
+
+**Den egentlige tidstyven var lukket lokk.** 31.10 og 1.11 ble kjøringene
+fullført for hånd med lokket åpent: transfer ~8, summary ~5, stops 7, names
+6 min — mot 35/11/43/12 min i nattkjøringene. Med lukket lokk går maskinen i
+«moderne ventemodus», der prosessene kjører videre men strupet (én omgang
+overgangsfiler: ~2 t mot 1,5 min). 1.11 døde PC-en i tillegg midt i
+aggregeringen (Kernel-Power 41, trolig tomt batteri).
 
 **Også funnet:** DuckDB 1.5.1 svarer `MAX(date)` fra radgruppe-statistikken,
 som for strenger bare har 8 tegn — én enkelt ukefil gav `'2026-10-'`. Med
