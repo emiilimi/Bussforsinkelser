@@ -18,7 +18,9 @@ export type DistRow = {
   early: number;
   punctual: number;
   late10: number;
+  /** Kind 3 (per dato × time): laveste enkeltmåling — se apiLineDistribution. */
   p50: number | null;
+  /** Kind 3 (per dato × time): høyeste enkeltmåling. */
   p80: number | null;
   p95: number | null;
   sd: number | null;
@@ -61,6 +63,18 @@ export type DailyPoint = Shares & {
   p50: number | null;
   p80: number | null;
   deps: number | null;
+  /** Laveste og høyeste enkeltmåling den dagen (båndet i «Daglig trend»). */
+  min: number | null;
+  max: number | null;
+};
+
+/** Per time på døgnet: snittet av dagssnittene, og beste/verste dag. */
+export type HourlyPoint = {
+  hour: number;
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+  n: number;
 };
 
 export type LineDistribution = {
@@ -70,6 +84,7 @@ export type LineDistribution = {
   cells: Map<string, HeatCell>;
   hours: number[];
   daily: DailyPoint[];
+  hourly: HourlyPoint[];
 };
 
 export const cellKey = (dow: number, hour: number) => `${dow}-${hour}`;
@@ -158,10 +173,37 @@ export function parseDistribution(rows: DistRow[]): LineDistribution | null {
   // Nattetimene etter midnatt (0–4) sist, så aksen følger driftsdøgnet.
   const hours = Array.from(hoursSeen).sort((a, b) => ((a + 20) % 24) - ((b + 20) % 24));
 
+  // Kind 3: én rad per (dato, time) med laveste/høyeste måling i p50/p80.
+  // Gir min/maks per dag og, per time, snittet av dagssnittene med beste og
+  // verste dag — det /daily og /hourly regnet før.
+  const dayMinMax = new Map<string, { min: number; max: number }>();
+  const hourAcc = new Map<number, { sum: number; days: number; min: number; max: number; n: number }>();
+  for (const r of rows) {
+    if (r.kind !== 3 || !r.date || r.hour == null || !r.n) continue;
+    const date = r.date.slice(0, 10);
+    if (r.p50 != null && r.p80 != null) {
+      const m = dayMinMax.get(date);
+      if (!m) dayMinMax.set(date, { min: r.p50, max: r.p80 });
+      else { m.min = Math.min(m.min, r.p50); m.max = Math.max(m.max, r.p80); }
+    }
+    const dayMean = r.s / r.n;
+    const h = hourAcc.get(r.hour);
+    if (!h) hourAcc.set(r.hour, { sum: dayMean, days: 1, min: dayMean, max: dayMean, n: r.n });
+    else { h.sum += dayMean; h.days++; h.min = Math.min(h.min, dayMean); h.max = Math.max(h.max, dayMean); h.n += r.n; }
+  }
+
   const daily: DailyPoint[] = rows
     .filter((r) => r.kind === 1 && r.date)
-    .map((r) => ({ ...shares(r), date: r.date!.slice(0, 10), p50: r.p50, p80: r.p80, deps: r.deps }))
+    .map((r) => {
+      const date = r.date!.slice(0, 10);
+      const mm = dayMinMax.get(date);
+      return { ...shares(r), date, p50: r.p50, p80: r.p80, deps: r.deps, min: mm?.min ?? null, max: mm?.max ?? null };
+    })
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  const hourly: HourlyPoint[] = Array.from(hourAcc.entries())
+    .map(([hour, h]) => ({ hour, avg: h.sum / h.days, min: h.min, max: h.max, n: h.n }))
+    .sort((a, b) => a.hour - b.hour);
 
   return {
     overall: {
@@ -176,6 +218,7 @@ export function parseDistribution(rows: DistRow[]): LineDistribution | null {
     cells,
     hours,
     daily,
+    hourly,
   };
 }
 

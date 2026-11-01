@@ -9,7 +9,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { MapPin } from "lucide-react";
+import { BarChart3, CalendarClock, CalendarDays, MapPin } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -49,12 +49,22 @@ export type SummaryNumbers = {
   deps: number | null;
 };
 
-function Kpi({ label, value, hint, tone, info }: {
-  label: string; value: string; hint: string; tone?: "good" | "warn" | "bad"; info?: React.ReactNode;
+// Samme uttrykk som stat-kortene på Oversikt (dashboard.tsx): farget
+// venstrekant etter hva tallet betyr, lett skygge.
+const KPI_EDGE = {
+  good: "border-l-emerald-500",
+  warn: "border-l-amber-500",
+  bad: "border-l-destructive",
+  neutral: "border-l-primary/50",
+} as const;
+
+function Kpi({ label, value, hint, tone, edge, info }: {
+  label: string; value: string; hint: string; tone?: "good" | "warn" | "bad";
+  edge: keyof typeof KPI_EDGE; info?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border bg-background/50 px-3 py-2.5 min-w-0">
-      <div className="text-xs text-muted-foreground flex items-center gap-1">
+    <div className={cn("rounded-lg border border-l-4 bg-card shadow-sm hover:shadow-md transition-shadow px-3 py-2.5 min-w-0", KPI_EDGE[edge])}>
+      <div className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-1">
         {label}
         {info && <InfoTip>{info}</InfoTip>}
       </div>
@@ -79,7 +89,7 @@ export function LineSummaryCard({ lineLabel, periodLabel, nums, coveragePct }: {
 }) {
   const { p80, p50, p95, pctEarly } = nums;
   return (
-    <Card>
+    <Card className="shadow-sm border-l-4 border-l-primary">
       <CardHeader className="pb-3">
         <CardDescription>{lineLabel} · {periodLabel}</CardDescription>
         <CardTitle className="text-xl leading-snug font-semibold">
@@ -109,24 +119,28 @@ export function LineSummaryCard({ lineLabel, periodLabel, nums, coveragePct }: {
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <Kpi
             label="I rute"
+            edge="good"
             value={fmtPct(nums.pctPunctual)}
             hint="Fra 1 min før til 2 min etter rutetid"
             tone="good"
           />
           <Kpi
             label="Gikk for tidlig"
+            edge="warn"
             value={fmtPct(nums.pctEarly, 1)}
             hint="Mer enn 1 min før rutetid"
             tone={nums.pctEarly != null && nums.pctEarly >= 2 ? "warn" : undefined}
           />
           <Kpi
             label="Median"
+            edge="neutral"
             value={fmtSignedMin(nums.p50)}
             hint={nums.p95 != null ? `P95: ${fmtSignedMin(nums.p95)}` : "Halvparten er senere enn dette"}
             info={<>Median (P50): halvparten av gangene var forsinkelsen mindre enn dette. P95: bare 1 av 20 ganger var den større.</>}
           />
           <Kpi
             label="Kraftig forsinket"
+            edge="bad"
             value={fmtPct(nums.pctLate10, 1)}
             hint="Mer enn 10 min etter rutetid"
             tone={nums.pctLate10 != null && nums.pctLate10 >= 2 ? "bad" : undefined}
@@ -181,9 +195,9 @@ export function DelayHistogram({ dist, periodLabel }: { dist: LineDistribution; 
   const { p50, p80, p95, pctEarly } = dist.overall;
   const marks: Array<[string, number | null]> = [["P50", p50], ["P80", p80], ["P95", p95]];
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>Slik fordeler forsinkelsene seg</CardTitle>
+        <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Slik fordeler forsinkelsene seg</CardTitle>
         <CardDescription>
           Andel av alle stoppasseringer etter hvor mye linja var forsinket ({periodLabel}). Strekene viser
           medianen (P50), 4 av 5 (P80) og 19 av 20 (P95).
@@ -316,11 +330,11 @@ export function WeekHourHeatmap({ dist, periodLabel }: { dist: LineDistribution;
   const metricLabel = { p80: "P80", mean: "Snitt", punctual: "I rute" }[metric];
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
-            <CardTitle>Når er det verst?</CardTitle>
+            <CardTitle className="flex items-center gap-2"><CalendarClock className="h-5 w-5 text-orange-500" /> Når er det verst?</CardTitle>
             <CardDescription>
               Ukedag × time på døgnet ({periodLabel}). Mørkere = verre. Pek eller trykk på en rute for tallene.
             </CardDescription>
@@ -470,9 +484,9 @@ export function DailyChart({ daily, periodLabel }: { daily: DailyPoint[]; period
   const worst = data.reduce<typeof data[number] | null>((w, d) => (d.p80 != null && (!w || d.p80 > (w.p80 ?? -Infinity)) ? d : w), null);
   const best = data.reduce<typeof data[number] | null>((w, d) => (d.p80 != null && (!w || d.p80 < (w.p80 ?? Infinity)) ? d : w), null);
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>Dag for dag</CardTitle>
+        <CardTitle className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Dag for dag</CardTitle>
         <CardDescription>
           Median og P80 per dag ({periodLabel}). Pek på en dag for flere tall.
           {worst && best && worst.date !== best.date && (

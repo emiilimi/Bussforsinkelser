@@ -1573,6 +1573,14 @@ const DIST_BIN_PER_MIN = 4;
  *     telles per (dato, avgang): Skyss gjenbruker samme service_journey_id
  *     mange dager på rad, så COUNT(DISTINCT sj) alene ga 2 102 i stedet for
  *     5 743 for linje 3 over en måned.
+ *  3  per (dato, time) → antall og sum, og laveste/høyeste enkeltmåling i
+ *     p50/p80-kolonnene. Nettleseren lager av dette timesgrafen (snitt, beste
+ *     og verste dagssnitt per time) og min/maks per dag i «Daglig trend» —
+ *     samme tall som /hourly og /daily ga, uten en spørring til (2026-11-01).
+ *     ⚠️ Gjenbruker kolonnene med vilje: med egne kolonner (am/mn/mx), eller
+ *     med en femte gren, hang DuckDB 1.5.1 i optimereren (målt: > 10 min i
+ *     stedet for 0,1 s; PRAGMA disable_optimizer fikk den gjennom). Fire
+ *     grener à 15 kolonner går på 0,1 s.
  * Andelene bruker samme grenser som resten av siden: for tidlig < EARLY_MIN,
  * i rute EARLY_MIN..2 min, kraftig forsinket > 10 min. Bøttene klemmes til
  * −10..+30 min, så de ytterste bøttene samler halene.
@@ -1610,6 +1618,10 @@ async function apiLineDistribution(lineRef: string, params: URLSearchParams) {
       quantile_cont(d, 0.5), quantile_cont(d, 0.8), quantile_cont(d, 0.95),
       STDDEV_SAMP(d), COUNT(DISTINCT CAST(date AS VARCHAR) || '|' || sj)::INTEGER
     FROM r
+    UNION ALL
+    SELECT 3, CAST(date AS VARCHAR), NULL, hour, NULL, ${counts},
+      MIN(d), MAX(d), NULL, NULL, NULL
+    FROM r WHERE hour IS NOT NULL GROUP BY date, hour
   `, undefined, duckOptions);
 }
 

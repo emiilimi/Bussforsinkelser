@@ -3,7 +3,37 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-27
+**Sist oppdatert**: 2026-11-01
+
+## Endringslogg — 2026-11-01: gammel og ny linjeanalyse på samme side (`feat/linjeanalyse`)
+
+Emilie ville ha den nye linjeanalysen ØVERST i den gamle, uten at noe
+forsvant, og begge i nettstedets stil. Rekkefølgen er nå: svaret (4 av 5),
+fordeling, varmekart, dag for dag, zoombar ruteprofil — så «Flere detaljer»:
+de seks nøkkeltallskortene, beste/verste dag, timesgrafen og dagstrenden med
+min/maks-bånd, kart, verste stopp, den rullbare ruteprofilen (alle stoppnavn,
+min/maks-bånd, dra-bar Y-akse) og enkeltavgangene. «Min/maks-bånd»-bryteren
+er tilbake i filterkortet. «Analyser»-knappen er fortsatt borte (linja lastes
+når den velges).
+
+- **Ingen ekstra DuckDB-spørring.** Timesgrafen og dagstrendens min/maks
+  kommer fra en fjerde radtype i `/distribution` (kind 3, per dato × time) —
+  ikke fra `/hourly` og `/daily`.
+- **⚠️ DuckDB 1.5.1 henger i optimereren** på enkelte UNION-former: med tre
+  ekstra kolonner (am/mn/mx), eller fem grener, gikk spørringen fra 0,1 s til
+  > 10 min (både i nettleseren og i Python; `PRAGMA disable_optimizer` fikk
+  den gjennom på 1,4 s). Kind 3 gjenbruker derfor p50/p80-kolonnene til
+  laveste/høyeste måling. Ikke legg til kolonner eller grener uten å måle.
+- **«Høyst 2 min forsinket»** heter det gamle «Andel i rute»-kortet nå. Det
+  teller med de som gikk for tidlig (som Oversikt), mens «I rute» øverst
+  ikke gjør det — to ulike tall med samme navn på samme side ville forvirret.
+- **Stil**: kortene har `shadow-sm`, seksjonstitler har ikon (som Topplister
+  og Passasjerer), nøkkeltallene har farget venstrekant (som Oversikt). Hele
+  siden bruker norsk tallformat (`+1,9 min`, `62,8 %`).
+- **Rettet**: den rullbare ruteprofilen tegnet tallene på Y-aksen fra 0 mens
+  grafen selv brukte `"auto"` som bunn — når båndet gikk under 0 stemte ikke
+  aksen med linja. Nå bruker begge samme bunn. Båndet er min–maks igjen
+  (den nye ruteprofilen øverst har P20–P80).
 
 ## Endringslogg — 2026-10-27: ny linjeanalyse (branch `feat/linjeanalyse`, forhåndsvisning)
 
