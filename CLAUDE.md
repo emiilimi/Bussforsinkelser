@@ -31,7 +31,7 @@ client/src/
   components/
     layout.tsx             Sidebar, nav, regionvelger, NLOD-attribusjon
     data-quality-banner.tsx  Outlier/missing-time varsler
-    scrollable-chart.tsx   Horisontal-scrollbar + draggable Y-akse for grafer
+    scrollable-chart.tsx   useYAxisDrag: dra-bar Y-akse for grafer
     delay-percentiles.tsx  DuckDB-WASM P50/P80/P95 persentilkort
     plan-delay-chart.tsx   Forsinkelse-langs-ruten-graf per plan-node (reiseplanlegger plan-tre)
     crowd-badge.tsx        «Hvor full er bussen?»-merker (reiseplanlegger-legg, avgangstavle)

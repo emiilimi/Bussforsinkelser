@@ -3,7 +3,38 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-11-01
+**Sist oppdatert**: 2026-11-04
+
+## Endringslogg — 2026-11-04: Avgangsanalyse inn i ruteprofilen (`feat/linjeanalyse`)
+
+Emilie: «trenger ikke to ganger samme grafen». Kortene «Forsinkelsesprofil
+langs ruten» og «Avgangsanalyse» er fjernet, og alt samles i «Hvor på ruten
+bygger forsinkelsen seg opp?», med **Rutevariant** og **Avgang** som to velgere
+ved siden av hverandre.
+
+- **Valgt avgang tegner avgangens egne stopp**, ikke rutevariantens, så en
+  avgang på en annen variant mister ingen stopp. Alle avganger ligger igjen som
+  oransje sammenlikningslinje (koblet på `stopRef`), med avgangens ±σ-bånd,
+  ±2σ-bånd og stiplet verste/beste dag fra den gamle Avgangsanalyse.
+- Forsinkelse, Endring per stopp, Stopptid, zoom, «Vis alle stopp» og teksten
+  om største hopp følger valget (`routeData`). Ingen nye spørringer ved
+  sidelast: avgangen hentes først når den velges.
+- Bytte av retning eller rutevariant nullstiller avgangen. Rader i verste/beste
+  velger avgangen, ruller til grafen og bytter variant hvis den går en annen.
+- **`endPairs` i `useJourneysForLine`**: avganger slås sammen per klokkeslett,
+  og navnene er bare `MAX`. 01:04 på linje 3 går både til Toppe og Støbotn, så
+  et filter på navnene skjulte den fra Støbotn-varianten. **Kjent svakhet**:
+  profilen for et klokkeslett blander fortsatt alle turene på det klokkeslettet,
+  også når varianten er valgt (`useJourneyProfile` matcher bare på tid).
+- Dekningstallet («X av Y avganger») vises ikke som datahull når dagtypefilteret
+  er på: da er færre avganger meningen, ikke manglende sanntidsdata.
+- Fjernet teksten «— dem kan du ikke rekke» fra kortet «Gikk for tidlig» her og
+  i stoppanalysen. Forklaringene i Oversikt og Metode er urørt.
+- `ScrollableChart` hadde ingen brukere igjen og er slettet. Ruteprofilen har
+  zoom-Brush og autoskalert akse, så den dra-bare Y-aksen forsvant med de gamle
+  kortene. `useYAxisDrag` står igjen for timesgrafen og dagstrenden.
+- Knappen fra stoppanalysen heter nå «Linjeanalyse», siden kortet den pekte på
+  ikke lenger finnes.
 
 ## Endringslogg — 2026-11-01: gammel og ny linjeanalyse på samme side (`feat/linjeanalyse`)
 

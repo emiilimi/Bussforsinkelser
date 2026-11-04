@@ -8,6 +8,7 @@ import {
   useBestJourneysForLine,
   useJourneyProfile,
   type JourneyEntry,
+  type RouteVariant,
 } from "@/hooks/use-journey-queries";
 import Layout from "@/components/layout";
 import { RegionSelector } from "@/components/region-selector";
@@ -20,17 +21,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
-import { Clock, CheckCircle, AlertCircle, AlertTriangle, ChevronsUpDown, Check, MapPin, ArrowRight, CalendarDays, TrendingUp, TrendingDown, ListOrdered, ZoomIn, BarChart2, Signal, Route, Waypoints, Bus, Map as MapIcon } from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, AlertTriangle, ChevronsUpDown, Check, MapPin, ArrowRight, CalendarDays, TrendingUp, TrendingDown, ListOrdered, ZoomIn, BarChart2, Signal, Route, Map as MapIcon } from "lucide-react";
 import { cn, formatStopName, type RechartsTooltipProps } from "@/lib/utils";
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Area, ComposedChart, Line, ReferenceLine, Brush, Bar, Cell } from "recharts";
 import { parseDistribution, fmtSignedMin, fmtPct, type DistRow } from "@/lib/line-distribution";
 import {
-  LineSummaryCard, DelayHistogram, WeekHourHeatmap, DailyChart, RouteStopsDialog, type SummaryNumbers,
+  LineSummaryCard, DelayHistogram, WeekHourHeatmap, DailyChart, RouteStopsDialog, type RouteStop, type SummaryNumbers,
 } from "@/components/line-analysis";
 import { useRegion, REGION_LABEL } from "@/lib/RegionContext";
 import { DataQualityBanner } from "@/components/data-quality-banner";
 import { InfoTip } from "@/components/info-tip";
-import { ScrollableChart, useYAxisDrag } from "@/components/scrollable-chart";
+import { useYAxisDrag } from "@/components/scrollable-chart";
 import { formatDateShortNO, formatDateNO } from "@/lib/date-utils";
 import { BusLoading } from "@/components/bus-loading";
 import {
@@ -115,16 +116,6 @@ type LineStopProfile = {
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
-
-/**
- * Y-akse-maks for stopptid-grafene (sekunder), tilpasset de faktiske dataene.
- * 15 % luft over høyeste stopp, minimum 5 s. Se kommentaren ved
- * stopProfileDwellDataMax for hvorfor det gamle faste gulvet på 30 s var galt.
- */
-function dwellAxisMax(values: Array<number | null | undefined>): number {
-  const max = values.reduce<number>((m, v) => (v != null && v > m ? v : m), 0);
-  return Math.max(5, Math.ceil(max * 1.15));
-}
 
 function delayColor(delay: number | null) {
   const d = delay ?? 0;
@@ -275,17 +266,24 @@ function StatCard({ title, icon: Icon, edge, value, valueClass, hint, info }: {
 }
 
 /** Tooltip for ruteprofilen: alle tallene for stoppet uansett hvilken visning
- *  som er valgt, med visningens eget tall øverst. */
-function RouteTooltip({ active, payload, mode }: any) {
+ *  som er valgt, med visningens eget tall øverst. Med en avgang valgt kommer
+ *  planlagt tid, spredning og sammenlikning med alle avganger i tillegg. */
+function RouteTooltip({ active, payload, mode, numVariants }: any) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   const gainTone = d.delayGain > 0.1 ? "text-destructive" : d.delayGain < -0.1 ? "text-emerald-600" : "text-muted-foreground";
+  const lowCoverage = d.isDeparture && numVariants != null && d.numSamples != null && d.numSamples < numVariants;
   return (
     <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[260px]">
       <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
+      {d.aimedTime && <p className="text-muted-foreground text-xs mt-1">Planlagt: {d.aimedTime}</p>}
       <div className="font-mono mt-1.5 space-y-0.5 text-xs">
         {mode === "dwell" && <p>Stopptid {d.dwellTimeSec != null ? `${Math.round(d.dwellTimeSec)} s` : "—"}</p>}
         <p>Snitt <span className="font-semibold">{fmtSignedMin(d.avgDelayMin)}</span></p>
+        {d.isDeparture && d.stddevDelayMin != null && <p className="text-muted-foreground">σ ±{(d.stddevDelayMin as number).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} min</p>}
+        {d.isDeparture && d.maxDelayMin != null && <p className="text-destructive">Verste dag {fmtSignedMin(d.maxDelayMin)}</p>}
+        {d.isDeparture && d.minDelayMin != null && <p className="text-emerald-600">Beste dag {fmtSignedMin(d.minDelayMin)}</p>}
+        {d.lineAvgDelayMin != null && <p className="text-muted-foreground">Alle avganger {fmtSignedMin(d.lineAvgDelayMin)}</p>}
         {d.p50DelayMin != null && <p className="text-muted-foreground">Median {fmtSignedMin(d.p50DelayMin)}</p>}
         {d.p80DelayMin != null && <p className="text-orange-600 dark:text-orange-400">P80 {fmtSignedMin(d.p80DelayMin)}</p>}
         <p className={gainTone}>Endring fra forrige {fmtSignedMin(d.delayGain, 2)}</p>
@@ -293,35 +291,22 @@ function RouteTooltip({ active, payload, mode }: any) {
         {d.transitDelay != null && <p className="text-muted-foreground">· på veien hit {fmtSignedMin(d.transitDelay, 2)}</p>}
         {mode !== "dwell" && d.dwellTimeSec != null && <p className="text-muted-foreground">Stopptid {Math.round(d.dwellTimeSec)} s</p>}
       </div>
-      {d.numSamples != null && <p className="text-muted-foreground text-xs mt-1">{Number(d.numSamples).toLocaleString("nb-NO")} passeringer</p>}
-    </div>
-  );
-}
-
-function ProfileTooltip({ active, payload, numVariants }: any) {
-  if (!active || !payload?.[0]) return null;
-  const d = payload[0].payload as JourneyStop & { label: string };
-  const lowCoverage = numVariants != null && d.numSamples != null && d.numSamples < numVariants;
-  return (
-    <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[200px]">
-      <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
-      {d.aimedTime && <p className="text-muted-foreground text-xs mt-1">Planlagt: {d.aimedTime}</p>}
-      <div className="font-mono mt-1 space-y-0.5 text-xs">
-        {d.maxDelayMin != null && <p className="text-destructive">Maks {fmtSignedMin(d.maxDelayMin)}</p>}
-        {d.avgDelayMin != null && <p>Snitt <span className="font-semibold">{fmtSignedMin(d.avgDelayMin)}</span></p>}
-        {(d as any).stddevDelayMin != null && <p className="text-muted-foreground">σ ±{((d as any).stddevDelayMin as number).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} min</p>}
-        {d.minDelayMin != null && <p className="text-emerald-600">Min {fmtSignedMin(d.minDelayMin)}</p>}
-      </div>
       {d.numSamples != null && (
         <p className="text-muted-foreground text-xs mt-1">
-          {d.numSamples.toLocaleString("nb-NO")} passeringer
-          {lowCoverage && (
-            <span className="text-amber-500/80"> (av {numVariants})</span>
-          )}
+          {Number(d.numSamples).toLocaleString("nb-NO")} passeringer
+          {lowCoverage && <span className="text-amber-500/80"> (av {numVariants})</span>}
         </p>
       )}
     </div>
   );
+}
+
+/** Går avgangen (ett klokkeslett, kan være flere turer) denne rutevarianten? */
+function servesVariant(j: JourneyEntry, v: RouteVariant) {
+  const pair = `${v.firstStopName}→${v.lastStopName}`;
+  return j.endPairs
+    ? j.endPairs.split("|").includes(pair)
+    : `${j.firstStopName}→${j.lastStopName}` === pair;
 }
 
 // ---------------------------------------------------------------------------
@@ -381,7 +366,7 @@ export default function JourneyDetails() {
   // Journey picker state
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [selectedJourney, setSelectedJourney] = useState<JourneyEntry | null>(null);
-  const journeyProfileRef = useRef<HTMLDivElement>(null);
+  const routeCardRef = useRef<HTMLDivElement>(null);
 
   const { data: allLines = [] } = useQuery<LineRef[]>({
     queryKey: [`/api/lines/all${opStr ? `?${opStr}` : ""}`],
@@ -497,7 +482,7 @@ export default function JourneyDetails() {
     fetchedLine, stopProfileDir, fromDate, selectedVariant, dayType,
   );
 
-  const { data: journeyProfile = [] } = useJourneyProfile(
+  const { data: journeyProfile = [], isLoading: journeyProfileLoading } = useJourneyProfile(
     fetchedLine,
     selectedJourney?.directionRef ?? "",
     selectedJourney?.firstStopTime ?? "",
@@ -617,20 +602,9 @@ export default function JourneyDetails() {
   // Y-axis max states (declared early; updated via useEffect after data is computed below)
   // Ett bryter for min/maks-båndene i ALLE graf-ene under (se band-toggle.tsx).
   const [showBands, setShowBands] = useState(true);
-  const [profileMode, setProfileMode] = useState<"cumulative" | "derivative" | "dwell">("cumulative");
-  const [profileYMax, setProfileYMax] = useState<number>(1);
-  const [profileYMin, setProfileYMin] = useState<number>(0);
-  const [profileDerYMax, setProfileDerYMax] = useState<number>(1);
-  const [profileDerYMin, setProfileDerYMin] = useState<number>(0);
-  const [profileDwellYMax, setProfileDwellYMax] = useState<number>(30);
-  // Aksene i timesgrafen, dagstrenden og den rullbare ruteprofilen.
+  // Aksene i timesgrafen og dagstrenden.
   const [trendYMax, setTrendYMax] = useState<number>(1);
   const [hourlyYMax, setHourlyYMax] = useState<number>(1);
-  const [stopProfileCumYMax, setStopProfileCumYMax] = useState<number>(1);
-  const [stopProfileDerYMax, setStopProfileDerYMax] = useState<number>(1);
-  const [stopProfileDerYMin, setStopProfileDerYMin] = useState<number>(0);
-  const [stopProfileDwellYMax, setStopProfileDwellYMax] = useState<number>(30);
-  const [classicMode, setClassicMode] = useState<"cumulative" | "derivative" | "dwell">("cumulative");
 
   // ---- Journey profile chart data ----
   const profileData = useMemo(() => {
@@ -659,7 +633,7 @@ export default function JourneyDetails() {
       const extremeMax = rawMax;
       return {
         ...s,
-        label: s.aimedTime ?? String(s.stopSequence),
+        isDeparture: true,
         shortName: s.stopName
           ? s.stopName.length > 14 ? s.stopName.slice(0, 13) + "\u2026" : s.stopName
           : s.stopRef,
@@ -669,18 +643,23 @@ export default function JourneyDetails() {
         // Inner band (±σ): transparent base + 2σ-wide range
         innerBandBase,
         innerBandRange,
-        avgPlusSigma: avg + stddev, // kept for profileDataMax calculation
         // Absolute extremes (raw min/max across all weeks) — drawn as dashed lines
         extremeMin,
         extremeMax,
         // Derivative mode
         delayGain,
+        // Samme oppdeling av endringen som for alle avganger.
+        dwellDelay: s.avgDelayDepartureMin != null && s.avgDelayArrivalMin != null
+          ? s.avgDelayDepartureMin - s.avgDelayArrivalMin
+          : null,
+        transitDelay: prev?.avgDelayDepartureMin != null && s.avgDelayArrivalMin != null
+          ? s.avgDelayArrivalMin - prev.avgDelayDepartureMin
+          : null,
         // Dwell mode (seconds, raw — shown with "sek" label)
         dwellTimeSec: s.avgDwellTimeSec ?? null,
       };
     });
   }, [journeyProfile]);
-  const profileWidth = Math.max(700, profileData.length * 44);
 
   // ---- Line stop profile chart data (all stops in route order) ----
   const [stopProfileMode, setStopProfileMode] = useState<"cumulative" | "derivative" | "dwell">("cumulative");
@@ -709,9 +688,6 @@ export default function JourneyDetails() {
         // som sto i kø dro før aksen til +45 min og gjorde snittet flatt.
         bandBase: s.p20DelayMin ?? s.avgDelayMin ?? 0,
         bandRange: Math.max(0, (s.p80DelayMin ?? s.avgDelayMin ?? 0) - (s.p20DelayMin ?? s.avgDelayMin ?? 0)),
-        // Min–maks over enkeltpasseringene: båndet i den rullbare ruteprofilen.
-        mmBase: s.minDelayMin ?? s.avgDelayMin ?? 0,
-        mmRange: Math.max(0, (s.maxDelayMin ?? s.avgDelayMin ?? 0) - (s.minDelayMin ?? s.avgDelayMin ?? 0)),
         delayGain,
         dwellDelay,
         transitDelay,
@@ -759,31 +735,51 @@ export default function JourneyDetails() {
       bandRange: Math.max(0, max - min),
     };
   });
-  const stopProfileWidth = Math.max(700, stopProfileData.length * 44);
 
   // Aksene følger dataene. Bånd-feltene tas bare med når båndene vises —
   // ellers strakk aksen seg etter et bånd som ikke tegnes.
   const trendDataMax = Math.ceil(Math.max(...trendData.map(d => Math.max(showBands ? (d.maxDelay ?? 0) : 0, d.avgDelay ?? 0)), 1));
   const hourlyDataMax = Math.ceil(Math.max(...hourlyData.map(d => Math.max(showBands ? (d.maxAvgDelay ?? 0) : 0, d.avgDelay ?? 0)), 1));
-  const stopProfileCumDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.max(showBands ? (d.maxDelayMin ?? 0) : 0, d.avgDelayMin ?? 0)), 1));
-  const stopProfileCumDataMin = Math.floor(Math.min(...stopProfileData.map(d => Math.min(showBands ? (d.minDelayMin ?? 0) : 0, d.avgDelayMin ?? 0)), 0));
-  const stopProfileDerDataMax = Math.ceil(Math.max(...stopProfileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
-  const stopProfileDerDataMin = Math.floor(Math.min(...stopProfileData.map(d => d.delayGain ?? 0), 0));
-  const stopProfileDwellDataMax = dwellAxisMax(stopProfileData.map(d => d.dwellTimeSec));
   useEffect(() => { setTrendYMax(trendDataMax); }, [trendDataMax]);
   useEffect(() => { setHourlyYMax(hourlyDataMax); }, [hourlyDataMax]);
-  useEffect(() => { setStopProfileCumYMax(stopProfileCumDataMax); }, [stopProfileCumDataMax]);
-  useEffect(() => { setStopProfileDerYMax(stopProfileDerDataMax); }, [stopProfileDerDataMax]);
-  useEffect(() => { setStopProfileDerYMin(stopProfileDerDataMin); }, [stopProfileDerDataMin]);
-  useEffect(() => { setStopProfileDwellYMax(stopProfileDwellDataMax); }, [stopProfileDwellDataMax]);
-  // Tilbake til dataenes maks når visningen byttes, så en gammel akse ikke henger igjen.
-  useEffect(() => {
-    if (classicMode === "cumulative") setStopProfileCumYMax(stopProfileCumDataMax);
-    else if (classicMode === "derivative") setStopProfileDerYMax(stopProfileDerDataMax);
-    else setStopProfileDwellYMax(stopProfileDwellDataMax);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classicMode]);
 
+  // ---- Ruteprofilen: alle avganger, eller én valgt avgang ----
+  // Med en avgang valgt tegnes AVGANGENS egne stopp, ikke rutevariantens: en
+  // avgang på en annen variant ville ellers mistet stopp stille.
+  const hasDeparture = selectedJourney != null && profileData.length > 0;
+  const routeData: RouteStop[] = useMemo(() => {
+    if (!hasDeparture) return stopProfileData;
+    const lineAvg = new globalThis.Map(stopProfileData.map((s) => [s.stopRef, s.avgDelayMin]));
+    return profileData.map((s) => ({ ...s, lineAvgDelayMin: lineAvg.get(s.stopRef) ?? null }));
+  }, [hasDeparture, profileData, stopProfileData]);
+
+  // Avgangsvelgeren viser retningen og rutevarianten som er valgt. Slår
+  // navnefilteret feil (uten treff), vises hele retningen framfor en tom liste.
+  const currentVariant = routeVariants.find((v) => v.variantId === selectedVariant);
+  const directionJourneys = useMemo(
+    () => journeys.filter((j) => j.directionRef === stopProfileDir),
+    [journeys, stopProfileDir],
+  );
+  const variantJourneys = useMemo(() => {
+    if (!currentVariant) return directionJourneys;
+    const hits = directionJourneys.filter((j) => servesVariant(j, currentVariant));
+    return hits.length > 0 ? hits : directionJourneys;
+  }, [directionJourneys, currentVariant]);
+
+  const pickDeparture = (j: JourneyEntry) => {
+    setSelectedJourney(j);
+    if (currentVariant && !servesVariant(j, currentVariant)) {
+      const v = routeVariants.find((r) => servesVariant(j, r));
+      if (v) setSelectedVariant(v.variantId);
+    }
+  };
+
+  // En avgang hører til én retning: bytt retning, og avgangen er ikke lenger valgt.
+  useEffect(() => {
+    if (selectedJourney && stopProfileDir && selectedJourney.directionRef !== stopProfileDir) {
+      setSelectedJourney(null);
+    }
+  }, [selectedJourney, stopProfileDir]);
 
   // Zoom i ruteprofilen: indeksene Brush-en står på, delt av alle tre
   // visningene. null = hele ruta.
@@ -796,45 +792,18 @@ export default function JourneyDetails() {
     setRouteZoom(z);
     setRouteChartKey((k) => k + 1);
   };
-  useEffect(() => { setRouteZoom(null); }, [stopProfileDir, selectedVariant]);
+  // Indeksene gjelder én stoppliste, så zoomen nullstilles når lista byttes.
+  useEffect(() => { setRouteZoom(null); }, [stopProfileDir, selectedVariant, selectedJourney?.firstStopTime, hasDeparture]);
 
   // Strekningen der forsinkelsen øker mest — står som en setning over grafen
   // og kan klikkes for å zoome inn dit.
   const biggestJump = useMemo(() => {
     let best = -1;
-    for (let i = 1; i < stopProfileData.length; i++) {
-      if (best < 0 || stopProfileData[i].delayGain > stopProfileData[best].delayGain) best = i;
+    for (let i = 1; i < routeData.length; i++) {
+      if (best < 0 || routeData[i].delayGain > routeData[best].delayGain) best = i;
     }
-    return best > 0 && stopProfileData[best].delayGain > 0.1 ? best : null;
-  }, [stopProfileData]);
-
-  // Compute Y-axis maxes after data is available and sync to state.
-  // Bånd-feltene (maxDelay, bandBase+bandRange, extremeMax, o.l.) tas KUN med
-  // når showBands er på — ellers ble aksen stående og strekke seg etter et
-  // bånd som ikke lenger tegnes, og snittlinjen klistret seg flat til bunnen.
-  const profileDataMax = Math.ceil(Math.max(...profileData.map(d => Math.max(showBands ? d.bandBase + d.bandRange : 0, showBands ? (d.avgPlusSigma ?? 0) : 0, d.avgDelayMin ?? 0, showBands ? (d.extremeMax ?? 0) : 0)), 1));
-  // Min also accounts for avg-σ inner band lower edge AND raw extreme min (can be negative when avg is small)
-  const profileDataMin = Math.floor(Math.min(...profileData.map(d => Math.min(showBands ? d.bandBase : 0, showBands ? d.innerBandBase : 0, showBands ? (d.extremeMin ?? 0) : 0, d.avgDelayMin ?? 0)), 0));
-  const profileDerDataMax = Math.ceil(Math.max(...profileData.map(d => Math.abs(d.delayGain ?? 0)), 1));
-  const profileDerDataMin = Math.floor(Math.min(...profileData.map(d => d.delayGain ?? 0), 0));
-  const profileDwellDataMax = dwellAxisMax(profileData.map(d => d.dwellTimeSec));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setProfileYMax(profileDataMax); }, [profileDataMax]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setProfileYMin(profileDataMin); }, [profileDataMin]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setProfileDerYMax(profileDerDataMax); }, [profileDerDataMax]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setProfileDerYMin(profileDerDataMin); }, [profileDerDataMin]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setProfileDwellYMax(profileDwellDataMax); }, [profileDwellDataMax]);
-  // Reset profile Y-axis on mode change
-  useEffect(() => {
-    if (profileMode === "cumulative") { setProfileYMax(profileDataMax); setProfileYMin(profileDataMin); }
-    else if (profileMode === "derivative") { setProfileDerYMax(profileDerDataMax); setProfileDerYMin(profileDerDataMin); }
-    else if (profileMode === "dwell") setProfileDwellYMax(profileDwellDataMax);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileMode]);
+    return best > 0 && routeData[best].delayGain > 0.1 ? best : null;
+  }, [routeData]);
 
   // Set/switch stop profile direction to first available when current has no journey data
   useEffect(() => {
@@ -853,7 +822,7 @@ export default function JourneyDetails() {
   }
 
   // ---- Ruteprofilen: én graf, tre visninger, felles zoom ----
-  const routeMax = stopProfileData.length - 1;
+  const routeMax = routeData.length - 1;
   const zoomStart = routeZoom ? Math.max(0, Math.min(routeZoom.start, routeMax)) : 0;
   const zoomEnd = routeZoom ? Math.max(zoomStart, Math.min(routeZoom.end, routeMax)) : routeMax;
   const isZoomed = routeZoom != null && (zoomStart > 0 || zoomEnd < routeMax);
@@ -1025,12 +994,12 @@ export default function JourneyDetails() {
             ) : null}
 
             {/* ---- Ruteprofil (alle stopp i rekkefølge) ---- */}
-            <Card className="shadow-sm">
+            <Card ref={routeCardRef} className="shadow-sm scroll-mt-20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Route className="h-5 w-5 text-primary" /> Hvor på ruten bygger forsinkelsen seg opp?</CardTitle>
                 <CardDescription>
-                  Forsinkelse ved hvert stopp, i rekkefølge langs ruten ({periodLabel}). Dra i håndtakene under
-                  grafen for å zoome inn på en strekning, eller åpne lista med alle stoppene.
+                  Forsinkelse ved hvert stopp, i rekkefølge langs ruten ({periodLabel}). Velg rutevariant, og én
+                  avgang hvis du vil se den for seg. Dra i håndtakene under grafen for å zoome inn på en strekning.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1051,29 +1020,130 @@ export default function JourneyDetails() {
                     ))}
                   </div>
                 )}
-                {routeVariants.length > 1 && stopProfileDir !== "" && stopProfileDir !== "all" && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-muted-foreground">Rutevariant:</span>
-                    <select
-                      className="text-xs border rounded px-2 py-1 bg-background max-w-full"
-                      value={selectedVariant ?? ""}
-                      onChange={(e) => setSelectedVariant(e.target.value || undefined)}
-                    >
-                      {routeVariants.map((v, i) => (
-                        <option key={v.variantId} value={v.variantId}>
-                          {v.firstStopName ?? "?"} → {v.lastStopName ?? "?"} ({v.numStops} stopp, {v.totalSamples.toLocaleString("nb-NO")} målinger)
-                          {i === 0 ? " ★" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <InfoTip>
-                      Linja har {routeVariants.length} ulike rutevarianter (ulike stopp eller endestopp). Den med flest
-                      målinger (★) er valgt.
-                    </InfoTip>
+                {stopProfileDir !== "" && stopProfileDir !== "all" && (routeVariants.length > 1 || directionJourneys.length > 0) && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {routeVariants.length > 1 && (
+                      <div className="grid gap-1.5 min-w-0 content-start">
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor="route-variant" className="text-sm font-medium">Rutevariant</label>
+                          <InfoTip>
+                            Linja har {routeVariants.length} ulike rutevarianter (ulike stopp eller endestopp). Den med flest
+                            målinger (★) er valgt først.
+                          </InfoTip>
+                        </div>
+                        <select
+                          id="route-variant"
+                          className="h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm"
+                          value={selectedVariant ?? ""}
+                          onChange={(e) => {
+                            setSelectedVariant(e.target.value || undefined);
+                            setSelectedJourney(null);
+                          }}
+                        >
+                          {routeVariants.map((v, i) => (
+                            <option key={v.variantId} value={v.variantId}>
+                              {v.firstStopName ?? "?"} → {v.lastStopName ?? "?"} ({v.numStops} stopp, {v.totalSamples.toLocaleString("nb-NO")} målinger)
+                              {i === 0 ? " ★" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {directionJourneys.length > 0 && (
+                      <div className="grid gap-1.5 min-w-0 content-start">
+                        <span id="departure-picker-label" className="text-sm font-medium">Avgang</span>
+                        <Popover open={journeyOpen} onOpenChange={setJourneyOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={journeyOpen}
+                              aria-labelledby="departure-picker-label"
+                              className="h-9 w-full min-w-0 justify-between font-normal"
+                            >
+                              <span className="truncate">{selectedJourney ? journeyLabel(selectedJourney) : "Alle avganger"}</span>
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[280px] p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Søk etter avgangstid …" />
+                              <CommandList>
+                                <CommandEmpty>Ingen avganger funnet.</CommandEmpty>
+                                <CommandGroup>
+                                  <CommandItem
+                                    value="Alle avganger"
+                                    onSelect={() => {
+                                      setSelectedJourney(null);
+                                      setJourneyOpen(false);
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", selectedJourney == null ? "opacity-100" : "opacity-0")} />
+                                    Alle avganger
+                                  </CommandItem>
+                                  {variantJourneys.map((j) => (
+                                    <CommandItem
+                                      key={`${j.directionRef}-${j.firstStopTime}`}
+                                      value={journeyLabel(j)}
+                                      onSelect={() => {
+                                        pickDeparture(j);
+                                        setJourneyOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4 shrink-0",
+                                          selectedJourney?.firstStopTime === j.firstStopTime ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      {journeyLabel(j)}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {stopProfileData.length === 0 && stopProfileDir !== "" && (
+                {selectedJourney && (
+                  <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <Clock className="h-4 w-4 text-primary shrink-0" />
+                    <span className="flex-1 min-w-[12rem]">
+                      {journeyProfileLoading ? (
+                        <>Henter avgangen kl. {selectedJourney.firstStopTime} …</>
+                      ) : hasDeparture ? (() => {
+                        const observed = Math.max(...profileData.map((r) => r.numSamples ?? 0), 0);
+                        const total = selectedJourney.numVariants;
+                        // Dagtypefilteret fjerner avganger med vilje; da er ikke færre observasjoner et datahull.
+                        const partial = dayType === "all" && observed < total;
+                        return (
+                          <>
+                            Avgangen kl. <strong>{selectedJourney.firstStopTime}</strong>
+                            {" · "}{profileData.length} stopp
+                            {" · "}{profileData[0]?.aimedTime} → {profileData[profileData.length - 1]?.aimedTime}
+                            {" · snitt av "}
+                            {partial ? (
+                              <span className="text-amber-600" title={`${total - observed} avganger manglet sanntidsdata`}>
+                                {observed} av {total} avganger ({Math.round(observed / total * 100)} % dekning)
+                              </span>
+                            ) : <>{observed} avganger</>}
+                          </>
+                        );
+                      })() : (
+                        <>Fant ingen målinger for avgangen kl. {selectedJourney.firstStopTime} med disse filtrene. Grafen viser alle avganger.</>
+                      )}
+                    </span>
+                    <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setSelectedJourney(null)}>
+                      Vis alle avganger
+                    </Button>
+                  </div>
+                )}
+
+                {routeData.length === 0 && stopProfileDir !== "" && (
                   lineStopProfileLoading ? (
                     <div className="flex justify-center py-4">
                       <BusLoading label="Laster stoppene langs ruten" scale={0.65} />
@@ -1085,16 +1155,16 @@ export default function JourneyDetails() {
                   )
                 )}
 
-                {stopProfileData.length > 0 && (
+                {routeData.length > 0 && (
                   <>
                     {biggestJump != null && (
                       <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm flex flex-wrap items-center gap-x-3 gap-y-1.5">
                         <TrendingUp className="h-4 w-4 text-destructive shrink-0" />
                         <span className="flex-1 min-w-[12rem]">
                           Forsinkelsen øker mest fra{" "}
-                          <strong>{formatStopName(stopProfileData[biggestJump - 1].stopName, stopProfileData[biggestJump - 1].stopRef)}</strong> til{" "}
-                          <strong>{formatStopName(stopProfileData[biggestJump].stopName, stopProfileData[biggestJump].stopRef)}</strong>{" "}
-                          (<span className="font-mono text-destructive">{fmtSignedMin(stopProfileData[biggestJump].delayGain, 2)}</span> i snitt).
+                          <strong>{formatStopName(routeData[biggestJump - 1].stopName, routeData[biggestJump - 1].stopRef)}</strong> til{" "}
+                          <strong>{formatStopName(routeData[biggestJump].stopName, routeData[biggestJump].stopRef)}</strong>{" "}
+                          (<span className="font-mono text-destructive">{fmtSignedMin(routeData[biggestJump].delayGain, 2)}</span> i snitt).
                         </span>
                         <Button
                           size="sm"
@@ -1121,7 +1191,7 @@ export default function JourneyDetails() {
                           </Button>
                         ))}
                         <InfoTip learnMoreHref="/metode#dwell-time">
-                          <strong>Forsinkelse</strong>: snitt ved hvert stopp, med båndet for 3 av 5 passeringer (P20–P80) og stiplet P80.<br />
+                          <strong>Forsinkelse</strong>: snitt ved hvert stopp, med båndet for 3 av 5 passeringer (P20–P80) og stiplet P80. Med en avgang valgt vises avgangens snitt og spredning, med alle avganger som sammenlikning.<br />
                           <strong>Endring per stopp</strong>: hvor mye forsinkelse som bygges opp (rødt) eller tas igjen (grønt) siden forrige stopp.<br />
                           <strong>Stopptid</strong>: hvor lenge den står stille ved stoppet, i sekunder.
                         </InfoTip>
@@ -1142,7 +1212,7 @@ export default function JourneyDetails() {
                           className="h-7 px-2.5 text-xs gap-1.5"
                           onClick={() => setShowAllStops(true)}
                         >
-                          <ListOrdered className="h-3.5 w-3.5" /> Vis alle {stopProfileData.length} stopp
+                          <ListOrdered className="h-3.5 w-3.5" /> Vis alle {routeData.length} stopp
                         </Button>
                       </div>
                     </div>
@@ -1150,8 +1220,8 @@ export default function JourneyDetails() {
                     <div className="h-[380px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
-                          key={`${routeChartKey}-${stopProfileMode}-${showBands}`}
-                          data={stopProfileData}
+                          key={`${routeChartKey}-${stopProfileMode}-${showBands}-${hasDeparture ? selectedJourney?.firstStopTime : ""}-${routeData.length}`}
+                          data={routeData}
                           margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -1176,23 +1246,30 @@ export default function JourneyDetails() {
                             tickFormatter={(v: number) => (stopProfileMode === "dwell" ? `${v} s` : `${v} m`)}
                             domain={stopProfileMode === "dwell" ? [0, "auto"] : ["auto", "auto"]}
                           />
-                          <Tooltip content={<RouteTooltip mode={stopProfileMode} />} />
+                          <Tooltip content={<RouteTooltip mode={stopProfileMode} numVariants={selectedJourney?.numVariants} />} />
                           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                          {/* Hver Area MÅ være sin egen betingede node — recharts mister
-                              stack-grupperingen hvis de pakkes i et fragment (se Avgangsanalyse). */}
+                          {/* Hver Area MÅ være sin egen betingede node — recharts sin ComposedChart
+                              mister stack-grupperingen hvis de pakkes i ett fragment (empirisk
+                              verifisert: 0 <path> i DOM med fragment, 2 uten). */}
                           {stopProfileMode === "cumulative" && showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
-                          {stopProfileMode === "cumulative" && showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
-                          {stopProfileMode === "cumulative" && <Line type="monotone" dataKey="p80DelayMin" stroke="hsl(25 95% 53%)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
+                          {stopProfileMode === "cumulative" && showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill={hasDeparture ? "hsl(var(--muted-foreground))" : "hsl(var(--primary))"} fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
+                          {/* Valgt avgang: snitt ± σ innerst, og verste/beste dag som tynne stiplede linjer. */}
+                          {stopProfileMode === "cumulative" && showBands && hasDeparture && <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
+                          {stopProfileMode === "cumulative" && showBands && hasDeparture && <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />}
+                          {stopProfileMode === "cumulative" && showBands && hasDeparture && <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
+                          {stopProfileMode === "cumulative" && showBands && hasDeparture && <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
+                          {stopProfileMode === "cumulative" && hasDeparture && <Line type="monotone" dataKey="lineAvgDelayMin" stroke="hsl(25 95% 53%)" strokeWidth={1.5} dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
+                          {stopProfileMode === "cumulative" && !hasDeparture && <Line type="monotone" dataKey="p80DelayMin" stroke="hsl(25 95% 53%)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
                           {stopProfileMode === "cumulative" && <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={visibleStops <= 40 ? { r: 2.5, fill: "hsl(var(--primary))" } : false} activeDot={{ r: 5 }} isAnimationActive={false} />}
                           {stopProfileMode === "derivative" && (
                             <Bar dataKey="delayGain" isAnimationActive={false}>
-                              {stopProfileData.map((d, i) => (
+                              {routeData.map((d, i) => (
                                 <Cell key={i} fill={d.delayGain > 0.1 ? "hsl(var(--destructive))" : d.delayGain < -0.1 ? "hsl(160 84% 39%)" : "hsl(var(--muted-foreground))"} fillOpacity={0.8} />
                               ))}
                             </Bar>
                           )}
                           {stopProfileMode === "dwell" && <Line type="monotone" dataKey="dwellTimeSec" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 2.5, fill: "hsl(var(--chart-4))" }} activeDot={{ r: 5 }} isAnimationActive={false} connectNulls />}
-                          {stopProfileData.length > 8 && (
+                          {routeData.length > 8 && (
                             <Brush
                               dataKey="shortName"
                               height={26}
@@ -1214,27 +1291,39 @@ export default function JourneyDetails() {
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                       <span>
                         {isZoomed
-                          ? <>Viser stopp {zoomStart + 1}–{zoomEnd + 1} av {stopProfileData.length}</>
-                          : <>{stopProfileData.length} stopp</>}
-                        {" · "}{Math.max(...stopProfileData.map(r => r.numSamples ?? 0), 0).toLocaleString("nb-NO")} passeringer ved det mest målte stoppet
+                          ? <>Viser stopp {zoomStart + 1}–{zoomEnd + 1} av {routeData.length}</>
+                          : <>{routeData.length} stopp</>}
+                        {" · "}{Math.max(...routeData.map(r => r.numSamples ?? 0), 0).toLocaleString("nb-NO")} passeringer ved det mest målte stoppet
                       </span>
                       {stopProfileMode === "cumulative" && (
                         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t-2 border-primary" />Snitt</span>
-                          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: "hsl(25 95% 53%)" }} />P80</span>
-                          {showBands && <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-2 rounded-sm bg-primary/15" />3 av 5 passeringer</span>}
+                          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t-2 border-primary" />{hasDeparture ? "Denne avgangen" : "Snitt"}</span>
+                          {hasDeparture
+                            ? <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t-2" style={{ borderColor: "hsl(25 95% 53%)" }} />Alle avganger</span>
+                            : <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: "hsl(25 95% 53%)" }} />P80</span>}
+                          {showBands && !hasDeparture && <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-2 rounded-sm bg-primary/15" />3 av 5 passeringer</span>}
+                          {showBands && hasDeparture && <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--primary))", opacity: 0.28 }} />± 1σ</span>}
+                          {showBands && hasDeparture && <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.12 }} />± 2σ</span>}
+                          {showBands && hasDeparture && <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t border-dashed border-muted-foreground/70" />Verste og beste dag</span>}
                           <button type="button" className="underline underline-offset-2 hover:text-foreground" onClick={() => setShowBands(!showBands)}>
                             {showBands ? "Skjul bånd" : "Vis bånd"}
                           </button>
                         </span>
                       )}
                     </div>
+                    {stopProfileMode === "cumulative" && hasDeparture && showBands && (
+                      <p className="text-xs text-muted-foreground leading-snug">
+                        Båndene er snitt ± σ, det ytre kappet til ± 2σ. De er symmetriske i minutter, ikke prosentiler: forsinkelser
+                        er gjerne høyreskeive, så det øvre båndet dekker typisk litt mer enn det nedre. For P50/P80/P95, bruk
+                        reiseplanleggeren.
+                      </p>
+                    )}
 
                     <RouteStopsDialog
                       open={showAllStops}
                       onOpenChange={setShowAllStops}
-                      title={`${lineLabel ? `${lineLabel} · ` : ""}${routeDirLabel} · ${periodLabel}`}
-                      stops={stopProfileData}
+                      title={`${lineLabel ? `${lineLabel} · ` : ""}${routeDirLabel}${hasDeparture ? ` · avgang ${selectedJourney?.firstStopTime}` : ""} · ${periodLabel}`}
+                      stops={routeData}
                       onOpenStop={(s) => { setShowAllStops(false); openStop(s.stopRef, s.stopName); }}
                     />
                   </>
@@ -1244,8 +1333,8 @@ export default function JourneyDetails() {
 
             {/* ================= Flere detaljer =================
                 Nøkkeltallskortene, beste/verste dag, timesgrafen og dagstrenden
-                (alle fra /distribution), deretter kart, verste stopp, den
-                rullbare ruteprofilen og avgangene. */}
+                (alle fra /distribution), deretter kart, verste stopp og de
+                verste og beste enkeltavgangene. */}
             <div className="pt-4 border-t space-y-1">
               <h3 className="text-xl font-semibold tracking-tight">Flere detaljer</h3>
               <p className="text-sm text-muted-foreground">
@@ -1285,7 +1374,7 @@ export default function JourneyDetails() {
                 edge="border-l-amber-500"
                 value={fmtPct(summaryNums.pctEarly, 1)}
                 valueClass="text-amber-600"
-                hint="Mer enn 1 min før rutetid — dem kan du ikke rekke"
+                hint="Mer enn 1 min før rutetid"
               />
               <StatCard
                 title="Pålitelighet (σ)"
@@ -1478,287 +1567,6 @@ export default function JourneyDetails() {
               </Card>
             )}
 
-            {/* ---- Forsinkelsesprofil langs ruten: rullbar med alle stoppnavn, min/maks-bånd
-                 og dra-bar Y-akse. Deler retning og rutevariant med ruteprofilen øverst,
-                 men har sin egen visningsvelger (classicMode). ---- */}
-            {fetchedLine.length > 0 && (
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Waypoints className="h-5 w-5 text-primary" /> Forsinkelsesprofil langs ruten</CardTitle>
-                  <CardDescription>
-                    Alle stoppene med navn — rull sidelengs, og dra i Y-aksen for å skalere.
-                    {showBands && " Båndet viser spennet mellom beste og verste enkeltavgang i valgt tidsvindu."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Direction picker — derived from actual directions in data.
-                      Skjules helt når linja bare har én retning: da er det ingen
-                      ting å velge mellom, og en enslig «A → B»-knapp ville
-                      påstått at profilen gjelder én vei selv om begge ligger i
-                      samme retning (se directionOptions). */}
-                  {directionOptions.length > 1 && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm text-muted-foreground">Retning:</span>
-                      {Object.keys(directionLabels).sort().map((d) => (
-                        <Button
-                          key={d}
-                          size="sm"
-                          variant={stopProfileDir === d ? "default" : "outline"}
-                          onClick={() => setStopProfileDir(d)}
-                          className="h-7 px-3 text-xs max-w-full"
-                        >
-                          <span className="truncate">{directionLabels[d] ?? `Retning ${d}`}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  {/* Variant picker — shown when multiple route patterns exist */}
-                  {routeVariants.length > 1 && stopProfileDir !== "" && stopProfileDir !== "all" && (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-muted-foreground">Rutevariant:</span>
-                        <select
-                          className="text-xs border rounded px-2 py-1 bg-background max-w-full"
-                          value={selectedVariant ?? ""}
-                          onChange={(e) => setSelectedVariant(e.target.value || undefined)}
-                        >
-                          {routeVariants.map((v, i) => (
-                            <option key={v.variantId} value={v.variantId}>
-                              {v.firstStopName ?? "?"} → {v.lastStopName ?? "?"} ({v.numStops} stopp, {v.totalSamples.toLocaleString("nb-NO")} målinger)
-                              {i === 0 ? " ★" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Denne linjen har {routeVariants.length} ulike rutevarianter. Velg variant for å se korrekt stopprekkefølge.
-                      </p>
-                    </div>
-                  )}
-                  {stopProfileData.length === 0 && stopProfileDir !== "" && (
-                    lineStopProfileLoading ? (
-                      <div className="flex justify-center py-4">
-                        <BusLoading label="Laster stoppene langs ruten" scale={0.65} />
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground py-4">
-                        Ingen stoppdata for {routeDirLabel || "denne retningen"} i valgt periode.
-                      </p>
-                    )
-                  )}
-                  {stopProfileData.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          {stopProfileData.length} stopp · {stopProfileData.reduce((s, r) => s + (r.numSamples ?? 0), 0).toLocaleString("nb-NO")} passeringer
-                          <InfoTip learnMoreHref="/metode#dwell-time">
-                            <strong>Forsinkelse</strong>: snitt-forsinkelse ved hvert stopp.<br />
-                            <strong>Forsinkelsesendring</strong>: hvor mye forsinkelse bygges opp eller tas igjen mellom stopp.<br />
-                            <strong>Stopptid</strong>: hvor lenge bussen står stille ved stoppet (dwell time, sekunder).
-                          </InfoTip>
-                        </div>
-                        <div className="flex gap-1">
-                          {(["cumulative", "derivative", "dwell"] as const).map((mode) => (
-                            <Button
-                              key={mode}
-                              size="sm"
-                              variant={classicMode === mode ? "default" : "outline"}
-                              onClick={() => setClassicMode(mode)}
-                              className="h-7 px-2.5 text-xs"
-                            >
-                              {mode === "cumulative" ? "Forsinkelse" : mode === "derivative" ? "Forsinkelsesendring" : "Stopptid"}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                      {classicMode === "cumulative" && (
-                        <ScrollableChart
-                          chartWidth={stopProfileWidth}
-                          chartHeight={320}
-                          yMax={stopProfileCumYMax}
-                          setYMax={setStopProfileCumYMax}
-                          dataMax={stopProfileCumDataMax}
-                          yMin={stopProfileCumDataMin}
-                        >
-                          <ComposedChart
-                            width={stopProfileWidth}
-                            height={320}
-                            data={stopProfileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[stopProfileCumDataMin, stopProfileCumYMax]} allowDataOverflow width={0} />
-                            <Tooltip content={<ProfileTooltip />} />
-                            {showBands && <Area type="monotone" dataKey="mmBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
-                            {showBands && <Area type="monotone" dataKey="mmRange" stackId="band" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.15} legendType="none" isAnimationActive={false} />}
-                            <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
-                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-                      {classicMode === "derivative" && (
-                        <ScrollableChart
-                          chartWidth={stopProfileWidth}
-                          chartHeight={320}
-                          yMax={stopProfileDerYMax}
-                          setYMax={setStopProfileDerYMax}
-                          dataMax={stopProfileDerDataMax}
-                          yMin={stopProfileDerYMin}
-                        >
-                          <ComposedChart
-                            width={stopProfileWidth}
-                            height={320}
-                            data={stopProfileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[stopProfileDerYMin, stopProfileDerYMax]} width={0} />
-                            <Tooltip
-                              content={({ active, payload }: any) => {
-                                if (!active || !payload?.[0]) return null;
-                                const d = payload[0].payload;
-                                return (
-                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
-                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
-                                    <div className="font-mono mt-1 space-y-0.5 text-xs">
-                                      <p className={d.delayGain > 0.1 ? "text-destructive" : d.delayGain < -0.1 ? "text-emerald-500" : "text-muted-foreground"}>
-                                        Endring {fmtSignedMin(d.delayGain, 2)}
-                                      </p>
-                                      {d.dwellDelay != null && (
-                                        <p className="text-amber-500">På stoppet {fmtSignedMin(d.dwellDelay, 2)}</p>
-                                      )}
-                                      {d.transitDelay != null && (
-                                        <p className="text-blue-500">På veien hit {fmtSignedMin(d.transitDelay, 2)}</p>
-                                      )}
-                                    </div>
-                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
-                                      Positiv = forsinkelsen oppstår her. Negativ = tar igjen tid.
-                                    </p>
-                                  </div>
-                                );
-                              }}
-                            />
-                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                            {/* Bar chart: red for delay generators, green for recovery */}
-                            <Area
-                              type="monotone"
-                              dataKey="delayGain"
-                              stroke="none"
-                              fill="hsl(var(--primary))"
-                              fillOpacity={0.3}
-                              isAnimationActive={false}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="delayGain"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth={2}
-                              dot={({ cx, cy, payload }: any) => {
-                                const color = (payload.delayGain ?? 0) > 0.1 ? "hsl(var(--destructive))" : (payload.delayGain ?? 0) < -0.1 ? "hsl(142, 76%, 36%)" : "hsl(var(--muted-foreground))";
-                                return <circle cx={cx} cy={cy} r={4} fill={color} stroke="none" />;
-                              }}
-                              activeDot={{ r: 6 }}
-                              isAnimationActive={false}
-                            />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-                      {classicMode === "dwell" && (
-                        <ScrollableChart
-                          chartWidth={stopProfileWidth}
-                          chartHeight={320}
-                          yMax={stopProfileDwellYMax}
-                          setYMax={setStopProfileDwellYMax}
-                          dataMax={stopProfileDwellDataMax}
-                          unit="s"
-                        >
-                          <ComposedChart
-                            width={stopProfileWidth}
-                            height={320}
-                            data={stopProfileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[0, stopProfileDwellYMax]} allowDataOverflow width={0} />
-                            <Tooltip
-                              content={({ active, payload }: any) => {
-                                if (!active || !payload?.[0]) return null;
-                                const d = payload[0].payload;
-                                return (
-                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
-                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
-                                    <div className="font-mono mt-1 text-xs">
-                                      <p>{d.dwellTimeSec != null ? `${Math.round(d.dwellTimeSec)} s` : "Ingen data"}</p>
-                                    </div>
-                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
-                                      Gjennomsnittlig tid den står ved stoppet (ankomst til avgang)
-                                    </p>
-                                  </div>
-                                );
-                              }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="dwellTimeSec"
-                              stroke="hsl(var(--chart-4))"
-                              strokeWidth={2}
-                              dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
-                              activeDot={{ r: 5 }}
-                              isAnimationActive={false}
-                              connectNulls
-                            />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-                      {classicMode !== "cumulative" && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {classicMode === "derivative"
-                            ? "Endring i forsinkelse fra stopp til stopp. Rødt = forsinkelsen øker, grønt = tar igjen tid."
-                            : "Gjennomsnittlig tid (sekunder) ved hvert stopp. Krever både ankomst- og avgangstid fra sanntidssystemet."}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
             {/* ---- Worst & best individual departures ---- */}
             {fetchedLine.length > 0 && stopProfileDir !== "" && stopProfileDir !== "all" && (
               <div className="space-y-3">
@@ -1789,7 +1597,7 @@ export default function JourneyDetails() {
                         {section.title}
                       </CardTitle>
                       <CardDescription>
-                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {periodLabel} (inntil 13 uker).
+                        {section.desc} for {selectedLineName ?? fetchedLine}, retning {stopProfileDir} · {periodLabel} (inntil 13 uker). Trykk på en avgang for å se den i ruteprofilen.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1818,16 +1626,17 @@ export default function JourneyDetails() {
                                 className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                                 onClick={() => {
                                   if (!j.departureTime) return;
-                                  setSelectedJourney({
+                                  // Oppslaget gir antall kjørte avganger, som dekningstallet trenger.
+                                  pickDeparture(directionJourneys.find((x) => x.firstStopTime === j.departureTime) ?? {
                                     directionRef: stopProfileDir,
                                     firstStopTime: j.departureTime,
                                     numVariants: 1,
                                     firstStopName: j.firstStopName,
                                     lastStopName: j.lastStopName,
                                   });
-                                  setTimeout(() => journeyProfileRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                                  setTimeout(() => routeCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
                                 }}
-                                title="Klikk for å se avgangsanalyse"
+                                title="Trykk for å se avgangen i ruteprofilen"
                               >
                                 <td className="py-2 font-mono">
                                   <span className="inline-block w-5 text-xs text-muted-foreground mr-2">{i + 1}.</span>
@@ -1865,348 +1674,6 @@ export default function JourneyDetails() {
                 ))}
               </div>
               </div>
-            )}
-
-            {/* ---- A: Journey profile ---- */}
-            {journeys.length > 0 && (
-              <Card ref={journeyProfileRef}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Bus className="h-5 w-5 text-primary" /> Avgangsanalyse</CardTitle>
-                  <CardDescription>
-                    Velg en enkeltavgang for å se forsinkelse stopp for stopp langs ruten.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Journey picker */}
-                  <div className="grid gap-2 max-w-sm">
-                    <label className="text-sm font-medium">Avgang</label>
-                    <Popover open={journeyOpen} onOpenChange={setJourneyOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={journeyOpen}
-                          className="w-full justify-between font-normal"
-                        >
-                          {selectedJourney ? journeyLabel(selectedJourney) : "Velg avgang..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[280px] p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Søk etter avgangstid..." />
-                          <CommandList>
-                            <CommandEmpty>Ingen avganger funnet.</CommandEmpty>
-                            <CommandGroup>
-                              {journeys.map((j) => (
-                                <CommandItem
-                                  key={`${j.directionRef}-${j.firstStopTime}`}
-                                  value={journeyLabel(j)}
-                                  onSelect={() => {
-                                    setSelectedJourney(j);
-                                    setJourneyOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      selectedJourney?.firstStopTime === j.firstStopTime &&
-                                      selectedJourney?.directionRef === j.directionRef
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {journeyLabel(j)}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Journey profile chart */}
-                  {profileData.length > 0 && (
-                    <>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <ArrowRight className="h-3 w-3" />
-                          <span>{profileData.length} stopp</span>
-                          <span>·</span>
-                          <span>
-                            {profileData[0]?.aimedTime} → {profileData[profileData.length - 1]?.aimedTime}
-                          </span>
-                          {selectedJourney && (() => {
-                            const observed = Math.max(...profileData.map(r => r.numSamples ?? 0), 0);
-                            const total = selectedJourney.numVariants;
-                            const partial = observed < total;
-                            return (
-                              <span className="ml-1">
-                                <span className="text-muted-foreground/60">· snitt av </span>
-                                <span className={partial ? "text-amber-500" : "text-muted-foreground/60"}>
-                                  {partial ? `${observed} av ${total}` : observed}
-                                </span>
-                                <span className="text-muted-foreground/60"> avganger</span>
-                                {partial && (
-                                  <span className="text-muted-foreground/40 ml-1" title={`${total - observed} avganger manglet sanntidsdata`}>
-                                    ({Math.round(observed / total * 100)}% dekning)
-                                  </span>
-                                )}
-                              </span>
-                            );
-                          })()}
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          {(["cumulative", "derivative", "dwell"] as const).map((mode) => (
-                            <Button
-                              key={mode}
-                              size="sm"
-                              variant={profileMode === mode ? "default" : "outline"}
-                              onClick={() => setProfileMode(mode)}
-                              className="h-6 px-2 text-xs"
-                            >
-                              {mode === "cumulative" ? "Forsinkelse" : mode === "derivative" ? "Forsinkelsesendring" : "Stopptid"}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Cumulative mode: min/max outer band + avg±σ inner band + avg line */}
-                      {profileMode === "cumulative" && (
-                        <ScrollableChart
-                          chartWidth={profileWidth}
-                          chartHeight={320}
-                          yMax={profileYMax}
-                          setYMax={setProfileYMax}
-                          dataMax={profileDataMax}
-                          yMin={profileYMin}
-                        >
-                          <ComposedChart
-                            width={profileWidth}
-                            height={320}
-                            data={profileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[profileYMin, profileYMax]} allowDataOverflow width={0} />
-                            <Tooltip content={(props: any) => <ProfileTooltip {...props} numVariants={selectedJourney?.numVariants} />} />
-                            {/* Outer band: capped at avg±2σ (≈95% of weeks, filters outlier weeks).
-                                NB: hver av disse MÅ være sin egen betingede JSX-node — recharts sin
-                                ComposedChart mister stack-grupperingen til Area-barna hvis de i stedet
-                                pakkes i ett <>...</>-fragment (empirisk verifisert: 0 <path> i DOM med
-                                fragment, 2 uten, selv om ComposedChart sin egen toArray() sier den skal
-                                flate ut fragmenter — noe annet i stack/domene-beregningen gjør ikke det). */}
-                            {showBands && <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
-                            {showBands && <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="hsl(var(--muted-foreground))" fillOpacity={0.12} legendType="none" isAnimationActive={false} />}
-                            {/* Inner band: avg±σ symmetric (≈68% of weeks) */}
-                            {showBands && <Area type="monotone" dataKey="innerBandBase" stackId="inner" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />}
-                            {showBands && <Area type="monotone" dataKey="innerBandRange" stackId="inner" stroke="none" fill="hsl(var(--primary))" fillOpacity={0.28} legendType="none" isAnimationActive={false} />}
-                            {/* Absolute extremes (raw min/max across all weeks) — faint dashed lines */}
-                            {showBands && <Line type="monotone" dataKey="extremeMax" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
-                            {showBands && <Line type="monotone" dataKey="extremeMin" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.55} dot={false} activeDot={false} legendType="none" isAnimationActive={false} connectNulls />}
-                            {/* Main average line */}
-                            <Line type="monotone" dataKey="avgDelayMin" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--primary))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
-                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-
-                      {/* Inline explanation of the cumulative-mode statistics */}
-                      {profileMode === "cumulative" && (
-                        <div className="text-xs text-muted-foreground mt-2 space-y-1.5 leading-snug">
-                          <p>
-                            <span className="font-medium text-foreground">Hva viser grafen?</span>{" "}
-                            Heltrukken linje er <span className="font-medium">vektet snitt</span> av forsinkelsen
-                            (ikke median) over alle ukene i tidsvinduet, vektet etter antall observasjoner per uke.
-                          </p>
-                          {showBands && (
-                            <>
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--primary))", opacity: 0.28 }} />
-                                  <span>Indre bånd: snitt ± 1σ (≈ 68 % av ukene hvis normalfordelt)</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className="inline-block w-3 h-2 rounded-sm" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.12 }} />
-                                  <span>Ytre bånd: kappet til snitt ± 2σ (≈ 95 %, filtrerer ekstrem-uker)</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className="inline-block w-4 border-t border-dashed border-muted-foreground/70" />
-                                  <span>Stiplet: faktisk min/maks-uke (snø, streik, e.l.)</span>
-                                </span>
-                              </div>
-                              <p className="text-muted-foreground/80">
-                                Båndet er <span className="italic">symmetrisk i verdi</span> (samme antall minutter
-                                opp som ned) — ikke i prosentil. Forsinkelser er gjerne høyreskeive, så hvis snittet
-                                ligger langt over 0 dekker det øvre båndet typisk litt mer enn 68 %, det nedre litt
-                                mindre. For ekte prosentiler (P50/P80/P95), bruk reiseplanleggeren.
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Derivative mode: delay change between stops */}
-                      {profileMode === "derivative" && (
-                        <ScrollableChart
-                          chartWidth={profileWidth}
-                          chartHeight={320}
-                          yMax={profileDerYMax}
-                          setYMax={setProfileDerYMax}
-                          dataMax={profileDerDataMax}
-                          yMin={profileDerYMin}
-                        >
-                          <ComposedChart
-                            width={profileWidth}
-                            height={320}
-                            data={profileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[profileDerYMin, profileDerYMax]} width={0} />
-                            <Tooltip
-                              content={({ active, payload }: any) => {
-                                if (!active || !payload?.[0]) return null;
-                                const d = payload[0].payload;
-                                return (
-                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
-                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
-                                    {d.aimedTime && <p className="text-muted-foreground text-xs mt-1">Planlagt: {d.aimedTime}</p>}
-                                    <div className="font-mono mt-1 space-y-0.5 text-xs">
-                                      <p className={d.delayGain > 0.1 ? "text-destructive" : d.delayGain < -0.1 ? "text-emerald-500" : "text-muted-foreground"}>
-                                        Endring: {d.delayGain >= 0 ? "+" : ""}{(d.delayGain ?? 0).toFixed(2)} min
-                                      </p>
-                                    </div>
-                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
-                                      Positiv = forsinkelse oppstår her. Negativ = bussen tar igjen tid.
-                                    </p>
-                                  </div>
-                                );
-                              }}
-                            />
-                            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.6} />
-                            <Area
-                              type="monotone"
-                              dataKey="delayGain"
-                              stroke="none"
-                              fill="hsl(var(--primary))"
-                              fillOpacity={0.3}
-                              isAnimationActive={false}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="delayGain"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth={2}
-                              dot={({ cx, cy, payload }: any) => {
-                                const color = (payload.delayGain ?? 0) > 0.1 ? "hsl(var(--destructive))" : (payload.delayGain ?? 0) < -0.1 ? "hsl(142, 76%, 36%)" : "hsl(var(--muted-foreground))";
-                                return <circle key={`dot-${cx}-${cy}`} cx={cx} cy={cy} r={4} fill={color} stroke="none" />;
-                              }}
-                              activeDot={{ r: 6 }}
-                              isAnimationActive={false}
-                            />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-
-                      {/* Dwell mode: average dwell time per stop in seconds */}
-                      {profileMode === "dwell" && (
-                        <ScrollableChart
-                          chartWidth={profileWidth}
-                          chartHeight={320}
-                          yMax={profileDwellYMax}
-                          setYMax={setProfileDwellYMax}
-                          dataMax={profileDwellDataMax}
-                          unit="s"
-                        >
-                          <ComposedChart
-                            width={profileWidth}
-                            height={320}
-                            data={profileData}
-                            margin={{ top: 10, right: 10, bottom: 80, left: 60 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="shortName"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={9}
-                              tickLine={false}
-                              axisLine={false}
-                              angle={-50}
-                              textAnchor="end"
-                              interval={0}
-                              tick={{ dy: 6 }}
-                              padding={{ left: 20, right: 10 }}
-                            />
-                            <YAxis hide domain={[0, profileDwellYMax]} allowDataOverflow width={0} />
-                            <Tooltip
-                              content={({ active, payload }: any) => {
-                                if (!active || !payload?.[0]) return null;
-                                const d = payload[0].payload;
-                                return (
-                                  <div className="bg-card border border-border rounded-lg p-3 text-sm shadow-lg max-w-[220px]">
-                                    <p className="font-medium leading-tight">{d.stopName ?? d.stopRef}</p>
-                                    {d.aimedTime && <p className="text-muted-foreground text-xs mt-1">Planlagt: {d.aimedTime}</p>}
-                                    <div className="font-mono mt-1 text-xs">
-                                      <p>{d.dwellTimeSec != null ? `${d.dwellTimeSec.toFixed(0)} sek` : "Ingen data"}</p>
-                                    </div>
-                                    <p className="text-muted-foreground/70 text-xs mt-1 leading-tight">
-                                      Gjennomsnittlig tid bussen står på stoppet (ankomst til avgang)
-                                    </p>
-                                  </div>
-                                );
-                              }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="dwellTimeSec"
-                              stroke="hsl(var(--chart-4))"
-                              strokeWidth={2}
-                              dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
-                              activeDot={{ r: 5 }}
-                              isAnimationActive={false}
-                              connectNulls
-                            />
-                          </ComposedChart>
-                        </ScrollableChart>
-                      )}
-
-                      {profileMode !== "cumulative" && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {profileMode === "derivative"
-                            ? "Viser endring i forsinkelse mellom hvert stopp. Rødt = forsinkelsen øker, grønt = bussen tar igjen tid."
-                            : "Viser gjennomsnittlig tid (sekunder) bussen står på hvert stopp. Krever ankomst- og avgangsdata fra sanntidssystemet."}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
             )}
           </div>
         )}

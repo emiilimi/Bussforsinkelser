@@ -61,6 +61,10 @@ export interface JourneyEntry {
   numVariants: number;
   firstStopName: string | null;
   lastStopName: string | null;
+  /** Alle «A→B» under dette klokkeslettet, skilt med |. Avganger samme
+   *  klokkeslett slås sammen, og navnene over er bare MAX av dem: 01:04 kan gå
+   *  til både Toppe og Støbotn. Mangler for avganger fra verste/beste-listene. */
+  endPairs?: string | null;
 }
 
 export interface JourneyStopProfile {
@@ -184,7 +188,8 @@ export function useJourneysForLine(lineRef: string, fromDate: string) {
           first_stop_time AS firstStopTime,
           COUNT(*) AS numVariants,
           MAX(first_stop_name) AS firstStopName,
-          MAX(last_stop_name)  AS lastStopName
+          MAX(last_stop_name)  AS lastStopName,
+          string_agg(DISTINCT first_stop_name || '→' || last_stop_name, '|') AS endPairs
         FROM (
           SELECT
             d.service_journey_id,
