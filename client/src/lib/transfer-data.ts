@@ -33,6 +33,9 @@ export type TransferIndex = {
   shards: number;
   path: string;
   operators: string[];
+  /** `operators` er alle operatørene i dataene (TRANSFER_OPERATORS=*). Mangler
+   *  i eldre indekser — da gjelder den gamle, strenge regelen. */
+  allOperators?: boolean;
   from: string;
   to: string;
 };
@@ -167,7 +170,14 @@ export function transferCovers(
   const newest = latest === undefined ? latestDataDate("by-stop") : latest;
   if (newest && newest > idx.to) return false;
   for (const l of lineRefs) {
-    if (!l || !idx.operators.includes(operatorOf(l))) return false;
+    if (!l) return false;
+    if (idx.operators.includes(operatorOf(l))) continue;
+    // Operatøren finnes ikke i dataene i det hele tatt (f.eks. VYX, Vy
+    // Express): DuckDB ville heller ikke funnet noe. Uten dette sendte ÉN slik
+    // linje blant tolv reiseforslag statistikken for ALLE forslagene til
+    // DuckDB (40–110 s) — målt 2026-11-11, Åsane → Lagunen kl. 08.
+    if (idx.allOperators) continue;
+    return false;
   }
   return true;
 }
