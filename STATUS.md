@@ -3,7 +3,124 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-10-27
+**Sist oppdatert**: 2026-11-11
+
+## Endringslogg — 2026-11-11: enkel visning av reiseplanleggeren (`feat/enkel-reise`, kun preview)
+
+Etter tilbakemelding om at siden er «for nerdete» er standardvisningen på
+`/reise` nå et svarkort («Dra kl. 20:27 … fremme før 21:30 fire av fem
+dager»), «Dra kl. / Fremme kl.», «Vanlig dag / Viktig avtale» (P80/P95), tre
+forslag og vanlige ord. «Vis alle tall» gir den gamle visningen (localStorage).
+
+Usikre bytter (lite data — Bybanen, SKY:Line:1, har nesten ingen rader i
+feeden og står som `bus`) vurderes med verste fall: mister du byttet, tar du
+neste avgang (ett Entur-søk fra byttestedet). Holder reserven fristen, er
+forslaget trygt. Statistikkvinduets anker låses per søk (før: vinduet flyttet
+seg når overgangsfilene og manifestet hadde ulik siste dag, og alle gap ble
+regnet på nytt).
+
+
+## Endringslogg — 2026-11-04: Avgangsanalyse inn i ruteprofilen (`feat/linjeanalyse`)
+
+Emilie: «trenger ikke to ganger samme grafen». Kortene «Forsinkelsesprofil
+langs ruten» og «Avgangsanalyse» er fjernet, og alt samles i «Hvor på ruten
+bygger forsinkelsen seg opp?», med **Rutevariant** og **Avgang** som to velgere
+ved siden av hverandre.
+
+- **Valgt avgang tegner avgangens egne stopp**, ikke rutevariantens, så en
+  avgang på en annen variant mister ingen stopp. Alle avganger ligger igjen som
+  oransje sammenlikningslinje (koblet på `stopRef`), med avgangens ±σ-bånd,
+  ±2σ-bånd og stiplet verste/beste dag fra den gamle Avgangsanalyse.
+- Forsinkelse, Endring per stopp, Stopptid, zoom, «Vis alle stopp» og teksten
+  om største hopp følger valget (`routeData`). Ingen nye spørringer ved
+  sidelast: avgangen hentes først når den velges.
+- Bytte av retning eller rutevariant nullstiller avgangen. Rader i verste/beste
+  velger avgangen, ruller til grafen og bytter variant hvis den går en annen.
+- **`endPairs` i `useJourneysForLine`**: avganger slås sammen per klokkeslett,
+  og navnene er bare `MAX`. 01:04 på linje 3 går både til Toppe og Støbotn, så
+  et filter på navnene skjulte den fra Støbotn-varianten. **Kjent svakhet**:
+  profilen for et klokkeslett blander fortsatt alle turene på det klokkeslettet,
+  også når varianten er valgt (`useJourneyProfile` matcher bare på tid).
+- Dekningstallet («X av Y avganger») vises ikke som datahull når dagtypefilteret
+  er på: da er færre avganger meningen, ikke manglende sanntidsdata.
+- Fjernet teksten «— dem kan du ikke rekke» fra kortet «Gikk for tidlig» her og
+  i stoppanalysen. Forklaringene i Oversikt og Metode er urørt.
+- `ScrollableChart` hadde ingen brukere igjen og er slettet. Ruteprofilen har
+  zoom-Brush og autoskalert akse, så den dra-bare Y-aksen forsvant med de gamle
+  kortene. `useYAxisDrag` står igjen for timesgrafen og dagstrenden.
+- Knappen fra stoppanalysen heter nå «Linjeanalyse», siden kortet den pekte på
+  ikke lenger finnes.
+
+## Endringslogg — 2026-11-01: gammel og ny linjeanalyse på samme side (`feat/linjeanalyse`)
+
+Emilie ville ha den nye linjeanalysen ØVERST i den gamle, uten at noe
+forsvant, og begge i nettstedets stil. Rekkefølgen er nå: svaret (4 av 5),
+fordeling, varmekart, dag for dag, zoombar ruteprofil — så «Flere detaljer»:
+de seks nøkkeltallskortene, beste/verste dag, timesgrafen og dagstrenden med
+min/maks-bånd, kart, verste stopp, den rullbare ruteprofilen (alle stoppnavn,
+min/maks-bånd, dra-bar Y-akse) og enkeltavgangene. «Min/maks-bånd»-bryteren
+er tilbake i filterkortet. «Analyser»-knappen er fortsatt borte (linja lastes
+når den velges).
+
+- **Ingen ekstra DuckDB-spørring.** Timesgrafen og dagstrendens min/maks
+  kommer fra en fjerde radtype i `/distribution` (kind 3, per dato × time) —
+  ikke fra `/hourly` og `/daily`.
+- **⚠️ DuckDB 1.5.1 henger i optimereren** på enkelte UNION-former: med tre
+  ekstra kolonner (am/mn/mx), eller fem grener, gikk spørringen fra 0,1 s til
+  > 10 min (både i nettleseren og i Python; `PRAGMA disable_optimizer` fikk
+  den gjennom på 1,4 s). Kind 3 gjenbruker derfor p50/p80-kolonnene til
+  laveste/høyeste måling. Ikke legg til kolonner eller grener uten å måle.
+- **«Høyst 2 min forsinket»** heter det gamle «Andel i rute»-kortet nå. Det
+  teller med de som gikk for tidlig (som Oversikt), mens «I rute» øverst
+  ikke gjør det — to ulike tall med samme navn på samme side ville forvirret.
+- **Stil**: kortene har `shadow-sm`, seksjonstitler har ikon (som Topplister
+  og Passasjerer), nøkkeltallene har farget venstrekant (som Oversikt). Hele
+  siden bruker norsk tallformat (`+1,9 min`, `62,8 %`).
+- **Rettet**: den rullbare ruteprofilen tegnet tallene på Y-aksen fra 0 mens
+  grafen selv brukte `"auto"` som bunn — når båndet gikk under 0 stemte ikke
+  aksen med linja. Nå bruker begge samme bunn. Båndet er min–maks igjen
+  (den nye ruteprofilen øverst har P20–P80).
+
+## Endringslogg — 2026-10-27: ny linjeanalyse (branch `feat/linjeanalyse`, forhåndsvisning)
+
+Forhåndsvisning: **https://feat-linjeanalyse-reiseplanlegger.emiliemoldestad.workers.dev/journey**
+(Cloudflare Workers Builds lager URL per branch; produksjon deployes bare fra `reise`).
+
+Bygget etter skissen fra 26.10, men stilen er holdt nær resten av siden
+(shadcn-kort, samme farger og tallformat). Emilies ønsker: tall ved hover i
+alle grafer, zoom i forsinkelsesoppbyggingen eller en stor visning med alle
+stoppnavn, og «for tidlig» høyere opp.
+
+- **Svaret først** (`LineSummaryCard`): «4 av 5 ganger var linja mindre enn
+  +3,8 min forsinket», median og P95 i en setning, og en egen linje når mer
+  enn 1 % gikk for tidlig. Fire tall: I rute (−1..+2 min, UTEN de tidlige —
+  artefaktens `pctOnTime` er ≤ 2 min og inkluderer dem), Gikk for tidlig,
+  Median, Kraftig forsinket. Snitt/σ/avganger/datadekning i en linje under.
+- **Fordeling** (`DelayHistogram`): én søyle per minutt fra ≤ −4 til ≥ 20,
+  farget etter sone, med «for tidlig»-feltet skravert og P50/P80/P95-streker.
+  ⚠️ Søylene står på en skjult KATEGORI-akse og strekene på en numerisk akse
+  over samme bredde — med bare tall-aksen traff tooltipen feil søyle.
+- **Varmekart ukedag × time** (`WeekHourHeatmap`): P80 / snitt / i rute,
+  hover eller trykk for tall, «Alle dager»-rad nederst (erstatter timesgrafen).
+- **Dag for dag**: median og P80 per dag i stedet for min/maks-båndet som
+  strakk aksen fra −15 til +45 min.
+- **Ruteprofil**: én graf for de tre visningene, `Brush` for zoom, «Zoom inn
+  hit» på strekningen med størst økning, P20–P80-bånd og stiplet P80 i
+  stedet for min/maks, og «Vis alle N stopp» (dialog med fulle navn, snitt,
+  endring, stopptid og lenke til stoppanalysen). Brush leser start/slutt bare
+  ved montering, så knappene bytter `key` på grafen.
+- «Analyser»-knappen er borte — linja lastes når den velges.
+
+**Datagrunnlag**: ny `/api/line/:ref/distribution` (`apiLineDistribution` i
+`stats-adapter.ts`, tolket av `lib/line-distribution.ts`) — ÉN DuckDB-
+spørring med `WITH … AS MATERIALIZED` og tre radtyper: kvartersbøtter per
+(ukedag, time), eksakte tall per dato, og eksakte P50/P80/P95/σ for hele
+utvalget. Den erstatter `/daily` og `/hourly`, så siden har én spørring
+mindre enn før. Avganger telles per (dato, avgang): Skyss gjenbruker
+`service_journey_id` over flere dager, og `COUNT(DISTINCT sj)` ga 2 102 i
+stedet for 5 743 for linje 3. `useLineStopProfile` henter nå også P20/P50/P80
+per stopp.
+
 
 ## Endringslogg — 2026-10-27: overgangsfiler for alle operatører
 
