@@ -1,6 +1,6 @@
 import { Link, useLocation, useSearch } from "wouter";
 import { Bus, BarChart3, Clock, Map as MapIcon, Navigation, Timer, BookOpen, Heart, Info, Users, Menu, CalendarDays } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,15 +23,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // (full offload) — ingen SQLite-backend.
   const navItems = IS_REISE
     ? [
-        { href: "/reise", label: "Reiseplanlegger", icon: Navigation },
+        { href: "/reise", label: "Planlegg reise", icon: Navigation },
         { href: "/avganger", label: "Avganger og stopp", icon: Timer },
-        { href: "/oversikt", label: "Oversikt", icon: BarChart3 },
+        // Analysesidene samles under én overskrift — de fleste trenger bare
+        // de to øverste. (section = overskrift som tegnes over punktet.)
+        { href: "/oversikt", label: "Oversikt", icon: BarChart3, section: "Utforsk statistikk" },
         { href: "/uke", label: "Uka som gikk", icon: CalendarDays },
         { href: "/journey", label: "Linjeanalyse", icon: Clock },
         { href: "/worst", label: "Topplister", icon: BarChart3 },
         { href: "/map", label: "Forsinkelseskart", icon: MapIcon },
         ...(PAX_ENABLED ? [{ href: "/passasjerer", label: "Passasjerer", icon: Users }] : []),
-        { href: "/metode", label: "Metode", icon: BookOpen },
+        { href: "/metode", label: "Metode", icon: BookOpen, section: "Om tallene" },
         { href: "/om", label: "Om", icon: Info },
       ]
     : [
@@ -43,7 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { href: "/avganger", label: "Avganger og stopp", icon: Timer },
         ...(PAX_ENABLED ? [{ href: "/passasjerer", label: "Passasjerer", icon: Users }] : []),
         { href: "/metode", label: "Metode", icon: BookOpen },
-      ];
+      ] as Array<{ href: string; label: string; icon: typeof Info; section?: string }>;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const activeLabel = navItems.find((i) => i.href === location)?.label ?? "";
@@ -53,6 +55,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {navItems.map((item) => {
         const isActive = location === item.href;
         return (
+          <Fragment key={item.href}>
+          {item.section && (
+            <div className="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {item.section}
+            </div>
+          )}
           <Link
             key={item.href}
             href={getRememberedUrl(item.href)}
@@ -67,6 +75,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <item.icon className={cn("w-4 h-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
             {item.label}
           </Link>
+          </Fragment>
         );
       })}
     </nav>
