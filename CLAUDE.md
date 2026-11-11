@@ -42,6 +42,7 @@ client/src/
   lib/
     pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
     transfer-data.ts       Overgangsfiler fra R2: overgangs-gap, persentiler og legg-tider uten DuckDB
+    trip-model.ts          Overgangs-/ankomstmodell: kildebelagte linjer (Bybanen), marginal-estimat, blanding m/ plan B, beslutningsregel
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)
@@ -77,6 +78,7 @@ pipeline/          (Python)
   upload_pax.py            pax-out → R2 pax/ (krever --confirm-license)
   transfer_shards.py       Overgangsfiler per plattform → transfer/ (kalles av aggregate_stats.py)
   check_transfer_parity.py Paritetssjekk: overgangsfilene mot DuckDB-SQL-en på ekte overganger
+  backtest_marginal.py     Backtest av marginal-estimatet (grunnlag for MARGINAL_PRIOR_DAYS i trip-model.ts)
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
 
 data/
@@ -394,6 +396,11 @@ kollektivtrafikk, Svipper og Vy — **ikke Skyss eller Ruter**.
 - `journeyCancellation`, `dayOfTheWeek`, `operatingDate`, `directionRef`
 
 ### Skyss (SKY) quirks
+- **Bybanen (`SKY:Line:1`/`SKY:Line:2`) har ingen ekte sanntidsmålinger.** De
+  få dagene med mange rader har forsinkelse nøyaktig 0,0 på alle rader
+  (rutetider). Reiseplanleggeren bruker Bybanen AS sine publiserte tall
+  (`REFERENCE_LINES` i `lib/trip-model.ts`) og ignorerer egne rader. Ikke bruk
+  Bybane-radene som «målt punktlighet» noe sted.
 - **`serviceJourneyId` er IKKE stabil over dager.** Formatet er
   `SKY:ServiceJourney:{linje}-{datasettversjon}-{avgang}`, og det MIDTERSTE
   leddet endres nesten daglig når ruteplanen republiseres. Samme 10:00-avgang

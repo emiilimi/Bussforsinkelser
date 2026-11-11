@@ -55,6 +55,12 @@ import {
 import {
   useTransferIndex, transferCovers, localTransferGapRows, localDelayDistribution, localLegTiming,
 } from "@/lib/transfer-data";
+import {
+  type QGrid, type TransferBasis, type ReferenceReliability,
+  referenceFor, referenceGrid, REFERENCE_DAYS, quantileGrid, maxGrid, shiftGrid, ZERO_GRID,
+  transferProbFromMarginals, blendTransfer, lowerBound, mixtureCdf, mixtureQuantile,
+  decisionCost, MIN_ON_TIME, frequencyWords, MARGINAL_PRIOR_DAYS,
+} from "@/lib/trip-model";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -385,6 +391,21 @@ type P80Report = {
   p95ArrivalMs?: number | null;
   /** Sannsynligheten for å rekke alle overganger (1 = ingen overganger, null = ukjent). */
   pMakeAll?: number | null;
+  /** P(fremme innen fristen) ved «Fremme kl.»-søk, per sikkerhetsvalg (null = ukjent).
+   *  «Viktig avtale» bruker den forsiktige nedre grensen for byttene (lib/trip-model). */
+  pOnTime?: Record<Certainty, number> | null;
+  /** Median ankomst — ventetiden i beslutningsregelen. */
+  medianMs?: number | null;
+  /** Svaret avhenger av hva som skjer om du mister et bytte → hent plan B. */
+  wantsPlanB?: boolean;
+  /** Byttet er ukjent og regnet som «du mister det» (verste fall, med plan B). */
+  assumedMiss?: boolean;
+  /** Kortet har fått plan B-svaret (også «fant ingen») og regnet det inn. */
+  hasPlanB?: boolean;
+  /** Det vi mangler data om — vises på kortet, skjuler aldri reisen. */
+  missing?: string[];
+  /** Linjer der tallene er operatørens egne (REFERENCE_LINES), ikke våre målinger. */
+  references?: ReferenceReliability[];
 };
 
 /**
@@ -432,37 +453,41 @@ function transferTargetLegs(p: TripPattern): number[] {
 }
 
 /**
- * Ankomsten anbefalingen regner med for ett forslag. "pending" = venter på
- * plan B; null = vet for lite til å si noe.
+ * Trenger dette forslaget en «mister du byttet»-reserve? Kortet avgjør selv
+ * (wantsPlanB): når byttet kan ryke så ofte at miss-grenen betyr noe for
+ * svaret, eller når byttet er helt ukjent. Bytter vi rekker nesten alltid
+ * trenger ingen reserve — det sparer Entur-kall (og ventetid).
  */
-function effectiveArrival(
-  p: TripPattern,
-  r: P80Report,
-  certainty: Certainty,
-  planB: PlanBInfo | null | undefined,
-  /** Forsinkelse (min) på SISTE strekning ved målet, P80 eller P95 — reservens margin. */
-  lastLegDelayMin: number | null,
-): { arrMs: number; viaPlanB: boolean } | null | "pending" {
-  const own = certainty === "high" ? r.p95ArrivalMs ?? null : r.arrivalMs;
-  const hasTransfer = transferTargetLegs(p).length > 0;
-  const known = r.pMakeAll != null;
-  if (!hasTransfer || (known && own != null)) return own != null ? { arrMs: own, viaPlanB: false } : null;
-  // Ukjent eller for risikabelt bytte → verste fall: mist byttet, ta neste.
-  if (planB === undefined) return "pending";
-  if (planB === null) return null;
-  // Reserven får forsinkelsen på SISTE strekning (samme linje inn til målet,
-  // som regel). IKKE plan A sin samlede margin: den domineres av forsinkelsen
-  // på første buss — og den er grunnen til at du mistet byttet, ikke noe som
-  // gjør reserven senere. Mangler tall (Bybanen), regnes den som i rute.
-  const margin = Math.max(0, lastLegDelayMin ?? 0) * 60000;
-  return { arrMs: Math.max(planB.arrMs + margin, own ?? 0), viaPlanB: true };
+function needsPlanB(p: TripPattern, r: P80Report | undefined): boolean {
+  if (!r || r.pending || transferTargetLegs(p).length === 0) return false;
+  return r.wantsPlanB === true;
 }
 
-/** Trenger dette forslaget en «mister du byttet»-reserve? */
-function needsPlanB(p: TripPattern, r: P80Report | undefined, certainty: Certainty): boolean {
-  if (!r || r.pending || transferTargetLegs(p).length === 0) return false;
-  const own = certainty === "high" ? r.p95ArrivalMs ?? null : r.arrivalMs;
-  return r.pMakeAll == null || own == null;
+/** Under dette regnes byttet som så sikkert at plan B ikke hentes. */
+const PLAN_B_BELOW = 0.97;
+
+const fmtPct = (p: number) => `${(p * 100).toLocaleString("nb-NO", { maximumFractionDigits: 1 })} %`;
+
+/** «Bybanen AS, bærekraftsrapport 2023: 99,3 % i rute, 4,1 % innstilt.» */
+function referenceSentence(r: ReferenceReliability): string {
+  return `Vi har ikke egne målinger av ${r.name} – sanntidsdataene for Bybanen er rutetider, ikke målinger. ` +
+    `Vi bruker i stedet ${r.source}: ${fmtPct(r.punctuality)} av avgangene i rute, ` +
+    `${fmtPct(1 - r.regularity)} innstilt (${r.year}).`;
+}
+
+/** Forklaring (tooltip) på hva overgangstallet bygger på. */
+function transferBasisTitle(transfers: TransferInfo[]): string {
+  const parts = transfers.filter((t) => !t.broken).map((t) => {
+    const name = `${t.fromLine ?? "?"} → ${t.toLine ?? "?"}`;
+    switch (t.model.basis) {
+      case "measured": return `${name}: målt over ${t.daysObserved} dager.`;
+      case "blend": return `${name}: ${t.daysObserved} målte dager, supplert med hvor presise linjene er hver for seg.`;
+      case "marginal": return `${name}: ingen felles målinger – anslått ut fra hvor presise linjene er hver for seg.`;
+      case "reference": return `${name}: ${t.model.reference?.name ?? "linjen"} regnes etter ${t.model.reference?.source ?? "kilde"}.`;
+      default: return `${name}: mangler data.`;
+    }
+  });
+  return parts.join(" ");
 }
 
 /** Overgangsrisiko i vanlige ord — brukes i enkel visning i stedet for prosent. */
@@ -1584,6 +1609,17 @@ type TransferInfo = {
    *  hvor mange dager estimatet for DIN avgang faktisk bygger på. */
   actual: { days: number; source: "sj" | "aimed" | "none"; probs: TransferProbs };
   pool: { days: number; probs: TransferProbs };
+  /** Hva `probs` bygger på (lib/trip-model): målte dager, linjenes egne
+   *  fordelinger (marginal), en blanding, eller en kildebelagt linje. */
+  model: {
+    basis: TransferBasis;
+    /** «Effektive dager» bak tallet — usikkerheten «Viktig avtale» bruker. */
+    nEff: number;
+    /** Marginal-estimatet alene (2 min margin), null = ukjent. */
+    pMarg: number | null;
+    /** Kildebelagt linje på en av sidene av byttet. */
+    reference: ReferenceReliability | null;
+  };
 };
 
 const OBSERVATION_TABLE_LIMIT = 10;
@@ -1625,12 +1661,45 @@ function TransferAnalysisDialog({
             ) : (
               <> (ingen gange nødvendig).</>
             )}{" "}
-            Sannsynlighetene telles opp dag for dag i historikken — ingen simulering.
+            {info.model.basis === "marginal" || info.model.basis === "reference"
+              ? "Ingen felles målinger av de to avgangene — anslått ut fra hver side for seg."
+              : "Sannsynlighetene telles opp dag for dag i historikken — ingen simulering."}
           </DialogDescription>
         </DialogHeader>
 
-        {info.probs.default >= 0 ? (
+        {info.probs.default >= 0 && (info.model.basis === "marginal" || info.model.basis === "reference") ? (
+          <div className="flex flex-col gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Rekker byttet (2 min margin):</span>
+              {probabilityBadge(info.probs.default)}
+              <span className="text-muted-foreground">· {transferMarginMin} min: {Math.round(info.probs.user * 100)} %</span>
+            </div>
+            {info.model.basis === "reference" && info.model.reference ? (
+              <p className="text-[11px] leading-snug">
+                {referenceSentence(info.model.reference)}{" "}
+                Vi regner {info.model.reference.name} som i rute og ser på hvor ofte den andre siden av byttet
+                er presis nok, ut fra våre egne målinger. Er en avgang innstilt, tar du neste.{" "}
+                <a href={info.model.reference.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Kilde</a>
+              </p>
+            ) : (
+              <p className="text-[11px] leading-snug">
+                <strong>Anslått.</strong> Vi har ikke sett disse to avgangene på samme dag, men vi vet hvor
+                presise linje {info.fromLine ?? "inn"} og {info.toLine ?? "ut"} er hver for seg ved dette
+                stoppet. Tallet er sjansen for at gapet holder når begge varierer som vanlig – uten å regne
+                med at de ofte står i samme kø, så det er heller forsiktig. Testet på historikken: bedre enn
+                å si «vet ikke», og bedre enn bare noen få målte dager.
+              </p>
+            )}
+            <a href="/metode#overgang" className="text-[10px] text-primary hover:underline">Metode →</a>
+          </div>
+        ) : info.probs.default >= 0 ? (
           <div className="flex flex-col gap-1 text-xs">
+            {info.model.basis === "blend" && (
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                Få målte dager, så tallet er supplert med hvor presise linjene er hver for seg
+                (teller som {MARGINAL_PRIOR_DAYS} dager).
+              </p>
+            )}
             {/* Begge estimatene side om side, med datagrunnlag i overskriften */}
             <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-1 items-center">
               <span />
@@ -2348,9 +2417,33 @@ function TripCard({
           observations: [],
           actual: { days: 0, source: "none", probs: { default: -1, user: -1, sprint: -1 } },
           pool: { days: 0, probs: { default: -1, user: -1, sprint: -1 } },
+          model: { basis: "none", nEff: 0, pMarg: null, reference: null },
         });
         continue;
       }
+
+      // Hver linjes egen fordeling ved byttestoppet (lib/trip-model): A sin
+      // ankomst, B sin avgang. Brukes når de to avgangene har få eller ingen
+      // felles målte dager. Kildebelagte linjer (Bybanen) bruker operatørens
+      // tall — våre «målinger» for dem er rutetider, ikke sanntid.
+      const refA = referenceFor(legA.line?.id);
+      const refB = referenceFor(legB.line?.id);
+      const statA = legA.toPlace.quay?.id && legA.line?.id
+        ? duckStats?.get(`${legA.toPlace.quay.id}|${legA.line.id}`) : undefined;
+      const statB = legB.fromPlace.quay?.id && legB.line?.id
+        ? duckStats?.get(`${legB.fromPlace.quay.id}|${legB.line.id}`) : undefined;
+      const arrGrid = refA
+        ? referenceGrid(refA)
+        : statA ? quantileGrid(statA.p50_arr ?? statA.p50_dep, statA.p80_arr ?? statA.p80_dep, statA.p95_arr ?? statA.p95_dep) : null;
+      const depGrid = refB
+        ? ZERO_GRID
+        : statB ? quantileGrid(statB.p50_dep ?? statB.p50_arr, statB.p80_dep ?? statB.p80_arr, statB.p95_dep ?? statB.p95_arr) : null;
+      // Innstilt B (kildens regularitet) = du står igjen og tar neste.
+      const margProb = (need: number) => {
+        const p = transferProbFromMarginals(totalGap, need, arrGrid, depGrid);
+        return p == null ? null : p * (refB?.regularity ?? 1);
+      };
+      const reference = refB ?? refA;
 
       // Find the empirical gap distribution for this transfer.
       const spec = transferSpecs[t];
@@ -2389,10 +2482,23 @@ function TripCard({
       const poolTrack = gapResult?.pool.gaps ?? [];
       const fShrunk = (buf: number) =>
         !hasDelayData || (ownTrack.length === 0 && poolTrack.length === 0) ? -1 : shrunkProb(ownTrack, poolTrack, buf);
+      // Målte dager veid mot marginal-estimatet (MARGINAL_PRIOR_DAYS, backtestet).
+      // Ved en kildebelagt linje teller ikke de «målte» dagene: de er rutetider.
+      const nJoint = ownTrack.length + poolTrack.length;
+      const estimate = (buf: number) => {
+        if (reference) {
+          const p = margProb(buf);
+          return p == null
+            ? { p: -1, nEff: 0, basis: "none" as TransferBasis }
+            : { p, nEff: REFERENCE_DAYS, basis: "reference" as TransferBasis };
+        }
+        return blendTransfer(fShrunk(buf), nJoint, margProb(buf));
+      };
+      const estDefault = estimate(walkTime + 2);
       const combinedProbs: TransferProbs = {
-        default: fShrunk(walkTime + 2),
-        user: fShrunk(walkTime + transferMarginMin),
-        sprint: fShrunk(sprintWalkTime + SPRINT_MARGIN_MIN),
+        default: estDefault.p,
+        user: estimate(walkTime + transferMarginMin).p,
+        sprint: estimate(sprintWalkTime + SPRINT_MARGIN_MIN).p,
       };
 
       transfers.push({
@@ -2416,6 +2522,7 @@ function TripCard({
           days: gapResult?.pool.days ?? 0,
           probs: probsFrom(gapResult?.pool.gaps ?? []),
         },
+        model: { basis: estDefault.basis, nEff: estDefault.nEff, pMarg: margProb(walkTime + 2), reference },
       });
     }
 
@@ -2426,10 +2533,19 @@ function TripCard({
     const overallProb = knownProbs.length > 0
       ? knownProbs.reduce((a, b) => a * b, 1)
       : -1;
+    // Forsiktig variant for «Viktig avtale»: hver overgangs nedre grense ut fra
+    // hvor mange effektive dager den bygger på.
+    const overallLo = transfers.reduce(
+      (acc, t) => (t.broken ? 0 : t.probs.default >= 0 ? acc * lowerBound(t.probs.default, t.model.nEff) : acc),
+      1,
+    );
+    // Overganger vi ikke vet NOE om. Tidligere ble de stille utelatt fra
+    // produktet; nå gjør de hele sannsynligheten ukjent (verste fall: plan B).
+    const unknownCount = transfers.filter((t) => !t.broken && t.probs.default < 0).length;
     const hasTransfers = transfers.length > 0;
 
-    return { transfers, overallProb, hasTransfers, transferIdxByLeg };
-  }, [pattern, transferSpecs, gapMap, transferMarginMin, walkSpeedKmh, sprintSpeedKmh]);
+    return { transfers, overallProb, overallLo, unknownCount, hasTransfers, transferIdxByLeg };
+  }, [pattern, transferSpecs, gapMap, transferMarginMin, walkSpeedKmh, sprintSpeedKmh, duckStats]);
 
   // ---------- Compute estimated departure/arrival and P80 from per-SJ DuckDB data ----------
   const estimatedTimes = useMemo(() => {
@@ -2478,122 +2594,122 @@ function TripCard({
       ? formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr))
       : null;
 
-    // P80-ankomst, justert for overgangsrisiko (endret 2026-08-15).
-    //
-    // FØR: rått maksimum av P80 over alle transitt-legg. Det svarte egentlig på
-    // «hvor sen er det verste enkeltlegget?», ikke «når er jeg framme 4 av 5
-    // dager» — og det ignorerte at en ryket overgang flytter ankomsten langt
-    // mer enn noen minutters legg-forsinkelse.
-    //
-    // NÅ: vi leser av plan A på det nivået blandingsfordelingen krever, gitt
-    // sannsynligheten for å rekke ALLE overganger (se arrivalQuantileLevel).
-    // Er den under 80 % finnes ikke P80 i plan A — da settes p80 til null og
-    // kortet sier at P80 ligger i «mistet overgang»-grenen i stedet for å vise
-    // et falskt trygt tall.
+    // Ankomsten som BLANDINGSFORDELING (lib/trip-model, endret 2026-11-11):
+    //     P(fremme innen t) = pMake·F_A(t) + (1 − pMake)·F_B(t)
+    // F_A = plan A (verste legg, nivå for nivå), F_B = neste avgang hvis du
+    // mister byttet (plan B fra Entur, bare i enkel visning). Uten plan B er
+    // miss-grenen «for sent» — det gir nøyaktig den gamle regelen der plan A
+    // leses av på nivå 0,80/pMake (arrivalQuantileLevel).
     const pMakeAll = transferAnalysis.hasTransfers
-      ? (transferAnalysis.overallProb >= 0 ? transferAnalysis.overallProb : null)
+      ? (transferAnalysis.unknownCount > 0 || transferAnalysis.overallProb < 0 ? null : transferAnalysis.overallProb)
+      : 1;
+    const pMakeLo = transferAnalysis.hasTransfers
+      ? (pMakeAll == null ? null : Math.min(pMakeAll, transferAnalysis.overallLo))
       : 1;
 
-    // VENTER vi fortsatt på overgangssannsynligheten? Da kan P80 ikke regnes
-    // ut — og skal heller ikke VISES. Tidligere falt vi tilbake til rått P80
-    // (nivå 0,80) mens gapene var underveis, slik at kortet først viste et
-    // tall som ikke tok hensyn til overgangsrisiko, og så byttet det ut når
-    // overgangsanalysen landet. Et tall som endrer seg under føttene på
-    // leseren er verre enn et som ennå ikke er der.
-    //
-    // MERK forskjellen på «ikke beregnet ennå» og «beregnet, men uten data»:
-    // `gapMap` er undefined helt til gapene for DETTE reiseforslaget er kjørt
-    // (samme signal som isPending lenger nede). Er de kjørt, men overgangen
-    // mangler historikk (overallProb < 0), venter vi IKKE videre — da ville
-    // «P80 beregnes…» stått for alltid på overganger uten data. Vi viser rått,
-    // UJUSTERT P80 i stedet, og sier fra i tooltipen at overgangsrisikoen
-    // ikke er medregnet.
+    // VENTER vi fortsatt på overgangsgapene? Da kan ankomsten ikke regnes ut —
+    // og skal heller ikke VISES (et tall som bytter under leseren er verre enn
+    // et som ennå ikke er der). `gapMap` er undefined helt til gapene for DETTE
+    // forslaget er kjørt.
     const gapsComputed = !transferAnalysis.hasTransfers || !!gapMap;
     const p80Pending = !gapsComputed;
-    const p80Unadjusted = gapsComputed && pMakeAll == null;
-    const level = p80Pending
-      ? null
-      : p80Unadjusted
-        ? P80_LEVEL
-        : arrivalQuantileLevel(pMakeAll!);
-    const p80BeyondPlanA = !p80Pending && !p80Unadjusted && level == null;
 
-    let worstRealP80: number | null = null;
-    let worstAggP80: number | null = null;
-    if (level != null) {
-      for (let i = 0; i < pattern.legs.length; i++) {
-        const leg = pattern.legs[i];
-        if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
+    // Plan A: forsinkelsesfordeling per transittlegg, verste legg nivå for nivå
+    // (samme «det tregeste legget avgjør» som før, nå over hele fordelingen).
+    // Per-avgang-tallene (legTimes) har bare P50/P80 — P95 tas fra linjens
+    // samletall ved stoppet.
+    let qA: QGrid | null = null;
+    let lastGrid: QGrid | null = null;
+    let hasReal = false;
+    let anyTransit = false;
+    const missing: string[] = [];
+    const references: ReferenceReliability[] = [];
+    for (let i = 0; i < pattern.legs.length; i++) {
+      const leg = pattern.legs[i];
+      if (leg.mode === "foot") continue;
+      anyTransit = true;
+      const ref = referenceFor(leg.line?.id);
+      let g: QGrid | null = null;
+      if (ref) {
+        g = referenceGrid(ref);
+        if (!references.includes(ref)) references.push(ref);
+      } else if (leg.line?.id && MODES_WITH_DELAY_DATA.has(leg.mode)) {
         const arrRes = legTimes?.get(`arr_${i}`);
-        // Per-avgang-tallene har bare P50/P80 — interpoler på samme nivå.
-        const real = interpolatePercentile(arrRes?.p50, arrRes?.p80, null, level);
-        if (real != null && (worstRealP80 == null || real > worstRealP80)) {
-          worstRealP80 = real;
-        }
         const toQuay = leg.toPlace.quay?.id;
-        if (toQuay) {
-          const stat = duckStats?.get(`${toQuay}|${leg.line.id}`);
-          const agg = stat
-            ? interpolatePercentile(
-                stat.p50_arr ?? stat.p50_dep,
-                stat.p80_arr ?? stat.p80_dep,
-                stat.p95_arr ?? stat.p95_dep,
-                level,
-              )
-            : null;
-          if (agg != null && (worstAggP80 == null || agg > worstAggP80)) worstAggP80 = agg;
-        }
+        const stat = toQuay ? duckStats?.get(`${toQuay}|${leg.line.id}`) : undefined;
+        if (arrRes?.p80 != null) hasReal = true;
+        g = quantileGrid(
+          arrRes?.p50 ?? stat?.p50_arr ?? stat?.p50_dep,
+          arrRes?.p80 ?? stat?.p80_arr ?? stat?.p80_dep,
+          stat?.p95_arr ?? stat?.p95_dep,
+        );
       }
+      if (!g && duckStats) missing.push(`${simpleModeWord(leg)}${leg.line?.publicCode ? ` ${leg.line.publicCode}` : ""}`);
+      qA = maxGrid(qA, g);
+      lastGrid = g;
     }
-    const p80 = p80BeyondPlanA ? null : estimateP80(worstAggP80, worstRealP80);
-    // Samme prioritet som estimateP80: per-avgang-tall foran aggregatet.
-    const p80Min = p80BeyondPlanA ? null : (worstRealP80 ?? worstAggP80);
+    // Bare gange: ankomsten er kjent.
+    if (!anyTransit) qA = ZERO_GRID;
+    for (const t of transferAnalysis.transfers) {
+      if (!t.broken && t.probs.default < 0) missing.push(`byttet ${t.fromLine ?? ""} → ${t.toLine ?? ""}`.trim());
+    }
 
-    // «Nesten alltid» (19 av 20 dager) for enkel visning / «Viktig avtale».
-    // Samme blandingsresonnement som P80: nivået i plan A blir 0,95 / pMakeAll.
-    // Per-avgang-tallene har bare P50/P80, så her brukes linjens aggregerte
-    // P95 ved stoppet — og aldri lavere enn per-avgang-P80. Over nivå 0,99
-    // finnes svaret ikke i «alt går etter planen»-grenen (null).
-    let p95Min: number | null = null;
-    if (!p80Pending) {
-      const pm = pMakeAll ?? 1;
-      const level95 = pm >= 0.999 ? 0.95 : pm > 0 ? 0.95 / pm : Infinity;
-      if (level95 <= 0.99) {
-        let worstAgg95: number | null = null;
-        for (const leg of pattern.legs) {
-          if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
-          const toQuay = leg.toPlace.quay?.id;
-          const stat = toQuay ? duckStats?.get(`${toQuay}|${leg.line.id}`) : undefined;
-          const v = stat
-            ? interpolatePercentile(
-                stat.p50_arr ?? stat.p50_dep,
-                stat.p80_arr ?? stat.p80_dep,
-                stat.p95_arr ?? stat.p95_dep,
-                level95,
-              )
-            : null;
-          if (v != null && (worstAgg95 == null || v > worstAgg95)) worstAgg95 = v;
-        }
-        if (worstAgg95 != null) p95Min = Math.max(worstAgg95, worstRealP80 ?? -Infinity);
-      }
-    }
+    const planAEndMs = new Date(pattern.expectedEndTime).getTime();
+    // Plan B arver forsinkelsen på SISTE strekning (som regel samme linje inn
+    // til målet) — ikke plan A sin samlede, som domineres av første buss.
+    const bGrid = planBInfo ? shiftGrid(lastGrid ?? ZERO_GRID, (planBInfo.arrMs - planAEndMs) / 60000) : null;
+    // Ukjent bytte: med plan B regnes verste fall (du mister det). Uten plan B
+    // (full visning henter den ikke) vises plan A ujustert, merket med *.
+    const p80Unadjusted = gapsComputed && pMakeAll == null && !bGrid && transferAnalysis.hasTransfers;
+    const assumedMiss = pMakeAll == null && !!bGrid;
+    const mixFor = (pm: number | null) =>
+      qA == null ? null
+        : pm != null ? { pMake: pm, a: qA, b: bGrid }
+          : bGrid ? { pMake: 0, a: qA, b: bGrid }
+            : { pMake: 1, a: qA, b: null };
+    const mixN = p80Pending ? null : mixFor(pMakeAll);
+    const mixH = p80Pending ? null : mixFor(pMakeLo);
+    const p80Min = mixN ? mixtureQuantile(mixN, P80_LEVEL) : null;
+    const p95Min = mixH ? mixtureQuantile(mixH, 0.95) : null;
+    const medianMin = mixN ? mixtureQuantile(mixN, 0.5) : null;
+    const p80BeyondPlanA = !p80Pending && qA != null && pMakeAll != null && p80Min == null;
+    // P80 havner i miss-grenen (plan B) — kortet sier det i tooltipen.
+    const p80ViaPlanB = p80Min != null && qA != null && !!bGrid && p80Min > qA[qA.length - 1] + 1e-6;
+    const level = pMakeAll != null ? arrivalQuantileLevel(pMakeAll) : P80_LEVEL;
+    const p80 = p80Min != null ? estimateP80(p80Min, hasReal ? p80Min : null) : null;
+
+    // P(fremme innen fristen) — beslutningsregelen i enkel visning.
+    const dlMin = deadlineMs != null ? (deadlineMs - planAEndMs) / 60000 : null;
+    const pOnTime = dlMin != null && mixN && mixH && !p80Unadjusted
+      ? { normal: mixtureCdf(mixN, dlMin), high: mixtureCdf(mixH, dlMin) }
+      : null;
+
+    // Plan B trengs når byttet kan ryke så ofte at det betyr noe for svaret.
+    const pmUsed = certainty === "high" ? pMakeLo : pMakeAll;
+    const wantsPlanB = !p80Pending && transferAnalysis.hasTransfers && planBInfo === undefined
+      && (pmUsed == null || pmUsed < PLAN_B_BELOW);
 
     return {
-      estDeparture, estArrival, p80, p80Min, p95Min, depResult, arrResult: lastArrResult,
-      p80BeyondPlanA, p80Pending, p80Unadjusted, pMakeAll, p80Level: level,
+      estDeparture, estArrival, p80, p80Min, p95Min, medianMin, depResult, arrResult: lastArrResult,
+      p80BeyondPlanA, p80ViaPlanB, p80Pending, p80Unadjusted, pMakeAll, p80Level: level,
+      pOnTime, wantsPlanB, assumedMiss, missing, references,
     };
-  }, [pattern, duckStats, legTimes, transferAnalysis, gapMap]);
+  }, [pattern, duckStats, legTimes, transferAnalysis, gapMap, planBInfo, deadlineMs, certainty]);
 
-  // Rapporter P80-ankomsten til lista. Forslag uten forsinkelsesdata (p80Min
-  // null, ikke pending) teller som «ukjent» — de kan ikke kåres til tryggest.
+  // Rapporter ankomsten til lista. Forslag uten forsinkelsesdata (p80Min
+  // null, ikke pending) teller som «ukjent» — de kan ikke kåres til tryggest,
+  // men vises alltid.
   const reportRef = useRef(onP80Report);
   reportRef.current = onP80Report;
-  const reportArrivalMs = estimatedTimes.p80Min != null
-    ? new Date(pattern.expectedEndTime).getTime() + Math.max(0, estimatedTimes.p80Min) * 60000
-    : null;
-  const reportP95Ms = estimatedTimes.p95Min != null
-    ? new Date(pattern.expectedEndTime).getTime() + Math.max(0, estimatedTimes.p95Min) * 60000
-    : null;
+  const toMs = (min: number | null) =>
+    min != null ? new Date(pattern.expectedEndTime).getTime() + Math.max(0, min) * 60000 : null;
+  const reportArrivalMs = toMs(estimatedTimes.p80Min);
+  const reportP95Ms = toMs(estimatedTimes.p95Min);
+  const reportMedianMs = toMs(estimatedTimes.medianMin);
+  const pOnTimeKey = estimatedTimes.pOnTime
+    ? `${estimatedTimes.pOnTime.normal.toFixed(4)}|${estimatedTimes.pOnTime.high.toFixed(4)}` : "";
+  const missingKey = estimatedTimes.missing.join("|");
+  const refsKey = estimatedTimes.references.map((r) => r.name).join("|");
   useEffect(() => {
     reportRef.current?.({
       pending: estimatedTimes.p80Pending || !duckStats,
@@ -2601,8 +2717,19 @@ function TripCard({
       beyond: estimatedTimes.p80BeyondPlanA,
       p95ArrivalMs: reportP95Ms,
       pMakeAll: estimatedTimes.pMakeAll,
+      pOnTime: estimatedTimes.pOnTime,
+      medianMs: reportMedianMs,
+      wantsPlanB: estimatedTimes.wantsPlanB,
+      assumedMiss: estimatedTimes.assumedMiss,
+      hasPlanB: planBInfo !== undefined,
+      missing: estimatedTimes.missing,
+      references: estimatedTimes.references,
     });
-  }, [estimatedTimes.p80Pending, estimatedTimes.p80BeyondPlanA, reportArrivalMs, reportP95Ms, estimatedTimes.pMakeAll, duckStats]);
+    // pOnTime/missing/references er nye objekter hver gang — nøklene over er stabile.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estimatedTimes.p80Pending, estimatedTimes.p80BeyondPlanA, reportArrivalMs, reportP95Ms, reportMedianMs,
+      estimatedTimes.pMakeAll, estimatedTimes.wantsPlanB, estimatedTimes.assumedMiss, pOnTimeKey, missingKey, refsKey, duckStats,
+      planBInfo]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50", safest && "border-emerald-500/70 ring-1 ring-emerald-500/30")}>
@@ -2652,29 +2779,57 @@ function TripCard({
                   <span className="text-muted-foreground inline-flex items-center gap-1">
                     <Loader2 className="h-3 w-3 animate-spin" /> Sjekker hvor ofte den holder …
                   </span>
-                ) : arrTxt && deadlineMs != null && arrMs! > deadlineMs ? (
-                  <span className={cn("rounded-full border px-2 py-0.5", toneCls("bad"))}>
-                    For sent: mer enn {certainty === "high" ? "1 av 20" : "1 av 5"} dager er du fremme etter {formatTime(new Date(deadlineMs).toISOString())}
-                  </span>
-                ) : arrTxt ? (
+                ) : deadlineMs != null && estimatedTimes.pOnTime ? (() => {
+                  // «Fremme kl.»: hvor ofte du er fremme før fristen, i ord.
+                  const p = estimatedTimes.pOnTime[certainty];
+                  const tone = p >= (certainty === "high" ? 0.95 : 0.8) ? "good" : p >= MIN_ON_TIME[certainty] ? "warn" : "bad";
+                  return (
+                    <span className={cn("rounded-full border px-2 py-0.5", toneCls(tone))}>
+                      Fremme før {formatTime(new Date(deadlineMs).toISOString())} {frequencyWords(p)}
+                    </span>
+                  );
+                })() : arrTxt ? (
                   <span className="text-foreground/80">Fremme innen <strong className="font-mono">{arrTxt}</strong> {how}</span>
                 ) : estimatedTimes.p80BeyondPlanA || (certainty === "high" && reportArrivalMs != null) ? (
                   <span className={cn("rounded-full border px-2 py-0.5", toneCls("bad"))}>Usikker – byttet ryker for ofte</span>
                 ) : (
-                  <span className="text-muted-foreground">For lite data til å si hvor ofte den holder</span>
+                  <span className="text-muted-foreground">Vi vet ikke hvor ofte den holder – tidene er rutetider</span>
                 )}
-                {tw && (
-                  <span className={cn("rounded-full border px-2 py-0.5", toneCls(tw.tone))}>{tw.text}</span>
-                )}
-                {!tw && transferAnalysis.hasTransfers && gapMap && (
+                {tw && estimatedTimes.pMakeAll != null && (
                   <span
-                    className="rounded-full border border-dashed px-2 py-0.5 text-muted-foreground"
-                    title="Vi har for lite historikk på dette byttet til å si hvor ofte det går."
+                    className={cn("rounded-full border px-2 py-0.5", toneCls(tw.tone))}
+                    title={transferBasisTitle(transferAnalysis.transfers)}
                   >
-                    Lite data om byttet
+                    {tw.text}
+                    {transferAnalysis.transfers.some((t) => t.model.basis === "marginal" || t.model.basis === "blend") && " (anslått)"}
                   </span>
                 )}
-                {planBInfo && (!tw || tw.tone !== "good") && (
+                {estimatedTimes.pMakeAll == null && transferAnalysis.hasTransfers && gapMap && (
+                  <span
+                    className="rounded-full border border-dashed border-amber-400 px-2 py-0.5 text-amber-800 dark:text-amber-300"
+                    title="Vi har verken målinger av byttet eller av linjen du kommer med. Regnet som om du mister det, når vi vet når neste avgang går."
+                  >
+                    Mangler data om byttet
+                  </span>
+                )}
+                {estimatedTimes.missing.filter((m) => !m.startsWith("byttet")).length > 0 && (
+                  <span
+                    className="rounded-full border border-dashed border-amber-400 px-2 py-0.5 text-amber-800 dark:text-amber-300"
+                    title="Ingen sanntidsdata for denne strekningen. Den regnes etter rutetiden fra Entur, uten forsinkelse."
+                  >
+                    Mangler data: {estimatedTimes.missing.filter((m) => !m.startsWith("byttet")).join(", ")}
+                  </span>
+                )}
+                {estimatedTimes.references.map((r) => (
+                  <span
+                    key={r.name}
+                    className="rounded-full border border-dashed px-2 py-0.5 text-muted-foreground"
+                    title={referenceSentence(r)}
+                  >
+                    {r.name}: tall fra {r.source.split(",")[0]}
+                  </span>
+                ))}
+                {planBInfo && (!tw || tw.tone !== "good" || estimatedTimes.pMakeAll == null) && (
                   <span
                     className={cn(
                       "rounded-full border px-2 py-0.5",
@@ -2789,6 +2944,10 @@ function TripCard({
                     ? `80 % av de historiske turene var innenfor denne forsinkelsen. ` +
                       `Vi mangler historikk for overgangen(e) på denne reisen, så risikoen for å ` +
                       `MISTE en overgang er IKKE regnet inn — den reelle P80-ankomsten kan være senere.`
+                    : estimatedTimes.p80ViaPlanB
+                      ? `Inkluderer dagene du mister byttet: da tar du ${planBInfo?.label ?? "neste avgang"} ` +
+                        `og er fremme ca. ${planBInfo ? formatTime(new Date(planBInfo.arrMs).toISOString()) : "senere"}. ` +
+                        `Du rekker alle overganger ${Math.round((estimatedTimes.pMakeAll ?? 0) * 100)} % av dagene.`
                     : estimatedTimes.p80Level != null && estimatedTimes.p80Level > P80_LEVEL + 0.001
                       ? `Avlest på ${(estimatedTimes.p80Level * 100).toFixed(0)}. persentil av «alt går etter planen», ` +
                         `fordi du rekker alle overganger ${Math.round((estimatedTimes.pMakeAll ?? 1) * 100)} % av dagene ` +
@@ -3297,6 +3456,10 @@ export default function TripPlanner() {
   //
   // Ved ankomst-søk snus spørsmålet til «når må jeg gå?»: blant forslagene
   // som er framme innen fristen 4 av 5 dager, velges det som går SENEST.
+  // «Mister du byttet»-reserve per reiseforslag (begge visninger). Planlagt
+  // ankomst med NESTE avgang fra byttestedet — se plan B-effekten lenger ned.
+  // undefined = ikke hentet ennå, null = fant ingen.
+  const [planB, setPlanB] = useState<Map<string, PlanBInfo | null>>(new Map());
   const { safestKey, safeVerdict } = useMemo(() => {
     const none = { safestKey: null as string | null, safeVerdict: null as null | { kind: "latest" | "none"; depMs?: number; arrMs?: number } };
     if (tripPatterns.length < (arrivalDeadline != null ? 1 : 2)) return none;
@@ -3304,6 +3467,9 @@ export default function TripPlanner() {
     for (const p of tripPatterns) {
       const r = p80Reports.get(patternKey(p));
       if (!r || r.pending) return none;
+      // Vent på plan B der kortet ba om den (samme regel som enkel visning).
+      if (needsPlanB(p, r) && !planB.has(patternKey(p))) return none;
+      if (planB.has(patternKey(p)) && !r.hasPlanB) return none;
       if (r.arrivalMs == null) continue;
       ready.push({ k: patternKey(p), arrMs: r.arrivalMs, depMs: new Date(p.expectedStartTime).getTime() });
     }
@@ -3316,7 +3482,7 @@ export default function TripPlanner() {
     if (ready.length < 2) return none;
     const best = ready.reduce((a, b) => (b.arrMs < a.arrMs ? b : a));
     return { safestKey: best.k, safeVerdict: null };
-  }, [tripPatterns, p80Reports, arrivalDeadline]);
+  }, [tripPatterns, p80Reports, arrivalDeadline, planB]);
   const displayOrder = useMemo(() => {
     const idx = tripPatterns.map((_, i) => i);
     if (sortMode !== "safe") return idx;
@@ -3327,10 +3493,6 @@ export default function TripPlanner() {
     return idx.sort((a, b) => key(a) - key(b) || a - b);
   }, [tripPatterns, p80Reports, sortMode]);
 
-  // «Mister du byttet»-reserve per reiseforslag (enkel visning). Planlagt
-  // ankomst med NESTE avgang fra byttestedet — se plan B-effekten lenger ned.
-  // undefined = ikke hentet ennå, null = fant ingen.
-  const [planB, setPlanB] = useState<Map<string, PlanBInfo | null>>(new Map());
 
 
   // Filter state
@@ -3514,6 +3676,13 @@ export default function TripPlanner() {
   //
   // Samme prinsipp som overgangs-/tidsspørringene under: regn på det brukeren
   // ser. Målt på Lagunen→Åsane: 38 stopp → 17 for standardvisningen.
+  const boardingIsCheap = useMemo(
+    () => transferCovers(
+      transferIndex, resolvedStatsWindow,
+      tripPatterns.flatMap((p) => p.legs.map((l) => l.line?.id ?? "").filter(Boolean)),
+    ),
+    [transferIndex, resolvedStatsWindow, tripPatterns],
+  );
   const duckPairs = useMemo(() => {
     const pairs: Array<{ stopRef: string; lineRef: string }> = [];
     const seen = new Set<string>();
@@ -3537,7 +3706,11 @@ export default function TripPlanner() {
         // kortet er sammenslått — det er den eneste som gir «estimert avgang».
         // Byttestoppenes påstigningskø (f.eks. Festplassen) ble tidligere hentet
         // for alle 12 reiseforslag uten at noe leste dem før kortet ble utvidet.
-        if (!seenFirstTransit || isExpanded) {
+        // Unntak (2026-11-11): når overgangsfilene dekker søket, er oppslaget
+        // gratis, og byttestedets påstigning gir B-siden i marginal-estimatet
+        // for overganger med få felles dager (lib/trip-model). På DuckDB-veien
+        // hentes de fortsatt ikke — da regnes B som i rute (forsiktig).
+        if (!seenFirstTransit || isExpanded || boardingIsCheap) {
           add(leg.fromPlace.quay?.id, lineRef);
         }
         seenFirstTransit = true;
@@ -3548,57 +3721,73 @@ export default function TripPlanner() {
       }
     }
     return pairs;
-  }, [tripPatterns, expandedKeys]);
+  }, [tripPatterns, expandedKeys, boardingIsCheap]);
 
   // duckPairs er snevret inn til det sammenslåtte kortet faktisk leser (se over).
   const { data: duckData, isFetching: duckStatsFetching } =
     useTripDelayDistribution(duckPairs, duckReady, duckQuery, resolvedStatsWindow);
 
-  // Enkel visning: anbefalingen bruker «fire av fem dager» (P80) eller
-  // «nesten alltid» (P95) etter brukerens valg. Samme regel som Tryggest:
-  // venter til ALLE forslagene er beregnet, så anbefalingen ikke hopper.
+  // Enkel visning: anbefalingen veier ventetid mot risikoen for å komme for
+  // sent (lib/trip-model, decisionCost) — ikke en fast «fire av fem»-grense.
+  // Går avgangene ofte, er forsiktighet billig og svaret blir tryggere; går
+  // de sjelden, koster hver ekstra margin mye venting. Venter til ALLE
+  // forslagene er beregnet — også plan B der kortet ba om den — så
+  // anbefalingen ikke hopper.
   const simpleAnswer = useMemo(() => {
     type Ans =
       | { kind: "pending"; done: number; total: number }
-      | { kind: "pick"; idx: number; arrMs: number; depMs: number; viaPlanB: boolean }
-      | { kind: "none-in-time" }
+      | { kind: "pick"; idx: number; arrMs: number | null; depMs: number; pOnTime: number | null; viaPlanB: boolean }
+      | { kind: "none-in-time"; bestIdx: number | null; bestP: number | null }
       | { kind: "no-data" };
     if (tripPatterns.length === 0) return null;
-    // Effektiv ankomst per forslag: tallet anbefalingen sammenligner.
-    //  - Bytte med kjent risiko (eller ingen bytte): egen P80/P95, der risikoen
-    //    for å miste byttet allerede er regnet inn.
-    //  - Bytte vi ikke vet nok om (f.eks. Bybanen, som nesten mangler i
-    //    sanntidsdataene), eller som ryker for ofte: «verste fall» — du mister
-    //    byttet og tar neste avgang. Holder DEN fristen, er reisen trygg
-    //    uansett hvor ofte byttet går. Da slipper vi å sende folk en time for
-    //    tidlig fordi det mangler data på en bane som går hvert 5. minutt.
-    const all: { idx: number; arrMs: number; depMs: number; viaPlanB: boolean }[] = [];
+    type Cand = {
+      idx: number; depMs: number; arrMs: number | null; medianMs: number | null;
+      pOnTime: number | null; viaPlanB: boolean;
+    };
+    const all: Cand[] = [];
     let done = 0;
     tripPatterns.forEach((p, idx) => {
       const k = patternKey(p);
       const r = p80Reports.get(k);
       if (!r || r.pending) return;
-      const last = [...p.legs].reverse().find((l) => l.mode !== "foot");
-      const st = last?.toPlace.quay?.id && last.line?.id ? duckData?.get(`${last.toPlace.quay.id}|${last.line.id}`) : undefined;
-      const lastDelay = st
-        ? (certainty === "high" ? st.p95_arr ?? st.p95_dep : st.p80_arr ?? st.p80_dep) ?? null
-        : null;
-      const eff = effectiveArrival(p, r, certainty, planB.get(k), lastDelay);
-      if (eff === "pending") return;
+      // Venter på reserven, eller på at kortet har regnet den inn.
+      if (needsPlanB(p, r) && !planB.has(k)) return;
+      if (planB.has(k) && !r.hasPlanB) return;
       done++;
-      if (eff) all.push({ idx, ...eff, depMs: new Date(p.expectedStartTime).getTime() });
+      const pb = planB.get(k);
+      all.push({
+        idx,
+        depMs: new Date(p.expectedStartTime).getTime(),
+        arrMs: certainty === "high" ? r.p95ArrivalMs ?? null : r.arrivalMs,
+        medianMs: r.medianMs ?? null,
+        pOnTime: r.pOnTime?.[certainty] ?? null,
+        viaPlanB: !!pb && (r.assumedMiss === true || (r.pMakeAll ?? 1) < PLAN_B_BELOW),
+      });
     });
     if (done < tripPatterns.length) return { kind: "pending", done, total: tripPatterns.length } as Ans;
-    if (all.length === 0) return { kind: "no-data" } as Ans;
+
     if (arrivalDeadline != null) {
-      const ok = all.filter((x) => x.arrMs <= arrivalDeadline);
-      if (ok.length === 0) return { kind: "none-in-time" } as Ans;
-      const best = ok.reduce((a, b) => (b.depMs > a.depMs || (b.depMs === a.depMs && b.arrMs < a.arrMs) ? b : a));
+      const known = all.filter((c) => c.pOnTime != null);
+      if (known.length === 0) return { kind: "no-data" } as Ans;
+      const ok = known.filter((c) => c.pOnTime! >= MIN_ON_TIME[certainty]);
+      if (ok.length === 0) {
+        const best = known.reduce((a, b) => (b.pOnTime! > a.pOnTime! ? b : a));
+        return { kind: "none-in-time", bestIdx: best.idx, bestP: best.pOnTime } as Ans;
+      }
+      const cost = (c: Cand) => decisionCost(
+        (arrivalDeadline - (c.medianMs ?? c.arrMs ?? arrivalDeadline)) / 60000, c.pOnTime!, certainty,
+      );
+      const best = ok.reduce((a, b) => {
+        const d = cost(b) - cost(a);
+        return d < -1e-9 || (Math.abs(d) <= 1e-9 && b.depMs > a.depMs) ? b : a;
+      });
       return { kind: "pick", ...best } as Ans;
     }
-    const best = all.reduce((a, b) => (b.arrMs < a.arrMs || (b.arrMs === a.arrMs && b.depMs > a.depMs) ? b : a));
+    const known = all.filter((c) => c.arrMs != null);
+    if (known.length === 0) return { kind: "no-data" } as Ans;
+    const best = known.reduce((a, b) => (b.arrMs! < a.arrMs! || (b.arrMs === a.arrMs && b.depMs > a.depMs) ? b : a));
     return { kind: "pick", ...best } as Ans;
-  }, [tripPatterns, p80Reports, certainty, arrivalDeadline, planB, duckData]);
+  }, [tripPatterns, p80Reports, certainty, arrivalDeadline, planB]);
 
   // Rekkefølgen i enkel visning: anbefalt først, så etter trygg ankomst.
   const simpleOrder = useMemo(() => {
@@ -3898,22 +4087,24 @@ export default function TripPlanner() {
   planBRef.current = planB;
   const planBInFlight = useRef(new Set<string>());
   useEffect(() => {
-    if (!simple || !destinationLocation) return;
+    // Begge visningene (2026-11-11): «Tryggest» i full visning bruker samme
+    // blandingsmodell som enkel visning, og trenger da den samme reserven.
+    if (!destinationLocation) return;
     const todo = tripPatterns.filter((p) => {
       const k = patternKey(p);
-      return needsPlanB(p, p80Reports.get(k), certainty) && !planBRef.current.has(k) && !planBInFlight.current.has(k);
+      return needsPlanB(p, p80Reports.get(k)) && !planBRef.current.has(k) && !planBInFlight.current.has(k);
     });
     if (todo.length === 0) return;
-    (async () => {
-      for (const p of todo) {
-        const k = patternKey(p);
-        planBInFlight.current.add(k);
-        let worst: PlanBInfo | null = null;
-        let failed = false;
-        for (const j of transferTargetLegs(p)) {
+    // Alle forslag og alle bytter PARALLELT (før 2026-11-11: ett om gangen —
+    // ~0,4–2,8 s per Entur-kall, og svaret ventet på det tregeste i køen).
+    // Serveren cacher trip-svar i 5 min, så gjentatte søk koster ikke nye kall.
+    for (const p of todo) planBInFlight.current.add(patternKey(p));
+    todo.forEach(async (p) => {
+      const k = patternKey(p);
+      const one = async (j: number): Promise<PlanBInfo | null> => {
           const leg = p.legs[j];
           const quay = leg.fromPlace.quay?.id;
-          if (!quay) { failed = true; break; }
+          if (!quay) return null;
           try {
             const res = await apiRequest("POST", "/api/trip", {
               from: { place: quay },
@@ -3946,26 +4137,28 @@ export default function TripPlanner() {
                 if (same !== 0) return same;
                 return new Date(fx.expectedStartTime).getTime() - new Date(fy.expectedStartTime).getTime();
               })[0];
-            if (!next) { failed = true; break; }
+            if (!next) return null;
             const first = next.legs.find((l) => l.mode !== "foot")!;
-            const info: PlanBInfo = {
+            return {
               arrMs: new Date(next.expectedEndTime).getTime(),
               depMs: new Date(first.expectedStartTime).getTime(),
               label: `${simpleModeWord(first)}${first.line?.publicCode ? ` ${first.line.publicCode}` : ""}`,
             };
-            if (!worst || info.arrMs > worst.arrMs) worst = info;
           } catch {
-            failed = true;
-            break;
+            return null;
           }
-        }
-        planBInFlight.current.delete(k);
-        // Lagres selv om effekten har kjørt på nytt i mellomtiden: svaret er
-        // det samme, og ellers ville forslaget stått og ventet for alltid.
-        setPlanB((prev) => new Map(prev).set(k, failed ? null : worst));
-      }
-    })();
-  }, [simple, destinationLocation, tripPatterns, p80Reports, certainty, selectedModes, walkSpeedKmh]);
+      };
+      const infos = await Promise.all(transferTargetLegs(p).map(one));
+      // Verste fall over byttene: den seneste reserven. Feilet én, vet vi ikke.
+      const worst = infos.some((i) => i == null)
+        ? null
+        : infos.reduce<PlanBInfo | null>((w, i) => (!w || i!.arrMs > w.arrMs ? i : w), null);
+      planBInFlight.current.delete(k);
+      // Lagres selv om effekten har kjørt på nytt i mellomtiden: svaret er
+      // det samme, og ellers ville forslaget stått og ventet for alltid.
+      setPlanB((prev) => new Map(prev).set(k, worst));
+    });
+  }, [destinationLocation, tripPatterns, p80Reports, selectedModes, walkSpeedKmh]);
 
   // Ett-trykks-søk fra «Siste reiser»: sett stopp, tid = nå, avgang — og søk
   // på neste tick (samme triks som URL-gjenopprettingen over: setState er
@@ -4502,8 +4695,11 @@ export default function TripPlanner() {
                 const r = p80Reports.get(patternKey(p));
                 const pm = r?.pMakeAll;
                 const tw = pm != null && pm < 0.999 ? transferWords(pm) : null;
-                const hasTransfer = p.legs.filter((l) => l.mode !== "foot").length > 1;
                 const pb = planB.get(patternKey(p)) ?? null;
+                const freq = ans.pOnTime != null ? frequencyWords(ans.pOnTime) : how;
+                const pbInTime = pb != null && (arrivalDeadline == null || pb.arrMs <= arrivalDeadline);
+                const refs = r?.references ?? [];
+                const missing = r?.missing ?? [];
                 return (
                   <div className="rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-4 space-y-1.5">
                     <div className="text-2xl font-bold tracking-tight text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
@@ -4513,40 +4709,57 @@ export default function TripPlanner() {
                     <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
                       {describeTripSimple(p)}.{" "}
                       {arrivalDeadline != null
-                        ? <>Da er du fremme før {t(arrivalDeadline)} {how}.</>
-                        : <>Da er du fremme innen <strong className="font-mono">{t(ans.arrMs)}</strong> {how}.</>}
+                        ? <>Da er du fremme før {t(arrivalDeadline)} {freq}.</>
+                        : ans.arrMs != null
+                          ? <>Da er du fremme innen <strong className="font-mono">{t(ans.arrMs)}</strong> {how}.</>
+                          : null}
                       {tw && !ans.viaPlanB && <> {tw.text}{tw.tone === "good" ? "." : " – det er regnet med."}</>}
                     </p>
                     {ans.viaPlanB && pb && (
                       <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
-                        {pm == null ? "Vi har lite data om byttet" : tw ? tw.text : "Byttet er usikkert"}, men det gjør ikke noe:
+                        {pm == null ? "Vi har ikke data om byttet" : tw ? tw.text : "Byttet er usikkert"}
+                        {pbInTime ? ", men det gjør ikke noe: " : ". "}
                         mister du det, går {pb.label} kl. {t(pb.depMs)}, og da er du fremme ca. {t(pb.arrMs)}
-                        {arrivalDeadline != null ? " – fortsatt i tide." : "."}
+                        {arrivalDeadline != null ? (pbInTime ? " – fortsatt i tide." : " – for sent, men det er regnet med over.") : "."}
                       </p>
                     )}
-                    {!ans.viaPlanB && !tw && hasTransfer && pm == null && (
-                      <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">Vi vet for lite om byttet til å regne med at det kan ryke.</p>
+                    {refs.length > 0 && (
+                      <p className="text-xs text-emerald-900/80 dark:text-emerald-200/80">
+                        {refs.map((x) => referenceSentence(x)).join(" ")}
+                      </p>
+                    )}
+                    {missing.length > 0 && (
+                      <p className="text-xs text-amber-800 dark:text-amber-300">
+                        Mangler data om {missing.join(", ")} – {pm == null && pb ? "regnet som om du mister byttet" : "regnet etter rutetiden"}.
+                      </p>
                     )}
                     <p className="text-xs text-emerald-900/70 dark:text-emerald-200/70">
                       {arrivalDeadline != null
-                        ? `Det er den seneste avgangen som holder ${how}.`
+                        ? !tripPatterns.some((q) => new Date(q.expectedStartTime).getTime() > ans.depMs)
+                          ? "Det er den seneste avgangen i søket."
+                          : certainty === "high"
+                            ? "Valgt fordi senere avganger gir for stor risiko for en viktig avtale, og tidligere bare gir mer venting."
+                            : "Valgt som beste balanse: senere avganger gir for mye risiko, tidligere mest mer venting."
                         : "Ingen av de andre forslagene kommer tryggere frem."}
                       {" "}Basert på hvordan de samme avgangene har gått de siste ukene.
                     </p>
                   </div>
                 );
               }
+              const best = ans.kind === "none-in-time" && ans.bestIdx != null ? tripPatterns[ans.bestIdx] : null;
               return (
                 <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-4 text-sm text-amber-950 dark:text-amber-100 space-y-2">
                   <p className="font-semibold">
                     {ans.kind === "none-in-time"
-                      ? `Ingen av forslagene er fremme før ${t(arrivalDeadline!)} ${how}.`
-                      : "Vi har for lite data om disse avgangene til å anbefale én."}
+                      ? `Ingen av forslagene er sikre nok på å nå frem før ${t(arrivalDeadline!)}.`
+                      : "Vi har ikke data om disse avgangene, så vi kan ikke si hvor ofte de holder."}
                   </p>
                   <p>
                     {ans.kind === "none-in-time"
-                      ? "Prøv en tidligere avgang, eller velg «Vanlig dag» hvis litt risiko er greit."
-                      : "Rutetidene fra Entur står under."}
+                      ? best && ans.bestP != null
+                        ? <>Best er kl. {formatTime(best.expectedStartTime)}: fremme i tide {frequencyWords(ans.bestP)}. Prøv en tidligere avgang{certainty === "high" ? ", eller velg «Vanlig dag» hvis litt risiko er greit" : ""}.</>
+                        : "Prøv en tidligere avgang."
+                      : "Alle forslagene står under, med Entur sine rutetider."}
                   </p>
                 </div>
               );
@@ -4688,7 +4901,7 @@ export default function TripPlanner() {
                 certainty={certainty}
                 recommended={simple && simpleAnswer?.kind === "pick" && simpleAnswer.idx === i}
                 deadlineMs={arrivalDeadline}
-                planB={simple ? planB.get(pk) : undefined}
+                planB={planB.get(pk)}
               />
               </div>
               );
@@ -4746,7 +4959,18 @@ export default function TripPlanner() {
               <p>
                 <strong>Fire av fem dager</strong> betyr at du hadde vært fremme i tide på minst fire av
                 fem slike dager. <strong>Nesten alltid</strong> betyr 19 av 20. Er et bytte usikkert, er
-                det regnet med.
+                det regnet med – også hva som skjer om du mister det og tar neste avgang.
+              </p>
+              <p>
+                <strong>Når vi har lite data om et bytte</strong>, anslår vi det ut fra hvor presise de to
+                linjene er hver for seg. <strong>Bybanen</strong> finnes nesten ikke i sanntidsdataene, så
+                der bruker vi Bybanen AS sine egne tall (99,3 % i rute på linje 1 i 2023). Har vi ingen
+                data i det hele tatt, sier kortet det – reisen vises uansett, med rutetiden.
+              </p>
+              <p>
+                <strong>Anbefalingen</strong> veier ventetid mot risikoen for å komme for sent. Går
+                avgangene ofte, koster det lite å ta en tidligere; går de sjelden, velger vi ikke en time
+                tidligere bare for å være helt sikre. «Viktig avtale» legger mye mer vekt på å rekke frem.
               </p>
               <p className="text-muted-foreground">
                 Det er historikk, ikke en garanti: ulykker, vær og streik kan alltid gi dårligere dager.

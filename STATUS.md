@@ -5,6 +5,55 @@
 
 **Sist oppdatert**: 2026-11-11
 
+## Endringslogg — 2026-11-11: bedre overgangs- og ankomstmodell (`feat/reise-modell`, utkast)
+
+Emilie: «blir en type hardkoding at bybanen er veldig sikker, men busser uten
+sanntidsdata er mindre sikre». Ny modul `client/src/lib/trip-model.ts` (rene
+funksjoner) erstatter verste-fall-regelen fra enkel visning:
+
+- **Bybanen har ingen ekte målinger.** Målt i `data/reise-parquet` (W42–W46):
+  SKY:Line:1 hadde mange rader bare 16. og 19.10, og der var forsinkelsen
+  nøyaktig 0,0 på alle 3 102 radene (linje 2: 582 rader, også alle 0,0) —
+  rutetider sendt som om de var målt. Ellers 1–40 rader per dag. Entur
+  bruker `SKY:Line:1`/`SKY:Line:2` (`tram`) for Bybanen.
+- **Kildebelagt pålitelighet** (`REFERENCE_LINES`): Bybanen AS,
+  bærekraftsrapport 2023 — linje 1 punktlighet 99,3 %, regularitet 95,9 %;
+  linje 2 99,7 % / 97,7 %. Minuttgrensen for «i rute» er ikke oppgitt. Våre
+  egne «data» for disse linjene ignoreres. Kortet og svaret sier hvor tallet
+  kommer fra.
+- **Marginal-estimat** for bytter uten felles målte dager: hver linjes
+  P50/P80/P95 ved byttestoppet → 100-punkts kvantil-rutenett, uavhengighet,
+  P(gap ≥ gange + margin). Veid mot målte dager med `MARGINAL_PRIOR_DAYS = 10`.
+  `pipeline/backtest_marginal.py` (51 stoppesteder, 6 000 par, ~256 000
+  måldager, Brier): 0 felles dager 0,122 (flat snittrate 0,173, i dag «ingen
+  data»); 1 dag 0,120 mot 0,216 for bare målte; 10 dager 0,114 mot 0,119;
+  alle dager uendret (0,1090/0,1064). Litt forsiktig i midten (spådd 0,75 →
+  faktisk 0,82).
+- **Usikkerhet**: «effektive dager» per bytte → forsiktig nedre grense
+  (z = 1,28) som «Viktig avtale» bruker.
+- **Ankomst som blanding** pMake·F_A + (1 − pMake)·F_B, med plan B fra Entur.
+  Uten plan B er det nøyaktig den gamle `arrivalQuantileLevel`-regelen. Plan
+  B hentes nå i begge visningene når byttet rekkes < 97 % (eller er ukjent),
+  og PARALLELT (før: ett kall om gangen).
+- **Beslutningsregel**: ventetid + λ·P(for sent), λ = 60 min («Vanlig dag»)
+  / 300 min («Viktig avtale»), og minst 60 % / 85 % i rute. Erstatter «seneste
+  som holder 80 %» i enkel visning.
+- **Mangler data**: helt ukjente bytter regnes som «du mister det» når plan B
+  finnes, og kortet sier «Mangler data om byttet». Strekninger uten data
+  («Mangler data: ekspressbuss VY190») regnes etter rutetid. Ingen reise
+  skjules.
+
+**Treghet funnet og rettet (samme branch):** én linje fra en operatør som ikke
+finnes i dataene (VYX, Vy Express, i søket Åsane → Lagunen kl. 08) gjorde
+`transferCovers` usann for HELE søket, så statistikken for alle tolv
+forslagene gikk til DuckDB: svaret sto på «0 av 11» i > 48 s (samme på
+reise-preview). `transfer/index.json` får nå `allOperators: true` når
+`TRANSFER_OPERATORS=*`, og da regnes ukjente operatører som dekket (de har
+ingen rader i DuckDB heller). Med flagget (testet lokalt): svar etter 4,6 s.
+**Virker først når nattjobben har skrevet en ny indeks med den nye
+`transfer_shards.py`.**
+
+
 ## Endringslogg — 2026-11-11: enkel visning av reiseplanleggeren (`feat/enkel-reise`, kun preview)
 
 Etter tilbakemelding om at siden er «for nerdete» er standardvisningen på
