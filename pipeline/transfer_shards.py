@@ -276,6 +276,12 @@ def build_transfer_shards(con, generated_at: str, max_date: date, view: str = "d
         "shards": SHARDS,
         "path": f"transfer/{SHARDS}",
         "operators": operators,
+        # true = `operators` er ALLE operatørene i dataene for perioden. En
+        # linje fra en operatør som ikke står der, har da ingen rader — heller
+        # ikke i DuckDB — og klienten kan bruke filene likevel (transferCovers).
+        # Uten dette sendte én Vy Express-linje (VYX, ikke i feeden) hele
+        # reisesøket til DuckDB: 40–110 s i stedet for ~3 s (2026-11-11).
+        "allOperators": ALL_OPERATORS,
         "from": from_date.isoformat(),
         "to": max_date.isoformat(),
         "files": files,

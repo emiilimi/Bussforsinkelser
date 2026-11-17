@@ -61,6 +61,10 @@ export interface JourneyEntry {
   numVariants: number;
   firstStopName: string | null;
   lastStopName: string | null;
+  /** Alle «A→B» under dette klokkeslettet, skilt med |. Avganger samme
+   *  klokkeslett slås sammen, og navnene over er bare MAX av dem: 01:04 kan gå
+   *  til både Toppe og Støbotn. Mangler for avganger fra verste/beste-listene. */
+  endPairs?: string | null;
 }
 
 export interface JourneyStopProfile {
@@ -106,6 +110,11 @@ export interface LineStopProfileEntry {
   avgDwellTimeSec: number | null;
   numSamples: number;
   stopName: string | null;
+  /** Kvantiler per stopp — båndet og «4 av 5»-linja i ruteprofilen. Min/maks
+   *  over enkeltpasseringer er for ekstreme til å si noe (én kø-avgang). */
+  p20DelayMin: number | null;
+  p50DelayMin: number | null;
+  p80DelayMin: number | null;
 }
 
 export interface JourneyRanking {
@@ -179,7 +188,8 @@ export function useJourneysForLine(lineRef: string, fromDate: string) {
           first_stop_time AS firstStopTime,
           COUNT(*) AS numVariants,
           MAX(first_stop_name) AS firstStopName,
-          MAX(last_stop_name)  AS lastStopName
+          MAX(last_stop_name)  AS lastStopName,
+          string_agg(DISTINCT first_stop_name || '→' || last_stop_name, '|') AS endPairs
         FROM (
           SELECT
             d.service_journey_id,
@@ -471,7 +481,7 @@ export function useLineStopProfile(
   // Steg 2 har allerede rekkefølgen for den dominerende avgangen, så vi
   // kobler den på klientsiden og sorterer der.
   const profileQuery = useQuery<Array<Omit<LineStopProfileEntry, "stopSequence">>>({
-    queryKey: ["line-stop-profile-data", lineRef, directionRef, fromDate, dominantId ?? "", canonicalStops.join(","), dtFilter],
+    queryKey: ["line-stop-profile-data-v2", lineRef, directionRef, fromDate, dominantId ?? "", canonicalStops.join(","), dtFilter],
     enabled: !!dominantId && canonicalStops.length > 0,
     queryFn: () => {
       const ph = canonicalStops.map((s) => `'${s.replace(/'/g, "''")}'`).join(",");
@@ -481,6 +491,9 @@ export function useLineStopProfile(
           ROUND(AVG(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS avgDelayMin,
           ROUND(MAX(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS maxDelayMin,
           ROUND(MIN(COALESCE(d.delay_departure_min, d.delay_arrival_min)), 2) AS minDelayMin,
+          ROUND(quantile_cont(COALESCE(d.delay_departure_min, d.delay_arrival_min), 0.2), 2) AS p20DelayMin,
+          ROUND(quantile_cont(COALESCE(d.delay_departure_min, d.delay_arrival_min), 0.5), 2) AS p50DelayMin,
+          ROUND(quantile_cont(COALESCE(d.delay_departure_min, d.delay_arrival_min), 0.8), 2) AS p80DelayMin,
           ROUND(AVG(d.delay_arrival_min), 2)   AS avgDelayArrivalMin,
           ROUND(AVG(d.delay_departure_min), 2)  AS avgDelayDepartureMin,
           ROUND(AVG(d.dwell_time_sec), 1)       AS avgDwellTimeSec,

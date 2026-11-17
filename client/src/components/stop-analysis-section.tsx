@@ -571,7 +571,7 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                   {avgPctEarly != null ? `${avgPctEarly.toFixed(1)}%` : "—"}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
-                  Mer enn 1 min før rutetid — dem kan du ikke rekke.
+                  Mer enn 1 min før rutetid.
                 </p>
               </CardContent>
             </Card>
@@ -695,10 +695,10 @@ export function StopAnalysisSection({ stopRef, stopName, operators, lat, lng }: 
                         <button
                           onClick={() => navigate(`/journey?line=${encodeURIComponent(line.lineRef)}`)}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                          title="Åpne avgangsanalyse for denne linjen"
+                          title="Åpne linjeanalyse for denne linjen"
                         >
                           <Route className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Avgangsanalyse</span>
+                          <span className="hidden sm:inline">Linjeanalyse</span>
                         </button>
                       </div>
 
