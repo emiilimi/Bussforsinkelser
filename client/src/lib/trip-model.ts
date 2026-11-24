@@ -26,8 +26,8 @@
  *     Uten plan B regnes miss-grenen som «for sent» — det er det samme som den
  *     gamle arrivalQuantileLevel-regelen (F_A(t) ≥ 0,8/pMake).
  *
- * Og en beslutningsregel: anbefalingen veier ventetid mot risikoen for å komme
- * for sent (LATE_COST_MIN), i stedet for en fast 80 %-grense. En bane hvert 5.
+ * Og en beslutningsregel: anbefalingen veier hvor tidlig du må dra mot
+ * risikoen for å komme for sent (LATE_COST_MIN), i stedet for en fast 80 %-grense. En bane hvert 5.
  * minutt gjør det billig å være forsiktig; en buss i timen gjør det dyrt.
  *
  * Kvantil-rutenettet og transferProbFromMarginals MÅ være identiske med
@@ -287,7 +287,7 @@ export function mixtureQuantile(m: ArrivalMixture, level: number): number | null
 }
 
 // ---------------------------------------------------------------------------
-// Beslutning: ventetid mot risiko
+// Beslutning: hvor tidlig du må dra, mot risiko
 // ---------------------------------------------------------------------------
 
 export type CertaintyLevel = "normal" | "high";
@@ -303,9 +303,36 @@ export const LATE_COST_MIN: Record<CertaintyLevel, number> = { normal: 60, high:
 /** Under dette anbefales ikke en avgang uansett hvor kort ventetiden er. */
 export const MIN_ON_TIME: Record<CertaintyLevel, number> = { normal: 0.6, high: 0.85 };
 
-export function decisionCost(waitMin: number, pOnTime: number, c: CertaintyLevel): number {
-  return Math.max(0, waitMin) + LATE_COST_MIN[c] * (1 - pOnTime);
+/**
+ * Kostnaden er minuttene fra du DRAR til fristen (reisetid + venting, uansett
+ * hvor ventingen skjer) pluss straffen for å komme for sent.
+ *
+ * Før 2026-11-18 var det ventetiden ved MÅLET (frist − ankomst). Det belønnet
+ * reiser som nesten alltid mister byttet men reddes av en plan B fremme like
+ * før fristen: Lyderhornsveien → Øvsttun, fremme 20:15, anbefalte 18:14 (bytte
+ * som ryker 10 av 10, plan B 70-bussen kl. 20:00) fordi «ventetiden» bare var
+ * 4 min — i virkeligheten en time på Nesttun. Nå vinner 19:07 med samme 70-buss.
+ */
+export function decisionCost(leadMin: number, pOnTime: number, c: CertaintyLevel, pMake = 1): number {
+  return Math.max(0, leadMin) + LATE_COST_MIN[c] * (1 - pOnTime)
+    + PLAN_B_RELIANCE_MIN * (1 - Math.min(1, Math.max(0, pMake)));
 }
+
+/**
+ * Hva det koster (i minutter) å basere seg på at plan B redder deg: en plan
+ * der byttet ryker hver gang er verdt litt mindre enn en der det holder, selv
+ * om du kommer fram i tide begge veier (stress, ukjent omvei, mer gange).
+ *
+ * Funnet i reiselaboratoriet 2026-11-24: ved SAMME avgangstid valgte appen
+ * varianten med stramt bytte fordi den var planlagt fremme 5 min før —
+ * Bergen 07:23 5 → 16E (bytte holder 16 %) foran samme 5-buss med neste 16E
+ * (holder 95 %), og Oslo 13:25 310 → 300 → 2 → 5 → 17 (alle bytter holder
+ * 9 %) foran 310 → 300 → 1 (66 %). Begge «i tide», men den første er en plan
+ * du nesten aldri får gjennomført. 3 min er nok til å snu slike likt-ish-valg,
+ * men ikke nok til å la deg dra mer enn noen minutter tidligere for å slippe
+ * et bytte som plan B uansett redder.
+ */
+export const PLAN_B_RELIANCE_MIN = 3;
 
 /** «fire av fem dager» o.l. — nærmeste enkle brøk, uten prosent. */
 export function frequencyWords(p: number): string {

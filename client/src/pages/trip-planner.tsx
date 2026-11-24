@@ -408,6 +408,16 @@ type P80Report = {
   references?: ReferenceReliability[];
 };
 
+/** Alt i rapporten som kan endre anbefalingen — for å se om en ny rapport er lik den gamle. */
+function reportKey(r: P80Report): string {
+  return [
+    r.pending, r.arrivalMs, r.beyond, r.p95ArrivalMs, r.pMakeAll, r.medianMs,
+    r.pOnTime ? `${r.pOnTime.normal}/${r.pOnTime.high}` : "",
+    r.wantsPlanB, r.assumedMiss, r.hasPlanB,
+    (r.missing ?? []).join(";"), (r.references ?? []).map((x) => x.name).join(";"),
+  ].join("|");
+}
+
 /**
  * Hvor sikker brukeren vil være i enkel visning:
  *  - normal: «Vanlig dag» = framme innen tiden 4 av 5 dager (P80)
@@ -554,6 +564,69 @@ function dedupePatterns(patterns: TripPattern[]): TripPattern[] {
     }
   }
   return out;
+}
+
+/**
+ * Ekstra søk med større overgangsmargin (sekunder), i tillegg til Enturs
+ * standard (120 s). Entur viser bare den raskeste kjeden inn mot hver avgang:
+ * Lyderhornsveien → Øvsttun, fremme 20:15, ga 20-bussen 19:27 med 2 min bytte
+ * til 70 (ryker ~9 av 10) og ellers bare reiser fremme 19:11 — og vi
+ * anbefalte 18:14. Med 300/600 s kom 450-bussen 19:05 → Bybanen → 70 kl.
+ * 20:00 med 15 min margin, som er den man faktisk vil ta (2026-11-18).
+ * Forslagene slås sammen, og vår egen modell velger. Målt med
+ * `pipeline/replay_trips.py`.
+ */
+const EXTRA_TRANSFER_SLACKS = [300, 600];
+
+/** Minutter til overs ved hvert bytte (rutetid, etter gange). */
+function transferMarginsMin(p: TripPattern): number[] {
+  const out: number[] = [];
+  let lastEnd: number | null = null;
+  let walk = 0;
+  for (const l of p.legs) {
+    const s = new Date(l.expectedStartTime).getTime();
+    const e = new Date(l.expectedEndTime).getTime();
+    if (l.mode === "foot") { walk += e - s; continue; }
+    if (lastEnd != null) out.push((s - lastEnd - walk) / 60000);
+    lastEnd = e;
+    walk = 0;
+  }
+  return out;
+}
+
+/**
+ * Slå ekstra-søkene inn i hovedlista. Et ekstra forslag tas bare med når
+ *  - det ligger innenfor hovedsøkets tidsrom (fremme-søk: drar ikke før det
+ *    tidligste hovedforslaget; avreise-søk: er ikke fremme etter det seneste)
+ *    — ekstra-søkene gir ellers bare flere tidlige reiser ingen trenger, og
+ *  - ingen andre forslag er minst like gode på alle tre: drar senere eller
+ *    samtidig, er fremme tidligere eller samtidig, og har minst like stor
+ *    minste byttemargin.
+ */
+function mergeSlackVariants(base: TripPattern[], extras: TripPattern[], arriveBy: boolean): TripPattern[] {
+  const info = (p: TripPattern) => ({
+    dep: new Date(p.expectedStartTime).getTime(),
+    arr: new Date(p.expectedEndTime).getTime(),
+    margin: Math.min(Infinity, ...transferMarginsMin(p)),
+  });
+  const firstDep = Math.min(...base.map((p) => new Date(p.expectedStartTime).getTime()));
+  const lastArr = Math.max(...base.map((p) => new Date(p.expectedEndTime).getTime()));
+  const inWindow = (p: TripPattern) => base.length === 0 || (arriveBy
+    ? new Date(p.expectedStartTime).getTime() >= firstDep
+    : new Date(p.expectedEndTime).getTime() <= lastArr);
+  const all = dedupePatterns([...base, ...extras.filter(inWindow)]);
+  const baseKeys = new Set(base.map(patternKey));
+  const infos = all.map(info);
+  const keep = all.filter((p, i) => {
+    if (baseKeys.has(patternKey(p))) return true;
+    const a = infos[i];
+    return !all.some((q, j) => j !== i
+      && infos[j].dep >= a.dep && infos[j].arr <= a.arr && infos[j].margin >= a.margin
+      && (infos[j].dep > a.dep || infos[j].arr < a.arr || infos[j].margin > a.margin || j < i));
+  });
+  return keep.sort((x, y) =>
+    new Date(x.expectedStartTime).getTime() - new Date(y.expectedStartTime).getTime()
+    || new Date(x.expectedEndTime).getTime() - new Date(y.expectedEndTime).getTime());
 }
 
 /** Skyv en "HH:MM:SS"-tid (med dayOffset) deltaMin minutter, håndterer midnatt. */
@@ -2614,8 +2687,12 @@ function TripCard({
     const gapsComputed = !transferAnalysis.hasTransfers || !!gapMap;
     const p80Pending = !gapsComputed;
 
-    // Plan A: forsinkelsesfordeling per transittlegg, verste legg nivå for nivå
-    // (samme «det tregeste legget avgjør» som før, nå over hele fordelingen).
+    // Plan A: forsinkelsen på SISTE transittlegg. Rekker du byttene (det er
+    // pMake), er tidligere forsinkelser spist av byttemarginen — de avgjør om
+    // du rekker byttet, ikke når du er fremme. Før 2026-11-18 var det «verste
+    // legg nivå for nivå», som telte en sen buss 6 mot ankomsten selv når du
+    // rakk Bybanen: Lyderhornsveien → Øvsttun 19:07 fikk «fire av fem dager»,
+    // mens avspillingen (pipeline/replay_trips.py) ga 18 av 18.
     // Per-avgang-tallene (legTimes) har bare P50/P80 — P95 tas fra linjens
     // samletall ved stoppet.
     let qA: QGrid | null = null;
@@ -2648,6 +2725,9 @@ function TripCard({
       qA = maxGrid(qA, g);
       lastGrid = g;
     }
+    // Siste legg uten data (flagget i `missing`): regnes etter rutetid, som
+    // andre strekninger uten data — men bare når noe annet i reisen har data.
+    qA = lastGrid ?? (qA ? ZERO_GRID : null);
     // Bare gange: ankomsten er kjent.
     if (!anyTransit) qA = ZERO_GRID;
     for (const t of transferAnalysis.transfers) {
@@ -3727,8 +3807,8 @@ export default function TripPlanner() {
   const { data: duckData, isFetching: duckStatsFetching } =
     useTripDelayDistribution(duckPairs, duckReady, duckQuery, resolvedStatsWindow);
 
-  // Enkel visning: anbefalingen veier ventetid mot risikoen for å komme for
-  // sent (lib/trip-model, decisionCost) — ikke en fast «fire av fem»-grense.
+  // Enkel visning: anbefalingen veier hvor tidlig du må dra mot risikoen for
+  // å komme for sent (lib/trip-model, decisionCost) — ikke en fast «fire av fem»-grense.
   // Går avgangene ofte, er forsiktighet billig og svaret blir tryggere; går
   // de sjelden, koster hver ekstra margin mye venting. Venter til ALLE
   // forslagene er beregnet — også plan B der kortet ba om den — så
@@ -3742,7 +3822,7 @@ export default function TripPlanner() {
     if (tripPatterns.length === 0) return null;
     type Cand = {
       idx: number; depMs: number; arrMs: number | null; medianMs: number | null;
-      pOnTime: number | null; viaPlanB: boolean;
+      pOnTime: number | null; viaPlanB: boolean; pMake: number;
     };
     const all: Cand[] = [];
     let done = 0;
@@ -3762,6 +3842,7 @@ export default function TripPlanner() {
         medianMs: r.medianMs ?? null,
         pOnTime: r.pOnTime?.[certainty] ?? null,
         viaPlanB: !!pb && (r.assumedMiss === true || (r.pMakeAll ?? 1) < PLAN_B_BELOW),
+        pMake: r.assumedMiss ? 0 : r.pMakeAll ?? 1,
       });
     });
     if (done < tripPatterns.length) return { kind: "pending", done, total: tripPatterns.length } as Ans;
@@ -3774,9 +3855,8 @@ export default function TripPlanner() {
         const best = known.reduce((a, b) => (b.pOnTime! > a.pOnTime! ? b : a));
         return { kind: "none-in-time", bestIdx: best.idx, bestP: best.pOnTime } as Ans;
       }
-      const cost = (c: Cand) => decisionCost(
-        (arrivalDeadline - (c.medianMs ?? c.arrMs ?? arrivalDeadline)) / 60000, c.pOnTime!, certainty,
-      );
+      // Minutter fra avreise til fristen — ikke ventetid ved målet (se decisionCost).
+      const cost = (c: Cand) => decisionCost((arrivalDeadline - c.depMs) / 60000, c.pOnTime!, certainty, c.pMake);
       const best = ok.reduce((a, b) => {
         const d = cost(b) - cost(a);
         return d < -1e-9 || (Math.abs(d) <= 1e-9 && b.depMs > a.depMs) ? b : a;
@@ -3788,6 +3868,33 @@ export default function TripPlanner() {
     const best = known.reduce((a, b) => (b.arrMs! < a.arrMs! || (b.arrMs === a.arrMs && b.depMs > a.depMs) ? b : a));
     return { kind: "pick", ...best } as Ans;
   }, [tripPatterns, p80Reports, certainty, arrivalDeadline, planB]);
+
+  // For revisjonen (pipeline/replay_trips.py --app): appens valg og
+  // sannsynligheter i en form skriptet kan sammenligne med avspillingen.
+  // Kopier med `copy(JSON.stringify(window.__reiseDebug))` i konsollen.
+  useEffect(() => {
+    if (!simpleAnswer || simpleAnswer.kind === "pending") return;
+    const hhmm = (iso: string) => formatTime(iso);
+    (window as unknown as { __reiseDebug?: unknown }).__reiseDebug = {
+      url: window.location.search,
+      certainty,
+      depHHMM: simpleAnswer.kind === "pick" ? hhmm(tripPatterns[simpleAnswer.idx].expectedStartTime) : null,
+      // Samme avgangstid kan ha flere forslag (ulike bytter) — ankomst + linjer skiller dem.
+      pick: simpleAnswer.kind === "pick" ? {
+        arr: hhmm(tripPatterns[simpleAnswer.idx].expectedEndTime),
+        lines: tripPatterns[simpleAnswer.idx].legs.filter((l) => l.mode !== "foot")
+          .map((l) => l.line?.publicCode ?? l.mode).join(" → "),
+      } : null,
+      candidates: tripPatterns.map((p) => {
+        const r = p80Reports.get(patternKey(p));
+        return {
+          dep: hhmm(p.expectedStartTime), arr: hhmm(p.expectedEndTime),
+          lines: p.legs.filter((l) => l.mode !== "foot").map((l) => l.line?.publicCode ?? l.mode).join(" → "),
+          pOnTime: r?.pOnTime ?? null, pMake: r?.pMakeAll ?? null, missing: r?.missing ?? [],
+        };
+      }),
+    };
+  }, [simpleAnswer, tripPatterns, p80Reports, certainty]);
 
   // Rekkefølgen i enkel visning: anbefalt først, så etter trygg ankomst.
   const simpleOrder = useMemo(() => {
@@ -3956,7 +4063,8 @@ export default function TripPlanner() {
       const walkSpeedMs = walkSpeedKmh / 3.6;
 
       // 2. Fetch trip from Entur
-      const tripRes = await apiRequest("POST", "/api/trip", {
+      const userSlack = transferSlack !== "default" ? parseInt(transferSlack) : undefined;
+      const tripBody = {
         from: locationRef(fromStop),
         to: locationRef(toStop),
         when: dateTime,
@@ -3971,8 +4079,21 @@ export default function TripPlanner() {
         // alltid sende — brukerens egen ganghastighet styrer beregningen.
         directMode: "foot",
         maximumTransfers: maxTransfers !== "any" ? parseInt(maxTransfers) : undefined,
-        transferSlack: transferSlack !== "default" ? parseInt(transferSlack) : undefined,
         wheelchairAccessible: wheelchairAccessible || undefined,
+      };
+      // Ekstra-søkene (EXTRA_TRANSFER_SLACKS) går parallelt med hovedsøket,
+      // så svaret kommer ikke senere. Bare ved nytt søk med standard margin —
+      // har brukeren valgt margin selv, eller blar i tid, brukes den alene.
+      const extraSearches = !opts?.cursor && userSlack === undefined
+        ? EXTRA_TRANSFER_SLACKS.map((slack) =>
+            apiRequest("POST", "/api/trip", { ...tripBody, transferSlack: slack, numTripPatterns: 8 })
+              .then((r) => r.json())
+              .then((d) => (d?.data?.trip?.tripPatterns ?? []) as TripPattern[])
+              .catch(() => [] as TripPattern[]))
+        : [];
+      const tripRes = await apiRequest("POST", "/api/trip", {
+        ...tripBody,
+        transferSlack: userSlack,
         numTripPatterns: 12, // hoytt tall -> Entur beregner dynamisk searchWindow riktig
         // Ved paginering overstyrer cursoren dateTime/searchWindow hos Entur
         pageCursor: opts?.cursor,
@@ -3992,7 +4113,9 @@ export default function TripPlanner() {
       }
 
       const trip = tripData?.data?.trip;
-      const patterns: TripPattern[] = trip?.tripPatterns ?? [];
+      const basePatterns: TripPattern[] = trip?.tripPatterns ?? [];
+      const extras = (await Promise.all(extraSearches)).flat();
+      const patterns = extras.length > 0 ? mergeSlackVariants(basePatterns, extras, !!arriveBy) : basePatterns;
       const cursors = {
         prev: (trip?.previousPageCursor as string | undefined) ?? null,
         next: (trip?.nextPageCursor as string | undefined) ?? null,
@@ -4082,7 +4205,11 @@ export default function TripPlanner() {
   // bytte, fra byttestedet, etter avgangen du mistet. Den SENESTE reserven
   // over alle byttene i forslaget er verste fall. Nullstilles ved nytt søk.
   // ---------------------------------------------------------------------------
-  useEffect(() => { setPlanB(new Map()); }, [tripPatterns]);
+  // Samme bytte (samme avgang du mister) går igjen i mange forslag — med
+  // ekstra-søkene typisk 70-bussen fra Nesttun i halvparten av dem. Ett kall
+  // per avgang, ikke per forslag (2026-11-18: ~25 → ~8 kall per reisesøk).
+  const planBLegCache = useRef(new Map<string, Promise<PlanBInfo | null>>());
+  useEffect(() => { setPlanB(new Map()); planBLegCache.current = new Map(); }, [tripPatterns]);
   const planBRef = useRef(planB);
   planBRef.current = planB;
   const planBInFlight = useRef(new Set<string>());
@@ -4101,7 +4228,7 @@ export default function TripPlanner() {
     for (const p of todo) planBInFlight.current.add(patternKey(p));
     todo.forEach(async (p) => {
       const k = patternKey(p);
-      const one = async (j: number): Promise<PlanBInfo | null> => {
+      const fetchOne = async (j: number): Promise<PlanBInfo | null> => {
           const leg = p.legs[j];
           const quay = leg.fromPlace.quay?.id;
           if (!quay) return null;
@@ -4147,6 +4274,15 @@ export default function TripPlanner() {
           } catch {
             return null;
           }
+      };
+      const one = (j: number): Promise<PlanBInfo | null> => {
+        const leg = p.legs[j];
+        const ck = `${leg.fromPlace.quay?.id}|${leg.serviceJourney?.id ?? leg.line?.id}|${leg.expectedStartTime}`;
+        const hit = planBLegCache.current.get(ck);
+        if (hit) return hit;
+        const pr = fetchOne(j);
+        planBLegCache.current.set(ck, pr);
+        return pr;
       };
       const infos = await Promise.all(transferTargetLegs(p).map(one));
       // Verste fall over byttene: den seneste reserven. Feilet én, vet vi ikke.
@@ -4718,8 +4854,7 @@ export default function TripPlanner() {
                     {ans.viaPlanB && pb && (
                       <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
                         {pm == null ? "Vi har ikke data om byttet" : tw ? tw.text : "Byttet er usikkert"}
-                        {pbInTime ? ", men det gjør ikke noe: " : ". "}
-                        mister du det, går {pb.label} kl. {t(pb.depMs)}, og da er du fremme ca. {t(pb.arrMs)}
+                        {pbInTime ? ", men det gjør ikke noe: mister" : ". Mister"} du det, går {pb.label} kl. {t(pb.depMs)}, og da er du fremme ca. {t(pb.arrMs)}
                         {arrivalDeadline != null ? (pbInTime ? " – fortsatt i tide." : " – for sent, men det er regnet med over.") : "."}
                       </p>
                     )}
@@ -4864,9 +4999,13 @@ export default function TripPlanner() {
                 safestMode={arrivalDeadline != null ? "latest" : "earliest"}
                 onP80Report={(r) =>
                   setP80Reports((prev) => {
+                    // ALLE feltene anbefalingen leser må med i likhetstesten. Før
+                    // 2026-11-24 manglet hasPlanB og pOnTime: kom plan B (eller
+                    // feilet med 429) uten å flytte ankomsttidene, ble oppdateringen
+                    // kastet — anbefalingen sto på «11 av 19» for alltid, og en ny
+                    // pOnTime fra plan B kunne bli borte uten at noe syntes.
                     const old = prev.get(pk);
-                    if (old && old.pending === r.pending && old.arrivalMs === r.arrivalMs && old.beyond === r.beyond
-                      && old.p95ArrivalMs === r.p95ArrivalMs && old.pMakeAll === r.pMakeAll) return prev;
+                    if (old && reportKey(old) === reportKey(r)) return prev;
                     const next = new Map(prev);
                     next.set(pk, r);
                     return next;

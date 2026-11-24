@@ -196,7 +196,7 @@ function makeRateLimiter(opts: { windowMs: number; max: number; name: string }) 
   };
 }
 
-const tripLimiter = makeRateLimiter({ windowMs: 60_000, max: 20, name: "trip" });
+const tripLimiter = makeRateLimiter({ windowMs: 60_000, max: 40, name: "trip" }); // 3 søk (standard + 2 ekstra marginer) + plan B per reisesøk
 const geocoderLimiter = makeRateLimiter({ windowMs: 60_000, max: 60, name: "geocoder" });
 const departuresLimiter = makeRateLimiter({ windowMs: 60_000, max: 30, name: "departures" });
 
