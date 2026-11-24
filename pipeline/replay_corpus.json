@@ -1,0 +1,11 @@
+[
+  {"name": "lyderhorn-ovsttun", "from": "NSR:StopPlace:31841", "to": "NSR:StopPlace:29373", "time": "20:15", "dayType": "weekday",
+   "note": "Emilie 2026-11-18: appen sa dra 18:14; 450/40 fra Lyngbø → Bybanen → 70 kl. 20:00 er det man faktisk tar"},
+  {"name": "lyderhorn-ovsttun-0800", "from": "NSR:StopPlace:31841", "to": "NSR:StopPlace:29373", "time": "08:00", "dayType": "weekday"},
+  {"name": "asane-lagunen-0800", "from": "NSR:StopPlace:31024", "to": "NSR:StopPlace:59849", "time": "08:00", "dayType": "weekday"},
+  {"name": "lagunen-asane-1700", "from": "NSR:StopPlace:59849", "to": "NSR:StopPlace:31024", "time": "17:00", "dayType": "weekday"},
+  {"name": "busstasjon-ovsttun-0830", "from": "NSR:StopPlace:62356", "to": "NSR:StopPlace:29373", "time": "08:30", "dayType": "weekday"},
+  {"name": "asane-ovsttun-0900", "from": "NSR:StopPlace:31024", "to": "NSR:StopPlace:29373", "time": "09:00", "dayType": "weekday"},
+  {"name": "blindern-skullerud-1820", "from": "NSR:StopPlace:6332", "to": "NSR:StopPlace:58227", "time": "18:20", "dayType": "weekday"},
+  {"name": "skullerud-blindern-0815", "from": "NSR:StopPlace:58227", "to": "NSR:StopPlace:6332", "time": "08:15", "dayType": "weekday"}
+]

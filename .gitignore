@@ -47,3 +47,6 @@ logs/
 data/pax-cache/
 data/pax-out/
 client/public/pax-dev/
+
+# Reiselaboratoriet (pipeline/triplab): nedlastede grunnlagsdata, Entur-cache, resultater
+data/triplab/

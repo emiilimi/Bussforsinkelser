@@ -79,6 +79,8 @@ pipeline/          (Python)
   transfer_shards.py       Overgangsfiler per plattform → transfer/ (kalles av aggregate_stats.py)
   check_transfer_parity.py Paritetssjekk: overgangsfilene mot DuckDB-SQL-en på ekte overganger
   backtest_marginal.py     Backtest av marginal-estimatet (grunnlag for MARGINAL_PRIOR_DAYS i trip-model.ts)
+  replay_trips.py          Revisjon: spiller av reiseforslag (flere overgangsmarginer) mot faktiske forsinkelser; korpus i replay_corpus.json
+  triplab/                 Reiselaboratoriet: hundrevis av trekte reiser (SSB-befolkning) søkt + spilt av; app_compare, entur_estimates (Enturs empiricalDelay/prognose mot våre data). Se README der
   check_data.py            Manuell BigQuery/SQLite-inspeksjon
 
 data/
@@ -646,6 +648,13 @@ Tre konsekvenser som styrer design:
 **Avkreftet som årsak** (ikke prøv på nytt uten nye målinger): manglende row
 group-pruning — å legge `stop_ref IN (...)` foran OR-kjeden endret ingenting
 (23,8 s vs 25,1 s) — og DuckDBs `enable_object_cache` (5,0 s vs 4,9–5,2 s).
+
+**Reisesøket sender tre Entur-kall (2026-11-18)**: standard + `transferSlack`
+300 og 600 (`EXTRA_TRANSFER_SLACKS` i `trip-planner.tsx`), fordi Entur bare gir
+den raskeste kjeden inn mot hver avgang og derfor skjuler reiser med god
+byttemargin. Endrer du modellen eller søket: kjør `pipeline/replay_trips.py`
+(fra worktree/repo med `PARQUET_DIR` til reisedataene) og se at ingen nye
+`APP_FOR_TIDLIG`/`APP_FOR_SENT` dukker opp. Appens valg: `window.__reiseDebug`.
 
 **Løst for Ruter (2026-10-10)**: full statistikk i reiseplanleggeren brukte
 ~30 s (varm) til ~83 s (kald sidelast). Nå leses den av ferdige

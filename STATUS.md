@@ -3,7 +3,112 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-11-11
+**Sist oppdatert**: 2026-11-24
+
+## Endringslogg — 2026-11-24: reiselaboratoriet (`pipeline/triplab/`), to app-feil, margin ved bytte, Enturs egne anslag (`feat/reise-modell`)
+
+**Labben.** 200 trekte reiser i fem byer (bosted vektet med SSB-befolkning,
+reisemål etter type, typisk frist), søkt i Entur med fem overgangsmarginer og
+spilt av mot faktiske tider. Se `pipeline/triplab/README.md`.
+
+**App-feil 1 — «Sjekker … (11 av 19)» hang for alltid.** `onP80Report`
+sammenlignet bare noen felt; et nytt svar med annen `hasPlanB`/`pOnTime` ble
+kastet. Resultat: hengende telling og gammel `pOnTime` (Trondheim 15:00
+1 → 14 viste 100 %, modellen sa 30 %). Nå `reportKey()` over alle felt.
+
+**App-feil 2 — likt avreisetidspunkt valgte stramt bytte.** To forslag med
+samme avgang fikk samme kost selv om ett hadde 16 % sjanse for bytte og det
+andre 95 % (Bergen 07:23 5 → 16E; Oslo 13:25 310 → 300 → 2 → 5 → 17 med 9 %).
+`decisionCost` har fått `PLAN_B_RELIANCE_MIN` (3) · (1 − pMake).
+
+**Avspillings-skjevhet (orakelet).** Manglende ankomstrad droppet dagen. Men
+Ruter rapporterer ikke alle stopp, og bare dager der byttet HOLDT mistet
+raden (et tapt bytte fant plan B med data). oslo-010 74 → 5: 0 % på 4 dager →
+60 % på 10. Nå anslås ankomsten fra avgangsforsinkelsen (2–4 % av leggene),
+og nærmeste passering brukes (linje 5 passerer Blindern to ganger med samme
+id). Appens kalibrering mot avspillingen: Brier 0,017 → 0,012.
+
+**Margin ved bytte — hva skjer i virkeligheten** (alle forslag, bytte-dager):
+
+| planlagt | mistet | 0–1 min | 1–2 | 2–5 | 5+ |
+|---|---|---|---|---|---|
+| under 1 min | 53 % | 16 % | 11 % | 15 % | 5 % |
+| 1–2 min | 32 % | 11 % | 18 % | 25 % | 13 % |
+| 2–5 min | 21 % | 8 % | 10 % | 37 % | 23 % |
+| 5–10 min | 9 % | 2 % | 4 % | 23 % | 62 % |
+| 10 min + | 2 % | 0 % | 0 % | 2 % | 95 % |
+
+Bare «mistet» er en feil; at 5 min krymper til 2 er normalt. Rapporten viser
+0–1 min for seg. For det appen ville anbefalt (80 %) er tapsandelen 29/31/16/4/1 %.
+
+**Enturs egne forsinkelsesanslag** (`entur_estimates.py`). JP v3 har
+`EstimatedCall.empiricalDelay { p50 p90 }` (samferdselsdata.no «Empiriske
+forsinkelser», feb. 2026). 7 364 avganger fra 150 plattformer, 25.11.:
+- 92 % har anslag; mangler for VYX, NWY, UNI, FLI (ingen sanntid hos Entur
+  heller — ingen gratis reserve der vi mangler data).
+- **Entur samler per (linje, plattform, klokketime)**: 1 647 av 1 669
+  timegrupper har identisk p50/p90 for alle avgangene (07:09 og 07:59 får
+  samme tall) — og **kutter til hele minutter** (1,9 → PT1M).
+- Samme oppskrift på våre parquet-data (65 hverdager, timepool, kuttet)
+  treffer p50 med 0,47 min og p90 med 1,17 min snittavvik. Altså samme
+  datagrunnlag; forskjellen er oppløsningen.
+- 3,8 % av avgangene har egen median > 3 min fra timens. Eksempel: AKT 3002
+  kl. 07:59 (NSR:Quay:39437) har hatt median 10–16 min hver uke siden oktober;
+  Entur sier p50 1 / p90 8 fordi 07:09 trekker ned. Per-avgang-tallene våre
+  er der vi gir noe Entur ikke gir.
+- Sanntidsprognosen (`expectedDepartureTime` etter horisont, og
+  `predictionInaccurate`) samles inn 24.11. og evalueres etter nattjobben:
+  `python pipeline/triplab/entur_estimates.py evaluate`.
+
+T-banen var faktisk stengt 19.–22.11.2026 (signalarbeid); linje 4/5 mangler
+rader de dagene. Ikke en pipeline-feil.
+
+## Endringslogg — 2026-11-18: ekstra overgangsmargin i søket, avspillings-revisjon (`feat/reise-modell`)
+
+**Problem (Emilie):** Lyderhornsveien → Øvsttun, fremme 20:15, sa «dra 18:14»
+(fremme 19:11). Det man faktisk gjør er å ta en buss fra Lyngbø rv. 555 litt
+før 19, Bybanen, og 70-bussen kl. 20:00 med god margin.
+
+**Årsak 1 — forslaget fantes ikke.** Entur bruker 120 s overgangsmargin og
+viser bare den raskeste kjeden inn mot hver avgang: 20-bussen 19:27 med 2 min
+bytte til 70 (ryker ~9 av 10), ellers reiser fremme 19:11. Med
+`transferSlack` 300/600 kommer 6-bussen 19:07, 450 19:05 og 40 19:06 → Bybanen
+→ 70 kl. 20:00 (7–15 min margin). Nå sendes to ekstra søk (300 og 600 s)
+parallelt med hovedsøket (`EXTRA_TRANSFER_SLACKS`), og forslagene slås sammen
+(`mergeSlackVariants`: bare innenfor hovedsøkets tidsrom, og bare forslag som
+ikke er dårligere på avreise, ankomst OG minste byttemargin). Ikke ved
+blaing eller når brukeren har valgt margin selv.
+
+**Årsak 2 — beslutningsregelen.** `decisionCost` regnet ventetid ved MÅLET.
+18:14 mister byttet nesten alltid, men plan B (70 kl. 20:00) er fremme 20:11
+→ «4 min venting». Nå: minutter fra avreise til fristen.
+
+**Årsak 3 — ankomsten.** Plan A var «verste legg nivå for nivå». Rekker du
+byttene, er tidligere forsinkelser spist av marginen; nå brukes siste legg.
+19:07 gikk fra «fire av fem» (avspilling: 18 av 18) til «ni av ti».
+
+**Også:** plan B-søk deles mellom forslag med samme bytte
+(`planBLegCache`) — ~10 Entur-kall per søk i stedet for ~35 med ekstra-søkene.
+Dev-serverens grense er hevet fra 20 til 40 trip-kall/min (produksjonen har
+ingen egen grense).
+
+**Revisjon: `pipeline/replay_trips.py`** + `pipeline/replay_corpus.json`.
+Henter forslag med flere marginer og spiller hvert av dem av mot faktiske
+forsinkelser de siste 20 dagene av samme dagtype (mister du et bytte: neste
+avgang av samme linje). Flagg: `MARGIN_HJELPER`, `APP_FOR_TIDLIG`,
+`APP_FOR_SENT`, `INGEN_HOLDER`. Appens valg hentes fra `window.__reiseDebug`.
+Resultat 2026-11-18 (8 søk, Bergen + Oslo):
+
+| Søk | standard | alle marginer | appen nå |
+|---|---|---|---|
+| Lyderhornsveien → Øvsttun 20:15 | 18:14 | **19:07** | 19:07 |
+| Bergen busstasjon → Øvsttun 08:30 | 07:05 | **07:33** | 07:33 |
+| Blindern → Skullerud 18:20 (95 %) | 16:38 | **16:48** | 16:58* |
+| 5 andre | likt | likt | likt |
+
+\* 16:58-avgangen av 70E (`RUT:Line:3969`) mangler data; kan ikke etterprøves.
+Kjent: avspillingen regner Bybanen som i rute (ingen data), og teller bare
+plan B med samme linje — litt pessimistisk.
 
 ## Endringslogg — 2026-11-11: bedre overgangs- og ankomstmodell (`feat/reise-modell`, utkast)
 
