@@ -12,6 +12,7 @@ import {
   PagesContext, GEOCODER_URL, etClientName,
   json, preflight, parseIntParam, parseFocus, defaultCache,
 } from "../_entur";
+import { geocoderFallbackText, dedupeGeocoder } from "../../../shared/geocoder-text";
 
 const CACHE_SECONDS = 5 * 60; // autocomplete-resultater er stabile
 
@@ -37,17 +38,26 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
-  try {
-    const enturUrl = `${GEOCODER_URL}?text=${encodeURIComponent(text)}&size=${size}&lang=no`
+  const query = async (q: string): Promise<any[] | null> => {
+    const enturUrl = `${GEOCODER_URL}?text=${encodeURIComponent(q)}&size=${size}&lang=no`
       + (focus ? `&focus.point.lat=${focus.lat}&focus.point.lon=${focus.lng}` : "");
     const response = await fetch(enturUrl, {
       headers: { "ET-Client-Name": etClientName(context.env) },
     });
-    if (!response.ok) {
+    if (!response.ok) return null;
+    const data: any = await response.json();
+    return data.features || [];
+  };
+
+  try {
+    let features = await query(text);
+    if (features === null) {
       return json({ error: "Geocoder error" }, { status: 502 });
     }
-    const data: any = await response.json();
-    const results = (data.features || []).map((f: any) => ({
+    // Null treff på hverdagsord («Stavanger busstasjon») → prøv NSR-navnet.
+    const alt = features.length === 0 ? geocoderFallbackText(text) : null;
+    if (alt) features = (await query(alt)) ?? [];
+    const results = dedupeGeocoder(features.map((f: any) => ({
       id: f.properties.id,
       name: f.properties.name,
       label: f.properties.label,
@@ -62,7 +72,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       // navnerom som dataSource, men sammenfaller i praksis for regionene i
       // REGION_OPERATOR — brukes kun til visning, aldri til filtrering).
       operatorHint: f.properties.tariff_zones?.[0]?.split(":")[0] ?? null,
-    }));
+    })));
 
     const out = json(results, { cacheSeconds: CACHE_SECONDS });
     context.waitUntil(cache.put(cacheKey, out.clone()));

@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { geocoderFallbackText, dedupeGeocoder } from "@shared/geocoder-text";
 import { createServer, type Server } from "http";
 import { subDays, format } from "date-fns";
 import path from "path";
@@ -651,16 +652,24 @@ export async function registerRoutes(
       ? `&focus.point.lat=${Math.round(focusLat * 100) / 100}` +
         `&focus.point.lon=${Math.round(focusLng * 100) / 100}`
       : "";
-    try {
-      const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(text)}&size=${size}&lang=no${focus}`;
+    const query = async (q: string): Promise<any[] | null> => {
+      const url = `https://api.entur.io/geocoder/v1/autocomplete?text=${encodeURIComponent(q)}&size=${size}&lang=no${focus}`;
       const response = await fetch(url, {
         headers: { "ET-Client-Name": "emiliemoldestad-sentur" },
       });
-      if (!response.ok) {
+      if (!response.ok) return null;
+      const data: any = await response.json();
+      return data.features || [];
+    };
+    try {
+      let features = await query(text);
+      if (features === null) {
         return res.status(502).json({ error: "Geocoder error" });
       }
-      const data: any = await response.json();
-      const results = (data.features || []).map((f: any) => ({
+      // Samme reserve som Pages-proxyen (shared/geocoder-text.ts).
+      const alt = features.length === 0 ? geocoderFallbackText(text) : null;
+      if (alt) features = (await query(alt)) ?? [];
+      const results = dedupeGeocoder(features.map((f: any) => ({
         id: f.properties.id,
         name: f.properties.name,
         label: f.properties.label,
@@ -675,7 +684,7 @@ export async function registerRoutes(
         // navnerom som dataSource, men sammenfaller i praksis for regionene i
         // REGION_OPERATOR — brukes kun til visning, aldri til filtrering).
         operatorHint: f.properties.tariff_zones?.[0]?.split(":")[0] ?? null,
-      }));
+      })));
       return res.json(results);
     } catch {
       return res.status(502).json({ error: "Geocoder unreachable" });

@@ -506,13 +506,27 @@ function simpleModeWord(l: TripLeg): string {
   if (l.mode === "tram" && l.line?.id?.startsWith("SKY:")) return "Bybanen";
   return SIMPLE_MODE_WORDS[l.mode] ?? l.mode;
 }
+/**
+ * «Gå 4 min til Olav Tryggvasons gate og ta buss 22 kl. 07:56, bytt til …»
+ *
+ * Gangen først og avgangstiden er med: uten dem leste «Dra kl. 07:52. Ta buss
+ * 22 fra Olav Tryggvasons gate» som at bussen går 07:52 fra der du står
+ * (brukertest 2026-11-25, Trondheim S → Gløshaugen).
+ */
 function describeTripSimple(p: TripPattern): string {
   const transit = p.legs.filter((l) => l.mode !== "foot");
   if (transit.length === 0) return "Gå hele veien";
+  const firstIdx = p.legs.indexOf(transit[0]);
+  const walkMin = p.legs.slice(0, firstIdx)
+    .reduce((sum, l) => sum + (l.mode === "foot" ? (l.duration ?? 0) : 0), 0) / 60;
   return transit
     .map((l, i) => {
       const what = `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}`;
-      return i === 0 ? `Ta ${what} fra ${l.fromPlace.name}` : `bytt til ${what} på ${l.fromPlace.name}`;
+      if (i > 0) return `bytt til ${what} på ${l.fromPlace.name}`;
+      const at = `kl. ${formatTime(l.expectedStartTime)}`;
+      return walkMin >= 1
+        ? `Gå ${Math.round(walkMin)} min til ${l.fromPlace.name} og ta ${what} ${at}`
+        : `Ta ${what} fra ${l.fromPlace.name} ${at}`;
     })
     .join(", ");
 }
@@ -3363,6 +3377,16 @@ function TripCard({
                     />
                   )}
 
+                  {/* Enkel visning: én farget kolonne uten overskrift — si hva den er
+                      (brukertest 2026-11-25: «hva er de røde tidene?»). */}
+                  {simple && lineRef && allStops.some((st) => duckStats?.has(`${st.id}|${lineRef}`)) && (
+                    <p className="text-[10px] text-muted-foreground pl-4">
+                      Grå: rutetid ·{" "}
+                      {certainty === "high"
+                        ? <span className="text-violet-500">lilla: senest 19 av 20 dager</span>
+                        : <span className="text-red-500">rød: senest 4 av 5 dager</span>}
+                    </p>
+                  )}
                   {/* Stops along leg — lange legg kollapses til første + siste stopp */}
                   {(() => {
                     const renderStopRow = (stop: StopEntry, stopIdx: number) => {
@@ -5014,6 +5038,26 @@ export default function TripPlanner() {
               if (ans.kind === "pick") {
                 const p = tripPatterns[ans.idx];
                 const r = p80Reports.get(patternKey(p));
+                // Uten frist velges den som er TRYGGEST fremme først — også når den
+                // betyr å dra et kvarter tidligere for tre minutter (Lillehammer →
+                // Gjøvik: 07:45 → 08:44 mot 08:00 → 08:47; brukertest 2026-11-25).
+                // Si fra om en senere avreise som er nesten like tidlig fremme.
+                const arrOf = (q: TripPattern) => {
+                  const rr = p80Reports.get(patternKey(q));
+                  return rr && !rr.pending ? (certainty === "high" ? rr.p95ArrivalMs ?? null : rr.arrivalMs) : null;
+                };
+                const pDep = new Date(p.expectedStartTime).getTime();
+                const later = arrivalDeadline == null && ans.arrMs != null
+                  ? tripPatterns
+                      .filter((q) => q !== p && new Date(q.expectedStartTime).getTime() >= pDep + 8 * 60_000)
+                      .map((q) => ({ q, a: arrOf(q) }))
+                      .filter((x): x is { q: TripPattern; a: number } => x.a != null && x.a <= ans.arrMs! + 5 * 60_000)
+                      .sort((x, y) => new Date(y.q.expectedStartTime).getTime() - new Date(x.q.expectedStartTime).getTime())[0] ?? null
+                  : null;
+                const laterWhat = later ? (() => {
+                  const l = later.q.legs.find((x) => x.mode !== "foot");
+                  return l ? `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}` : "gange";
+                })() : "";
                 const pm = r?.pMakeAll;
                 const tw = pm != null && pm < 0.999 ? transferWords(pm) : null;
                 const pb = planB.get(patternKey(p)) ?? null;
@@ -5064,8 +5108,10 @@ export default function TripPlanner() {
                           ? "Det er den seneste avgangen i søket."
                           : certainty === "high"
                             ? "Valgt fordi senere avganger gir for stor risiko for en viktig avtale, og tidligere bare gir mer venting."
-                            : "Valgt som beste balanse: senere avganger gir for mye risiko, tidligere mest mer venting."
-                        : "Ingen av de andre forslagene kommer tryggere frem."}
+                            : "Valgt som beste balanse: senere avganger er for risikable, og tidligere gir bare mer venting."
+                        : later
+                          ? <>Ingen kommer tryggere frem. Vil du heller dra senere, kan du dra kl. {formatTime(later.q.expectedStartTime)} ({laterWhat}) og likevel være fremme innen {t(later.a)} {how}.</>
+                          : "Ingen av de andre forslagene kommer tryggere frem."}
                       {" "}Basert på hvordan de samme avgangene har gått de siste ukene.
                     </p>
                   </div>
