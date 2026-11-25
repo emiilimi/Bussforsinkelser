@@ -131,8 +131,10 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=1)
     a = ap.parse_args()
     idx = json.loads((LINES_DIR / "index.json").read_text(encoding="utf-8"))
-    files = sorted(PARQUET_DIR.glob("*-by-line.parquet"))
     d0 = date.fromisoformat(idx["from"])
+    # Bare ukene som overlapper vinduet (SQL-en filtrerer på dato uansett).
+    files = [f for f in sorted(PARQUET_DIR.glob("*-by-line.parquet"))
+             if date.fromisocalendar(int(f.name[:4]), int(f.name[6:8]), 7) >= d0]
     all_lines = []
     for p in LINES_DIR.glob("*.json"):
         if p.name != "index.json":
@@ -153,7 +155,9 @@ def main() -> int:
         errs = compare(rows, packed, d0)
         if errs:
             bad += 1
-            print(f"  {lr}: {len(errs)} avvik, f.eks. {errs[:2]}")
+            print(f"  {lr}: {len(errs)} avvik, f.eks. {errs[:2]}", flush=True)
+        else:
+            print(f"  {lr}: ok ({len(rows)} rader)", flush=True)
     print(f"{len(sample)} linjer, {bad} med avvik" if bad else f"{len(sample)} linjer, 0 avvik")
     return 1 if bad else 0
 
