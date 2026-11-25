@@ -30,7 +30,7 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 16 | Utvidet kort i enkel visning: rød tidskolonne uten forklaring. | Enkel visning | ✅ «Grå: rutetid · rød: senest 4 av 5 dager» |
 | 17 | Uten frist anbefales 07:45 (fremme 08:44) over 08:00 (fremme 08:47) uten å nevne at du kan dra et kvarter senere for 3 min. | Enkel visning | ✅ «Vil du heller dra senere, kan du dra kl. 08:00 (buss 102) og likevel være fremme innen 08:47» |
 | 18 | «Viktig avtale» huskes ikke — nytt søk/side-last går tilbake til «Vanlig dag». | Enkel visning | 🟡 F |
-| 19 | «Karl Johans gate 22» gir Halden før Oslo. Stoppsøket sender fokuspunkt bare når Fra-feltet er satt. | Søk | 🔍 |
+| 19 | «Karl Johans gate 22» gir Halden før Oslo uten posisjon. Treffene viser by, og posisjonen brukes når den er kjent. | Søk | lav prioritet |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
