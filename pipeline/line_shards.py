@@ -145,14 +145,16 @@ def pack_line(rows: list[tuple], d0: date) -> dict:
     return {"c": sorted(cells.values()), "d": sorted(daily), "o": overall, "h": sorted(hourly)}
 
 
-def main() -> int:
+def build_line_shards(con=None) -> int:
+    """Bygg lines/. Kalles av aggregate_stats.py (--only lines) eller main()."""
     t0 = time.time()
     files = sorted(PARQUET_DIR.glob("*-by-line.parquet"))
     if not files:
         log.error("Ingen *-by-line.parquet i %s", PARQUET_DIR)
         return 1
-    con = duckdb.connect()
-    configure_duckdb(con)
+    if con is None:
+        con = duckdb.connect()
+        configure_duckdb(con)
     file_list = ", ".join(f"'{f.as_posix()}'" for f in files)
     (latest,) = con.execute(f"SELECT MAX(date) FROM read_parquet([{file_list}])").fetchone()
     from_date = (date.fromisoformat(latest) - timedelta(days=LINE_DAYS - 1)).isoformat()
@@ -199,6 +201,10 @@ def main() -> int:
     }, separators=(",", ":")), encoding="utf-8")
     log.info("→ %s: %d filer, %.1f MB (%.0f s)", target, len(keep), total / 1e6, time.time() - t0)
     return 0
+
+
+def main() -> int:
+    return build_line_shards()
 
 
 def _week_end(name: str) -> date:

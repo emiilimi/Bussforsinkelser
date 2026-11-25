@@ -466,6 +466,9 @@ try {
     # ~2 t mot 1,5 min). Fristen er veggklokke og loper ogsa mens PC-en sover.
     $stages = @(
         @{ Name = "transfer"; Upload = "parquet,transfer"; Timeout = 90 },
+        # Linjefiler (~2 min): rett etter ukefilene, siden klienten bare bruker
+        # dem nar index.json har manifestets siste dag (ellers DuckDB som for).
+        @{ Name = "lines";    Upload = "lines";    Timeout = 45 },
         @{ Name = "summary";  Upload = "stats";    Timeout = 45 },
         @{ Name = "stops";    Upload = "stops";    Timeout = 120 },
         @{ Name = "names";    Upload = "stats";    Timeout = 45 }

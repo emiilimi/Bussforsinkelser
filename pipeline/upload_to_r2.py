@@ -54,8 +54,9 @@ KEEP_WEEKS = int(os.environ.get("PARQUET_KEEP_WEEKS", "14"))
 UPLOAD_WORKERS = int(os.environ.get("R2_UPLOAD_WORKERS", "8"))
 
 # Delene --only kan velge. parquet = ukefiler + manifest.json; stats =
-# stats_*.json; stops = stops/<shard>.json; transfer = transfer/.
-PARTS = ("parquet", "stats", "stops", "transfer")
+# stats_*.json; stops = stops/<shard>.json; transfer = transfer/;
+# lines = lines/<shard>.json (Linjeanalyse, se line_shards.py).
+PARTS = ("parquet", "stats", "stops", "transfer", "lines")
 
 # Filer under denne størrelsen lastes opp med ett put_object-kall i stedet
 # for s3transfer (som spinner opp sin egen trådpool per kall). Over grensa
@@ -444,6 +445,42 @@ def main():
                     t_up += 1
                 uploaded += t_up
 
+        # ---------- Linjefiler (lines/) ----------
+        # lines/<shard>.json fra line_shards.py — Linjeanalysens standardvisning
+        # uten DuckDB. Som overgangsfilene: shardene FØR index.json. Klienten
+        # henter shardene med ?v=<generatedAt> fra indeksen, så en gammel
+        # indeks peker aldri på nye filer med feil vindu (den sjekker from/to).
+        lines_dir = PARQUET_DIR / "lines"
+        lines_index = lines_dir / "index.json"
+        if "lines" in parts and lines_index.exists():
+            l_files = sorted(p for p in lines_dir.glob("*.json") if p.name != "index.json")
+            if args.dry_run:
+                log.info("  [dry-run] Ville lastet opp %d linjefiler (%.1f MB) + index.json",
+                         len(l_files), sum(p.stat().st_size for p in l_files) / 1e6)
+            else:
+                l_up = l_skip = 0
+                log.info("Linjefiler: sjekker/laster opp %d shards (%d parallelle) …",
+                         len(l_files), UPLOAD_WORKERS)
+                with ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as ex:
+                    futures = [
+                        ex.submit(upload_file, s3, bucket, lp,
+                                  lp.relative_to(PARQUET_DIR).as_posix(),
+                                  False, False, MANIFEST_CACHE, True)
+                        for lp in l_files
+                    ]
+                    for done, fut in enumerate(as_completed(futures), 1):
+                        if fut.result():
+                            l_up += 1
+                        else:
+                            l_skip += 1
+                        if done % 250 == 0 or done == len(futures):
+                            log.info("  linjefiler: %d/%d ferdig (%d lastet opp, %d uendret)",
+                                     done, len(futures), l_up, l_skip)
+                if upload_file(s3, bucket, lines_index, "lines/index.json",
+                               force=True, cache_control=MANIFEST_CACHE):
+                    l_up += 1
+                uploaded += l_up
+
         # ---------- Prune: fjern parquet-filer i bucketen som ikke finnes lokalt ----------
         # Hindrer at gamle uker (f.eks. fra en feilaktig opplasting) blir liggende
         # og kan plukkes opp av klienter med gammelt manifest i cache.
@@ -460,6 +497,7 @@ def main():
             local_transfer = {p.relative_to(PARQUET_DIR).as_posix()
                               for p in (PARQUET_DIR / "transfer").glob("**/*.json")} \
                 if "transfer" in parts and (PARQUET_DIR / "transfer" / "index.json").exists() else set()
+            local_lines = {f"lines/{p.name}" for p in (PARQUET_DIR / "lines").glob("*.json")}                 if "lines" in parts and (PARQUET_DIR / "lines" / "index.json").exists() else set()
             stale_keys: list[str] = []
             if not args.dry_run:
                 paginator = s3.get_paginator("list_objects_v2")
@@ -471,6 +509,8 @@ def main():
                         elif key.startswith("stops/") and local_shards and key not in local_shards:
                             stale_keys.append(key)
                         elif key.startswith("transfer/") and local_transfer and key not in local_transfer:
+                            stale_keys.append(key)
+                        elif key.startswith("lines/") and local_lines and key not in local_lines:
                             stale_keys.append(key)
                 for key in stale_keys:
                     log.info("  ✂ Sletter fra bucket: %s", key)

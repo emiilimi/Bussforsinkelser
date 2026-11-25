@@ -42,6 +42,7 @@ client/src/
   lib/
     pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
     transfer-data.ts       Overgangsfiler fra R2: overgangs-gap, persentiler og legg-tider uten DuckDB
+    line-shards.ts         Linjefiler fra R2: Linjeanalysens /distribution (standardvisningen) uten DuckDB
     trip-model.ts          Overgangs-/ankomstmodell: kildebelagte linjer (Bybanen), marginal-estimat, blanding m/ plan B, beslutningsregel
     live-model.ts          Sanntid: legg med realtime bruker Enturs prognose + målt prognosefeil (PROGNOSIS_ERROR), ikke historikk oppå; uten sanntid forankres historikken i rutetiden (aimed*)
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
@@ -79,6 +80,8 @@ pipeline/          (Python)
   upload_pax.py            pax-out → R2 pax/ (krever --confirm-license)
   transfer_shards.py       Overgangsfiler per plattform → transfer/ (kalles av aggregate_stats.py)
   check_transfer_parity.py Paritetssjekk: overgangsfilene mot DuckDB-SQL-en på ekte overganger
+  line_shards.py           Linjefiler → lines/ (kalles av aggregate_stats.py --only lines)
+  check_line_parity.py     Paritetssjekk: linjefilene mot apiLineDistribution-SQL-en
   backtest_marginal.py     Backtest av marginal-estimatet (grunnlag for MARGINAL_PRIOR_DAYS i trip-model.ts)
   replay_trips.py          Revisjon: spiller av reiseforslag (flere overgangsmarginer) mot faktiske forsinkelser; korpus i replay_corpus.json
   triplab/                 Reiselaboratoriet: hundrevis av trekte reiser (SSB-befolkning) søkt + spilt av; app_compare, entur_estimates (Enturs empiricalDelay/prognose mot våre data). Se README der
@@ -687,6 +690,15 @@ speiler SQL-en — endrer du `sjGapSql`/`aimedGapSql`/`poolGapSql`, persentil-
 eller legg-tid-SQL-en, MÅ `transfer-data.ts` følge med, og
 `pipeline/check_transfer_parity.py` skal fortsatt gi 100 %. Se STATUS.md
 2026-10-10.
+
+**Linjeanalyse (2026-11-25)**: fordeling, varmekart, timesprofil og dagstrend
+kom fra ÉN DuckDB-spørring (`apiLineDistribution` i `stats-adapter.ts`), > 90 s
+kaldt for linje 3. Standardvisningen (30 dager, alle retninger/dagtyper) leses
+nå av `lines/<shard>.json` (`pipeline/line_shards.py`, ~2 min, ~50 MB, 1024
+filer; `lib/line-shards.ts`). Andre filtre → DuckDB som før. SQL-en i
+`line_shards.py` SPEILER `apiLineDistribution` — endrer du den ene, endre den
+andre og kjør `pipeline/check_line_parity.py` (skal gi 0 avvik). Lokal test:
+`LINES_OUT_DIR=client/public/lines-dev` + `VITE_LINES_BASE_URL=/lines-dev`.
 
 **Alle operatører fra 2026-10-27** (`TRANSFER_OPERATORS=*`, default): 28
 operatører, ~50 mill. rader, 2000 filer / ~800 MB (Ruter alene: ~243 MB).

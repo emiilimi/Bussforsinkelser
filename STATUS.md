@@ -5,6 +5,26 @@
 
 **Sist oppdatert**: 2026-11-25
 
+## Endringslogg — 2026-11-25 (3): linjefiler for Linjeanalyse (`feat/reise-modell`)
+
+**Målt først** (lokalt mot R2, samme data som produksjon): /reise full visning
+Bergen 5,6 s (var 113 s i oktober — overgangsfilene for alle operatører løste
+det). Linjeanalyse linje 3: fortsatt «Regner fordeling…/timesprofil/dagstrend»
+etter 90 s. Alle tre kommer fra ÉN DuckDB-spørring.
+
+**Nå.** `pipeline/line_shards.py` kjører den samme spørringen for alle linjer
+(standardvisningen: 30 dager, alle retninger/dagtyper) og skriver
+`lines/<crc32(lineRef) % 1024>.json`. Kind 0 (ukedag × time × kvartersbøtte,
+86 % av radene) slås sammen per celle med bøttene som par — parseDistribution
+summerer per celle uansett, så resultatet er identisk. 328 MB → 50 MB.
+`lib/line-shards.ts` pakker ut til samme `DistRow[]`; brukes bare når
+`index.json` har manifestets siste dag og vinduet stemmer. Linje 3: > 90 s →
+~3 s (varm), linjefila hentes på 10 ms.
+
+Nattjobben: nytt steg `lines` (`aggregate_stats.py --only lines`,
+`upload_to_r2.py --only lines`) rett etter `transfer`. Grenen har fått
+`reise-preview` (stegvis nattjobb) slått inn.
+
 ## Endringslogg — 2026-11-25 (2): rekker du første buss? (`feat/reise-modell`)
 
 **Feilen.** «Dra kl.»/«Dra senest» var første avgangs tid — står du på

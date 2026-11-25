@@ -14,6 +14,7 @@ Fire uavhengige steg (--only), målt 28.10.2026 med alle operatører:
   summary   stats_summary.json + stats_stops_map.json (~11 min)
   stops     stops/<shard>.json (~43 min)
   names     stats_line_names.json (~12 min)
+  lines     lines/<shard>.json (~2 min)            — se line_shards.py (Linjeanalyse)
 Nattjobben kjører dem ett og ett og laster opp hvert resultat med en gang,
 så en PC som slås av etter en time likevel har publisert det som ble ferdig.
 --skip-fresh hopper over steg som alt er bygget fra de samme ukefilene
@@ -85,7 +86,7 @@ WINDOWS = [int(w) for w in os.environ.get("STATS_WINDOWS", "7,30,90").split(",")
 # Stegene, i standardrekkefølgen. Overgangsfilene FØRST: reiseplanleggeren
 # faller tilbake til DuckDB (~2 min) så lenge manifestet har en nyere dag enn
 # transfer/index.json, og nattjobben laster opp ukefilene per dag.
-STAGES = ("transfer", "summary", "stops", "names")
+STAGES = ("transfer", "summary", "stops", "names", "lines")
 # Hvilke data hvert steg sist ble bygget fra — se --skip-fresh.
 STATE_FILE = PARQUET_DIR / ".aggregate_state.json"
 
@@ -603,7 +604,8 @@ def data_fingerprint(files: list[Path]) -> str:
     parts = [f"{f.name}:{f.stat().st_size}:{f.stat().st_mtime_ns}" for f in files]
     for extra in (REPO_ROOT / "data" / "stop_coords.json",
                   Path(__file__),
-                  Path(__file__).with_name("transfer_shards.py")):
+                  Path(__file__).with_name("transfer_shards.py"),
+                  Path(__file__).with_name("line_shards.py")):
         if extra.exists():
             parts.append(f"{extra.name}:{extra.stat().st_mtime_ns}")
     return f"{zlib.crc32(chr(10).join(parts).encode()):08x}-{len(files)}"
@@ -944,8 +946,16 @@ def main(argv: list[str] | None = None) -> int:
         from transfer_shards import build_transfer_shards
         build_transfer_shards(con, generated_at, max_date)
 
+    def stage_lines() -> None:
+        # Linjeanalysens standardvisning uten DuckDB (se line_shards.py).
+        # Klienten bruker filene bare når index.json har manifestets siste
+        # dag (lineDistributionFromShards i line-shards.ts) — ellers DuckDB.
+        from line_shards import build_line_shards
+        if build_line_shards(con) != 0:
+            raise RuntimeError("line_shards feilet")
+
     run = {"summary": stage_summary, "stops": stage_stops,
-           "names": stage_names, "transfer": stage_transfer}
+           "names": stage_names, "transfer": stage_transfer, "lines": stage_lines}
     failed: list[str] = []
     for stage in stages:
         if args.skip_fresh and state.get(stage) == fingerprint:
