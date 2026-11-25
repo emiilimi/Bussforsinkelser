@@ -450,6 +450,8 @@ function boardingSentence(r: P80Report | undefined, certainty: Certainty): strin
   const b = r?.boardBuffer?.[certainty] ?? 0;
   if (b <= 0) return null;
   const who = r?.boardLabel ?? "bussen";
+  // Et fly «går ikke før tiden» på den måten — og ingen står på en holdeplass.
+  if (/^fly/i.test(who)) return null;
   const share = r?.earlyShare;
   const why = r?.boardLive
     ? `${who} går av og til før tiden skjermen viser`
@@ -1020,7 +1022,7 @@ function useFallbackChain(opts: {
               numTripPatterns: 1,
             });
             const d = await res.json();
-            const pats: TripPattern[] = d?.data?.trip?.tripPatterns ?? [];
+            const pats: TripPattern[] = withFlightCodes(d?.data?.trip?.tripPatterns ?? []);
             walkTemplate = pats.find(isWalkOnlyPattern) ?? null;
           } catch {
             walkTemplate = null;
@@ -1055,7 +1057,7 @@ function useFallbackChain(opts: {
           numTripPatterns: 5,
         });
         const data = await res.json();
-        const patterns: TripPattern[] = data?.data?.trip?.tripPatterns ?? [];
+        const patterns: TripPattern[] = withFlightCodes(data?.data?.trip?.tripPatterns ?? []);
         // Kandidater: ikke en avgang vi allerede har regnet med (samme
         // serviceJourney = samme buss), helst med start etter søketidspunktet.
         const searchFromMs = new Date(searchFrom).getTime();
@@ -1203,13 +1205,32 @@ const TRANSPORT_MODE_OPTIONS = [
   { value: "tram", label: "Trikk" },
   { value: "rail", label: "Tog" },
   { value: "metro", label: "T-bane" },
-  { value: "water", label: "Bat/ferje" },
-  { value: "coach", label: "Flybuss" },
+  { value: "water", label: "Båt/ferje" },
+  { value: "coach", label: "Ekspressbuss" },
+  { value: "air", label: "Fly" },
 ];
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Flyrutene har ingen linjenummer hos Entur (`publicCode: null`), så kortene
+ * viste «air». Flightnummeret står først i avgangs-IDen
+ * (`AVI:ServiceJourney:DY750-01-523271305` → «DY750») — bruk det som kode.
+ */
+function withFlightCodes(pats: TripPattern[]): TripPattern[] {
+  return pats.map((p) => p.legs.some((l) => l.mode === "air" && !l.line?.publicCode && l.line)
+    ? {
+        ...p,
+        legs: p.legs.map((l) => {
+          if (l.mode !== "air" || l.line?.publicCode || !l.line) return l;
+          const m = /^AVI:ServiceJourney:([A-Z0-9]{2,3}\d+)/.exec(l.serviceJourney?.id ?? "");
+          return m ? { ...l, line: { ...l.line, publicCode: m[1] } } : l;
+        }),
+      }
+    : p);
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -2824,7 +2845,8 @@ function TripCard({
       boardData && legTimesLocal && depResult ? depResult
         : boardStat ? { p02: boardStat.p02_dep, p05: boardStat.p05_dep, early1: boardStat.early1_dep, n: boardStat.n }
           : undefined;
-    const boardBuffer: Record<Certainty, number> = firstTransit
+    // Fly: «Dra kl.» er flyavgangen (innsjekk nevnes eget) — ingen holdeplass-buffer.
+    const boardBuffer: Record<Certainty, number> = firstTransit && firstTransit.mode !== "air"
       ? {
           normal: boardingBufferMin(firstTransit, earlyQuantile(depLow, "normal"), EARLY_LEVEL.normal),
           high: boardingBufferMin(firstTransit, earlyQuantile(depLow, "high"), EARLY_LEVEL.high),
@@ -3837,7 +3859,7 @@ export default function TripPlanner() {
 
   const [maxTransfers, setMaxTransfers] = useState("any");
   const [transferSlack, setTransferSlack] = useState("default");
-  const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach"]);
+  const [selectedModes, setSelectedModes] = useState<string[]>(["bus", "tram", "rail", "metro", "water", "coach", "air"]);
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
 
   // Hvilke persentil-kolonner som vises per stopp (alle på som standard)
@@ -4297,7 +4319,7 @@ export default function TripPlanner() {
         ? EXTRA_TRANSFER_SLACKS.map((slack) =>
             apiRequest("POST", "/api/trip", { ...tripBody, transferSlack: slack, numTripPatterns: 8 })
               .then((r) => r.json())
-              .then((d) => (d?.data?.trip?.tripPatterns ?? []) as TripPattern[])
+              .then((d) => withFlightCodes((d?.data?.trip?.tripPatterns ?? []) as TripPattern[]))
               .catch(() => [] as TripPattern[]))
         : [];
       const tripRes = await apiRequest("POST", "/api/trip", {
@@ -4322,7 +4344,7 @@ export default function TripPlanner() {
       }
 
       const trip = tripData?.data?.trip;
-      const basePatterns: TripPattern[] = trip?.tripPatterns ?? [];
+      const basePatterns: TripPattern[] = withFlightCodes(trip?.tripPatterns ?? []);
       const extras = (await Promise.all(extraSearches)).flat();
       const patterns = extras.length > 0 ? mergeSlackVariants(basePatterns, extras, !!arriveBy) : basePatterns;
       const cursors = {
@@ -4451,7 +4473,7 @@ export default function TripPlanner() {
               numTripPatterns: 3,
             });
             const json = await res.json();
-            const pats: TripPattern[] = json?.data?.trip?.tripPatterns ?? [];
+            const pats: TripPattern[] = withFlightCodes(json?.data?.trip?.tripPatterns ?? []);
             const missedSj = leg.serviceJourney?.id;
             const missedMs = new Date(leg.expectedStartTime).getTime();
             const next = pats
@@ -5058,6 +5080,21 @@ export default function TripPlanner() {
                   const l = later.q.legs.find((x) => x.mode !== "foot");
                   return l ? `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}` : "gange";
                 })() : "";
+                // Forslag uten data kan ikke kåres (de har ingen trygg ankomst), men
+                // et som er MYE raskere etter rutetiden må nevnes — ellers anbefales
+                // 10:59 → 19:35 uten et ord om at 10:27 er fremme 17:50
+                // (Oslo lufthavn → Trondheim lufthavn, brukertest runde 3).
+                const pickArr = ans.arrMs ?? new Date(p.expectedEndTime).getTime();
+                const faster = tripPatterns
+                  .filter((q) => q !== p && arrOf(q) == null)
+                  .filter((q) => new Date(q.expectedEndTime).getTime() <= pickArr - 15 * 60_000)
+                  .sort((x, y) => new Date(x.expectedEndTime).getTime() - new Date(y.expectedEndTime).getTime())[0] ?? null;
+                const fasterMissing = faster ? p80Reports.get(patternKey(faster))?.missing ?? [] : [];
+                const fasterWhat = faster ? (() => {
+                  const l = faster.legs.find((x) => x.mode !== "foot");
+                  return l ? `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}` : "gange";
+                })() : "";
+                const hasAir = p.legs.some((l) => l.mode === "air");
                 const pm = r?.pMakeAll;
                 const tw = pm != null && pm < 0.999 ? transferWords(pm) : null;
                 const pb = planB.get(patternKey(p)) ?? null;
@@ -5092,6 +5129,18 @@ export default function TripPlanner() {
                         {boardingSentence(r, certainty)}
                       </p>
                     )}
+                    {hasAir && (
+                      <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
+                        Tidene gjelder selve flyavgangen – legg til tid for innsjekking og sikkerhetskontroll.
+                      </p>
+                    )}
+                    {faster && (
+                      <p className="text-sm text-amber-900 dark:text-amber-200">
+                        Raskere etter rutetiden: kl. {formatTime(faster.expectedStartTime)} ({fasterWhat}) er
+                        fremme {formatTime(faster.expectedEndTime)}, men vi har for lite data
+                        {fasterMissing.length > 0 ? <> om {fasterMissing.join(", ")}</> : null} til å si hvor ofte den holder.
+                      </p>
+                    )}
                     {refs.length > 0 && (
                       <p className="text-xs text-emerald-900/80 dark:text-emerald-200/80">
                         {refs.map((x) => referenceSentence(x)).join(" ")}
@@ -5105,14 +5154,18 @@ export default function TripPlanner() {
                     <p className="text-xs text-emerald-900/70 dark:text-emerald-200/70">
                       {arrivalDeadline != null
                         ? !tripPatterns.some((q) => new Date(q.expectedStartTime).getTime() > new Date(p.expectedStartTime).getTime())
-                          ? "Det er den seneste avgangen i søket."
+                          ? `Senere avganger er ikke fremme før ${t(arrivalDeadline)} etter rutetiden.`
                           : certainty === "high"
                             ? "Valgt fordi senere avganger gir for stor risiko for en viktig avtale, og tidligere bare gir mer venting."
                             : "Valgt som beste balanse: senere avganger er for risikable, og tidligere gir bare mer venting."
                         : later
                           ? <>Ingen kommer tryggere frem. Vil du heller dra senere, kan du dra kl. {formatTime(later.q.expectedStartTime)} ({laterWhat}) og likevel være fremme innen {t(later.a)} {how}.</>
-                          : "Ingen av de andre forslagene kommer tryggere frem."}
-                      {" "}Basert på hvordan de samme avgangene har gått de siste ukene.
+                          : faster
+                            ? "Det er det raskeste forslaget vi har nok data til å regne på."
+                            : "Ingen av de andre forslagene kommer tryggere frem."}
+                      {" "}{refs.length > 0 && refs.length >= p.legs.filter((l) => l.mode !== "foot").length
+                        ? "Basert på operatørens egne punktlighetstall."
+                        : "Basert på hvordan de samme avgangene har gått de siste ukene."}
                     </p>
                   </div>
                 );
@@ -5308,7 +5361,11 @@ export default function TripPlanner() {
         {tripPatterns.length === 0 && !tripMutation.isPending && tripMutation.isSuccess && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              <p>Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtrene.</p>
+              <p>
+                {fromStop && toStop && fromStop.stopRef === toStop.stopRef
+                  ? "Fra og til er samme sted – velg et annet mål."
+                  : "Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtrene."}
+              </p>
             </CardContent>
           </Card>
         )}

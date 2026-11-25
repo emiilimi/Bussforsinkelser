@@ -29,8 +29,18 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 15 | «tidligere mest mer venting» — kronglete. | Enkel visning | ✅ |
 | 16 | Utvidet kort i enkel visning: rød tidskolonne uten forklaring. | Enkel visning | ✅ «Grå: rutetid · rød: senest 4 av 5 dager» |
 | 17 | Uten frist anbefales 07:45 (fremme 08:44) over 08:00 (fremme 08:47) uten å nevne at du kan dra et kvarter senere for 3 min. | Enkel visning | ✅ «Vil du heller dra senere, kan du dra kl. 08:00 (buss 102) og likevel være fremme innen 08:47» |
-| 18 | «Viktig avtale» huskes ikke — nytt søk/side-last går tilbake til «Vanlig dag». | Enkel visning | 🟡 F |
+| 18 | «Viktig avtale» huskes ikke — nytt søk/side-last går tilbake til «Vanlig dag». | Enkel visning | ✅ Emilie 25.11: skal IKKE huskes — valget gjelder per søk |
 | 19 | «Karl Johans gate 22» gir Halden før Oslo uten posisjon. Treffene viser by, og posisjonen brukes når den er kjent. | Søk | lav prioritet |
+| 20 | **Fly ble aldri foreslått.** Oslo lufthavn → Trondheim lufthavn ga bare 7–8 timers tog/buss: `air` manglet i standard-transportmidlene, og filteret hadde ingen «Fly»-knapp. | Søk | ✅ fly er med som standard + «Fly» i filteret |
+| 21 | Flykort viste «air» der linjenummeret skulle stå (Entur har ingen `publicCode` for fly). | Kort | ✅ flightnummer fra avgangs-IDen («DY750») |
+| 22 | «Vær på holdeplassen 3 min før – fly går av og til før tiden» for fly. | Enkel visning | ✅ ingen holdeplass-buffer for fly; i stedet «legg til tid for innsjekking og sikkerhetskontroll» |
+| 23 | Forslag uten data kan ikke anbefales — men da ble 10:59 → **19:35** anbefalt uten et ord om at 10:27 er fremme **17:50** etter rutetiden. | Enkel visning | ✅ «Raskere etter rutetiden: kl. 10:27 (tog F6) er fremme 17:50, men vi har for lite data om …» |
+| 24 | Fremme kl.-søk: «Det er den seneste avgangen i søket» — høres ut som det kan finnes senere avganger vi ikke har sett på. | Enkel visning | ✅ «Senere avganger er ikke fremme før 09:00 etter rutetiden» |
+| 25 | Samme fra og til: «Ingen reiseforslag funnet. Prøv andre stoppesteder …» | Tomtilstand | ✅ «Fra og til er samme sted – velg et annet mål» |
+| 26 | Bybanen-reise: «Basert på hvordan de samme avgangene har gått de siste ukene» — men tallene er Bybanen AS sine fra 2023. | Enkel visning | ✅ «Basert på operatørens egne punktlighetstall» når alle legg er slike |
+| 27 | Filterknappene «Bat/ferje» (mangler å) og «Flybuss» (er ekspressbuss generelt). | Filter | ✅ «Båt/ferje», «Ekspressbuss» |
+| 28 | Trondheim St. Olavs gate → Lian: anbefaler å gå 18 min (07:46) framfor buss + trikk 3 min senere med samme ankomst (byttet holder 98 %). Forsvarlig (ingen bytte), men kan diskuteres. | Enkel visning | lav prioritet |
+| 29 | «Tromsø sentrum» i stoppsøket gir bare «Sentrum legekontor». | Søk | lav prioritet (Enturs geokoder) |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -48,8 +58,6 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
   hvor presise linjene er hver for seg». Bør vi si det i klartekst i
   stedet, f.eks. «(lite data)»?
 - **E. App** — se `docs/app-store.md`. Anbefaling: PWA først.
-- **F. Huske «Viktig avtale»?** Lagre valget lokalt (som «enkel visning»),
-  eller er det et per-reise-valg? Jeg heller mot å huske det.
 - **B. Overgangsfilene i produksjon** er fra 23.11. Start nattjobben på nytt
   (`Start-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'`) med
   lokket åpent og strøm tilkoblet.
@@ -71,3 +79,13 @@ Trondheim S → Gløshaugen fremme 08:15 (funn 14–15), «Stavanger busstasjon�
 båt 17:10 (ok), Oslo S → Lillestrøm 23:50 over midnatt (ok), Karl Johans gate
 22 → Sognsvannsveien 9 adresse 08:00 (16, 19; ingen overflyt), Lillehammer →
 Gjøvik «Viktig avtale» (17, 18), Åsane → Haukeland 07:30 med Bybanen-bytte (ok).
+
+### Runde 3 — 2026-11-25 kveld (mobil 375 px, enkel visning)
+St. Olavs gate → Lian, trikk 07:40 (28), Oslo lufthavn → Trondheim lufthavn
+10:00 (20–23, 27), samme uten fly (23), Holmenkollen → Jernbanetorget fremme
+09:00 (24), Jernbanetorget → Jernbanetorget (25), Kristiansand rutebilstasjon
+→ Universitetet fremme 08:15 «Viktig avtale» (ok), Bergen busstasjon → Lagunen
+01:30 natt til lørdag (26), «Del reisen» (gir «Kopiert» ✓) og «Vis kart»
+(kart 292 px, ingen overflyt ✓) på mobil, Prostneset → Tromsø lufthavn 05:30
+(ok, «God plass»-merke vises). Stoppsøk: «UiA» finner ikke Universitetet i
+Agder, «Tromsø sentrum» (29).
