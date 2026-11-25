@@ -41,6 +41,11 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 27 | Filterknappene «Bat/ferje» (mangler å) og «Flybuss» (er ekspressbuss generelt). | Filter | ✅ «Båt/ferje», «Ekspressbuss» |
 | 28 | Trondheim St. Olavs gate → Lian: anbefaler å gå 18 min (07:46) framfor buss + trikk 3 min senere med samme ankomst (byttet holder 98 %). Forsvarlig (ingen bytte), men kan diskuteres. | Enkel visning | lav prioritet |
 | 29 | «Tromsø sentrum» i stoppsøket gir bare «Sentrum legekontor». | Søk | lav prioritet (Enturs geokoder) |
+| 30 | Utvidet kort: målet viste en annen rød tid enn kortet sa (Bergen → Voss: «fremme innen 09:06», Voss stasjon 09:05). Stopplista brukte linjas samlede tall, kortet avgangens egne + byttene. | Kort | ✅ siste avstigning viser samme tid som kortet |
+| 31 | Samme avvik av en annen grunn: kortet kuttet sekundene (00:04:36 → «00:04»), stopplista avrundet (→ 00:05). Tøyen → Stortinget 00:00. | Kort | ✅ kortets ankomst avrundes til hele minutter som stopplista |
+| 32 | Nattsøk uten treff (Lillehammer → Gjøvik fremme 02:00): «Prøv andre stoppesteder eller juster filtrene» — hjelper ikke. | Tomtilstand | ✅ «Fant ingen reiser rundt kl. 02:00. Mange steder går det ikke noe om natten – prøv …» |
+| 33 | «Førde sentrum» gir først Førde sentrum i **Sveio**; «Kleppestø» gir bare stedsnavnet, ingen kai/stopp. | Søk | lav prioritet (Enturs geokoder) |
+| 34 | «tog FLY2» — folk sier «Flytoget». | Enkel visning | lav prioritet |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -89,3 +94,12 @@ St. Olavs gate → Lian, trikk 07:40 (28), Oslo lufthavn → Trondheim lufthavn
 (kart 292 px, ingen overflyt ✓) på mobil, Prostneset → Tromsø lufthavn 05:30
 (ok, «God plass»-merke vises). Stoppsøk: «UiA» finner ikke Universitetet i
 Agder, «Tromsø sentrum» (29).
+
+### Runde 4 — 2026-11-25 natt (mobil 375 px, enkel visning)
+Bergen stasjon → Voss tog 07:30 (30), Majorstuen → Storo T-bane-ring 08:00
+(ok, tidene stiger langs ruten), Strandkaien → Forus adresse→adresse fremme
+08:00 (ok, belegg-merker), Bodø sentrum → Nordlandssykehuset 07:20 (ok),
+Tøyen → Stortinget 23:55 over midnatt (31), Strandkaien (Bergen) → Kleppestø
+båt 16:30 (ok, 33), Lillehammer → Gjøvik fremme 02:00 (32), Majorstuen →
+Oslo lufthavn fremme 07:00 «Viktig avtale» (ok: stramt bytte med plan B som
+fortsatt rekker; 34).

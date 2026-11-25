@@ -2983,8 +2983,12 @@ function TripCard({
   const reportRef = useRef(onP80Report);
   reportRef.current = onP80Report;
   const toMs = (min: number | null) =>
-    min != null ? new Date(pattern.expectedEndTime).getTime() + Math.max(0, min) * 60000 : null;
+    // Hele minutter, avrundet som stopplista (addMinutesToIso) — ellers viste
+    // kortet «fremme innen 00:04» (00:04:36 kuttet) over en stopprad med 00:05.
+    min != null ? new Date(pattern.expectedEndTime).getTime() + Math.round(Math.max(0, min)) * 60000 : null;
   const reportArrivalMs = toMs(estimatedTimes.p80Min);
+  let lastTransitIdx = pattern.legs.length - 1;
+  while (lastTransitIdx >= 0 && pattern.legs[lastTransitIdx].mode === "foot") lastTransitIdx--;
   const reportP95Ms = toMs(estimatedTimes.p95Min);
   const reportMedianMs = toMs(estimatedTimes.medianMin);
   const pOnTimeKey = estimatedTimes.pOnTime
@@ -3431,12 +3435,19 @@ function TripCard({
                       const p50Time = showPct.p50 && stop.aimedTime && p50Raw != null
                         ? formatTime(addMinutesToIso(stop.aimedTime, p50Raw))
                         : null;
-                      const p80Time = showPct.p80 && stop.aimedTime && p80Raw != null
-                        ? formatTime(addMinutesToIso(stop.aimedTime, p80Raw))
-                        : null;
-                      const p95Time = showPct.p95 && stop.aimedTime && p95Raw != null
-                        ? formatTime(addMinutesToIso(stop.aimedTime, p95Raw))
-                        : null;
+                      // Siste avstigning: samme forsinkelse som kortets «Fremme innen» (hele reisen, med
+                      // bytter og denne avgangens egen historikk) — ikke linjas
+                      // samlede tall for stoppet, som kunne gi 09:05 under en
+                      // overskrift som sier 09:06 (Bergen → Voss, brukertest runde 4).
+                      const atGoal = isLast && legIdx === lastTransitIdx;
+                      const goalTime = (min: number | null | undefined) =>
+                        min != null ? formatTime(addMinutesToIso(leg.expectedEndTime, Math.max(0, min))) : null;
+                      const p80Time = !showPct.p80 ? null
+                        : atGoal && estimatedTimes.p80Min != null ? goalTime(estimatedTimes.p80Min)
+                          : stop.aimedTime && p80Raw != null ? formatTime(addMinutesToIso(stop.aimedTime, p80Raw)) : null;
+                      const p95Time = !showPct.p95 ? null
+                        : atGoal && estimatedTimes.p95Min != null ? goalTime(estimatedTimes.p95Min)
+                          : stop.aimedTime && p95Raw != null ? formatTime(addMinutesToIso(stop.aimedTime, p95Raw)) : null;
 
                       return (
                         <div key={stop.id + stopIdx} className="flex items-center gap-1.5 text-xs">
@@ -5364,7 +5375,10 @@ export default function TripPlanner() {
               <p>
                 {fromStop && toStop && fromStop.stopRef === toStop.stopRef
                   ? "Fra og til er samme sted – velg et annet mål."
-                  : "Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtrene."}
+                  : /^0[0-4]:/.test(departTime)
+                    // Natt (Lillehammer → Gjøvik fremme 02:00): «juster filtrene» hjelper ikke.
+                    ? `Fant ingen reiser rundt kl. ${departTime}. Mange steder går det ikke noe om natten – prøv et tidspunkt tidligere på kvelden eller fra kl. 06.`
+                    : "Ingen reiseforslag funnet. Prøv andre stoppesteder eller juster filtrene."}
               </p>
             </CardContent>
           </Card>
