@@ -12,7 +12,7 @@ import {
   PagesContext, GEOCODER_URL, etClientName,
   json, preflight, parseIntParam, parseFocus, defaultCache,
 } from "../_entur";
-import { geocoderFallbackText, dedupeGeocoder } from "../../../shared/geocoder-text";
+import { firstFallbackHit, dedupeGeocoder } from "../../../shared/geocoder-text";
 
 const CACHE_SECONDS = 5 * 60; // autocomplete-resultater er stabile
 
@@ -55,8 +55,7 @@ export const onRequestGet = async (context: PagesContext): Promise<Response> => 
       return json({ error: "Geocoder error" }, { status: 502 });
     }
     // Null treff på hverdagsord («Stavanger busstasjon») → prøv NSR-navnet.
-    const alt = features.length === 0 ? geocoderFallbackText(text) : null;
-    if (alt) features = (await query(alt)) ?? [];
+    if (features.length === 0) features = await firstFallbackHit(text, query);
     const results = dedupeGeocoder(features.map((f: any) => ({
       id: f.properties.id,
       name: f.properties.name,

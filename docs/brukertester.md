@@ -47,6 +47,9 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 33 | «Førde sentrum» gir først Førde sentrum i **Sveio**; «Kleppestø» gir bare stedsnavnet, ingen kai/stopp. | Søk | lav prioritet (Enturs geokoder) |
 | 34 | «tog FLY2» — folk sier «Flytoget». | Enkel visning | ✅ «Flytoget» |
 | 35 | Ny bruker ser bare et tomt skjema — ingenting viser hva siden kan før man har funnet to stopp. | Forside | ✅ «Prøv et eksempel – fra nå»: fire ett-trykks søk (Oslo, Bergen, Trondheim, Stavanger) |
+| 36 | «Ålesund rutebilstasjon» ga NULL treff; heller ikke busstasjon/bussterminal/skysstasjon. Terminalen heter ulikt fra by til by (Molde trafikkterminal, Gjøvik skysstasjon, Førde rutebilstasjon). | Søk | ✅ reserven prøver alle fem navnene parallelt, krever at stedsnavnet står i stoppnavnet (ellers ga Ålesund → Moa trafikkterminal, 7 km unna), og faller til slutt tilbake på stedet alene («Ålesund») |
+| 37 | Fredrikstad → Sarpsborg 23:40: buss 1 00:00 → 00:34, men «Fremme innen **01:34** fire av fem dager». Dataene: 1,3 min FØR rute på nest siste stopp, så **+61 min** på endestasjonen ett minutt senere — på 10 av 22 netter. Fysisk umulig. | Data | 🟡 G — trenger pipeline-fiks |
+| 38 | Ferja Halhjem–Sandvikvåg heter «båt 1018». Folk sier «ferja». | Enkel visning | lav prioritet |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -64,6 +67,17 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
   hvor presise linjene er hver for seg». Bør vi si det i klartekst i
   stedet, f.eks. «(lite data)»?
 - **E. App** — se `docs/app-store.md`. Anbefaling: PWA først.
+- **G. Umulige hopp ved endestasjonen.** Ca. 930 rader per uke (av 10 mill.)
+  har en ankomstforsinkelse som er >30 min større enn på stoppet før, mens
+  stoppet før var <10 min forsinket. 2/3 er på siste stopp, og mange er
+  nøyaktig 59–61 min (RUT 353/uke, OST 268, ATB 71, VYG 57). Typisk: bussen
+  logger aldri ankomst på endestasjonen, og noe fyller inn en tid en time
+  senere. Lite totalt, men samlet på bestemte avganger — buss 1
+  Fredrikstad → Sarpsborg 00:00 får P80 = +61 min. Forslag: i
+  `compute_delays()` sett ankomstforsinkelsen til NULL når den hopper >30 min
+  fra forrige stopp på samme avgang med ≤10 min rutetid imellom; så ny
+  eksport + aggregate (gjelder bare nye dager med mindre ukefilene bygges på
+  nytt). Rører produksjonsdata, så venter på ja.
 - **B. Overgangsfilene i produksjon** er fra 23.11. Start nattjobben på nytt
   (`Start-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'`) med
   lokket åpent og strøm tilkoblet.
@@ -104,3 +118,13 @@ Tøyen → Stortinget 23:55 over midnatt (31), Strandkaien (Bergen) → Kleppest
 båt 16:30 (ok, 33), Lillehammer → Gjøvik fremme 02:00 (32), Majorstuen →
 Oslo lufthavn fremme 07:00 «Viktig avtale» (ok: stramt bytte med plan B som
 fortsatt rekker; 34).
+
+### Runde 5 — 2026-11-26 natt (mobil 375 px, enkel visning)
+«Ålesund rutebilstasjon» (36) → Ålesund (by) → Moa trafikkterminal 07:30
+(ok, buss 2), Kristiansand rutebilstasjon → Arendal bussterminal 07:00 (ok:
+stramt bytte 8/10 forklart med plan B), Halhjem → Sandvikvåg ferje 08:00
+(ok, 38), Oslo S → Frogner plass fremme 17:30 (ok: tog + buss 20, plan B
+holder), Bergen lufthavn → Oslo lufthavn fremme 10:00 (ok — «senere avganger
+er ikke fremme før 10:00» stemmer: ingen fly 08:00–09:20 torsdag, sjekket mot
+Entur), Fredrikstad bussterminal → Sarpsborg stasjon 23:40 over midnatt (37),
+Drammen → Kongsberg 06:30 (ok, VY1 merket «mangler data»).

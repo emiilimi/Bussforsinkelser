@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { geocoderFallbackText, dedupeGeocoder } from "@shared/geocoder-text";
+import { firstFallbackHit, dedupeGeocoder } from "@shared/geocoder-text";
 import { createServer, type Server } from "http";
 import { subDays, format } from "date-fns";
 import path from "path";
@@ -667,8 +667,7 @@ export async function registerRoutes(
         return res.status(502).json({ error: "Geocoder error" });
       }
       // Samme reserve som Pages-proxyen (shared/geocoder-text.ts).
-      const alt = features.length === 0 ? geocoderFallbackText(text) : null;
-      if (alt) features = (await query(alt)) ?? [];
+      if (features.length === 0) features = await firstFallbackHit(text, query);
       const results = dedupeGeocoder(features.map((f: any) => ({
         id: f.properties.id,
         name: f.properties.name,
