@@ -17,6 +17,7 @@ import {
 } from "@/hooks/use-parquet-query";
 import { computeDayType, dayTypePredicate } from "@/lib/day-type";
 import { fetchStopDetail, snapToWindow, offsetToDate } from "@/lib/stop-detail";
+import { lineDistributionFromShards } from "@/lib/line-shards";
 import { cleanLineName } from "@/lib/date-utils";
 import { IMPLAUSIBLE_DELAY_MIN } from "@/components/data-quality-flag";
 
@@ -1586,6 +1587,12 @@ const DIST_BIN_PER_MIN = 4;
  * −10..+30 min, så de ytterste bøttene samler halene.
  */
 async function apiLineDistribution(lineRef: string, params: URLSearchParams) {
+  // Standardvisningen ligger ferdig regnet i linjefilene (lib/line-shards.ts) —
+  // ingen DuckDB. Alt annet (retning, dagtype, eget vindu) regnes som før.
+  if (!dayTypeClause(params)) {
+    const fromShards = await lineDistributionFromShards(lineRef, params).catch(() => null);
+    if (fromShards) return fromShards;
+  }
   await ensureParquetFilesRegistered();
   const { where, duckOptions } = lineQueryScope(lineRef, params);
   const counts = `
