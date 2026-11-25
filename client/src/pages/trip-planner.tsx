@@ -61,7 +61,7 @@ import {
   transferProbFromMarginals, blendTransfer, lowerBound, mixtureCdf, mixtureQuantile,
   decisionCost, MIN_ON_TIME, frequencyWords, MARGINAL_PRIOR_DAYS,
 } from "@/lib/trip-model";
-import { isLive, anchoredGrid, anchoredMinutes, LIVE_NEFF } from "@/lib/live-model";
+import { isLive, anchoredGrid, anchoredMinutes, LIVE_NEFF, boardingBufferMin, earlyQuantile, EARLY_LEVEL } from "@/lib/live-model";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -252,7 +252,16 @@ type LegTimingResult = {
   p80: number | null;
   n: number;
   method: "sj" | "hour1" | "hour2" | "none";
+  /** Nedre hale (gikk FØR rutetid) og andel > 1 min før — for «vær på
+   *  holdeplassen N min før» (live-model.boardingBufferMin). Bare «dep». */
+  p02?: number | null;
+  p05?: number | null;
+  early1?: number | null;
 };
+
+/** Plukk nedre-hale-feltene fra et DuckDB- eller overgangsfil-svar. */
+const lowTail = (r: { p02?: number | null; p05?: number | null; early1?: number | null } | undefined) =>
+  ({ p02: r?.p02 ?? null, p05: r?.p05 ?? null, early1: r?.early1 ?? null });
 
 // ---------------------------------------------------------------------------
 // Empirisk overgangs-suksess: SQL og typer bor nå i lib/trip-shared.ts
@@ -279,6 +288,9 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
     SELECT
       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ${col}) AS p50,
       PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY ${col}) AS p80,
+      PERCENTILE_CONT(0.02) WITHIN GROUP (ORDER BY ${col}) AS p02,
+      PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY ${col}) AS p05,
+      AVG(CASE WHEN ${col} < -1 THEN 1.0 ELSE 0.0 END) AS early1,
       COUNT(*) AS n
     FROM delays_by_stop WHERE ${where} AND ${col} IS NOT NULL
   `;
@@ -291,13 +303,13 @@ async function legTimingLocal(s: LegTimingSpec): Promise<LegTimingResult | null>
   const spec = { ...s, window: s.statsWindow };
   const r0 = await localLegTiming(spec, undefined);
   if (!r0) return null;
-  if (r0.n >= SPECIFIC_MIN_DAYS) return { p50: r0.p50, p80: r0.p80, n: r0.n, method: "sj" };
+  if (r0.n >= SPECIFIC_MIN_DAYS) return { p50: r0.p50, p80: r0.p80, n: r0.n, method: "sj", ...lowTail(r0) };
   const r1 = await localLegTiming(spec, 1);
   if (!r1) return null;
-  if (r1.n >= SPECIFIC_MIN_DAYS) return { p50: r1.p50, p80: r1.p80, n: r1.n, method: "hour1" };
+  if (r1.n >= SPECIFIC_MIN_DAYS) return { p50: r1.p50, p80: r1.p80, n: r1.n, method: "hour1", ...lowTail(r1) };
   const r2 = await localLegTiming(spec, 2);
   if (!r2) return null;
-  return { p50: r2.p50, p80: r2.p80, n: r2.n, method: r2.n > 0 ? "hour2" : "none" };
+  return { p50: r2.p50, p80: r2.p80, n: r2.n, method: r2.n > 0 ? "hour2" : "none", ...lowTail(r2) };
 }
 
 /**
@@ -361,17 +373,17 @@ function useEstimatedLegTimes(
         };
         const r0 = await duckQuery(legTimingSql(s), undefined, opts);
         if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
-          out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj" });
+          out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj", ...lowTail(r0[0]) });
           continue;
         }
         const r1 = await duckQuery(legTimingSql(s, 1), undefined, opts);
         if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
-          out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1" });
+          out.set(s.key, { p50: r1[0].p50, p80: r1[0].p80, n: r1[0].n, method: "hour1", ...lowTail(r1[0]) });
           continue;
         }
         const r2 = await duckQuery(legTimingSql(s, 2), undefined, opts);
         const n2 = r2[0]?.n ?? 0;
-        out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none" });
+        out.set(s.key, { p50: r2[0]?.p50 ?? null, p80: r2[0]?.p80 ?? null, n: n2, method: n2 > 0 ? "hour2" : "none", ...lowTail(r2[0]) });
       }
       return out;
     },
@@ -407,7 +419,35 @@ type P80Report = {
   missing?: string[];
   /** Linjer der tallene er operatørens egne (REFERENCE_LINES), ikke våre målinger. */
   references?: ReferenceReliability[];
+  /** Hele minutter før første avgang du bør stå på holdeplassen (bussen går
+   *  av og til før tiden) — trekkes fra «Dra kl.». Se live-model.boardingBufferMin. */
+  boardBuffer?: Record<Certainty, number>;
+  /** Andel dager første avgang gikk > 1 min før rutetid (null = ukjent). */
+  earlyShare?: number | null;
+  /** «buss 3» — linjen bufferen gjelder. */
+  boardLabel?: string;
+  /** Første legg har sanntid — bufferen kommer da (også) fra prognosefeilen. */
+  boardLive?: boolean;
 };
+
+/** «Vær på holdeplassen 2 min før – …» eller null når det ikke trengs. */
+function boardingSentence(r: P80Report | undefined, certainty: Certainty): string | null {
+  const b = r?.boardBuffer?.[certainty] ?? 0;
+  if (b <= 0) return null;
+  const who = r?.boardLabel ?? "bussen";
+  const share = r?.earlyShare;
+  const why = r?.boardLive
+    ? `${who} går av og til før tiden skjermen viser`
+    : share != null && share >= 0.01
+      ? `${who} har gått mer enn 1 min før rutetid ${Math.round(share * 100)} % av dagene`
+      : `${who} går av og til før rutetid`;
+  return `Vær på holdeplassen ${b} min før – ${why}. Det er regnet med i tiden.`;
+}
+
+/** «Dra kl.» for et forslag: avgangstid minus minuttene på holdeplassen. */
+function leaveMs(p: TripPattern, r: P80Report | undefined, certainty: Certainty): number {
+  return new Date(p.expectedStartTime).getTime() - (r?.boardBuffer?.[certainty] ?? 0) * 60000;
+}
 
 /** Alt i rapporten som kan endre anbefalingen — for å se om en ny rapport er lik den gamle. */
 function reportKey(r: P80Report): string {
@@ -416,6 +456,7 @@ function reportKey(r: P80Report): string {
     r.pOnTime ? `${r.pOnTime.normal}/${r.pOnTime.high}` : "",
     r.wantsPlanB, r.assumedMiss, r.hasPlanB,
     (r.missing ?? []).join(";"), (r.references ?? []).map((x) => x.name).join(";"),
+    r.boardBuffer ? `${r.boardBuffer.normal}/${r.boardBuffer.high}` : "", r.earlyShare, r.boardLabel, r.boardLive,
   ].join("|");
 }
 
@@ -1072,7 +1113,10 @@ function useTripDelayDistribution(
           PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min) AS p50_arr,
           PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min) AS p80_arr,
           PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY delay_arrival_min) AS p95_arr,
-          COUNT(*) AS n
+          COUNT(*) AS n,
+          PERCENTILE_CONT(0.02) WITHIN GROUP (ORDER BY delay_departure_min) AS p02_dep,
+          PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY delay_departure_min) AS p05_dep,
+          AVG(CASE WHEN delay_departure_min < -1 THEN 1.0 WHEN delay_departure_min IS NOT NULL THEN 0.0 END) AS early1_dep
         FROM delays_by_stop
         WHERE (${conditions})
           ${statsWindowSql(statsWindow)}
@@ -2461,8 +2505,10 @@ function TripCard({
   // linjenes samletall, som alle kortene har fra start.
   const transferIdx = useTransferIndex();
   const legTimesLocal = transferCovers(transferIdx, statsWindow, legTimingSpecs.map((s) => s.lineRef));
+  // Full visning henter dem også for alle kortene når de er billige (2026-11-25):
+  // ellers hoppet «Dra senest» (bufferen for første buss) når et kort ble åpnet.
   const { data: legTimesRaw } = useEstimatedLegTimes(
-    legTimingSpecs, expanded || (simple && legTimesLocal), duckReady, duckQuery,
+    legTimingSpecs, expanded || legTimesLocal, duckReady, duckQuery,
   );
   const legTimes = simple && !legTimesLocal ? undefined : legTimesRaw;
 
@@ -2710,6 +2756,28 @@ function TripCard({
     const lastTransit = [...pattern.legs].reverse().find((l) => l.mode !== "foot" && l.line?.id);
     const depShift = firstTransit ? anchoredMinutes(firstTransit, "start", firstBusDelayDep) : firstBusDelayDep;
     const arrShift = lastTransit ? anchoredMinutes(lastTransit, "end", lastBusDelayArr) : lastBusDelayArr;
+    // Første buss kan gå før tiden: minutter på holdeplassen per sikkerhetsvalg.
+    // depResult gjelder første legg med data — bare bruk den når det ER første
+    // transittlegg (ellers er den for en senere buss).
+    // Per avgang når ALLE kortene har tallene (overgangsfilene); ellers linjens
+    // samletall ved stoppet (duckStats har alle kortene fra start) — per-avgang
+    // via DuckDB kommer bare for åpne kort og ville fått «Dra kl.» til å hoppe.
+    const boardData = !!firstTransit?.line?.id && MODES_WITH_DELAY_DATA.has(firstTransit.mode);
+    const boardStat = boardData && firstTransit!.fromPlace.quay?.id
+      ? duckStats?.get(`${firstTransit!.fromPlace.quay.id}|${firstTransit!.line!.id}`) : undefined;
+    const depLow: { p02?: number | null; p05?: number | null; early1?: number | null; n: number } | undefined =
+      boardData && legTimesLocal && depResult ? depResult
+        : boardStat ? { p02: boardStat.p02_dep, p05: boardStat.p05_dep, early1: boardStat.early1_dep, n: boardStat.n }
+          : undefined;
+    const boardBuffer: Record<Certainty, number> = firstTransit
+      ? {
+          normal: boardingBufferMin(firstTransit, earlyQuantile(depLow, "normal"), EARLY_LEVEL.normal),
+          high: boardingBufferMin(firstTransit, earlyQuantile(depLow, "high"), EARLY_LEVEL.high),
+        }
+      : { normal: 0, high: 0 };
+    const earlyShare = depLow && depLow.n >= 15 ? depLow.early1 ?? null : null;
+    const boardLabel = firstTransit
+      ? `${simpleModeWord(firstTransit)}${firstTransit.line?.publicCode ? ` ${firstTransit.line.publicCode}` : ""}` : undefined;
     const estDeparture = depShift != null
       ? formatTime(addMinutesToIso(pattern.expectedStartTime, depShift))
       : null;
@@ -2827,9 +2895,10 @@ function TripCard({
     return {
       estDeparture, estArrival, p80, p80Min, p95Min, medianMin, depResult, arrResult: lastArrResult,
       p80BeyondPlanA, p80ViaPlanB, p80Pending, p80Unadjusted, pMakeAll, p80Level: level,
-      pOnTime, wantsPlanB, assumedMiss, missing, references,
+      pOnTime, wantsPlanB, assumedMiss, missing, references, boardBuffer, earlyShare, boardLabel,
+      boardLive: !!firstTransit && isLive(firstTransit),
     };
-  }, [pattern, duckStats, legTimes, transferAnalysis, gapMap, planBInfo, deadlineMs, certainty]);
+  }, [pattern, duckStats, legTimes, transferAnalysis, gapMap, planBInfo, deadlineMs, certainty, legTimesLocal]);
 
   // Rapporter ankomsten til lista. Forslag uten forsinkelsesdata (p80Min
   // null, ikke pending) teller som «ukjent» — de kan ikke kåres til tryggest,
@@ -2859,12 +2928,17 @@ function TripCard({
       hasPlanB: planBInfo !== undefined,
       missing: estimatedTimes.missing,
       references: estimatedTimes.references,
+      boardBuffer: estimatedTimes.boardBuffer,
+      earlyShare: estimatedTimes.earlyShare,
+      boardLabel: estimatedTimes.boardLabel,
+      boardLive: estimatedTimes.boardLive,
     });
     // pOnTime/missing/references er nye objekter hver gang — nøklene over er stabile.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estimatedTimes.p80Pending, estimatedTimes.p80BeyondPlanA, reportArrivalMs, reportP95Ms, reportMedianMs,
       estimatedTimes.pMakeAll, estimatedTimes.wantsPlanB, estimatedTimes.assumedMiss, pOnTimeKey, missingKey, refsKey, duckStats,
-      planBInfo]);
+      planBInfo, estimatedTimes.boardBuffer.normal, estimatedTimes.boardBuffer.high, estimatedTimes.earlyShare,
+      estimatedTimes.boardLabel, estimatedTimes.boardLive]);
 
   return (
     <Card className={cn("transition-all", index === 0 && "border-primary/50", safest && "border-emerald-500/70 ring-1 ring-emerald-500/30")}>
@@ -3606,7 +3680,7 @@ export default function TripPlanner() {
       if (needsPlanB(p, r) && !planB.has(patternKey(p))) return none;
       if (planB.has(patternKey(p)) && !r.hasPlanB) return none;
       if (r.arrivalMs == null) continue;
-      ready.push({ k: patternKey(p), arrMs: r.arrivalMs, depMs: new Date(p.expectedStartTime).getTime() });
+      ready.push({ k: patternKey(p), arrMs: r.arrivalMs, depMs: leaveMs(p, r, "normal") });
     }
     if (arrivalDeadline != null) {
       const ok = ready.filter((x) => x.arrMs <= arrivalDeadline);
@@ -3892,7 +3966,7 @@ export default function TripPlanner() {
       const pb = planB.get(k);
       all.push({
         idx,
-        depMs: new Date(p.expectedStartTime).getTime(),
+        depMs: leaveMs(p, r, certainty),
         arrMs: certainty === "high" ? r.p95ArrivalMs ?? null : r.arrivalMs,
         medianMs: r.medianMs ?? null,
         pOnTime: r.pOnTime?.[certainty] ?? null,
@@ -3934,6 +4008,8 @@ export default function TripPlanner() {
       url: window.location.search,
       certainty,
       depHHMM: simpleAnswer.kind === "pick" ? hhmm(tripPatterns[simpleAnswer.idx].expectedStartTime) : null,
+      // «Dra kl.» etter minuttene på holdeplassen (første buss kan gå før tiden).
+      leaveHHMM: simpleAnswer.kind === "pick" ? hhmm(new Date(simpleAnswer.depMs).toISOString()) : null,
       // Samme avgangstid kan ha flere forslag (ulike bytter) — ankomst + linjer skiller dem.
       pick: simpleAnswer.kind === "pick" ? {
         arr: hhmm(tripPatterns[simpleAnswer.idx].expectedEndTime),
@@ -4895,7 +4971,7 @@ export default function TripPlanner() {
                   <div className="rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-4 space-y-1.5">
                     <div className="text-2xl font-bold tracking-tight text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
                       <ShieldCheck className="h-6 w-6 text-emerald-600 shrink-0" />
-                      Dra kl. {formatTime(p.expectedStartTime)}
+                      Dra kl. {t(ans.depMs)}
                     </div>
                     <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
                       {describeTripSimple(p)}.{" "}
@@ -4913,6 +4989,11 @@ export default function TripPlanner() {
                         {arrivalDeadline != null ? (pbInTime ? " – fortsatt i tide." : " – for sent, men det er regnet med over.") : "."}
                       </p>
                     )}
+                    {boardingSentence(r, certainty) && (
+                      <p className="text-sm text-emerald-950/90 dark:text-emerald-100/90">
+                        {boardingSentence(r, certainty)}
+                      </p>
+                    )}
                     {refs.length > 0 && (
                       <p className="text-xs text-emerald-900/80 dark:text-emerald-200/80">
                         {refs.map((x) => referenceSentence(x)).join(" ")}
@@ -4925,7 +5006,7 @@ export default function TripPlanner() {
                     )}
                     <p className="text-xs text-emerald-900/70 dark:text-emerald-200/70">
                       {arrivalDeadline != null
-                        ? !tripPatterns.some((q) => new Date(q.expectedStartTime).getTime() > ans.depMs)
+                        ? !tripPatterns.some((q) => new Date(q.expectedStartTime).getTime() > new Date(p.expectedStartTime).getTime())
                           ? "Det er den seneste avgangen i søket."
                           : certainty === "high"
                             ? "Valgt fordi senere avganger gir for stor risiko for en viktig avtale, og tidligere bare gir mer venting."
@@ -5014,6 +5095,9 @@ export default function TripPlanner() {
                   <span>
                     <strong>Dra senest {formatTime(new Date(safeVerdict.depMs!).toISOString())}</strong> for å være framme innen{" "}
                     {formatTime(new Date(arrivalDeadline).toISOString())} minst 4 av 5 dager (P80-ankomst {formatTime(new Date(safeVerdict.arrMs!).toISOString())}).
+                    {safestKey && boardingSentence(p80Reports.get(safestKey), "normal") && (
+                      <> {boardingSentence(p80Reports.get(safestKey), "normal")}</>
+                    )}
                   </span>
                 ) : (
                   <span>

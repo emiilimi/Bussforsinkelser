@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import {
   isLive, liveDelayMin, anchoredGrid, anchoredMinutes, prognosisErrorGrid, PROGNOSIS_ERROR,
+  boardingBufferMin, earlyQuantile, EARLY_LEVEL,
 } from "../client/src/lib/live-model";
 import { quantileGrid, transferProbFromMarginals, gridCdf } from "../client/src/lib/trip-model";
 import type { TripLeg } from "../client/src/lib/trip-shared";
@@ -104,6 +105,40 @@ test("bare A har sanntid: B regnes fra rutetid med sin historikk", () => {
   const b = leg({ startMin: 20, endMin: 40, realtime: false, line: "SKY:Line:83" });
   assert.deepEqual(anchoredGrid(b, "start", hist, NOW), hist);
   assert.ok(anchoredGrid(a, "end", hist, NOW) !== hist);
+});
+
+test("første buss: uten sanntid gir historisk P5 minuttene på holdeplassen", () => {
+  const l = leg({ startMin: 20, endMin: 40, realtime: false });
+  assert.equal(boardingBufferMin(l, null, EARLY_LEVEL.normal, NOW), 0);    // ukjent → 0
+  assert.equal(boardingBufferMin(l, 0.3, EARLY_LEVEL.normal, NOW), 0);     // går aldri før
+  assert.equal(boardingBufferMin(l, -0.4, EARLY_LEVEL.normal, NOW), 0);    // et halvt minutt er toleransen
+  assert.equal(boardingBufferMin(l, -1.2, EARLY_LEVEL.normal, NOW), 1);
+  assert.equal(boardingBufferMin(l, -2.1, EARLY_LEVEL.normal, NOW), 2);
+});
+
+test("første buss: Bybanen får aldri buffer", () => {
+  const l = leg({ startMin: 20, endMin: 40, realtime: true, line: "SKY:Line:2" });
+  assert.equal(boardingBufferMin(l, -3, EARLY_LEVEL.high, NOW), 0);
+});
+
+test("første buss: sanntid — sen buss kan ta igjen, men ikke gå før rutetid", () => {
+  // I rute ifølge prognosen, historisk aldri før rutetid → ingen buffer
+  const onTime = leg({ startMin: 10, endMin: 30, delay: 0, realtime: true });
+  assert.equal(boardingBufferMin(onTime, 0.2, EARLY_LEVEL.normal, NOW), 0);
+  // 5 min sen ifølge prognosen: prognosefeilen styrer (kan ta igjen), > 0
+  const late = leg({ startMin: 10, endMin: 30, delay: 5, realtime: true });
+  const b = boardingBufferMin(late, -0.2, EARLY_LEVEL.normal, NOW);
+  assert.ok(b >= 1 && b <= 5, `b ${b}`);
+  // ... men aldri mer enn forsinkelsen + historisk tidlig-hale
+  assert.ok(boardingBufferMin(late, -0.2, 0.001, NOW) <= 5);
+});
+
+test("første buss: for få dager gir ingen persentil; høy sikkerhet faller tilbake til P5", () => {
+  assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 10 }, "normal"), null);
+  assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 20 }, "normal"), -2);
+  assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 20 }, "high"), -2);
+  assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 60 }, "high"), -3);
+  assert.equal(earlyQuantile(undefined, "high"), null);
 });
 
 console.log(`${n} tester ok`);

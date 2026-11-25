@@ -5,6 +5,34 @@
 
 **Sist oppdatert**: 2026-11-25
 
+## Endringslogg — 2026-11-25 (2): rekker du første buss? (`feat/reise-modell`)
+
+**Feilen.** «Dra kl.»/«Dra senest» var første avgangs tid — står du på
+holdeplassen da, rekker du bussen bare hvis den ikke går før. Målt uke 46–47
+(buss, > 1 min før rutetid): Skyss 5,6 %, Nordland 5,1 %, Kolumbus 4,5 %,
+Ruter 0,1 %. Verst: 3E fra Møhlenpris går i median 1,7 min før rutetid
+(66 % > 1 min før, 587 obs.) — «Dra senest 16:02» betydde stort sett at
+bussen var gått.
+
+**Nå.** `live-model.boardingBufferMin`: vær på holdeplassen så tidlig at
+bussen har gått før deg høyst 1 av 20 dager (viktig avtale: 1 av 50), med
+½ min toleranse. Uten sanntid fra historisk P5/P2 (per avgang fra
+overgangsfilene, ellers linjens samletall ved stoppet — `p02_dep`, `p05_dep`,
+`early1_dep` i `DuckDelayRow`, samme i SQL og `transfer-data.ts`). Med
+sanntid fra prognosefeilen, men aldri mer enn forsinkelsen + historisk
+tidlig-hale. Minuttene trekkes fra «Dra kl.» (enkel) og «Dra senest» (full),
+med forklaring («Vær på holdeplassen 3 min før – buss 3E har gått mer enn
+1 min før rutetid 64 % av dagene»). Full visning henter nå per-avgang-tallene
+for alle kort når overgangsfilene dekker vinduet (før: bare åpne kort).
+Tester: `npm run test:live`.
+
+**Prognosefeil over flere dager.** Oppgaven «Bussforsinkelser prognose-snapshot»
+(`scripts/prognosis_snapshot.ps1 -Register`, 07:00 og 15:00 t.o.m. 30.11,
+kjører når Emilie er pålogget) tar øyeblikksbilder. Etter nattjobben:
+`PARQUET_DIR=../Bussforsinkelser/data/reise-parquet python
+pipeline/triplab/entur_estimates.py evaluate --quantiles` skriver nye
+`PROGNOSIS_ERROR`-linjer for `live-model.ts`.
+
 ## Endringslogg — 2026-11-25: sanntid og rutetid i reisemodellen (`feat/reise-modell`)
 
 **Feilen.** Enturs `expected*` er rutetid uten sanntid og en PROGNOSE med

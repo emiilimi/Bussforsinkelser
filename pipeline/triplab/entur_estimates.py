@@ -296,6 +296,8 @@ def cmd_evaluate(args) -> int:
         return {(l, s, a): d for l, s, a, d in rows if d is not None and a}
 
     # 1. Sanntidsprognosen etter horisont
+    pooled = defaultdict(list)   # alle dager, bare realtime=true → PROGNOSIS_ERROR
+    days_used = []
     for f in sorted(OUT.glob("snapshots_*.jsonl")):
         snaps = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
         day = f.stem.split("_", 1)[1]
@@ -321,6 +323,9 @@ def cmd_evaluate(args) -> int:
             if b:
                 err[b].append(a - predicted)   # > 0: gikk senere enn Entur sa
                 flagged[(b, bool(s["inaccurate"]))].append(a - predicted)
+                if s.get("realtime"):
+                    pooled[b].append(a - predicted)
+        days_used.append(day)
         print(f"\nSanntid {day}: faktisk − prognose (min), etter tid før avgang")
         for b in buckets:
             xs = err[b]
@@ -335,6 +340,17 @@ def cmd_evaluate(args) -> int:
                 if fl and xs:
                     print(f"  predictionInaccurate=true {b[0]}–{b[1] - 1} min: {len(xs)}, "
                           f"|feil| ≤ 1 min {sum(1 for x in xs if abs(x) <= 1) / len(xs):.0%}")
+
+    if getattr(args, "quantiles", False) and pooled:
+        # Samme format som PROGNOSIS_ERROR i client/src/lib/live-model.ts
+        print(f"\n// PROGNOSIS_ERROR — {len(days_used)} dager ({', '.join(days_used)}), realtime = true")
+        for b in [(0, 5), (5, 15), (15, 30), (30, 61)]:
+            xs = sorted(pooled[b])
+            if len(xs) < 40:
+                print(f"// {b}: for få ({len(xs)})")
+                continue
+            q = [pct(xs, 0.025 + 0.05 * i) for i in range(20)]
+            print(f"  {{ maxMin: {b[1] - 1}, n: {len(xs)}, q: [{', '.join(f'{v:.1f}' for v in q)}] }},")
 
     # 2. Empirisk p90: dekning mot faktisk dag
     for f in sorted(OUT.glob("empirical_*.json")):
@@ -378,7 +394,9 @@ def main() -> int:
     s.add_argument("--rounds", type=int, default=12)
     s.add_argument("--every", type=int, default=10, help="minutter mellom runder")
     s.add_argument("--seed", type=int, default=1)
-    sub.add_parser("evaluate")
+    ev = sub.add_parser("evaluate")
+    ev.add_argument("--quantiles", action="store_true",
+                    help="skriv PROGNOSIS_ERROR for live-model.ts (alle dager samlet)")
     c = sub.add_parser("compare", help="sammenlign en lagret empirical_<dato>.json uten nye kall")
     c.add_argument("--date", required=True)
     args = ap.parse_args()

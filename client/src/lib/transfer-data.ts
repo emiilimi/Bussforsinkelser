@@ -403,6 +403,9 @@ export async function localDelayDistribution(
       p80_arr: percentileCont(arr, 0.8),
       p95_arr: percentileCont(arr, 0.95),
       n,
+      p02_dep: percentileCont(dep, 0.02),
+      p05_dep: percentileCont(dep, 0.05),
+      early1_dep: dep.length ? dep.filter((v) => v < -1).length / dep.length : null,
     });
   }
   return out;
@@ -428,7 +431,11 @@ export async function localLegTiming(
   s: LocalLegTimingSpec,
   delta: number | undefined,
   latest?: string | null,
-): Promise<{ p50: number | null; p80: number | null; n: number } | null> {
+): Promise<{
+  p50: number | null; p80: number | null; n: number;
+  /** Nedre hale + andel > 1 min før rutetid — samme som legTimingSql. */
+  p02: number | null; p05: number | null; early1: number | null;
+} | null> {
   const idx = await fetchTransferIndex();
   if (!transferCovers(idx, s.window, [s.lineRef], latest)) return null;
   const data = await loadQuays(idx!, [s.quayRef]);
@@ -454,5 +461,9 @@ export async function localLegTiming(
     }
   }
   vals.sort((x, y) => x - y);
-  return { p50: percentileCont(vals, 0.5), p80: percentileCont(vals, 0.8), n: vals.length };
+  return {
+    p50: percentileCont(vals, 0.5), p80: percentileCont(vals, 0.8), n: vals.length,
+    p02: percentileCont(vals, 0.02), p05: percentileCont(vals, 0.05),
+    early1: vals.length ? vals.filter((v) => v < -1).length / vals.length : null,
+  };
 }

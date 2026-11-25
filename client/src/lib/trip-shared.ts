@@ -86,6 +86,11 @@ export type DuckDelayRow = {
   p80_arr: number | null;
   p95_arr: number | null;
   n: number;
+  /** Nedre hale for avgang (gikk FØR rutetid) og andel > 1 min før — for
+   *  «vær på holdeplassen N min før». Valgfrie: eldre kallere har dem ikke. */
+  p02_dep?: number | null;
+  p05_dep?: number | null;
+  early1_dep?: number | null;
 };
 
 export type StopEntry = {

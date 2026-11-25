@@ -102,6 +102,63 @@ export function anchoredGrid(leg: TripLeg, side: LegSide, hist: QGrid | null, no
   return d === 0 ? hist : hist.map((v) => v - d);
 }
 
+// ---------------------------------------------------------------------------
+// Rekker du FØRSTE buss? (2026-11-25)
+//
+// «Dra kl.» var legets avgangstid: står du på holdeplassen akkurat da, rekker
+// du bussen bare hvis den ikke går før. Målt uke 46–47 (buss): Skyss går
+// > 1 min før rutetid i 5,6 % av avgangene, Nordland 5,1 %, Kolumbus 4,5 %,
+// Ruter 0,1 %. Sanntidsprognosen bommer også nedover (~1 av 5 går > 1 min før
+// prognosen, se PROGNOSIS_ERROR).
+//
+// Regelen: vær på holdeplassen så tidlig at bussen har gått før deg høyst
+// EARLY_LEVEL av dagene (1 av 20 vanlig dag, 1 av 50 viktig avtale). Et halvt
+// minutt før er ikke å «gå før deg» (måleoppløsning, og du står ikke på
+// sekundet) — derfor EARLY_TOLERANCE_MIN.
+// ---------------------------------------------------------------------------
+
+export const EARLY_LEVEL = { normal: 0.05, high: 0.02 } as const;
+export const EARLY_TOLERANCE_MIN = 0.5;
+/** Færre observasjoner enn dette: nedre persentil er bare den laveste verdien. */
+export const EARLY_MIN_N = { normal: 15, high: 40 } as const;
+
+/** Historisk nedre persentil for nivået, eller null når grunnlaget er for tynt.
+ *  «Viktig avtale» faller tilbake til P5 når det er for få dager for P2. */
+export function earlyQuantile(
+  r: { p02?: number | null; p05?: number | null; n: number } | null | undefined,
+  certainty: keyof typeof EARLY_LEVEL,
+): number | null {
+  if (!r) return null;
+  if (certainty === "high" && r.n >= EARLY_MIN_N.high && r.p02 != null) return r.p02;
+  return r.n >= EARLY_MIN_N.normal && r.p05 != null ? r.p05 : null;
+}
+
+/**
+ * Hele minutter før legets EXPECTED avgang du bør stå på holdeplassen.
+ *   histQ = historisk forsinkelse ved nivået (negativ = gikk før rutetid),
+ *           null = ukjent
+ * Uten sanntid: −histQ (forankret i rutetiden).
+ * Med sanntid: prognosefeilen ved nivået, men aldri mer enn bussen har gått
+ * før RUTETIDEN historisk — en sen buss kan ta igjen, men går sjelden før
+ * rutetid (uten historikk: antatt ikke før rutetid).
+ */
+export function boardingBufferMin(
+  leg: TripLeg, histQ: number | null, level: number, nowMs = Date.now(),
+): number {
+  if (referenceFor(leg.line?.id)) return 0;
+  const d = liveDelayMin(leg, "start");
+  let b: number;
+  if (isLive(leg)) {
+    const g = prognosisErrorGrid((new Date(leg.expectedStartTime).getTime() - nowMs) / 60000);
+    const q = g[Math.min(g.length - 1, Math.max(0, Math.round(level * g.length - 0.5)))];
+    b = Math.min(-q, d - Math.min(histQ ?? 0, 0));
+  } else {
+    if (histQ == null) return 0;
+    b = d - histQ;
+  }
+  return Math.max(0, Math.ceil(b - EARLY_TOLERANCE_MIN - 1e-9));
+}
+
 /** Ett tall på samme måte: minutter å legge til expected-tiden.
  *  `histMin` er den historiske persentilen på nivå `level` (0,5 = median). */
 export function anchoredMinutes(
