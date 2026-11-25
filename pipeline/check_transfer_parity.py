@@ -87,10 +87,10 @@ def main() -> int:
             # «Siste 7 dager» (alle dagtyper) for hver femte.
             if i % 5 == 4:
                 from datetime import date, timedelta
-                w = {"dayTypes": None, "dateFrom": (date.fromisoformat(to) - timedelta(days=6)).isoformat(), "dateTo": None}
+                w = {"dayTypes": None, "dateFrom": (date.fromisoformat(to) - timedelta(days=6)).isoformat(), "dateTo": to}
             else:
                 from datetime import date, timedelta
-                w = {"dayTypes": [day_type], "dateFrom": (date.fromisoformat(to) - timedelta(days=29)).isoformat(), "dateTo": None}
+                w = {"dayTypes": [day_type], "dateFrom": (date.fromisoformat(to) - timedelta(days=29)).isoformat(), "dateTo": to}
             # Hver sjette: ukjent avgangs-id → tester nivå 2/3 alene
             if i % 6 == 5:
                 asj = asj + "-x"

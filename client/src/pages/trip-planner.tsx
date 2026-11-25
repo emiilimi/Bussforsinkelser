@@ -50,7 +50,7 @@ import {
   type TransferGapSource, type DuckQueryFn, type ResolvedStatsWindow,
   legStops, minutesToHM, computeTransferGap, computeTransferGaps, gapResultFromRows, NO_DUCK,
   probFromGaps, shrunkProb, POOL_PRIOR_DAYS, isActualDepartureSource, SPECIFIC_MIN_DAYS,
-  statsWindowSql, defaultWindowForDayType, stableSjId, stableSjPredicate,
+  statsWindowSql, defaultWindowForDayType, stableSjId, stableSjPredicate, legEndPassing, aimedNearClause,
 } from "@/lib/trip-shared";
 import {
   useTransferIndex, transferCovers, localTransferGapRows, localDelayDistribution, localLegTiming,
@@ -242,6 +242,9 @@ type LegTimingSpec = {
   lineRef: string;
   kind: "dep" | "arr";
   aimedHour: number;
+  /** Rutetid på plattformen (min. siden midnatt). Samme-avgang-nivået krever
+   *  at radens rutetid stemmer — ringlinjer passerer plattformen to ganger. */
+  aimedMin?: number | null;
   dayType: string;
   /** Brukervalgt statistikkperiode; utelatt → lås til dayType. */
   statsWindow?: ResolvedStatsWindow;
@@ -283,7 +286,7 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
     // Stabil id (siste ledd), som overgangs-SQL-en og overgangsfilene: hele
     // Skyss-id-en endres nesten daglig og ga 2–3 dager i stedet for ~20.
     : `${stableSjPredicate(stableSjId(s.serviceJourneyId))} AND stop_ref = '${esc(s.quayRef)}'
-       ${win}`;
+       ${win} ${aimedNearClause(aimedCol, s.aimedMin ?? null)}`;
   return `
     SELECT
       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ${col}) AS p50,
@@ -294,6 +297,12 @@ function legTimingSql(s: LegTimingSpec, delta?: number): string {
       COUNT(*) AS n
     FROM delays_by_stop WHERE ${where} AND ${col} IS NOT NULL
   `;
+}
+
+/** "HH:MM:SS" fra en passering → minutter siden midnatt. */
+function passingMin(p: { time: string } | null): number | null {
+  const [h, m] = p?.time?.split(":").map(Number) ?? [];
+  return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
 }
 
 /** Samme nivåtrapp som DuckDB-veien under, men fra overgangsfilene.
@@ -343,7 +352,7 @@ function useEstimatedLegTimes(
       // Vinduet MÅ være med: ellers gjenbrukes gamle tall når brukeren bytter
       // statistikkperiode (staleTime er Infinity).
       ...specs.map(s =>
-        `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.dayType}|` +
+        `${s.key}|${s.serviceJourneyId}|${s.quayRef}|${s.kind}|${s.aimedMin ?? ""}|${s.dayType}|` +
         statsWindowKey(s.statsWindow ?? defaultWindowForDayType(s.dayType))),
     ],
     enabled: active && source !== "off" && specs.length > 0,
@@ -772,8 +781,8 @@ function buildTransferSpecsForPattern(
   // Returns minutes-since-midnight, or null when missing.
   const aimedMinAtQuay = (leg: TripLeg, quayId: string | null, kind: "arrival" | "departure"): number | null => {
     if (!quayId || !leg.serviceJourney) return null;
-    const pt = leg.serviceJourney.passingTimes.find(p => p.quay?.id === quayId);
-    const t = kind === "arrival" ? pt?.arrival?.time : pt?.departure?.time;
+    // Riktig passering når plattformen besøkes to ganger (ringlinjer).
+    const t = legEndPassing(leg, kind)?.time;
     if (!t) return null;
     const [hh, mm] = t.split(":").map(Number);
     if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
@@ -2052,11 +2061,14 @@ function PlanNodeDetails({
     return out;
   }, [pattern]);
 
-  const { data: stats } = useTripDelayDistribution(pairs, duckReady, duckQuery, statsWindow);
+  const { data: stats, isError } = useTripDelayDistribution(pairs, duckReady, duckQuery, statsWindow);
+  // Uten svar ennå = «henter», ikke «ingen data» (før 2026-11-25 sa grafen og
+  // hvert legg «ingen observasjoner» mens DuckDB fortsatt jobbet).
+  const loading = !stats && !isError && pairs.length > 0;
 
   return (
     <div className="ml-2 mt-1 mb-1 border-l border-border pl-2 space-y-1">
-      <PlanDelayChart pattern={pattern} stats={stats} />
+      <PlanDelayChart pattern={pattern} stats={stats} loading={loading} />
       {pattern.legs.map((leg, i) => {
         if (leg.mode === "foot") {
           const min = Math.round((leg.duration ?? 0) / 60);
@@ -2108,7 +2120,7 @@ function PlanNodeDetails({
             )}
             {hasData && !live && !estDep && !estArr && (
               <div className="text-muted-foreground/60 italic ml-1">
-                ingen observasjoner for denne linjen ved disse stoppene ennå
+                {loading ? "henter historikk …" : "ingen observasjoner for denne linjen ved disse stoppene ennå"}
               </div>
             )}
           </div>
@@ -2486,13 +2498,13 @@ function TripCard({
       if (firstTransit) {
         const fromQuay = leg.fromPlace.quay?.id;
         if (fromQuay) {
-          specs.push({ key: "dep", serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: fromQuay, lineRef: leg.line.id, kind: "dep", aimedHour, dayType, statsWindow });
+          specs.push({ key: "dep", serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: fromQuay, lineRef: leg.line.id, kind: "dep", aimedHour, aimedMin: passingMin(legEndPassing(leg, "departure")), dayType, statsWindow });
         }
         firstTransit = false;
       }
       const toQuay = leg.toPlace.quay?.id;
       if (toQuay) {
-        specs.push({ key: `arr_${i}`, serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: toQuay, lineRef: leg.line.id, kind: "arr", aimedHour, dayType, statsWindow });
+        specs.push({ key: `arr_${i}`, serviceJourneyId: leg.serviceJourney?.id ?? "", quayRef: toQuay, lineRef: leg.line.id, kind: "arr", aimedHour, aimedMin: passingMin(legEndPassing(leg, "arrival")), dayType, statsWindow });
       }
     }
     return specs;

@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
-  transferGapSql, gapResultFromRows, probFromGaps, statsWindowSql, stableSjId, stableSjPredicate,
+  transferGapSql, gapResultFromRows, probFromGaps, statsWindowSql, stableSjId, stableSjPredicate, aimedNearClause,
   type TransferSpec, type CombinedGapRow,
 } from "../client/src/lib/trip-shared";
 import { localTransferGapRows, localDelayDistribution, localLegTiming } from "../client/src/lib/transfer-data";
@@ -44,7 +44,8 @@ function legSql(s: TransferSpec, delta?: number): string {
   const where = delta != null
     ? `line_ref = '${s.arrLineRef}' AND stop_ref = '${s.arrQuayRef}' ${win}
        AND CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) BETWEEN ${hour - delta} AND ${hour + delta}`
-    : `${stableSjPredicate(stableSjId(s.arrSjId!))} AND stop_ref = '${s.arrQuayRef}' ${win}`;
+    : `${stableSjPredicate(stableSjId(s.arrSjId!))} AND stop_ref = '${s.arrQuayRef}' ${win}
+       ${aimedNearClause("aimed_arrival", s.arrAimedMin)}`;
   return `SELECT PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY delay_arrival_min) AS p50,
                  PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY delay_arrival_min) AS p80, COUNT(*) AS n
           FROM delays_by_stop WHERE ${where} AND delay_arrival_min IS NOT NULL`;
@@ -101,7 +102,7 @@ for (const s of specs) {
   for (const [i, delta] of [undefined, 1, 2].entries()) {
     legN++;
     const l = await localLegTiming({ serviceJourneyId: s.arrSjId!, quayRef: s.arrQuayRef!, lineRef: s.arrLineRef!,
-      kind: "arr", aimedHour: Math.floor(s.arrAimedMin! / 60), window: s.statsWindow! }, delta, null);
+      kind: "arr", aimedHour: Math.floor(s.arrAimedMin! / 60), aimedMin: s.arrAimedMin, window: s.statsWindow! }, delta, null);
     const d = duck[s.key].leg[i];
     if (l && l.n === Number(d[2]) && close(l.p50, d[0]) && close(l.p80, d[1])) legOk++;
     else problems.push(`${s.key} legg ${delta ?? "sj"}: lokal ${JSON.stringify(l)} ≠ duck ${JSON.stringify(d)}`);

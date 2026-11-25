@@ -6,7 +6,7 @@ import {
   boardingBufferMin, earlyQuantile, EARLY_LEVEL,
 } from "../client/src/lib/live-model";
 import { quantileGrid, transferProbFromMarginals, gridCdf } from "../client/src/lib/trip-model";
-import type { TripLeg } from "../client/src/lib/trip-shared";
+import { legStops, legEndPassing, type TripLeg } from "../client/src/lib/trip-shared";
 
 let n = 0;
 function test(name: string, fn: () => void) {
@@ -139,6 +139,30 @@ test("første buss: for få dager gir ingen persentil; høy sikkerhet faller til
   assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 20 }, "high"), -2);
   assert.equal(earlyQuantile({ p02: -3, p05: -2, n: 60 }, "high"), -3);
   assert.equal(earlyQuantile(undefined, "high"), null);
+});
+
+
+test("ringlinje: plattform passert to ganger — riktig passering for legget", () => {
+  // T-bane 5 (13:48 Nationaltheatret → … → Blindern 14:09 → … → Nationaltheatret 14:14 → Stortinget 14:16)
+  const pt = (q: string, t: string) => ({ quay: { id: q }, arrival: { time: t, dayOffset: 0 }, departure: { time: t, dayOffset: 0 } });
+  const l: TripLeg = {
+    ...leg({ startMin: 0, endMin: 0 }),
+    fromPlace: { name: "Blindern", quay: { id: "B", name: "Blindern" } },
+    toPlace: { name: "Nationaltheatret", quay: { id: "N", name: "Nationaltheatret" } },
+    aimedStartTime: "2026-11-25T14:09:00+01:00", aimedEndTime: "2026-11-25T14:14:00+01:00",
+    expectedStartTime: "2026-11-25T14:09:00+01:00", expectedEndTime: "2026-11-25T14:15:00+01:00",
+    intermediateQuays: [{ id: "M", name: "Majorstuen" }],
+    serviceJourney: { id: "RUT:ServiceJourney:x", passingTimes: [
+      pt("N", "13:48:00"), pt("M", "13:51:00"), pt("B", "14:09:00"), pt("M", "14:12:00"), pt("N", "14:14:00"), pt("S", "14:16:00"),
+    ] },
+  };
+  assert.equal(legEndPassing(l, "departure")?.time, "14:09:00");
+  assert.equal(legEndPassing(l, "arrival")?.time, "14:14:00");
+  const hm = legStops(l).map((s) => s.aimedTime && new Date(s.aimedTime).toLocaleTimeString("en-GB", { timeZone: "Europe/Oslo", hour: "2-digit", minute: "2-digit" }));
+  assert.deepEqual(hm, ["14:09", "14:12", "14:14"]);
+  // Samme legg forskjøvet (UTC-tider, som shiftPatternLeg lager)
+  const u = { ...l, aimedStartTime: "2026-11-25T13:09:00.000Z", aimedEndTime: "2026-11-25T13:14:00.000Z" };
+  assert.equal(legEndPassing(u, "arrival")?.time, "14:14:00");
 });
 
 console.log(`${n} tester ok`);

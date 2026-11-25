@@ -149,9 +149,10 @@ Scheduler på denne PC-en, 05:00 daglig (eller når PC-en våkner):
    <del> --prune` for hvert steg: `transfer` (lastes opp SAMMEN med
    ukefilene: `--only parquet,transfer`) → `summary` (Oversikt/Topplister) →
    `stops` (Stoppanalyse) → `names`. Ukefilene venter på overgangsfilene fordi
-   reiseplanleggeren faller tilbake til DuckDB når manifestet har en nyere dag
-   enn `transfer/index.json` (`transferCovers`). Feiler overgangssteget, lastes
-   ukefilene opp alene.
+   reiseplanleggeren faller tilbake til DuckDB når manifestet er mer enn
+   `TRANSFER_MAX_LAG_DAYS` (2) dager nyere enn `transfer/index.json`
+   (`transferCovers`). Feiler overgangssteget, lastes ukefilene opp alene —
+   før 2026-11-25 sendte det ALL statistikk til DuckDB allerede etter én dag.
 3. `--skip-fresh` (`.aggregate_state.json` i PARQUET_DIR) hopper over steg som
    alt er bygget fra de samme ukefilene, så en avbrutt kjøring fortsetter.
 Et steg som feiler stopper ikke de andre; natten meldes som feilet til slutt.

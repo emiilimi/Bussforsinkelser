@@ -108,24 +108,97 @@ export type DuckQueryFn = <T = Record<string, unknown>>(
   options?: QueryOptions,
 ) => Promise<T[]>;
 
+const OSLO_HM = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Oslo", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+/** ISO-tid → minutter siden midnatt i norsk tid (passingTimes er norsk lokal
+ *  tid; leggtidene kan være med offset ELLER i UTC etter shiftPatternLeg). */
+function isoLocalMin(iso: string | undefined | null): number | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const [h, m] = OSLO_HM.format(d).split(":").map(Number);
+  return h * 60 + m;
+}
+
+type PassingTime = NonNullable<TripLeg["serviceJourney"]>["passingTimes"][number];
+type TimeOfDay = { time: string; dayOffset: number | null };
+
+function todMin(t: TimeOfDay | null | undefined): number | null {
+  const [h, m] = t?.time?.split(":").map(Number) ?? [];
+  return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+}
+
+/**
+ * Indeksene i passingTimes for leggets påstigning og avstigning.
+ *
+ * IKKE `passingTimes.find(quay)` / et kart per quay: ringlinjer og
+ * sløyfebusser passerer samme plattform to ganger på samme avgang (T-bane 5
+ * er på Nationaltheatret 13:48 og 14:14). find tok den første passeringen, et
+ * kart den siste — begge ga gal rutetid, galt overgangsoppslag og en graf med
+ * tider som gikk baklengs. Påstigning = passeringen nærmest leggets rutetid,
+ * avstigning = første passering av målplattformen ETTER påstigningen.
+ */
+function legPassingRange(leg: TripLeg): { pts: PassingTime[]; from: number; to: number } | null {
+  const pts = leg.serviceJourney?.passingTimes ?? [];
+  const fromQ = leg.fromPlace.quay?.id;
+  const toQ = leg.toPlace.quay?.id;
+  if (!pts.length || !fromQ || !toQ) return null;
+  const nearest = (quay: string, target: number | null, kind: "arrival" | "departure", after = -1) => {
+    let best = -1;
+    let bestD = Infinity;
+    for (let i = after + 1; i < pts.length; i++) {
+      if (pts[i].quay?.id !== quay) continue;
+      const t = kind === "departure" ? (pts[i].departure ?? pts[i].arrival) : (pts[i].arrival ?? pts[i].departure);
+      const m = todMin(t);
+      const d = target == null || m == null ? 0 : aimedCircDist(m, target);
+      if (d < bestD) { best = i; bestD = d; }
+    }
+    return best;
+  };
+  const from = nearest(fromQ, isoLocalMin(leg.aimedStartTime ?? leg.expectedStartTime), "departure");
+  if (from < 0) return null;
+  let to = pts.findIndex((p, i) => i > from && p.quay?.id === toQ);
+  if (to < 0) to = nearest(toQ, isoLocalMin(leg.aimedEndTime ?? leg.expectedEndTime), "arrival");
+  if (to < 0) return null;
+  return { pts, from, to };
+}
+
+/** Rutetiden på leggets påstignings- (departure) eller avstigningsplattform
+ *  (arrival) — riktig passering også når plattformen besøkes to ganger. */
+export function legEndPassing(leg: TripLeg, kind: "arrival" | "departure"): TimeOfDay | null {
+  const r = legPassingRange(leg);
+  if (!r) return null;
+  const p = r.pts[kind === "departure" ? r.from : r.to];
+  return kind === "departure" ? (p.departure ?? p.arrival) : (p.arrival ?? p.departure);
+}
+
 /** Alle stopp langs et transit-legg (første + mellomliggende + siste), med
  *  rutetid (ISO) fra serviceJourney.passingTimes der den finnes. */
 export function legStops(leg: TripLeg): StopEntry[] {
-  const passingTimeMap = new Map<string, string>();
-  if (leg.serviceJourney?.passingTimes?.length) {
-    const baseDate = leg.expectedStartTime.slice(0, 10); // YYYY-MM-DD
-    for (const pt of leg.serviceJourney.passingTimes) {
-      if (!pt.quay?.id) continue;
-      const td = pt.departure ?? pt.arrival;
-      if (!td?.time) continue;
-      // time er "HH:MM:SS", dayOffset 0/1 for over midnatt
-      const [hStr, mStr, sStr] = td.time.split(":");
-      const dateObj = new Date(`${baseDate}T00:00:00`);
-      dateObj.setDate(dateObj.getDate() + (td.dayOffset ?? 0));
-      dateObj.setHours(parseInt(hStr, 10), parseInt(mStr, 10), parseInt(sStr ?? "0", 10));
-      passingTimeMap.set(pt.quay.id, dateObj.toISOString());
+  const baseDate = leg.expectedStartTime.slice(0, 10); // YYYY-MM-DD
+  const toIso = (td: TimeOfDay | null | undefined): string | null => {
+    if (!td?.time) return null;
+    // time er "HH:MM:SS", dayOffset 0/1 for over midnatt
+    const [hStr, mStr, sStr] = td.time.split(":");
+    const dateObj = new Date(`${baseDate}T00:00:00`);
+    dateObj.setDate(dateObj.getDate() + (td.dayOffset ?? 0));
+    dateObj.setHours(parseInt(hStr, 10), parseInt(mStr, 10), parseInt(sStr ?? "0", 10));
+    return dateObj.toISOString();
+  };
+  // Mellomstoppene tas i rekkefølge fra leggets egen strekning av avgangen,
+  // ikke fra et kart per plattform (se legPassingRange).
+  const range = legPassingRange(leg);
+  const midTimes: Array<string | null> = leg.intermediateQuays.map(() => null);
+  if (range) {
+    let j = 0;
+    for (let i = range.from + 1; i < range.to && j < leg.intermediateQuays.length; i++) {
+      const p = range.pts[i];
+      if (p.quay?.id !== leg.intermediateQuays[j].id) continue;
+      midTimes[j++] = toIso(p.departure ?? p.arrival);
     }
   }
+  const endIso = (kind: "arrival" | "departure") => toIso(legEndPassing(leg, kind));
   const entry = (q: Quay, aimedTime: string | null): StopEntry => ({
     id: q.id,
     name: q.name,
@@ -136,11 +209,11 @@ export function legStops(leg: TripLeg): StopEntry[] {
   });
   return [
     leg.fromPlace.quay
-      ? entry(leg.fromPlace.quay, passingTimeMap.get(leg.fromPlace.quay.id) ?? leg.expectedStartTime)
+      ? entry(leg.fromPlace.quay, endIso("departure") ?? leg.expectedStartTime)
       : null,
-    ...leg.intermediateQuays.map((q) => entry(q, passingTimeMap.get(q.id) ?? null)),
+    ...leg.intermediateQuays.map((q, j) => entry(q, midTimes[j])),
     leg.toPlace.quay
-      ? entry(leg.toPlace.quay, passingTimeMap.get(leg.toPlace.quay.id) ?? leg.expectedEndTime)
+      ? entry(leg.toPlace.quay, endIso("arrival") ?? leg.expectedEndTime)
       : null,
   ].filter(Boolean) as StopEntry[];
 }
@@ -343,6 +416,30 @@ function dirClause(sjId: string | null, quayRef: string | null): string {
 }
 
 /**
+ * Hvor langt rutetiden på en rad kan ligge fra leggets rutetid og fortsatt
+ * regnes som SAMME passering (minutter, døgnsikkert).
+ *
+ * Hvorfor: ringlinjer og sløyfebusser passerer samme plattform to ganger med
+ * samme avgangs-id (T-bane 5 er på Nationaltheatret 13:48 og 14:14). Ingest
+ * slår passeringene sammen til én rad med den FØRSTE rutetiden, så en ren
+ * id-match brukte gal passering og viste f.eks. ankomst 13:49 mot en avgang
+ * 14:21 — «100 %» hver dag. Med vernet faller slike overganger tilbake til
+ * nivå 2/3. Må være lik AIMED_MATCH_TOL_MIN-bruken i transfer-data.ts.
+ */
+export const AIMED_MATCH_TOL_MIN = 3;
+
+export function aimedCircDist(a: number, b: number): number {
+  const d = Math.abs(a - b) % 1440;
+  return Math.min(d, 1440 - d);
+}
+
+export function aimedNearClause(col: string, target: number | null): string {
+  if (target == null) return "";
+  const d = `ABS(${aimedMinExpr(col)} - ${Math.round(target)})`;
+  return `AND LEAST(${d} % 1440, 1440 - ${d} % 1440) <= ${AIMED_MATCH_TOL_MIN}`;
+}
+
+/**
  * Nivå 1 — BRUKERENS EGEN AVGANG, matchet på stabil avgangs-id.
  * day_type filtreres slik at f.eks. en onsdagsreise ikke plukker opp
  * lørdagsobservasjoner. Returnerer faktisk målte tider (date, gap, arr_min, dep_min).
@@ -360,6 +457,7 @@ export function sjGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.arrQuayRef)}'
         ${specWindow(s)}
         AND aimed_arrival IS NOT NULL AND delay_arrival_min IS NOT NULL
+        ${aimedNearClause("aimed_arrival", s.arrAimedMin)}
     ),
     dep AS (
       SELECT date, ${aimedMinExpr("aimed_departure")} + delay_departure_min AS actual_dep_min
@@ -368,6 +466,7 @@ export function sjGapSql(s: TransferSpec): string | null {
         AND stop_ref = '${escSql(s.depQuayRef)}'
         ${specWindow(s)}
         AND aimed_departure IS NOT NULL AND delay_departure_min IS NOT NULL
+        ${aimedNearClause("aimed_departure", s.depAimedMin)}
     )
     SELECT arr.date AS date,
            ${midnightSafeGap(gap)} AS gap,

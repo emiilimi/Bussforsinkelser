@@ -5,6 +5,43 @@
 
 **Sist oppdatert**: 2026-11-25
 
+## Endringslogg — 2026-11-25 (4): ringlinjer, plan-grafen og linjevelgeren (`feat/reise-modell`)
+
+**Feil fra Emilie (skjermbilder):** overgangsanalysen linje 5 → R13 på
+Nationaltheatret viste «ankomst 13:49» hver dag mot en planlagt ankomst 14:14,
+margin +30 min og 100 %. Årsak: T-bane 5 passerer Nationaltheatret, Majorstuen
+og Stortinget TO ganger på samme avgang (13:48 og 14:14). To feil forsterket
+hverandre:
+1. Appen slo opp rutetiden med `passingTimes.find(quay)` (første passering) og
+   grafen med et kart per quay (siste passering). Nå: `legPassingRange()` /
+   `legEndPassing()` i `trip-shared.ts` — påstigning = passeringen nærmest
+   leggets rutetid, avstigning = første passering etter påstigningen,
+   mellomstopp i rekkefølge. Brukt i overgangs-spec, legg-tider, graf og
+   «hvor full er bussen».
+2. Ingest slår sammen passeringene til ÉN rad per (dato, avgang, quay) med
+   første rutetid og SNITT av forsinkelsene. «Din avgang» (stabil id) matchet
+   dermed gal passering. Vern: raden må ha rutetid innen ±3 min
+   (`AIMED_MATCH_TOL_MIN`, døgnsikkert) av leggets — i `sjGapSql`, i
+   overgangsfilenes «S»-sti og i legg-tid-oppslaget (SQL + filer).
+   Paritetssjekken: 95/95, 190/190, 285/285. **Ikke løst i dataene:**
+   passeringene er fortsatt slått sammen i `journey_stop_daily`; krever
+   endring av ingest/PK.
+
+**Plan-grafen** (reiseplanleggerens plan-tre) trakk én sammenhengende kurve
+gjennom alle legg. Fallet ved et bytte (neste buss starter i rute) så ut som at
+toget «tok igjen» forsinkelsen. Nå én kurve per legg + forklaring i klartekst.
+«Ingen observasjoner» ble vist mens statistikken ennå lastet — nå «henter …».
+
+**Nattjobben 25.11:** overgangssteget ble drept to ganger (omgangene ble
+tregere: 149 → 522 → 911 s; PC-en sov og/eller annen DuckDB-last samtidig), og
+ukefilene for 24.11 gikk ut alene. Da falt ALL reisestatistikk til DuckDB.
+`transferCovers` tåler nå `TRANSFER_MAX_LAG_DAYS = 2` dagers etterslep.
+
+**Linjevelgeren** i Linjeanalyse var 1957 px bred over hele skjermen:
+`w-[--radix-popover-trigger-width]` er Tailwind 3-syntaks og gir ugyldig CSS i
+Tailwind 4. Byttet `-[--x]` → `-[var(--x)]` overalt (også shadcn-komponentene
+select/popover/tooltip/kalender, der høyde- og breddegrenser var stille borte).
+
 ## Endringslogg — 2026-11-25 (3): linjefiler for Linjeanalyse (`feat/reise-modell`)
 
 **Målt først** (lokalt mot R2, samme data som produksjon): /reise full visning

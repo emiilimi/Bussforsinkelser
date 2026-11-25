@@ -23,9 +23,12 @@ type ChartPoint = {
   p80: number | null;
   p95: number | null;
   n: number | null;
-  // Stablet bånd P50→P80 (Recharts-triks: transparent base + synlig range)
-  bandBase: number | null;
-  bandRange: number | null;
+  legNo: number;
+  /** Seriene per legg: p50_<legNo>, p80_<legNo>, p95_<legNo>, base_/range_<legNo>
+   *  (stablet bånd P50→P80). Hvert legg er et eget kjøretøy og får sin EGEN
+   *  kurve — én sammenhengende kurve så ut som at toget «tok igjen» forsinkelsen
+   *  når det egentlig var neste buss som startet i rute (2026-11-25). */
+  [series: string]: number | string | boolean | null;
 };
 
 function fmtHM(iso: string): string {
@@ -67,15 +70,20 @@ function DelayTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 export function PlanDelayChart({
   pattern,
   stats,
+  loading = false,
 }: {
   pattern: TripPattern;
   stats: Map<string, DuckDelayRow> | undefined;
+  /** Statistikken er ikke hentet ennå — vis det, ikke «ingen data». */
+  loading?: boolean;
 }) {
   const data = useMemo<ChartPoint[]>(() => {
     const out: ChartPoint[] = [];
+    let legNo = -1;
     for (const leg of pattern.legs) {
       if (leg.mode === "foot" || !leg.line?.id || !MODES_WITH_DELAY_DATA.has(leg.mode)) continue;
       const stops = legStops(leg);
+      legNo++;
       for (let i = 0; i < stops.length; i++) {
         const s = stops[i];
         const row = stats?.get(`${s.id}|${leg.line.id}`);
@@ -92,8 +100,12 @@ export function PlanDelayChart({
           aimedIso: s.aimedTime,
           p50, p80, p95,
           n: row?.n ?? null,
-          bandBase: p50 != null && p80 != null ? p50 : null,
-          bandRange: p50 != null && p80 != null ? p80 - p50 : null,
+          legNo,
+          [`p50_${legNo}`]: p50,
+          [`p80_${legNo}`]: p80,
+          [`p95_${legNo}`]: p95,
+          [`base_${legNo}`]: p50 != null && p80 != null ? p50 : null,
+          [`range_${legNo}`]: p50 != null && p80 != null ? p80 - p50 : null,
         });
       }
     }
@@ -101,7 +113,15 @@ export function PlanDelayChart({
   }, [pattern, stats]);
 
   const hasAnyData = data.some((d) => d.p50 != null || d.p80 != null);
+  const legNos = Array.from(new Set(data.map((d) => d.legNo)));
   if (data.length < 2) return null;
+  if (!hasAnyData && loading) {
+    return (
+      <p className="text-[10px] text-muted-foreground/70 italic py-2 animate-pulse">
+        Henter historikk for grafen …
+      </p>
+    );
+  }
   if (!hasAnyData) {
     return (
       <p className="text-[10px] text-muted-foreground/60 italic py-2">
@@ -159,20 +179,27 @@ export function PlanDelayChart({
                 }}
               />
             ))}
-            {/* P50→P80-bånd */}
-            <Area type="monotone" dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} connectNulls />
-            <Area type="monotone" dataKey="bandRange" stackId="band" stroke="none" fill="#ef4444" fillOpacity={0.10} legendType="none" isAnimationActive={false} connectNulls />
-            <Line type="monotone" dataKey="p95" stroke="#8b5cf6" strokeWidth={1} strokeDasharray="3 2" dot={false} isAnimationActive={false} connectNulls />
-            <Line type="monotone" dataKey="p80" stroke="#ef4444" strokeWidth={1.5} dot={{ r: 1.5 }} isAnimationActive={false} connectNulls />
-            <Line type="monotone" dataKey="p50" stroke="#f59e0b" strokeWidth={2} dot={{ r: 1.5 }} isAnimationActive={false} connectNulls />
+            {/* Én kurve per legg. connectNulls bygger bro over stopp uten data
+                INNE i et legg; de andre leggenes punkter er null i serien, så
+                kurven går aldri over et bytte. */}
+            {legNos.flatMap((k) => [
+              <Area key={`b${k}`} type="monotone" dataKey={`base_${k}`} stackId={`band${k}`} stroke="none" fill="transparent" legendType="none" isAnimationActive={false} connectNulls />,
+              <Area key={`r${k}`} type="monotone" dataKey={`range_${k}`} stackId={`band${k}`} stroke="none" fill="#ef4444" fillOpacity={0.10} legendType="none" isAnimationActive={false} connectNulls />,
+              <Line key={`9${k}`} type="monotone" dataKey={`p95_${k}`} stroke="#8b5cf6" strokeWidth={1} strokeDasharray="3 2" dot={false} isAnimationActive={false} connectNulls />,
+              <Line key={`8${k}`} type="monotone" dataKey={`p80_${k}`} stroke="#ef4444" strokeWidth={1.5} dot={{ r: 1.5 }} isAnimationActive={false} connectNulls />,
+              <Line key={`5${k}`} type="monotone" dataKey={`p50_${k}`} stroke="#f59e0b" strokeWidth={2} dot={{ r: 1.5 }} isAnimationActive={false} connectNulls />,
+            ])}
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 2" strokeOpacity={0.5} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      <p className="text-[9px] text-muted-foreground/60 italic">
-        Forsinkelse per stopp langs ruten (x-aksen = rutetid). <span className="text-amber-500">P50</span>,{" "}
-        <span className="text-red-500">P80</span> og <span className="text-violet-500">P95</span> fra historiske
-        observasjoner; skyggen viser spennet P50–P80. Stiplede vertikale linjer = bytte av linje.
+      <p className="text-[10px] text-muted-foreground/80 leading-snug mt-1">
+        Hvor mange minutter etter rutetid linja pleier å være ved hvert stopp.{" "}
+        <span className="text-amber-500">Oransje</span>: vanlig dag (halvparten er senere).{" "}
+        <span className="text-red-500">Rød</span>: dårlig dag (4 av 5 er innenfor).{" "}
+        <span className="text-violet-500">Lilla</span>: verste 1 av 20.
+        Hvert legg er et eget kjøretøy med egen kurve — starter neste kurve lavere, er det
+        neste buss/tog som pleier å gå i rute, ikke at du tar igjen tid.
       </p>
     </div>
   );

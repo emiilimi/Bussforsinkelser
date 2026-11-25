@@ -26,6 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PARQUET_BASE, latestDataDate } from "@/hooks/use-parquet-query";
 import { crc32 } from "@/lib/stop-detail";
 import type { DuckDelayRow, ResolvedStatsWindow, TransferSpec } from "@/lib/trip-shared";
+import { AIMED_MATCH_TOL_MIN, aimedCircDist } from "@/lib/trip-shared";
 
 export type TransferIndex = {
   v: number;
@@ -152,11 +153,28 @@ function operatorOf(lineRef: string): string {
 }
 
 /**
+ * Hvor mange dager overgangsfilene kan ligge bak ukefilene og fortsatt brukes.
+ *
+ * Før 2026-11-25 var kravet null dager: feilet overgangssteget én natt (det
+ * ble drept to ganger 25.11), ble ukefilene lastet opp alene, og ALL
+ * statistikk i reiseplanleggeren falt over på DuckDB (40–110 s) — for å få
+ * med én dag av 30. Statistikk som mangler den nyeste dagen er langt bedre
+ * enn ingen statistikk på et halvt minutt. Ved større etterslep: DuckDB.
+ */
+export const TRANSFER_MAX_LAG_DAYS = 2;
+
+function addDaysIso(iso: string, n: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
  * Dekker filene dette vinduet og disse linjene? Vinduet må ha en startdato
  * innenfor filenes periode (standardvinduet «samme dagtype, siste 30 dager»
  * og «Siste 7/30 dager» gjør det; «Alle hverdager» og «Siste 90 dager» ikke).
- * `latest` er siste datadag i parquet: er filene eldre enn den (pipelinen
- * feilet halvveis), brukes DuckDB så ingen dager faller stille ut.
+ * `latest` er siste datadag i parquet: er filene mer enn
+ * TRANSFER_MAX_LAG_DAYS eldre enn den (pipelinen feilet), brukes DuckDB.
  */
 export function transferCovers(
   idx: TransferIndex | null,
@@ -168,7 +186,7 @@ export function transferCovers(
   if (window.dateFrom < idx.from) return false;
   // Uten eksplisitt dato: siste datadag fra parquet-manifestet, hvis lest.
   const newest = latest === undefined ? latestDataDate("by-stop") : latest;
-  if (newest && newest > idx.to) return false;
+  if (newest && newest > addDaysIso(idx.to, TRANSFER_MAX_LAG_DAYS)) return false;
   for (const l of lineRefs) {
     if (!l) return false;
     if (idx.operators.includes(operatorOf(l))) continue;
@@ -318,8 +336,12 @@ export async function localTransferGapRows(
   if (s.arrSjId && s.depSjId) {
     const ka = stableKey(s.arrSjId);
     const kd = stableKey(s.depSjId);
-    const arr = sideObs(A, "arr", okA, (g) => g[2] === ka);
-    const dep = sideObs(D, "dep", okD, (g) => g[2] === kd).map(toA);
+    // Samme passering: rutetiden må stemme med legget (aimedNearClause i
+    // sjGapSql) — ringlinjer passerer samme plattform to ganger med samme id.
+    const near = (aimed: number | null, target: number | null) =>
+      target == null || (aimed != null && aimedCircDist(aimed, target) <= AIMED_MATCH_TOL_MIN);
+    const arr = sideObs(A, "arr", okA, (g) => g[2] === ka && near(g[3], s.arrAimedMin));
+    const dep = sideObs(D, "dep", okD, (g) => g[2] === kd && near(g[4], s.depAimedMin)).map(toA);
     for (const [a, d] of joinByDate(arr, dep)) {
       const am = a.aimed + a.delay;
       const dm = d.aimed + d.delay;
@@ -419,6 +441,8 @@ export type LocalLegTimingSpec = {
   lineRef: string;
   kind: "dep" | "arr";
   aimedHour: number;
+  /** Se LegTimingSpec.aimedMin i trip-planner.tsx (aimedNearClause). */
+  aimedMin?: number | null;
   window: ResolvedStatsWindow;
 };
 
@@ -447,6 +471,10 @@ export async function localLegTiming(
   for (const g of qd.groups) {
     if (delta == null) {
       if (g[2] !== key) continue;
+      if (s.aimedMin != null) {
+        const a = s.kind === "dep" ? g[4] : g[3];
+        if (a == null || aimedCircDist(a, s.aimedMin) > AIMED_MATCH_TOL_MIN) continue;
+      }
     } else {
       if (qd.shard.L[g[0]] !== s.lineRef) continue;
       const aimed = s.kind === "dep" ? g[4] : g[3];

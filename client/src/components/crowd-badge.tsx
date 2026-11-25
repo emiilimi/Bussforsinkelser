@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { TapTip } from "@/components/tap-tip";
 import { cn } from "@/lib/utils";
 import { computeDayType } from "@/lib/day-type";
-import type { TripLeg } from "@/lib/trip-shared";
+import { legEndPassing, type TripLeg } from "@/lib/trip-shared";
 import {
   PAX_ENABLED, PAX_SOURCE, isPaxOperator, lineOperator, usePaxLine, legLoad, crowdLevel, formatMonthLong, paxDepKey,
   type PaxLine,
@@ -11,9 +11,7 @@ import {
 
 /** Planlagt avgang fra påstigningsstoppet, som Date (fra passingTimes). */
 function aimedStartOf(leg: TripLeg): Date {
-  const q = leg.fromPlace.quay?.id;
-  const pt = q ? leg.serviceJourney?.passingTimes.find((p) => p.quay?.id === q) : undefined;
-  const t = pt?.departure?.time ?? pt?.arrival?.time;
+  const t = legEndPassing(leg, "departure")?.time;
   const d = new Date(leg.expectedStartTime);
   if (t) {
     const [h, m] = t.split(":").map(Number);
