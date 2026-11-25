@@ -43,6 +43,7 @@ client/src/
     pax.ts                 Passasjertall: typer, hooks, paxDepKey(), legLoad(), crowdLevel(), PAX_ENABLED
     transfer-data.ts       Overgangsfiler fra R2: overgangs-gap, persentiler og legg-tider uten DuckDB
     trip-model.ts          Overgangs-/ankomstmodell: kildebelagte linjer (Bybanen), marginal-estimat, blanding m/ plan B, beslutningsregel
+    live-model.ts          Sanntid: legg med realtime bruker Enturs prognose + målt prognosefeil (PROGNOSIS_ERROR), ikke historikk oppå; uten sanntid forankres historikken i rutetiden (aimed*)
     trip-shared.ts         Delte trip-typer + overgangs-gap-SQL (specific/fallback UNION), legStops(), probFromGaps()
     queryClient.ts         React Query config + apiRequest() wrapper
     RegionContext.tsx       Region/operator state (localStorage-persist)

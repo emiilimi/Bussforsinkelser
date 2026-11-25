@@ -145,6 +145,8 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
         tripPatterns {
           expectedStartTime
           expectedEndTime
+          aimedStartTime
+          aimedEndTime
           duration
           legs {
             mode
@@ -154,6 +156,9 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
             line { id publicCode name }
             expectedStartTime
             expectedEndTime
+            aimedStartTime
+            aimedEndTime
+            realtime
             duration
             distance
             pointsOnLink { points }

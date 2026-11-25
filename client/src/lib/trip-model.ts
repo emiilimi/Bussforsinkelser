@@ -218,6 +218,9 @@ export type TransferBasis =
   | "marginal"
   /** Byttet er til/fra en linje med kildebelagt pålitelighet */
   | "reference"
+  /** Minst ett av leggene har sanntid: Enturs prognose + prognosefeilen
+   *  (lib/live-model). Historikken vet ikke hvordan det går i dag. */
+  | "live"
   /** Ingenting å regne på */
   | "none";
 

@@ -12,6 +12,7 @@
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "test:pax": "tsx script/test-pax.ts",
+    "test:live": "tsx script/test-live.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

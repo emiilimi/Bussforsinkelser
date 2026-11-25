@@ -61,6 +61,7 @@ import {
   transferProbFromMarginals, blendTransfer, lowerBound, mixtureCdf, mixtureQuantile,
   decisionCost, MIN_ON_TIME, frequencyWords, MARGINAL_PRIOR_DAYS,
 } from "@/lib/trip-model";
+import { isLive, anchoredGrid, anchoredMinutes, LIVE_NEFF } from "@/lib/live-model";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -494,6 +495,7 @@ function transferBasisTitle(transfers: TransferInfo[]): string {
       case "blend": return `${name}: ${t.daysObserved} målte dager, supplert med hvor presise linjene er hver for seg.`;
       case "marginal": return `${name}: ingen felles målinger – anslått ut fra hvor presise linjene er hver for seg.`;
       case "reference": return `${name}: ${t.model.reference?.name ?? "linjen"} regnes etter ${t.model.reference?.source ?? "kilde"}.`;
+      case "live": return `${name}: ut fra sanntid – Enturs prognose og hvor mye prognosene vanligvis bommer.`;
       default: return `${name}: mangler data.`;
     }
   });
@@ -669,10 +671,16 @@ function shiftPatternLeg(
     (new Date(newStartIso).getTime() - new Date(leg.expectedStartTime).getTime()) / 60000;
   if (deltaMin === 0 && (!newSjId || newSjId === leg.serviceJourney?.id)) return pattern;
 
+  const newStart = addMinutesToIso(leg.expectedStartTime, deltaMin);
+  const newEnd = addMinutesToIso(leg.expectedEndTime, deltaMin);
   const newLeg: TripLeg = {
     ...leg,
-    expectedStartTime: addMinutesToIso(leg.expectedStartTime, deltaMin),
-    expectedEndTime: addMinutesToIso(leg.expectedEndTime, deltaMin),
+    expectedStartTime: newStart,
+    expectedEndTime: newEnd,
+    // En annen avgang: sanntiden til den gamle gjelder ikke. Regnes som rutetid.
+    aimedStartTime: newStart,
+    aimedEndTime: newEnd,
+    realtime: false,
     serviceJourney: leg.serviceJourney
       ? {
           id: newSjId ?? leg.serviceJourney.id,
@@ -1734,20 +1742,30 @@ function TransferAnalysisDialog({
             ) : (
               <> (ingen gange nødvendig).</>
             )}{" "}
-            {info.model.basis === "marginal" || info.model.basis === "reference"
-              ? "Ingen felles målinger av de to avgangene — anslått ut fra hver side for seg."
-              : "Sannsynlighetene telles opp dag for dag i historikken — ingen simulering."}
+            {info.model.basis === "live"
+              ? "Regnet ut fra sanntid, ikke historikk."
+              : info.model.basis === "marginal" || info.model.basis === "reference"
+                ? "Ingen felles målinger av de to avgangene — anslått ut fra hver side for seg."
+                : "Sannsynlighetene telles opp dag for dag i historikken — ingen simulering."}
           </DialogDescription>
         </DialogHeader>
 
-        {info.probs.default >= 0 && (info.model.basis === "marginal" || info.model.basis === "reference") ? (
+        {info.probs.default >= 0 && (info.model.basis === "marginal" || info.model.basis === "reference" || info.model.basis === "live") ? (
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Rekker byttet (2 min margin):</span>
               {probabilityBadge(info.probs.default)}
               <span className="text-muted-foreground">· {transferMarginMin} min: {Math.round(info.probs.user * 100)} %</span>
             </div>
-            {info.model.basis === "reference" && info.model.reference ? (
+            {info.model.basis === "live" ? (
+              <p className="text-[11px] leading-snug">
+                <strong>Sanntid.</strong> Entur har prognoser for {info.fromLine ?? "bussen inn"}
+                {" "}eller {info.toLine ?? "bussen ut"} akkurat nå, og gapet over bygger på dem. Prognosene
+                bommer: omtrent halvparten treffer innen ett minutt, og cirka hver femte buss går mer enn
+                ett minutt <em>tidligere</em> enn skjermen sier. Det er regnet med her. Hvordan byttet
+                pleier å gå en vanlig dag, brukes ikke, siden vi vet hvordan det går i dag.
+              </p>
+            ) : info.model.basis === "reference" && info.model.reference ? (
               <p className="text-[11px] leading-snug">
                 {referenceSentence(info.model.reference)}{" "}
                 Vi regner {info.model.reference.name} som i rute og ser på hvor ofte den andre siden av byttet
@@ -2008,14 +2026,20 @@ function PlanNodeDetails({
         }
         const depStat = leg.line?.id ? stats?.get(`${leg.fromPlace.quay?.id}|${leg.line.id}`) : null;
         const arrStat = leg.line?.id ? stats?.get(`${leg.toPlace.quay?.id}|${leg.line.id}`) : null;
-        const estDep = depStat?.p50_dep != null
-          ? formatTime(addMinutesToIso(leg.expectedStartTime, depStat.p50_dep))
+        // Historikken er målt mot rutetid. Med sanntid er expected allerede en
+        // prognose: da vises prognosen + prognosefeilen, ikke historikken oppå.
+        const live = isLive(leg);
+        const depMin = anchoredMinutes(leg, "start", depStat?.p50_dep);
+        const arrMin = anchoredMinutes(leg, "end", arrStat?.p50_arr);
+        const arr80 = anchoredMinutes(leg, "end", arrStat?.p80_arr, 0.8);
+        const estDep = depMin != null && (!live || Math.abs(depMin) >= 0.5)
+          ? formatTime(addMinutesToIso(leg.expectedStartTime, depMin))
           : null;
-        const estArr = arrStat?.p50_arr != null
-          ? formatTime(addMinutesToIso(leg.expectedEndTime, arrStat.p50_arr))
+        const estArr = arrMin != null && (!live || Math.abs(arrMin) >= 0.5)
+          ? formatTime(addMinutesToIso(leg.expectedEndTime, arrMin))
           : null;
-        const p80Arr = arrStat?.p80_arr != null
-          ? formatTime(addMinutesToIso(leg.expectedEndTime, arrStat.p80_arr))
+        const p80Arr = arr80 != null
+          ? formatTime(addMinutesToIso(leg.expectedEndTime, arr80))
           : null;
         const hasData = MODES_WITH_DELAY_DATA.has(leg.mode) && !!leg.line?.id;
         return (
@@ -2026,6 +2050,7 @@ function PlanNodeDetails({
                 {leg.line?.publicCode ?? modeLabel(leg.mode)}
               </Badge>
               <span className="font-mono tabular-nums">{formatTime(leg.expectedStartTime)}</span>
+              {live && <span className="text-[9px] text-emerald-600 dark:text-emerald-400" title="Entur har sanntid for dette legget: tidene er prognosen, ikke rutetiden">sanntid</span>}
               {estDep && <span className="font-mono text-amber-500">~{estDep}</span>}
               <span className="text-muted-foreground truncate max-w-32">{leg.fromPlace.name}</span>
               <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
@@ -2037,7 +2062,7 @@ function PlanNodeDetails({
             {!hasData && (
               <div className="text-muted-foreground/60 italic ml-1">mangler forsinkelsesdata</div>
             )}
-            {hasData && !estDep && !estArr && (
+            {hasData && !live && !estDep && !estArr && (
               <div className="text-muted-foreground/60 italic ml-1">
                 ingen observasjoner for denne linjen ved disse stoppene ennå
               </div>
@@ -2046,7 +2071,8 @@ function PlanNodeDetails({
         );
       })}
       <p className="text-[9px] text-muted-foreground/60 italic">
-        ~tid = rutetid + median historisk forsinkelse (P50). P80 = tiden 4 av 5
+        ~tid = rutetid + median historisk forsinkelse (P50). Med sanntid: Enturs
+        prognose + hvor mye prognosene vanligvis bommer. P80 = tiden 4 av 5
         avganger er innenfor.
       </p>
     </div>
@@ -2103,7 +2129,8 @@ function TransferFallbacks({
     return duckStats?.get(`${quay}|${line}`)?.p80_arr ?? null;
   }, [legA, duckStats]);
 
-  const delayAssumptionMin = Math.max(p80ArrDelay ?? 5, 0);
+  // Fra expected: med sanntid er dagens forsinkelse alt med, og bare prognosefeilen legges til.
+  const delayAssumptionMin = Math.max(anchoredMinutes(legA, "end", p80ArrDelay ?? 5, 0.8) ?? 0, 0);
   const missArrivalIso = useMemo(
     () => addMinutesToIso(legA.expectedEndTime, delayAssumptionMin + walkMin),
     [legA.expectedEndTime, delayAssumptionMin, walkMin],
@@ -2405,7 +2432,8 @@ function TripCard({
   // ---------- Per-SJ estimated departure/arrival times ----------
   const legTimingSpecs = useMemo<LegTimingSpec[]>(() => {
     const dayType = computeDayType(pattern.expectedStartTime);
-    const aimedHour = new Date(pattern.expectedStartTime).getHours();
+    // Rutetid, ikke prognose: historikken er sortert på planlagt time.
+    const aimedHour = new Date(pattern.aimedStartTime ?? pattern.expectedStartTime).getHours();
     const specs: LegTimingSpec[] = [];
     let firstTransit = true;
     for (let i = 0; i < pattern.legs.length; i++) {
@@ -2505,12 +2533,20 @@ function TripCard({
         ? duckStats?.get(`${legA.toPlace.quay.id}|${legA.line.id}`) : undefined;
       const statB = legB.fromPlace.quay?.id && legB.line?.id
         ? duckStats?.get(`${legB.fromPlace.quay.id}|${legB.line.id}`) : undefined;
+      // Fordelingene måles fra EXPECTED-tiden (totalGap er expected B − expected A):
+      // uten sanntid er det rutetiden, med sanntid prognosen + prognosefeilen
+      // (lib/live-model). Før 2026-11-25 ble historikken lagt oppå en prognose
+      // som allerede inneholdt dagens forsinkelse.
+      const liveA = isLive(legA);
+      const liveB = isLive(legB);
       const arrGrid = refA
         ? referenceGrid(refA)
-        : statA ? quantileGrid(statA.p50_arr ?? statA.p50_dep, statA.p80_arr ?? statA.p80_dep, statA.p95_arr ?? statA.p95_dep) : null;
+        : anchoredGrid(legA, "end",
+          statA ? quantileGrid(statA.p50_arr ?? statA.p50_dep, statA.p80_arr ?? statA.p80_dep, statA.p95_arr ?? statA.p95_dep) : null);
       const depGrid = refB
         ? ZERO_GRID
-        : statB ? quantileGrid(statB.p50_dep ?? statB.p50_arr, statB.p80_dep ?? statB.p80_arr, statB.p95_dep ?? statB.p95_arr) : null;
+        : anchoredGrid(legB, "start",
+          statB ? quantileGrid(statB.p50_dep ?? statB.p50_arr, statB.p80_dep ?? statB.p80_arr, statB.p95_dep ?? statB.p95_arr) : null);
       // Innstilt B (kildens regularitet) = du står igjen og tar neste.
       const margProb = (need: number) => {
         const p = transferProbFromMarginals(totalGap, need, arrGrid, depGrid);
@@ -2529,8 +2565,9 @@ function TripCard({
       // men overgangsfilene slår opp på linje/stopp og fant dataene.
       const hasMeasuredGaps =
         (gapResult?.actual.gaps.length ?? 0) + (gapResult?.pool.gaps.length ?? 0) > 0;
+      // Sanntid på ett av leggene gir et estimat selv uten historikk.
       const hasDelayData =
-        (MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id) || hasMeasuredGaps;
+        (MODES_WITH_DELAY_DATA.has(legA.mode) && !!legA.line?.id) || hasMeasuredGaps || liveA || liveB;
       const assumingOnTime = !hasDelayData;
       const gaps = gapResult?.gaps ?? [];
       const source = gapResult?.source ?? "none";
@@ -2564,6 +2601,14 @@ function TripCard({
           return p == null
             ? { p: -1, nEff: 0, basis: "none" as TransferBasis }
             : { p, nEff: REFERENCE_DAYS, basis: "reference" as TransferBasis };
+        }
+        // Sanntid: de målte dagene sier hvordan byttet går en VANLIG dag, men
+        // vi vet hvordan det går i dag. Bare prognosen + prognosefeilen teller.
+        if (liveA || liveB) {
+          const p = margProb(buf);
+          return p == null
+            ? { p: -1, nEff: 0, basis: "none" as TransferBasis }
+            : { p, nEff: LIVE_NEFF, basis: "live" as TransferBasis };
         }
         return blendTransfer(fShrunk(buf), nJoint, margProb(buf));
       };
@@ -2660,11 +2705,16 @@ function TripCard({
       return null;
     })();
 
-    const estDeparture = firstBusDelayDep != null
-      ? formatTime(addMinutesToIso(pattern.expectedStartTime, firstBusDelayDep))
+    // Historikken er målt mot rutetid; expected kan være en prognose (sanntid).
+    const firstTransit = pattern.legs.find((l) => l.mode !== "foot" && l.line?.id);
+    const lastTransit = [...pattern.legs].reverse().find((l) => l.mode !== "foot" && l.line?.id);
+    const depShift = firstTransit ? anchoredMinutes(firstTransit, "start", firstBusDelayDep) : firstBusDelayDep;
+    const arrShift = lastTransit ? anchoredMinutes(lastTransit, "end", lastBusDelayArr) : lastBusDelayArr;
+    const estDeparture = depShift != null
+      ? formatTime(addMinutesToIso(pattern.expectedStartTime, depShift))
       : null;
-    const estArrival = lastBusDelayArr != null
-      ? formatTime(addMinutesToIso(pattern.expectedEndTime, lastBusDelayArr))
+    const estArrival = arrShift != null
+      ? formatTime(addMinutesToIso(pattern.expectedEndTime, arrShift))
       : null;
 
     // Ankomsten som BLANDINGSFORDELING (lib/trip-model, endret 2026-11-11):
@@ -2720,6 +2770,11 @@ function TripCard({
           arrRes?.p80 ?? stat?.p80_arr ?? stat?.p80_dep,
           stat?.p95_arr ?? stat?.p95_dep,
         );
+      }
+      // Fra expected-tiden: sanntid → prognosefeilen, ellers historikken fra rutetid.
+      if (!ref) {
+        if (isLive(leg)) hasReal = true;
+        g = anchoredGrid(leg, "end", g);
       }
       if (!g && duckStats) missing.push(`${simpleModeWord(leg)}${leg.line?.publicCode ? ` ${leg.line.publicCode}` : ""}`);
       qA = maxGrid(qA, g);
@@ -5181,7 +5236,7 @@ export default function TripPlanner() {
               {/* Reiseforslag */}
               <div className="space-y-1">
                 <p className="font-medium text-foreground/80">Reiseforslag</p>
-                <p>Hentet fra Entur Journey Planner API v3 (NLOD 2.0). Tidene er planlagte rutetider fra Entur.</p>
+                <p>Hentet fra Entur Journey Planner API v3 (NLOD 2.0). Tidene er Enturs: sanntidsprognosen når avgangen har sanntid, ellers rutetiden.</p>
               </div>
 
               {/* Estimert tid */}
@@ -5189,7 +5244,7 @@ export default function TripPlanner() {
                 <p className="font-medium text-foreground/80 flex items-center gap-1">
                   <span className="text-amber-500 font-mono">~HH:MM</span> Estimert tid
                 </p>
-                <p>Rutetid + median historisk forsinkelse (P50) for avgangen ved det aktuelle stoppet. Regnet ut direkte i nettleseren din fra historiske data — ingen tall sendes til en server.</p>
+                <p>Uten sanntid: rutetid + median historisk forsinkelse (P50) for avgangen ved det aktuelle stoppet. Med sanntid: Enturs prognose, justert for hvor mye prognosene vanligvis bommer — historikken legges ikke oppå, for prognosen vet allerede om bussen er sen i dag. Regnet ut direkte i nettleseren din — ingen tall sendes til en server.</p>
               </div>
 
               {/* Sannsynlighet for overgang */}

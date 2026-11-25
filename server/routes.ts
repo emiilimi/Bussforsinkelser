@@ -912,6 +912,8 @@ export async function registerRoutes(
           tripPatterns {
             expectedStartTime
             expectedEndTime
+            aimedStartTime
+            aimedEndTime
             duration
             legs {
               mode
@@ -931,6 +933,9 @@ export async function registerRoutes(
               }
               expectedStartTime
               expectedEndTime
+              aimedStartTime
+              aimedEndTime
+              realtime
               duration
               distance
               pointsOnLink { points }

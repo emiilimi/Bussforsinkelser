@@ -3,7 +3,30 @@
 > **Hensikt**: Én levende kilde for prosjektets status, datakilder, API, kjente svakheter og endringslogg.
 > Oppdateres for hver meningsfull endring. Hierarkisk strukturert per komponent slik at man enkelt kan se historikken til en gitt bit.
 
-**Sist oppdatert**: 2026-11-24
+**Sist oppdatert**: 2026-11-25
+
+## Endringslogg — 2026-11-25: sanntid og rutetid i reisemodellen (`feat/reise-modell`)
+
+**Feilen.** Enturs `expected*` er rutetid uten sanntid og en PROGNOSE med
+sanntid. Historisk forsinkelse (målt mot rutetid) ble lagt oppå uansett: en
+buss som alt var 6 min sen fikk 6 min + sin vanlige forsinkelse, og
+byttesjansen visste ikke at bussen var sen i dag.
+
+**Nå.** Trip-spørringen (`functions/api/trip.ts`, `server/routes.ts`) henter
+`aimedStartTime/aimedEndTime/realtime` per legg og `aimed*` per forslag.
+`lib/live-model.ts`:
+- Uten sanntid: historikken forankres i rutetiden (flyttes −(expected − aimed)).
+- Med sanntid (ikke Bybanen): prognosen + målt prognosefeil
+  (`PROGNOSIS_ERROR`, 24.11., ~4 800 prognoser, 4 horisonter). Bare ±1 min i
+  ~50 % av tilfellene; ~1 av 5 går > 1 min FØR prognosen.
+- Bytte der et av leggene har sanntid: kun marginal-estimat, `basis: "live"`,
+  nEff = `LIVE_NEFF` (30). Vises som «ut fra sanntid».
+- Plan-treet merker sanntidslegg «sanntid»; metodeteksten er oppdatert.
+Gamle cache-svar uten feltene oppfører seg som før. Tester: `npm run test:live`
+(Danmarksplass-eksempel: 65 % med sanntid mot 58 % i gammel modell).
+
+**Mål på nytt** før halene i `PROGNOSIS_ERROR` tas for god fisk: én dag,
+`pipeline/triplab/entur_estimates.py snapshot` + `evaluate`.
 
 ## Endringslogg — 2026-11-24: reiselaboratoriet (`pipeline/triplab/`), to app-feil, margin ved bytte, Enturs egne anslag (`feat/reise-modell`)
 

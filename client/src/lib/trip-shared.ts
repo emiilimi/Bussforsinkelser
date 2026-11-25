@@ -28,6 +28,12 @@ export type TripLeg = {
   line: { id: string; publicCode: string; name: string } | null;
   expectedStartTime: string;
   expectedEndTime: string;
+  /** Rutetid. Våre historiske forsinkelser er målt mot DENNE, ikke expected.
+   *  Valgfri: svar fra cachen før 2026-11-25 mangler feltene. */
+  aimedStartTime?: string;
+  aimedEndTime?: string;
+  /** Entur har sanntid for legget: expected* er en prognose, ikke rutetid. */
+  realtime?: boolean;
   duration: number;
   distance: number;
   intermediateQuays: Array<Quay>;
@@ -48,6 +54,8 @@ export type TripLeg = {
 export type TripPattern = {
   expectedStartTime: string;
   expectedEndTime: string;
+  aimedStartTime?: string;
+  aimedEndTime?: string;
   duration: number;
   legs: TripLeg[];
 };
