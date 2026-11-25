@@ -286,6 +286,47 @@ når den velges).
   aksen med linja. Nå bruker begge samme bunn. Båndet er min–maks igjen
   (den nye ruteprofilen øverst har P20–P80).
 
+## Endringslogg — 2026-10-31: nattjobben publiserer i biter
+
+**Problem:** sentur.no sto på 27.10 fra 28. til 31.10. 29.10: jobben startet
+aldri (PC-en sov; oppgavehistorikken i Windows er slått av, så årsaken kan ikke
+ses). 30.10: drept 10:22 av en Windows Update-omstart, 16 min inn. 31.10:
+startet 13:09 og måtte hente tre dager. En hel kjøring for ÉN dag tar ~2 t
+(28.10: ingest 18, eksport 2, overgangsfiler 35, oversikt 11, stoppfiler 43,
+linjenavn 12, opplasting 5 min), og ALT ble lastet opp først til slutt — PC-en
+brukes ofte bare 2–3 timer om gangen.
+
+**Nå** (`scripts/nightly_reise.ps1`):
+- Alle manglende dager hentes først, så én eksport. (Første utkast lastet opp
+  per dag, men en ukefil skrives om i sin helhet hver gang — fire dager i samme
+  uke ville gitt fire eksporter og opplastinger av ~150 MB, og hentede dager er
+  uansett trygge i `reise.db`.)
+- `aggregate_stats.py` er delt i fire steg (`--only transfer|summary|stops|names`),
+  hvert lastet opp med en gang (`upload_to_r2.py --only parquet,transfer|stats|stops`).
+  Ukefilene går opp sammen med overgangsfilene, så reiseplanleggeren aldri ser
+  et manifest som er nyere enn `transfer/index.json` (da faller den til DuckDB).
+- `--skip-fresh`: steg som alt er bygget fra de samme ukefilene hoppes over
+  (`.aggregate_state.json`; fingeravtrykk = ukefilenes navn/størrelse/mtime +
+  `stop_coords.json` + koden), så en avbrutt kjøring fortsetter der den slapp.
+  Opplastingen kjøres uansett og hopper selv over uendrede filer.
+- Feil i ett steg (også gårsdagens ingest) stopper ikke resten; natten meldes
+  som feilet til slutt.
+
+**Den egentlige tidstyven var lukket lokk.** 31.10 og 1.11 ble kjøringene
+fullført for hånd med lokket åpent: transfer ~8, summary ~5, stops 7, names
+6 min — mot 35/11/43/12 min i nattkjøringene. Med lukket lokk går maskinen i
+«moderne ventemodus», der prosessene kjører videre men strupet (én omgang
+overgangsfiler: ~2 t mot 1,5 min). 1.11 døde PC-en i tillegg midt i
+aggregeringen (Kernel-Power 41, trolig tomt batteri).
+
+**Også funnet:** DuckDB 1.5.1 svarer `MAX(date)` fra radgruppe-statistikken,
+som for strenger bare har 8 tegn — én enkelt ukefil gav `'2026-10-'`. Med
+flere filer ble svaret riktig, så produksjonen var ikke rammet. `aggregate_stats`
+og `transfer_shards` bruker nå `MAX(CAST(date AS DATE))`.
+
+**Disk:** `data/bussforsinkelser.db` (fullbygget, 22 GB, nattjobben avslått)
+slettet etter avtale — C: fra 10,5 til 35 GB ledig.
+
 ## Endringslogg — 2026-10-27: ny linjeanalyse (branch `feat/linjeanalyse`, forhåndsvisning)
 
 Forhåndsvisning: **https://feat-linjeanalyse-reiseplanlegger.emiliemoldestad.workers.dev/journey**
@@ -325,7 +366,6 @@ mindre enn før. Avganger telles per (dato, avgang): Skyss gjenbruker
 `service_journey_id` over flere dager, og `COUNT(DISTINCT sj)` ga 2 102 i
 stedet for 5 743 for linje 3. `useLineStopProfile` henter nå også P20/P50/P80
 per stopp.
-
 
 ## Endringslogg — 2026-10-27: overgangsfiler for alle operatører
 

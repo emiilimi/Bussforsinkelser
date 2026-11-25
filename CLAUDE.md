@@ -134,11 +134,33 @@ python pipeline/export_parquet.py        # eksporter nye/ufullstendige uker
 ```
 
 **Reise-siten (det som faktisk er i produksjon)** kjøres av Windows Task
-Scheduler på denne PC-en, 06:00 daglig: `scripts/nightly_reise.ps1`
-(registrert av `scripts/register_tasks.ps1`). Stegene i rekkefølge:
-`ingest_lite.py` → `export_parquet.py` → `aggregate_stats.py` →
-`upload_to_r2.py --prune`, hvert med egen tidsfrist og nye forsøk. Logg per
-natt i `logs/reise-YYYY-MM-DD.log` — **sjekk den først** når noen spør om
+Scheduler på denne PC-en, 05:00 daglig (eller når PC-en våkner):
+`scripts/nightly_reise.ps1` (registrert av `scripts/register_tasks.ps1`).
+
+**Publiseres i biter (2026-10-31)** — PC-en er ofte bare på 2–3 timer:
+1. Alle manglende dager hentes (`ingest_lite.py <dato>`), så ÉN
+   `export_parquet.py` (en ukefil skrives om i sin helhet, ~6 min for en full
+   uke — per dag ville gitt flere eksporter/opplastinger av samme fil).
+   Hentede dager er trygge i `reise.db` selv om PC-en slås av.
+2. `aggregate_stats.py --only <steg> --skip-fresh` + `upload_to_r2.py --only
+   <del> --prune` for hvert steg: `transfer` (lastes opp SAMMEN med
+   ukefilene: `--only parquet,transfer`) → `summary` (Oversikt/Topplister) →
+   `stops` (Stoppanalyse) → `names`. Ukefilene venter på overgangsfilene fordi
+   reiseplanleggeren faller tilbake til DuckDB når manifestet har en nyere dag
+   enn `transfer/index.json` (`transferCovers`). Feiler overgangssteget, lastes
+   ukefilene opp alene.
+3. `--skip-fresh` (`.aggregate_state.json` i PARQUET_DIR) hopper over steg som
+   alt er bygget fra de samme ukefilene, så en avbrutt kjøring fortsetter.
+Et steg som feiler stopper ikke de andre; natten meldes som feilet til slutt.
+**Lukket lokk** gir «moderne ventemodus»: prosessene går videre, men strupet
+~50× (31.10: én omgang overgangsfiler ~2 t mot 1,5 min), og fristene er
+veggklokke. Med lokk åpent + strøm: transfer ~8, summary ~5, stops ~7, names
+~6 min. Vaken-kravet i skriptet hindrer ikke lokk-hvile.
+Loggen skrives først når et steg er FERDIG — en logg som slutter brått kan
+bety «kjører» (se om python bruker CPU / `reise.db-wal` endres) eller «drept»
+(System-loggen: 1074 omstart, 41/6008 strømbrudd, 42 hvilemodus).
+
+Logg per natt i `logs/reise-YYYY-MM-DD.log` — **sjekk den først** når noen spør om
 «dagens ingest». Status: `Get-ScheduledTask -TaskName 'Bussforsinkelser Reise
 nightly' | Get-ScheduledTaskInfo`. Produksjonens ferskhet sjekkes uavhengig
 med `curl https://parquet.sentur.no/stats_summary.json` (`dates.max`).

@@ -12,6 +12,7 @@ Usage:
     python pipeline/upload_to_r2.py --all           # tving re-opplasting av alt
     python pipeline/upload_to_r2.py --dry-run       # vis hva som ville blitt lastet opp
     python pipeline/upload_to_r2.py --prod-db       # last opp KUN prod-DB (hopp over parquet + manifest)
+    python pipeline/upload_to_r2.py --only parquet  # bare ukefiler + manifest (se PARTS)
 
 Env-variabler (i r2.env eller i shell):
     R2_ACCOUNT_ID       f.eks. b274357997a1a1ccb8855267adec44b9
@@ -51,6 +52,10 @@ KEEP_WEEKS = int(os.environ.get("PARQUET_KEEP_WEEKS", "14"))
 # head_object-kall først). Sekvensielt lå det på ~2 filer/s ≈ 17 min;
 # boto3-klienter er trådsikre, så dette er trygt å kjøre i parallell.
 UPLOAD_WORKERS = int(os.environ.get("R2_UPLOAD_WORKERS", "8"))
+
+# Delene --only kan velge. parquet = ukefiler + manifest.json; stats =
+# stats_*.json; stops = stops/<shard>.json; transfer = transfer/.
+PARTS = ("parquet", "stats", "stops", "transfer")
 
 # Filer under denne størrelsen lastes opp med ett put_object-kall i stedet
 # for s3transfer (som spinner opp sin egen trådpool per kall). Over grensa
@@ -256,7 +261,19 @@ def main():
         action="store_true",
         help="Last opp KUN prod-DB (hopp over parquet + manifest)",
     )
+    # Nattjobben laster opp hver del rett etter at den er bygget (ukefilene per
+    # dag, så hvert aggregat-steg), i stedet for alt til slutt — en PC som slås
+    # av etter en time har da likevel publisert det som ble ferdig. --prune
+    # rydder bare i delene som er valgt.
+    parser.add_argument(
+        "--only",
+        default=",".join(PARTS),
+        help=f"kommaseparerte deler: {', '.join(PARTS)} (default: alle)",
+    )
     args = parser.parse_args()
+    parts = {x.strip() for x in args.only.split(",") if x.strip()}
+    if parts - set(PARTS):
+        parser.error(f"ukjente deler: {', '.join(sorted(parts - set(PARTS)))}")
 
     bucket = os.environ.get("R2_BUCKET", "bussforsinkelser-parquet")
     public_url = os.environ.get("R2_PUBLIC_URL", "")
@@ -281,51 +298,53 @@ def main():
             log.error("Kjør først: python pipeline/export_parquet.py --all")
             return 1
 
-        parquet_files = newest_parquet_files(PARQUET_DIR)
-        if not parquet_files:
-            log.warning("Ingen .parquet-filer funnet i %s", PARQUET_DIR)
-            return 0
-
         log.info("Kobler til R2 bucket '%s' …", bucket)
         s3 = None if args.dry_run else get_s3_client()
 
-        log.info(
-            "Laster opp %d Parquet-fil(er) (nyeste %s uker) …",
-            len(parquet_files),
-            KEEP_WEEKS if KEEP_WEEKS > 0 else "alle",
-        )
-        for pf in sorted(parquet_files):
+        if "parquet" in parts:
+            parquet_files = newest_parquet_files(PARQUET_DIR)
+            if not parquet_files:
+                log.error("Ingen .parquet-filer funnet i %s", PARQUET_DIR)
+                return 1
+
+            log.info(
+                "Laster opp %d Parquet-fil(er) (nyeste %s uker) …",
+                len(parquet_files),
+                KEEP_WEEKS if KEEP_WEEKS > 0 else "alle",
+            )
+            for pf in sorted(parquet_files):
+                if args.dry_run:
+                    log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)
+                    uploaded += 1
+                else:
+                    did_upload = upload_file(
+                        s3, bucket, pf, pf.name, force=args.all, cache_control=PARQUET_CACHE
+                    )
+                    if did_upload:
+                        uploaded += 1
+                    else:
+                        skipped += 1
+
+            # Generer og last opp manifest.json
+            manifest = generate_manifest(PARQUET_DIR)
+            manifest_path = PARQUET_DIR / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2))
+
             if args.dry_run:
-                log.info("  [dry-run] Ville lastet opp: %s (%.0f KB)", pf.name, pf.stat().st_size / 1024)
-                uploaded += 1
+                log.info("  [dry-run] Ville lastet opp: manifest.json (%d filer)", len(manifest))
             else:
                 did_upload = upload_file(
-                    s3, bucket, pf, pf.name, force=args.all, cache_control=PARQUET_CACHE
+                    s3, bucket, manifest_path, "manifest.json",
+                    force=True, cache_control=MANIFEST_CACHE,
                 )
                 if did_upload:
                     uploaded += 1
-                else:
-                    skipped += 1
-
-        # Generer og last opp manifest.json
-        manifest = generate_manifest(PARQUET_DIR)
-        manifest_path = PARQUET_DIR / "manifest.json"
-        manifest_path.write_text(json.dumps(manifest, indent=2))
-
-        if args.dry_run:
-            log.info("  [dry-run] Ville lastet opp: manifest.json (%d filer)", len(manifest))
-        else:
-            did_upload = upload_file(
-                s3, bucket, manifest_path, "manifest.json",
-                force=True, cache_control=MANIFEST_CACHE,
-            )
-            if did_upload:
-                uploaded += 1
 
         # ---------- Statistikk-artefakter (full offload) ----------
         # Genereres av pipeline/aggregate_stats.py. Alltid no-cache: klienten
         # henter dem med no-store, og innholdet endres hver natt.
-        for stats_name in ("stats_summary.json", "stats_stops_map.json", "stats_line_names.json"):
+        for stats_name in (("stats_summary.json", "stats_stops_map.json", "stats_line_names.json")
+                           if "stats" in parts else ()):
             stats_path = PARQUET_DIR / stats_name
             if not stats_path.exists():
                 continue
@@ -358,7 +377,7 @@ def main():
         # før — nightly_reise.ps1 prøver da på nytt, og uendret-sjekken gjør
         # at nytt forsøk hopper over det som allerede kom opp.
         stops_dir = PARQUET_DIR / "stops"
-        if stops_dir.is_dir():
+        if "stops" in parts and stops_dir.is_dir():
             shard_files = sorted(stops_dir.glob("*.json"),
                                  key=lambda p: int(p.stem) if p.stem.isdigit() else -1)
             shard_up = shard_skip = 0
@@ -396,7 +415,7 @@ def main():
         # Samme skrive-budsjett som stoppdetaljene: ~2000 shards per natt.
         transfer_dir = PARQUET_DIR / "transfer"
         transfer_index = transfer_dir / "index.json"
-        if transfer_index.exists():
+        if "transfer" in parts and transfer_index.exists():
             t_files = sorted(p for p in transfer_dir.glob("*/*.json"))
             if args.dry_run:
                 log.info("  [dry-run] Ville lastet opp %d overgangsfiler (%.1f MB) + index.json",
@@ -430,23 +449,24 @@ def main():
         # og kan plukkes opp av klienter med gammelt manifest i cache.
         if args.prune:
             local_names = {e["name"] for e in manifest}
+            prune_parquet = "parquet" in parts and bool(manifest)
             # Shardfiler som ikke finnes lokalt (typisk fordi STATS_STOP_SHARDS
             # er endret, eller en shard er blitt tom). DeleteObject er gratis
             # på R2, så det koster ingenting å rydde.
             local_shards = {f"stops/{p.name}" for p in (PARQUET_DIR / "stops").glob("*.json")} \
-                if (PARQUET_DIR / "stops").is_dir() else set()
+                if "stops" in parts and (PARQUET_DIR / "stops").is_dir() else set()
             # Overgangsfiler: shards som ble tomme, og hele mapper for et
             # tidligere antall shards (transfer/<gammel N>/…).
             local_transfer = {p.relative_to(PARQUET_DIR).as_posix()
                               for p in (PARQUET_DIR / "transfer").glob("**/*.json")} \
-                if (PARQUET_DIR / "transfer" / "index.json").exists() else set()
+                if "transfer" in parts and (PARQUET_DIR / "transfer" / "index.json").exists() else set()
             stale_keys: list[str] = []
             if not args.dry_run:
                 paginator = s3.get_paginator("list_objects_v2")
                 for page in paginator.paginate(Bucket=bucket):
                     for obj in page.get("Contents", []):
                         key = obj["Key"]
-                        if key.endswith(".parquet") and key not in local_names:
+                        if prune_parquet and key.endswith(".parquet") and key not in local_names:
                             stale_keys.append(key)
                         elif key.startswith("stops/") and local_shards and key not in local_shards:
                             stale_keys.append(key)
@@ -504,4 +524,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

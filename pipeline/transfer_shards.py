@@ -307,7 +307,7 @@ def main() -> int:
     configure_duckdb(con)
     file_list = ", ".join(f"'{f.as_posix()}'" for f in files)
     con.execute(f"CREATE VIEW delays AS SELECT * FROM read_parquet([{file_list}])")
-    max_date = date.fromisoformat(con.execute("SELECT MAX(date) FROM delays").fetchone()[0])
+    max_date = date.fromisoformat(con.execute("SELECT MAX(CAST(date AS DATE))::VARCHAR FROM delays").fetchone()[0])
     generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     build_transfer_shards(con, generated_at, max_date)
     return 0

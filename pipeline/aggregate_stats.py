@@ -7,6 +7,17 @@ SQLite-server, ingen aggregat-tabeller.
 Kjøres nattlig ETTER export_parquet.py og FØR upload_to_r2.py:
 
     python pipeline/aggregate_stats.py
+    python pipeline/aggregate_stats.py --only transfer,summary --skip-fresh
+
+Fire uavhengige steg (--only), målt 28.10.2026 med alle operatører:
+  transfer  transfer/ (~35 min)                    — se transfer_shards.py
+  summary   stats_summary.json + stats_stops_map.json (~11 min)
+  stops     stops/<shard>.json (~43 min)
+  names     stats_line_names.json (~12 min)
+Nattjobben kjører dem ett og ett og laster opp hvert resultat med en gang,
+så en PC som slås av etter en time likevel har publisert det som ble ferdig.
+--skip-fresh hopper over steg som alt er bygget fra de samme ukefilene
+(.aggregate_state.json), slik at en avbrutt kjøring fortsetter der den slapp.
 
 Output (skrives til PARQUET_DIR, lastes opp av upload_to_r2.py med no-cache):
 
@@ -51,6 +62,7 @@ Env:
                         MÅ dekke periodevelgerens valg i frontend)
 """
 
+import argparse
 import json
 import logging
 import os
@@ -69,6 +81,13 @@ REPO_ROOT = Path(__file__).parent.parent
 PARQUET_DIR = Path(os.environ.get("PARQUET_DIR", str(REPO_ROOT / "data" / "parquet")))
 DB_PATH = os.environ.get("DATABASE_PATH", str(REPO_ROOT / "data" / "reise.db"))
 WINDOWS = [int(w) for w in os.environ.get("STATS_WINDOWS", "7,30,90").split(",")]
+
+# Stegene, i standardrekkefølgen. Overgangsfilene FØRST: reiseplanleggeren
+# faller tilbake til DuckDB (~2 min) så lenge manifestet har en nyere dag enn
+# transfer/index.json, og nattjobben laster opp ukefilene per dag.
+STAGES = ("transfer", "summary", "stops", "names")
+# Hvilke data hvert steg sist ble bygget fra — se --skip-fresh.
+STATE_FILE = PARQUET_DIR / ".aggregate_state.json"
 
 # Minste antall avganger for at en linje/et stopp tas med i et vindu —
 # hindrer at én enkelt observasjon topper listene.
@@ -549,7 +568,71 @@ def build_stop_detail_shards(con, coords: dict, generated_at: str, max_date: dat
     return written
 
 
-def main() -> int:
+def load_coords() -> dict[str, tuple]:
+    # Per quay: koordinater + stoppested-tilhørighet (for stoppanalyse-søkets
+    # gruppering per stoppested) + plattformkode (finnes i praksis kun for SKY).
+    coords: dict[str, tuple] = {}
+    if Path(DB_PATH).exists():
+        sq = sqlite3.connect(DB_PATH)
+        try:
+            # parent_stop_place_ref kom 2026-10-26 (populate_stops.py); eldre
+            # baser mangler kolonnen → None.
+            has_parent = "parent_stop_place_ref" in {
+                r[1] for r in sq.execute("PRAGMA table_info(stop_coords)")}
+            parent_col = "parent_stop_place_ref" if has_parent else "NULL"
+            for ref, lat, lng, sp_ref, sp_name, platform, parent in sq.execute(
+                "SELECT stop_ref, lat, lng, stop_place_ref, stop_place_name,"
+                f"       platform_code, {parent_col} FROM stop_coords"
+            ):
+                coords[ref] = (lat, lng, sp_ref, sp_name, platform, parent)
+        finally:
+            sq.close()
+        log.info("stop_coords: %d koordinater fra %s", len(coords), DB_PATH)
+    else:
+        log.warning("Fant ikke %s — kartet får ingen koordinater", DB_PATH)
+    return coords
+
+
+def data_fingerprint(files: list[Path]) -> str:
+    """Hva stegene er bygget FRA: ukefilene, stopplista og koden selv.
+
+    Navn + størrelse + mtime, ikke md5 — md5 av ~600 MB parquet per kjøring
+    er sekunder vi ikke trenger. export_parquet skriver fila på nytt når
+    innholdet endres, så mtime fanger det.
+    """
+    parts = [f"{f.name}:{f.stat().st_size}:{f.stat().st_mtime_ns}" for f in files]
+    for extra in (REPO_ROOT / "data" / "stop_coords.json",
+                  Path(__file__),
+                  Path(__file__).with_name("transfer_shards.py")):
+        if extra.exists():
+            parts.append(f"{extra.name}:{extra.stat().st_mtime_ns}")
+    return f"{zlib.crc32(chr(10).join(parts).encode()):08x}-{len(files)}"
+
+
+def load_state() -> dict:
+    try:
+        return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def save_state(state: dict) -> None:
+    STATE_FILE.write_text(json.dumps(state, indent=1), encoding="utf-8")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--only", default=",".join(STAGES),
+                    help=f"kommaseparerte steg, i den rekkefølgen de skal kjøres "
+                         f"(default: {','.join(STAGES)})")
+    ap.add_argument("--skip-fresh", action="store_true",
+                    help="hopp over steg som alt er bygget fra de samme dataene")
+    args = ap.parse_args(argv)
+    stages = [x.strip() for x in args.only.split(",") if x.strip()]
+    unknown = [x for x in stages if x not in STAGES]
+    if unknown:
+        ap.error(f"ukjente steg: {', '.join(unknown)} (gyldige: {', '.join(STAGES)})")
+
     started = time.time()
     # KUN ÉN filfamilie. export_parquet skriver hver uke TO ganger — samme
     # rader, ulik sortering (-by-line og -by-stop, se CLAUDE.md). Et blankt
@@ -576,309 +659,315 @@ def main() -> int:
     file_list = ", ".join(f"'{f.as_posix()}'" for f in files)
     con.execute(f"CREATE VIEW delays AS SELECT * FROM read_parquet([{file_list}])")
 
+    # CAST, ikke MAX(date) direkte: DuckDB 1.5.1 svarer fra radgruppe-
+    # statistikken, som for strenger bare har 8 tegn — én enkelt ukefil gav
+    # '2026-10-' (målt 2026-10-31). Med flere filer ble svaret riktig, derfor
+    # merket ingen det.
     max_date_s, min_date_s = con.execute(
-        "SELECT MAX(date), MIN(date) FROM delays"
+        "SELECT MAX(CAST(date AS DATE))::VARCHAR, MIN(CAST(date AS DATE))::VARCHAR FROM delays"
     ).fetchone()
     max_date = date.fromisoformat(max_date_s)
     log.info("Datagrunnlag: %s → %s (%d filer)", min_date_s, max_date_s, len(files))
 
     generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-    # ------------------------------------------------------------------
-    # Sanntidsdekning per (dato, operatør) fra coverage_daily i SQLite —
-    # målt ved ingest (kan ikke utledes fra parquet, som kun har sanntidsrader).
-    # ------------------------------------------------------------------
-    coverage: dict[tuple, float] = {}
-    cancellations: dict[tuple, int] = {}
-    silent_journeys: dict[tuple, int] = {}
-    # (dato, line_ref, n_total, n_realtime) — råmateriale for per-linje-vinduene
-    line_coverage_raw: list[tuple[str, str, int, int]] = []
-    if Path(DB_PATH).exists():
-        sq = sqlite3.connect(DB_PATH)
-        try:
-            has_table = sq.execute(
-                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='coverage_daily'"
-            ).fetchone()
-            if has_table:
-                cols = {r[1] for r in sq.execute("PRAGMA table_info(coverage_daily)")}
-                canc_expr = "SUM(n_cancelled)" if "n_cancelled" in cols else "NULL"
-                silent_expr = (
-                    "SUM(n_journeys_norealtime)" if "n_journeys_norealtime" in cols else "NULL"
-                )
-                # Rå (dato, linje) — brukes til per-linje-vinduene lenger nede.
-                # MÅ leses her: parquet inneholder kun sanntidsobserverte rader,
-                # så nevneren (planlagte passeringer) finnes ikke der.
-                for d, lr, total, rt in sq.execute(
-                    "SELECT date, line_ref, n_total, n_realtime FROM coverage_daily"
-                ):
-                    if total:
-                        line_coverage_raw.append((d, lr, int(total), int(rt)))
-                for d, op, total, rt, canc, silent in sq.execute(f"""
-                    SELECT date,
-                           substr(line_ref, 1, instr(line_ref, ':') - 1) AS operator,
-                           SUM(n_total), SUM(n_realtime), {canc_expr}, {silent_expr}
-                    FROM coverage_daily
+    fingerprint = data_fingerprint(files)
+    state = load_state()
+
+    def stage_summary() -> None:
+        # ------------------------------------------------------------------
+        # Sanntidsdekning per (dato, operatør) fra coverage_daily i SQLite —
+        # målt ved ingest (kan ikke utledes fra parquet, som kun har sanntidsrader).
+        # ------------------------------------------------------------------
+        coverage: dict[tuple, float] = {}
+        cancellations: dict[tuple, int] = {}
+        silent_journeys: dict[tuple, int] = {}
+        # (dato, line_ref, n_total, n_realtime) — råmateriale for per-linje-vinduene
+        line_coverage_raw: list[tuple[str, str, int, int]] = []
+        if Path(DB_PATH).exists():
+            sq = sqlite3.connect(DB_PATH)
+            try:
+                has_table = sq.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='coverage_daily'"
+                ).fetchone()
+                if has_table:
+                    cols = {r[1] for r in sq.execute("PRAGMA table_info(coverage_daily)")}
+                    canc_expr = "SUM(n_cancelled)" if "n_cancelled" in cols else "NULL"
+                    silent_expr = (
+                        "SUM(n_journeys_norealtime)" if "n_journeys_norealtime" in cols else "NULL"
+                    )
+                    # Rå (dato, linje) — brukes til per-linje-vinduene lenger nede.
+                    # MÅ leses her: parquet inneholder kun sanntidsobserverte rader,
+                    # så nevneren (planlagte passeringer) finnes ikke der.
+                    for d, lr, total, rt in sq.execute(
+                        "SELECT date, line_ref, n_total, n_realtime FROM coverage_daily"
+                    ):
+                        if total:
+                            line_coverage_raw.append((d, lr, int(total), int(rt)))
+                    for d, op, total, rt, canc, silent in sq.execute(f"""
+                        SELECT date,
+                               substr(line_ref, 1, instr(line_ref, ':') - 1) AS operator,
+                               SUM(n_total), SUM(n_realtime), {canc_expr}, {silent_expr}
+                        FROM coverage_daily
+                        GROUP BY 1, 2
+                    """):
+                        if total:
+                            coverage[(d, op)] = round(100.0 * rt / total, 1)
+                        if canc is not None:
+                            cancellations[(d, op)] = int(canc)
+                        if silent is not None:
+                            silent_journeys[(d, op)] = int(silent)
+            finally:
+                sq.close()
+            log.info("coverage_daily: %d (dato, operatør)-rader, %d (dato, linje)-rader",
+                     len(coverage), len(line_coverage_raw))
+
+        # ------------------------------------------------------------------
+        # daily: per (dato, operatør)
+        # ------------------------------------------------------------------
+        daily_rows = con.execute(f"""
+            SELECT
+                date,
+                split_part(line_ref, ':', 1)                    AS operator,
+                ROUND(AVG({D}), 2)                              AS avg_delay,
+                ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
+                ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
+                ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
+                COUNT(DISTINCT service_journey_id)              AS journeys,
+                COUNT(*)                                        AS n
+            FROM delays
+            WHERE {D} IS NOT NULL
+            GROUP BY 1, 2
+            ORDER BY 1, 2
+        """).fetchall()
+        daily = [
+            {
+                "date": row[0], "operator": row[1],
+                "avgDelayMin": r(row[2]), "pctOnTime": r(row[3], 1),
+                "pctDelayed10plus": r(row[4], 1), "pctEarly": r(row[5], 1),
+                "totalJourneys": int(row[6]), "n": int(row[7]),
+                "pctRealtimeCoverage": coverage.get((row[0], row[1])),
+                # Avlyste avganger (unike) fra coverage_daily — null før 6. juli 2026
+                "totalCancellations": cancellations.get((row[0], row[1])),
+                # Avganger i feeden HELT uten sanntid (ikke avlyst) — null før 6. juli 2026
+                "journeysMissingRealtime": silent_journeys.get((row[0], row[1])),
+            }
+            for row in daily_rows
+        ]
+        log.info("daily: %d rader", len(daily))
+
+        # ------------------------------------------------------------------
+        # lines: per (linje, modus inkl. 'all', vindu)
+        # ------------------------------------------------------------------
+        lines = []
+        for w in WINDOWS:
+            cutoff = (max_date - timedelta(days=w - 1)).isoformat()
+            for mode_expr, mode_label in [("'all'", None), ("vehicle_mode", None)]:
+                rows = con.execute(f"""
+                    SELECT
+                        line_ref,
+                        {mode_expr}                              AS mode,
+                        ROUND(AVG({D}), 2)                       AS avg_delay,
+                        ROUND(STDDEV_SAMP({D}), 2)               AS stddev,
+                        ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
+                        ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
+                        ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
+                        COUNT(DISTINCT service_journey_id || date) AS departures
+                    FROM delays
+                    WHERE date >= '{cutoff}' AND {D} IS NOT NULL
                     GROUP BY 1, 2
-                """):
-                    if total:
-                        coverage[(d, op)] = round(100.0 * rt / total, 1)
-                    if canc is not None:
-                        cancellations[(d, op)] = int(canc)
-                    if silent is not None:
-                        silent_journeys[(d, op)] = int(silent)
-        finally:
-            sq.close()
-        log.info("coverage_daily: %d (dato, operatør)-rader, %d (dato, linje)-rader",
-                 len(coverage), len(line_coverage_raw))
+                    HAVING COUNT(DISTINCT service_journey_id || date) >= {MIN_JOURNEYS_LINE}
+                """).fetchall()
+                for row in rows:
+                    lines.append({
+                        "lineRef": row[0], "mode": row[1], "window": w,
+                        "avgDelayMin": r(row[2]), "stddevDelayMin": r(row[3]),
+                        "pctOnTime": r(row[4], 1), "pctDelayed10plus": r(row[5], 1),
+                        "pctEarly": r(row[6], 1),
+                        "totalDepartures": int(row[7]),
+                    })
+        log.info("lines: %d rader (%d vinduer)", len(lines), len(WINDOWS))
 
-    # ------------------------------------------------------------------
-    # daily: per (dato, operatør)
-    # ------------------------------------------------------------------
-    daily_rows = con.execute(f"""
-        SELECT
-            date,
-            split_part(line_ref, ':', 1)                    AS operator,
-            ROUND(AVG({D}), 2)                              AS avg_delay,
-            ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
-            ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
-            ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
-            COUNT(DISTINCT service_journey_id)              AS journeys,
-            COUNT(*)                                        AS n
-        FROM delays
-        WHERE {D} IS NOT NULL
-        GROUP BY 1, 2
-        ORDER BY 1, 2
-    """).fetchall()
-    daily = [
-        {
-            "date": row[0], "operator": row[1],
-            "avgDelayMin": r(row[2]), "pctOnTime": r(row[3], 1),
-            "pctDelayed10plus": r(row[4], 1), "pctEarly": r(row[5], 1),
-            "totalJourneys": int(row[6]), "n": int(row[7]),
-            "pctRealtimeCoverage": coverage.get((row[0], row[1])),
-            # Avlyste avganger (unike) fra coverage_daily — null før 6. juli 2026
-            "totalCancellations": cancellations.get((row[0], row[1])),
-            # Avganger i feeden HELT uten sanntid (ikke avlyst) — null før 6. juli 2026
-            "journeysMissingRealtime": silent_journeys.get((row[0], row[1])),
+        # ------------------------------------------------------------------
+        # coverage: sanntidsdekning per (linje, vindu), som {lineRef: [w7, w30, w90]}
+        #
+        # Per VINDU, ikke per dato: en per-dato-variant ble målt til 1,09 MB (+29 %
+        # på artefakten), mot 89 kB for denne. stats_summary.json hentes ved hver
+        # sidelast på hele reise-siten, så et helt stat-kort er ikke verdt 1 MB.
+        #
+        # Prisen er at egendefinerte datointervall ikke får dekningstall — klienten
+        # viser «—» der i stedet, etter samme regel som resten av summary-svaret:
+        # eksakt eller ingenting, aldri en tilnærming.
+        #
+        # Merk at dekningen IKKE har retnings- eller dagtypedimensjon (coverage_daily
+        # er per dato+linje), så den vises bare når de filtrene står på «alle».
+        # ------------------------------------------------------------------
+        line_coverage: dict[str, list[float | None]] = {}
+        if line_coverage_raw:
+            for i, w in enumerate(WINDOWS):
+                cutoff = (max_date - timedelta(days=w - 1)).isoformat()
+                acc: dict[str, list[int]] = {}
+                for d, lr, total, rt in line_coverage_raw:
+                    # Øvre grense også: coverage_daily prunes ALDRI, mens
+                    # parquet-uker ruller av etter 14 uker. Uten max_date_s-sjekken
+                    # kunne dekningen dekket flere dager enn tallene den står ved
+                    # siden av, den dagen ingest har kjørt men export_parquet ikke.
+                    if d < cutoff or d > max_date_s:
+                        continue
+                    a = acc.setdefault(lr, [0, 0])
+                    a[0] += total
+                    a[1] += rt
+                for lr, (total, rt) in acc.items():
+                    slot = line_coverage.setdefault(lr, [None] * len(WINDOWS))
+                    slot[i] = round(100.0 * rt / total, 1) if total else None
+        log.info("coverage: %d linjer × %d vinduer", len(line_coverage), len(WINDOWS))
+        # Frigjør råmaterialet (~90k rader) FØR stops-seksjonen: den aggregerer
+        # titalls millioner parquet-rader i DuckDB og er stegets minnetopp.
+        line_coverage_raw.clear()
+
+        summary = {
+            "generatedAt": generated_at,
+            "windows": WINDOWS,
+            "dates": {"min": min_date_s, "max": max_date_s},
+            "daily": daily,
+            "lines": lines,
+            "coverage": line_coverage,
         }
-        for row in daily_rows
-    ]
-    log.info("daily: %d rader", len(daily))
+        summary_path = PARQUET_DIR / "stats_summary.json"
+        summary_path.write_text(json.dumps(summary, separators=(",", ":")), encoding="utf-8")
+        log.info("→ %s (%.0f KB)", summary_path.name, summary_path.stat().st_size / 1024)
 
-    # ------------------------------------------------------------------
-    # lines: per (linje, modus inkl. 'all', vindu)
-    # ------------------------------------------------------------------
-    lines = []
-    for w in WINDOWS:
-        cutoff = (max_date - timedelta(days=w - 1)).isoformat()
-        for mode_expr, mode_label in [("'all'", None), ("vehicle_mode", None)]:
+        # ------------------------------------------------------------------
+        # stops: per (stopp, operatør) × vindu — kart + stopp-topplister.
+        # Kompakt format: rader er arrays, vinduer er [avg, pct2plus, stddev, n]
+        # eller null når stoppet mangler data i vinduet.
+        # ------------------------------------------------------------------
+        coords = load_coords()
+
+        def compact_sp_ref(sp_ref):
+            """'NSR:StopPlace:123' → 123 (int) for å spare bytes; ellers uendret."""
+            if isinstance(sp_ref, str) and sp_ref.startswith("NSR:StopPlace:"):
+                tail = sp_ref[len("NSR:StopPlace:"):]
+                if tail.isdigit():
+                    return int(tail)
+            return sp_ref
+
+        # windows-dict per (stop, operator)
+        stops: dict[tuple, dict] = {}
+        for w in WINDOWS:
+            cutoff = (max_date - timedelta(days=w - 1)).isoformat()
             rows = con.execute(f"""
                 SELECT
-                    line_ref,
-                    {mode_expr}                              AS mode,
-                    ROUND(AVG({D}), 2)                       AS avg_delay,
-                    ROUND(STDDEV_SAMP({D}), 2)               AS stddev,
-                    ROUND(100.0 * AVG(CASE WHEN {D} <= 2 THEN 1 ELSE 0 END), 1) AS pct_on_time,
-                    ROUND(100.0 * AVG(CASE WHEN {D} > 10 THEN 1 ELSE 0 END), 1)             AS pct_10plus,
-                    ROUND(100.0 * AVG(CASE WHEN {D} < {EARLY_MIN} THEN 1 ELSE 0 END), 1)    AS pct_early,
+                    stop_ref,
+                    split_part(line_ref, ':', 1)   AS operator,
+                    MAX(stop_name)                 AS stop_name,
+                    ROUND(AVG({D}), 2)             AS avg_delay,
+                    ROUND(100.0 * AVG(CASE WHEN {D} > 2 THEN 1 ELSE 0 END), 1) AS pct_2plus,
+                    ROUND(STDDEV_SAMP({D}), 2)     AS stddev,
                     COUNT(DISTINCT service_journey_id || date) AS departures
                 FROM delays
                 WHERE date >= '{cutoff}' AND {D} IS NOT NULL
                 GROUP BY 1, 2
-                HAVING COUNT(DISTINCT service_journey_id || date) >= {MIN_JOURNEYS_LINE}
+                HAVING COUNT(DISTINCT service_journey_id || date) >= {MIN_DEPARTURES_STOP}
             """).fetchall()
-            for row in rows:
-                lines.append({
-                    "lineRef": row[0], "mode": row[1], "window": w,
-                    "avgDelayMin": r(row[2]), "stddevDelayMin": r(row[3]),
-                    "pctOnTime": r(row[4], 1), "pctDelayed10plus": r(row[5], 1),
-                    "pctEarly": r(row[6], 1),
-                    "totalDepartures": int(row[7]),
-                })
-    log.info("lines: %d rader (%d vinduer)", len(lines), len(WINDOWS))
+            for stop_ref, operator, name, avg, pct2, std, dep in rows:
+                key = (stop_ref, operator)
+                entry = stops.setdefault(key, {"name": name, "w": {}})
+                if name and not entry["name"]:
+                    entry["name"] = name
+                entry["w"][w] = [r(avg), r(pct2, 1), r(std), int(dep)]
 
-    # ------------------------------------------------------------------
-    # coverage: sanntidsdekning per (linje, vindu), som {lineRef: [w7, w30, w90]}
-    #
-    # Per VINDU, ikke per dato: en per-dato-variant ble målt til 1,09 MB (+29 %
-    # på artefakten), mot 89 kB for denne. stats_summary.json hentes ved hver
-    # sidelast på hele reise-siten, så et helt stat-kort er ikke verdt 1 MB.
-    #
-    # Prisen er at egendefinerte datointervall ikke får dekningstall — klienten
-    # viser «—» der i stedet, etter samme regel som resten av summary-svaret:
-    # eksakt eller ingenting, aldri en tilnærming.
-    #
-    # Merk at dekningen IKKE har retnings- eller dagtypedimensjon (coverage_daily
-    # er per dato+linje), så den vises bare når de filtrene står på «alle».
-    # ------------------------------------------------------------------
-    line_coverage: dict[str, list[float | None]] = {}
-    if line_coverage_raw:
-        for i, w in enumerate(WINDOWS):
-            cutoff = (max_date - timedelta(days=w - 1)).isoformat()
-            acc: dict[str, list[int]] = {}
-            for d, lr, total, rt in line_coverage_raw:
-                # Øvre grense også: coverage_daily prunes ALDRI, mens
-                # parquet-uker ruller av etter 14 uker. Uten max_date_s-sjekken
-                # kunne dekningen dekket flere dager enn tallene den står ved
-                # siden av, den dagen ingest har kjørt men export_parquet ikke.
-                if d < cutoff or d > max_date_s:
-                    continue
-                a = acc.setdefault(lr, [0, 0])
-                a[0] += total
-                a[1] += rt
-            for lr, (total, rt) in acc.items():
-                slot = line_coverage.setdefault(lr, [None] * len(WINDOWS))
-                slot[i] = round(100.0 * rt / total, 1) if total else None
-    log.info("coverage: %d linjer × %d vinduer", len(line_coverage), len(WINDOWS))
-    # Frigjør råmaterialet (~90k rader) FØR stops-seksjonen: den aggregerer
-    # titalls millioner parquet-rader i DuckDB og er stegets minnetopp.
-    line_coverage_raw.clear()
+        # Radformat: [stopRef, operator, stopName, lat, lng, w1, w2, w3,
+        #             spRef, platformCode, spName, spParent]
+        # spParent (2026-10-26): forelder-StopPlace for multimodale knutepunkt.
+        # Stoppsøket gir forelderen (Oslo Kringsjå = 59706), mens quayene ligger
+        # under barna (6211/6213) — klienten indekserer derfor quayene under begge.
+        # De tre siste er lagt til ETTER vinduene slik at eldre klienter (som
+        # indekserer 5 + vindusindeks) leser uendret. spRef er kompaktet til bare
+        # tallet; spName utelates når det er likt stopName.
+        stop_rows = []
+        for (stop_ref, operator), entry in sorted(stops.items()):
+            lat, lng, sp_ref, sp_name, platform, parent = coords.get(
+                stop_ref, (None, None, None, None, None, None))
+            stop_rows.append([
+                stop_ref, operator, entry["name"], lat, lng,
+                *[entry["w"].get(w) for w in WINDOWS],
+                compact_sp_ref(sp_ref),
+                platform,
+                sp_name if (sp_name and sp_name != entry["name"]) else None,
+                compact_sp_ref(parent),
+            ])
 
-    summary = {
-        "generatedAt": generated_at,
-        "windows": WINDOWS,
-        "dates": {"min": min_date_s, "max": max_date_s},
-        "daily": daily,
-        "lines": lines,
-        "coverage": line_coverage,
-    }
-    summary_path = PARQUET_DIR / "stats_summary.json"
-    summary_path.write_text(json.dumps(summary, separators=(",", ":")), encoding="utf-8")
-    log.info("→ %s (%.0f KB)", summary_path.name, summary_path.stat().st_size / 1024)
+        stops_doc = {
+            "generatedAt": generated_at,
+            "windows": WINDOWS,
+            "cols": ["stopRef", "operator", "stopName", "lat", "lng",
+                     *[f"w{w}" for w in WINDOWS],
+                     "spRef", "platformCode", "spName", "spParent"],
+            "wcols": ["avgDelayMin", "pctDelayed2plus", "stddevDelayMin", "totalDepartures"],
+            "stops": stop_rows,
+        }
+        stops_path = PARQUET_DIR / "stats_stops_map.json"
+        stops_path.write_text(json.dumps(stops_doc, separators=(",", ":")), encoding="utf-8")
+        log.info("→ %s (%d stopp, %.0f KB)", stops_path.name, len(stop_rows),
+                 stops_path.stat().st_size / 1024)
 
-    # ------------------------------------------------------------------
-    # stops: per (stopp, operatør) × vindu — kart + stopp-topplister.
-    # Kompakt format: rader er arrays, vinduer er [avg, pct2plus, stddev, n]
-    # eller null når stoppet mangler data i vinduet.
-    # ------------------------------------------------------------------
-    # Per quay: koordinater + stoppested-tilhørighet (for stoppanalyse-søkets
-    # gruppering per stoppested) + plattformkode (finnes i praksis kun for SKY).
-    coords: dict[str, tuple] = {}
-    if Path(DB_PATH).exists():
-        sq = sqlite3.connect(DB_PATH)
-        try:
-            # parent_stop_place_ref kom 2026-10-26 (populate_stops.py); eldre
-            # baser mangler kolonnen → None.
-            has_parent = "parent_stop_place_ref" in {
-                r[1] for r in sq.execute("PRAGMA table_info(stop_coords)")}
-            parent_col = "parent_stop_place_ref" if has_parent else "NULL"
-            for ref, lat, lng, sp_ref, sp_name, platform, parent in sq.execute(
-                "SELECT stop_ref, lat, lng, stop_place_ref, stop_place_name,"
-                f"       platform_code, {parent_col} FROM stop_coords"
-            ):
-                coords[ref] = (lat, lng, sp_ref, sp_name, platform, parent)
-        finally:
-            sq.close()
-        log.info("stop_coords: %d koordinater fra %s", len(coords), DB_PATH)
-    else:
-        log.warning("Fant ikke %s — kartet får ingen koordinater", DB_PATH)
 
-    def compact_sp_ref(sp_ref):
-        """'NSR:StopPlace:123' → 123 (int) for å spare bytes; ellers uendret."""
-        if isinstance(sp_ref, str) and sp_ref.startswith("NSR:StopPlace:"):
-            tail = sp_ref[len("NSR:StopPlace:"):]
-            if tail.isdigit():
-                return int(tail)
-        return sp_ref
+    def stage_stops() -> None:
+        # Samme `coords` som stoppkartet, slik at de to artefaktene ikke kan
+        # si ulike ting om samme stopp. Se build_stop_detail_shards for
+        # hvorfor det shardes.
+        build_stop_detail_shards(con, load_coords(), generated_at, max_date)
 
-    # windows-dict per (stop, operator)
-    stops: dict[tuple, dict] = {}
-    for w in WINDOWS:
-        cutoff = (max_date - timedelta(days=w - 1)).isoformat()
-        rows = con.execute(f"""
-            SELECT
-                stop_ref,
-                split_part(line_ref, ':', 1)   AS operator,
-                MAX(stop_name)                 AS stop_name,
-                ROUND(AVG({D}), 2)             AS avg_delay,
-                ROUND(100.0 * AVG(CASE WHEN {D} > 2 THEN 1 ELSE 0 END), 1) AS pct_2plus,
-                ROUND(STDDEV_SAMP({D}), 2)     AS stddev,
-                COUNT(DISTINCT service_journey_id || date) AS departures
-            FROM delays
-            WHERE date >= '{cutoff}' AND {D} IS NOT NULL
-            GROUP BY 1, 2
-            HAVING COUNT(DISTINCT service_journey_id || date) >= {MIN_DEPARTURES_STOP}
-        """).fetchall()
-        for stop_ref, operator, name, avg, pct2, std, dep in rows:
-            key = (stop_ref, operator)
-            entry = stops.setdefault(key, {"name": name, "w": {}})
-            if name and not entry["name"]:
-                entry["name"] = name
-            entry["w"][w] = [r(avg), r(pct2, 1), r(std), int(dep)]
+    def stage_names() -> None:
+        # ------------------------------------------------------------------
+        # Linjenavn — {line_ref: navn}, SKY fra NeTEx, resten DB-derivert.
+        # ------------------------------------------------------------------
+        if Path(DB_PATH).exists():
+            sq = sqlite3.connect(DB_PATH)
+            try:
+                line_names = build_line_names(sq)
+            finally:
+                sq.close()
+            names_path = PARQUET_DIR / "stats_line_names.json"
+            names_path.write_text(json.dumps(line_names, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+            log.info("→ %s (%d linjenavn, %.0f KB)", names_path.name, len(line_names),
+                     names_path.stat().st_size / 1024)
+        else:
+            log.warning("Fant ikke %s — hopper over linjenavn", DB_PATH)
 
-    # Radformat: [stopRef, operator, stopName, lat, lng, w1, w2, w3,
-    #             spRef, platformCode, spName, spParent]
-    # spParent (2026-10-26): forelder-StopPlace for multimodale knutepunkt.
-    # Stoppsøket gir forelderen (Oslo Kringsjå = 59706), mens quayene ligger
-    # under barna (6211/6213) — klienten indekserer derfor quayene under begge.
-    # De tre siste er lagt til ETTER vinduene slik at eldre klienter (som
-    # indekserer 5 + vindusindeks) leser uendret. spRef er kompaktet til bare
-    # tallet; spName utelates når det er likt stopName.
-    stop_rows = []
-    for (stop_ref, operator), entry in sorted(stops.items()):
-        lat, lng, sp_ref, sp_name, platform, parent = coords.get(
-            stop_ref, (None, None, None, None, None, None))
-        stop_rows.append([
-            stop_ref, operator, entry["name"], lat, lng,
-            *[entry["w"].get(w) for w in WINDOWS],
-            compact_sp_ref(sp_ref),
-            platform,
-            sp_name if (sp_name and sp_name != entry["name"]) else None,
-            compact_sp_ref(parent),
-        ])
 
-    stops_doc = {
-        "generatedAt": generated_at,
-        "windows": WINDOWS,
-        "cols": ["stopRef", "operator", "stopName", "lat", "lng",
-                 *[f"w{w}" for w in WINDOWS],
-                 "spRef", "platformCode", "spName", "spParent"],
-        "wcols": ["avgDelayMin", "pctDelayed2plus", "stddevDelayMin", "totalDepartures"],
-        "stops": stop_rows,
-    }
-    stops_path = PARQUET_DIR / "stats_stops_map.json"
-    stops_path.write_text(json.dumps(stops_doc, separators=(",", ":")), encoding="utf-8")
-    log.info("→ %s (%d stopp, %.0f KB)", stops_path.name, len(stop_rows),
-             stops_path.stat().st_size / 1024)
-
-    # ------------------------------------------------------------------
-    # Stoppdetaljer per shard — samme DuckDB-pass og samme `coords` som
-    # kartet over, slik at de to artefaktene ikke kan si ulike ting om
-    # samme stopp. Se build_stop_detail_shards for hvorfor det shardes.
-    # ------------------------------------------------------------------
-    build_stop_detail_shards(con, coords, generated_at, max_date)
-
-    # ------------------------------------------------------------------
-    # Linjenavn — {line_ref: navn}, SKY fra NeTEx, resten DB-derivert.
-    # ------------------------------------------------------------------
-    if Path(DB_PATH).exists():
-        sq = sqlite3.connect(DB_PATH)
-        try:
-            line_names = build_line_names(sq)
-        finally:
-            sq.close()
-        names_path = PARQUET_DIR / "stats_line_names.json"
-        names_path.write_text(json.dumps(line_names, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        log.info("→ %s (%d linjenavn, %.0f KB)", names_path.name, len(line_names),
-                 names_path.stat().st_size / 1024)
-    else:
-        log.warning("Fant ikke %s — hopper over linjenavn", DB_PATH)
-
-    # ------------------------------------------------------------------
-    # Overgangsfiler — reiseplanleggerens statistikk uten DuckDB (se
-    # pipeline/transfer_shards.py). Sist, og en feil her feller IKKE steget:
-    # artefaktene over er allerede skrevet, og uten ferske overgangsfiler
-    # faller klienten tilbake til DuckDB (index.json-datoen er da eldre enn
-    # manifestets maxDate, se transferCovers i transfer-data.ts).
-    # ------------------------------------------------------------------
-    try:
+    def stage_transfer() -> None:
+        # Reiseplanleggerens statistikk uten DuckDB (se transfer_shards.py).
+        # Klienten bruker filene bare når index.json dekker manifestets
+        # nyeste dag (transferCovers i transfer-data.ts) — ellers DuckDB.
         from transfer_shards import build_transfer_shards
         build_transfer_shards(con, generated_at, max_date)
-    except Exception:  # noqa: BLE001
-        log.exception("Overgangsfiler feilet — hopper over (klienten bruker DuckDB)")
 
-    log.info("Ferdig på %.1fs", time.time() - started)
-    return 0
+    run = {"summary": stage_summary, "stops": stage_stops,
+           "names": stage_names, "transfer": stage_transfer}
+    failed: list[str] = []
+    for stage in stages:
+        if args.skip_fresh and state.get(stage) == fingerprint:
+            log.info("[%s] allerede bygget fra de samme dataene — hopper over", stage)
+            continue
+        t0 = time.time()
+        log.info("[%s] starter", stage)
+        try:
+            run[stage]()
+        except Exception:  # noqa: BLE001
+            # Ett steg som feiler skal ikke ta de andre med seg: artefaktene er
+            # uavhengige, og de som blir ferdige kan lastes opp likevel.
+            log.exception("[%s] feilet", stage)
+            failed.append(stage)
+            continue
+        state[stage] = fingerprint
+        save_state(state)
+        log.info("[%s] ferdig på %.0fs", stage, time.time() - t0)
+
+    log.info("Ferdig på %.1fs%s", time.time() - started,
+             f" — FEILET: {', '.join(failed)}" if failed else "")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

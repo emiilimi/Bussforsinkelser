@@ -367,6 +367,19 @@ try {
         return
     }
 
+    # Publiseres i biter (2026-10-31), ikke alt til slutt. En kjoring for EN
+    # dag tok ~2 t (28.10), og ingenting ble lastet opp for helt til slutt - en
+    # PC som ble slatt av etter 1,5 t hadde gjort alt forgjeves (29.-31.10).
+    #
+    # Hentede dager er trygge: de ligger i reise.db, og neste kjoring fortsetter
+    # (missing_dates.py). Det som gikk tapt var aggregeringen, som var alt-
+    # eller-ingenting. Derfor: alle dager hentes forst, sa EN eksport (en
+    # ukefil skrives om i sin helhet, ~6 min for en full uke - per dag ville
+    # det blitt fire eksporter og opplastinger av samme fil), og sa
+    # aggregatene som egne steg, hvert lastet opp med en gang.
+    # Et steg som feiler stopper ikke de andre; natten meldes som feilet til slutt.
+    $failures = @()
+
     $extraWeeks = @{}
     foreach ($d in $dates) {
         $isPrimary = ($d.Date -eq $yesterday)
@@ -382,19 +395,16 @@ try {
             Invoke-PythonStep -ScriptPath "pipeline/ingest_lite.py" -ExtraArgs @($d.Date) -TimeoutMinutes 90 -Retries 2 -RetryDelayMinutes 20
         }
         catch {
-            # Gardagen er jobbens egentlige oppgave: feiler den, feiler natten,
-            # som for. Et eldre hull er best effort - det ligger i vinduet noen
-            # dager til, sa vi logger og gar videre i stedet for a velte resten
-            # av kjoringen (og dermed ogsa gardagen, som alt er hentet).
-            if ($isPrimary) { throw }
-            Write-Host ("  [catch-up] {0} feilet: {1}. Proves pa nytt neste natt." -f `
+            # Ogsa gardagen gar videre na: de eldre hullene og aggregatene har
+            # verdi selv om gardagen feiler (typisk fordi BigQuery ikke har
+            # landet den enda), og natten meldes som feilet til slutt.
+            Write-Host ("  [ingest] {0} feilet: {1}. Proves pa nytt neste kjoring." -f `
                 $d.Date, $_.Exception.Message) -ForegroundColor Yellow
+            $failures += "ingest $($d.Date)"
             continue
         }
         if ($d.Week) { $extraWeeks[$d.Week] = $true }
     }
-
-    Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
 
     # Eksporten uten argument friskner bare opp inneverende uke og gardagens
     # uke. Et hull lenger tilbake kan ligge i en eldre uke som alt er
@@ -402,15 +412,25 @@ try {
     # i basen uten a na parquet (og dermed hverken kart, linjeanalyse eller
     # aggregatene). Fila verner selv mot a bli skrevet med faerre dager enn den
     # allerede dekker, sa en overflodig runde her er ufarlig.
-    if ($extraWeeks.Count -gt 0) {
-        try { $autoWeeks = @(Get-PythonOutput -ScriptPath "pipeline/missing_dates.py" -ExtraArgs @("--refresh-weeks")) }
-        catch { $autoWeeks = @() }
-        foreach ($w in @($extraWeeks.Keys)) {
-            if ($autoWeeks -contains $w) { continue }
-            Write-Host ("  [catch-up] Re-eksporterer {0} (dekkes ikke av den vanlige eksporten)." -f $w) -ForegroundColor Cyan
-            Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -ExtraArgs @("--week", $w) -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
+    try {
+        Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
+        if ($extraWeeks.Count -gt 0) {
+            try { $autoWeeks = @(Get-PythonOutput -ScriptPath "pipeline/missing_dates.py" -ExtraArgs @("--refresh-weeks")) }
+            catch { $autoWeeks = @() }
+            foreach ($w in @($extraWeeks.Keys)) {
+                if ($autoWeeks -contains $w) { continue }
+                Write-Host ("  [catch-up] Re-eksporterer {0} (dekkes ikke av den vanlige eksporten)." -f $w) -ForegroundColor Cyan
+                Invoke-PythonStep -ScriptPath "pipeline/export_parquet.py" -ExtraArgs @("--week", $w) -TimeoutMinutes 30 -Retries 1 -RetryDelayMinutes 5
+            }
         }
     }
+    catch {
+        # Aggregatene kjores likevel: --skip-fresh hopper over det som alt er
+        # bygget fra de eksisterende ukefilene, og opplastingen synker resten.
+        Write-Host ("  [eksport] feilet: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+        $failures += "eksport"
+    }
+
     # Stoppregisteret (koordinater, stoppested + forelder for multimodale
     # knutepunkt), MANEDLIG: --if-stale henter fra BigQuery bare nar
     # data/stop_coords.json er eldre enn 30 dager, ellers gjor steget ingenting.
@@ -425,32 +445,60 @@ try {
         Write-Host ("  [stopp] Stoppregisteret ble ikke oppdatert ({0}). Bruker eksisterende liste." -f $_.Exception.Message) -ForegroundColor Yellow
     }
 
-    # aggregate_stats: 45 -> 90 min (2026-08-29). Steget brukte tidligere
-    # ~8-10 min, men har vokst med stoppdetalj-shardingen (2000 filer,
-    # ~434 MB) og en lengre operatorliste (AVI/BFO/TEL).
+    # Aggregatene, ett steg om gangen, hvert lastet opp med en gang.
     #
-    # To malinger samme dogn, og de spriker - noter BEGGE, ikke bare den ene:
-    #   natt 29.08: drept pa 45 min BEGGE forsok. R2 ble staende to dogn bak
-    #               selv om ingesten var vellykket, siden opplastingen
-    #               kommer etterpa.
-    #   manuelt 29.08 kl. 19:45: HELE steget pa 1188 s (19,8 min), hvorav
-    #               shardingen ~11 min. Altsa godt under 45 min-fristen.
-    # Samme kode, samme datagrunnlag - forskjellen ma ligge i hva PC-en ellers
-    # gjorde om natta (eller at forste forsok fortsatt holdt filer/CPU nar
-    # forsok to startet). Fristen er derfor satt ut fra verste observasjon, og
-    # 90 min er et TAK, ikke en ventetid: gar steget pa 20 min koster det
-    # ingenting a ha rom til 90.
+    # Ukefilene (parquet + manifest) lastes opp SAMMEN MED overgangsfilene,
+    # ikke for: reiseplanleggeren bruker overgangsfilene bare nar
+    # transfer/index.json dekker manifestets nyeste dag (transferCovers i
+    # transfer-data.ts), ellers DuckDB (~2 min i stedet for ~3 s). Derfor er
+    # overgangsfilene ogsa forste steg.
     #
-    # 90 -> 150 min (2026-10-23). Overgangsfilene (transfer_shards, fra 10.10)
-    # kom pa toppen, og malt varighet for hele steget er na 45-76 min:
-    #   13.10: 46 min | 14.10: 45 min | 17.10: 76 min | 20.10: 46 min
-    # men 14.10 forsok 1 brukte 88 min BARE pa stoppdetaljene og ble drept.
-    # Oppgavens grense er na 6 t, sa det er rom for et tak med ekte margin.
-    Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -TimeoutMinutes 150 -Retries 1 -RetryDelayMinutes 5
-    # Opplastingen har ogsa fatt mer a gjore: 2000 shardfiler i tillegg til
-    # ukefilene og stats_*.json.
-    Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--prune") -TimeoutMinutes 40 -Retries 2 -RetryDelayMinutes 5
+    # --skip-fresh: et steg som alt er bygget fra de samme ukefilene hoppes over
+    # (aggregate_stats.py/.aggregate_state.json), sa en kjoring som ble avbrutt
+    # midt i fortsetter der den slapp. Opplastingen kjores likevel - den hopper
+    # selv over det som er uendret, og fanger et steg som ble bygget men aldri
+    # kom opp.
+    #
+    # Frister: TAK, ikke ventetid. Malt med lokket apent og strom (31.10):
+    # transfer ~8, summary ~5, stops ~7, names ~6 min. I natt-kjoringene var
+    # tallene 35/11/43/12 min - lukket lokk gir "moderne ventemodus", der
+    # prosessene gar videre men kraftig strupet (en omgang med overgangsfiler:
+    # ~2 t mot 1,5 min). Fristen er veggklokke og loper ogsa mens PC-en sover.
+    $stages = @(
+        @{ Name = "transfer"; Upload = "parquet,transfer"; Timeout = 90 },
+        @{ Name = "summary";  Upload = "stats";    Timeout = 45 },
+        @{ Name = "stops";    Upload = "stops";    Timeout = 120 },
+        @{ Name = "names";    Upload = "stats";    Timeout = 45 }
+    )
+    $parquetUploaded = $false
+    foreach ($st in $stages) {
+        try {
+            Invoke-PythonStep -ScriptPath "pipeline/aggregate_stats.py" -ExtraArgs @("--only", $st.Name, "--skip-fresh") -TimeoutMinutes $st.Timeout -Retries 1 -RetryDelayMinutes 5
+            Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--only", $st.Upload, "--prune") -TimeoutMinutes 30 -Retries 2 -RetryDelayMinutes 5
+            if ($st.Upload -match "parquet") { $parquetUploaded = $true }
+            Write-Host ("  [publisert] {0}" -f $st.Name) -ForegroundColor Green
+        }
+        catch {
+            Write-Host ("  [aggregat] {0} feilet: {1}" -f $st.Name, $_.Exception.Message) -ForegroundColor Yellow
+            $failures += $st.Name
+        }
+    }
+    # Feilet overgangssteget, er ukefilene ikke lastet opp. Gjor det likevel:
+    # nye dager i Linjeanalyse/kart er verdt mer enn en rask reiseplanlegger
+    # (som da faller tilbake til DuckDB til neste vellykkede kjoring).
+    if (-not $parquetUploaded) {
+        try {
+            Invoke-PythonStep -ScriptPath "pipeline/upload_to_r2.py" -ExtraArgs @("--only", "parquet", "--prune") -TimeoutMinutes 30 -Retries 2 -RetryDelayMinutes 5
+        }
+        catch {
+            Write-Host ("  [publisert] Ukefilene ble ikke lastet opp: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+            $failures += "opplasting av ukefiler"
+        }
+    }
 
+    if ($failures.Count -gt 0) {
+        throw ("Natten ble kjort ferdig, men med feil: {0}" -f ($failures -join ", "))
+    }
     Write-Host "=== Reise nightly OK ===" -ForegroundColor Green
 }
 finally {
