@@ -45,7 +45,8 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 31 | Samme avvik av en annen grunn: kortet kuttet sekundene (00:04:36 → «00:04»), stopplista avrundet (→ 00:05). Tøyen → Stortinget 00:00. | Kort | ✅ kortets ankomst avrundes til hele minutter som stopplista |
 | 32 | Nattsøk uten treff (Lillehammer → Gjøvik fremme 02:00): «Prøv andre stoppesteder eller juster filtrene» — hjelper ikke. | Tomtilstand | ✅ «Fant ingen reiser rundt kl. 02:00. Mange steder går det ikke noe om natten – prøv …» |
 | 33 | «Førde sentrum» gir først Førde sentrum i **Sveio**; «Kleppestø» gir bare stedsnavnet, ingen kai/stopp. | Søk | lav prioritet (Enturs geokoder) |
-| 34 | «tog FLY2» — folk sier «Flytoget». | Enkel visning | lav prioritet |
+| 34 | «tog FLY2» — folk sier «Flytoget». | Enkel visning | ✅ «Flytoget» |
+| 35 | Ny bruker ser bare et tomt skjema — ingenting viser hva siden kan før man har funnet to stopp. | Forside | ✅ «Prøv et eksempel – fra nå»: fire ett-trykks søk (Oslo, Bergen, Trondheim, Stavanger) |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning

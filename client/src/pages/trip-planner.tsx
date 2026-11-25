@@ -503,6 +503,11 @@ const SIMPLE_MODE_WORDS: Record<string, string> = {
   coach: "ekspressbuss", air: "fly",
 };
 /** «buss 300 fra Åsane terminal, så 600 fra Bergen busstasjon» */
+/** «buss 22», «tog R40», «fly DY750» — men «Flytoget», som folk sier (ikke «tog FLY2»). */
+function simpleLegName(l: TripLeg): string {
+  if (l.line?.id?.startsWith("FLT:")) return "Flytoget";
+  return `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}`;
+}
 function simpleModeWord(l: TripLeg): string {
   // Bergen sier «Bybanen», resten av landet «trikk».
   if (l.mode === "tram" && l.line?.id?.startsWith("SKY:")) return "Bybanen";
@@ -523,7 +528,7 @@ function describeTripSimple(p: TripPattern): string {
     .reduce((sum, l) => sum + (l.mode === "foot" ? (l.duration ?? 0) : 0), 0) / 60;
   return transit
     .map((l, i) => {
-      const what = `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}`;
+      const what = simpleLegName(l);
       if (i > 0) return `bytt til ${what} på ${l.fromPlace.name}`;
       const at = `kl. ${formatTime(l.expectedStartTime)}`;
       return walkMin >= 1
@@ -2854,7 +2859,7 @@ function TripCard({
       : { normal: 0, high: 0 };
     const earlyShare = depLow && depLow.n >= 15 ? depLow.early1 ?? null : null;
     const boardLabel = firstTransit
-      ? `${simpleModeWord(firstTransit)}${firstTransit.line?.publicCode ? ` ${firstTransit.line.publicCode}` : ""}` : undefined;
+      ? simpleLegName(firstTransit) : undefined;
     const estDeparture = depShift != null
       ? formatTime(addMinutesToIso(pattern.expectedStartTime, depShift))
       : null;
@@ -2921,7 +2926,7 @@ function TripCard({
         if (isLive(leg)) hasReal = true;
         g = anchoredGrid(leg, "end", g);
       }
-      if (!g && duckStats) missing.push(`${simpleModeWord(leg)}${leg.line?.publicCode ? ` ${leg.line.publicCode}` : ""}`);
+      if (!g && duckStats) missing.push(simpleLegName(leg));
       qA = maxGrid(qA, g);
       lastGrid = g;
     }
@@ -3701,6 +3706,16 @@ function TripCard({
 function encodeStopForUrl(s: StopSearchResult): string {
   return `${s.stopRef}|${s.stopName}`;
 }
+
+/** Eksempelsøk for nye brukere (ID-er verifisert mot Entur-geokoderen 2026-11-25). */
+const exampleStop = (stopRef: string, stopName: string): StopSearchResult =>
+  ({ stopRef, stopPlaceRef: stopRef, stopName, label: stopName, layer: "venue", lat: null, lng: null });
+const EXAMPLE_TRIPS: [StopSearchResult, StopSearchResult][] = [
+  [exampleStop("NSR:StopPlace:58381", "Majorstuen"), exampleStop("NSR:StopPlace:58211", "Oslo lufthavn")],
+  [exampleStop("NSR:StopPlace:62356", "Bergen busstasjon"), exampleStop("NSR:StopPlace:59849", "Lagunen terminal")],
+  [exampleStop("NSR:StopPlace:59977", "Trondheim S"), exampleStop("NSR:StopPlace:44085", "Gløshaugen")],
+  [exampleStop("NSR:StopPlace:61291", "Stavanger stasjon"), exampleStop("NSR:StopPlace:702", "Sandnes sentrum stasjon")],
+];
 
 function decodeStopFromUrl(raw: string | null): StopSearchResult | null {
   if (!raw) return null;
@@ -4511,7 +4526,7 @@ export default function TripPlanner() {
             return {
               arrMs: new Date(next.expectedEndTime).getTime(),
               depMs: new Date(first.expectedStartTime).getTime(),
-              label: `${simpleModeWord(first)}${first.line?.publicCode ? ` ${first.line.publicCode}` : ""}`,
+              label: simpleLegName(first),
             };
           } catch {
             return null;
@@ -5011,6 +5026,28 @@ export default function TripPlanner() {
           </div>
         )}
 
+        {/* Ny bruker: skjemaet alene viser ikke hva siden kan. Ett trykk på et
+            eksempel gir et ekte svar («Dra kl. …») med en gang. Vises bare før
+            første søk og når det ikke finnes siste reiser. */}
+        {tripPatterns.length === 0 && !tripMutation.isPending && !tripMutation.isSuccess
+          && recentTrips.length === 0 && !fromStop && !toStop && (
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">Prøv et eksempel – fra nå</div>
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLE_TRIPS.map(([from, to]) => (
+                <button
+                  key={`${from.stopRef}>${to.stopRef}`}
+                  type="button"
+                  className="rounded-full border bg-card px-3 py-1.5 text-sm hover:bg-muted text-left"
+                  onClick={() => runRecentTrip(from, to)}
+                >
+                  {from.stopName} <ArrowRight className="inline h-3 w-3 mx-0.5 -mt-0.5" /> {to.stopName}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Siste reiser — ett trykk søker samme strekning fra nå. Vises bare
             når det ikke står reiseforslag på skjermen. */}
         {tripPatterns.length === 0 && !tripMutation.isPending && recentTrips.length > 0 && (
@@ -5089,7 +5126,7 @@ export default function TripPlanner() {
                   : null;
                 const laterWhat = later ? (() => {
                   const l = later.q.legs.find((x) => x.mode !== "foot");
-                  return l ? `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}` : "gange";
+                  return l ? simpleLegName(l) : "gange";
                 })() : "";
                 // Forslag uten data kan ikke kåres (de har ingen trygg ankomst), men
                 // et som er MYE raskere etter rutetiden må nevnes — ellers anbefales
@@ -5103,7 +5140,7 @@ export default function TripPlanner() {
                 const fasterMissing = faster ? p80Reports.get(patternKey(faster))?.missing ?? [] : [];
                 const fasterWhat = faster ? (() => {
                   const l = faster.legs.find((x) => x.mode !== "foot");
-                  return l ? `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}` : "gange";
+                  return l ? simpleLegName(l) : "gange";
                 })() : "";
                 const hasAir = p.legs.some((l) => l.mode === "air");
                 const pm = r?.pMakeAll;
