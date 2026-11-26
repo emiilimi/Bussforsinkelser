@@ -344,5 +344,11 @@ export function frequencyWords(p: number): string {
   if (p >= 0.775) return "fire av fem dager";
   if (p >= 0.7) return "tre av fire dager";
   if (p >= 0.58) return "to av tre dager";
-  return "omtrent annenhver dag";
+  // Under halvparten: før 2026-11-26 var «annenhver dag» bunnen, så en buss
+  // som er 12–22 min sen HVER morgen (Haugesund buss 208, 11 min margin) fikk
+  // «Fremme før 08:00 omtrent annenhver dag» med p = 0 (brukertest runde 7).
+  if (p >= 0.42) return "omtrent annenhver dag";
+  if (p >= 0.25) return "omtrent hver tredje dag";
+  if (p >= 0.1) return "sjelden";
+  return "nesten aldri";
 }

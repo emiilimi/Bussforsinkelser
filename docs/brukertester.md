@@ -51,6 +51,13 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 37 | Fredrikstad → Sarpsborg 23:40: buss 1 00:00 → 00:34, men «Fremme innen **01:34** fire av fem dager». Dataene: 1,3 min FØR rute på nest siste stopp, så **+61 min** på endestasjonen ett minutt senere — på 10 av 22 netter. Fysisk umulig. | Data | 🟡 G — trenger pipeline-fiks |
 | 38 | Ferja Halhjem–Sandvikvåg heter «båt 1018», Moss–Horten «båt 1000». Folk sier «ferja». | Enkel visning | ✅ bilferjer (`transportSubmode` *CarFerry*) heter «ferja»; hurtigbåter beholder «båt B10» |
 | 39 | Oslo S → Lillehammer fremme 16:00: «senere avganger er for risikable» — men den eneste senere (tog F6 14:02 → 15:59) mangler vi data om; den ble ikke nevnt. | Enkel visning | ✅ «Senere etter rutetiden: kl. 14:02 (tog F6) er fremme 15:59, men vi har for lite data …» + «Det er den seneste avgangen vi har nok data til å regne på» |
+| 40 | Stavanger lufthavn → Haugesund: byttet mangler data, så svaret regnes via reserven NW400 (ingen data) — med forsinkelsen til FX652 lånt. Prøvde rutetid for reserver på en annen linje, men det gjorde vanlige bybytter for optimistiske (Sandvika → Fornebu: reserve buss 81 i stedet for 31). | Enkel visning | beholdt som før (lån er bedre anslag i byene) |
+| 41 | Jernbanetorget → Ljabru, trikk 13: «Fremme innen 16:22» på en tur som er 15:55 etter rutetiden (+27 min på 21 min). Sæter (2 min før) er +6. Ljabru logges nesten bare på avviksdager: timespoolen 14–17 har 27 målinger fra 6 dager (opptil +282 min). Avgangen selv har bare 3. | Data | 🟡 G (utvidet) |
+| 42 | Haugesund → Karmsund vgs fremme 08:00: buss 208 kl. 07:49 fikk «to av tre dager», men den er 12–22 min sen HVER morgen (3 av 24 dager innen 11 min). Kolumbus bytter HELE avgangs-id-en med ruteplanen (`3009_250903…_1001` → `3009_260817…_1001`), så historikken ble ikke funnet og linjas timespool (punktlig) ble brukt. | Kort | ✅ nytt nivå i legg-tidene: samme linje + plattform + rutetid ±3 min før ±1 t-poolen (DuckDB og overgangsfilene; paritet 380/380) |
+| 43 | Samme kort: «omtrent annenhver dag» var laveste ord, også for p = 0. | Kort | ✅ «hver tredje dag», «sjelden», «nesten aldri» |
+| 44 | «Oslo sentrum», «Trondheim sentrum», «Stavanger sentrum», «Tromsø sentrum» ga tannlegevakt, politistasjon, Gausel sentrum, legekontor. | Søk | ✅ byens NSR-gruppe («Stavanger», punkt midt i sentrum) legges øverst når ingen stoppested heter «<by> sentrum» (Bodø/Sandnes/Bergen sentrum beholdes) |
+| 45 | Paritetssjekken: 1 av 95 overganger ulik (weekday-11, Vy `DatedServiceJourney:…_26-11-24`): `stableSjId` tar siste bindestrek-ledd, som for Vy er DATOEN. Fantes før runde 7. | Overgang | lav prioritet — se på Vy-id-er |
+| 46 | «Stramt bytte – ryker ca. 10 av 10 dager» + «Mister du byttet: fremme ca. 17:50» (samme som planlagt) — sant, men rart å lese. | Kort | lav prioritet |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -79,6 +86,10 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
   fra forrige stopp på samme avgang med ≤10 min rutetid imellom; så ny
   eksport + aggregate (gjelder bare nye dager med mindre ukefilene bygges på
   nytt). Rører produksjonsdata, så venter på ja.
+  **Runde 7:** samme feil på trikk 13 til Ljabru (Oslo) — endestasjonen
+  logges nesten bare på avviksdager, så timespoolen der er skjev (P80 +27 min
+  mot +6 på stoppet før). En app-side vakt kunne vært: bruk stoppet før
+  endestasjonen når endestasjonen har langt færre målinger enn det.
 - **B. Overgangsfilene i produksjon** er fra 23.11. Start nattjobben på nytt
   (`Start-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'`) med
   lokket åpent og strøm tilkoblet.
@@ -138,3 +149,14 @@ adresse→adresse fremme 09:15 (ok, belegg-merker), Moss → Horten ferje 10:00
 (38), Tromsø lufthavn → Prostneset 09:40 (ok), Aker brygge → Nesoddtangen
 hurtigbåt (ok, «båt B10»), Oslo S → Lillehammer fremme 16:00 + bytte til
 «Viktig avtale» (knappen virker, teksten endres; 39).
+
+### Runde 7 — 2026-11-26 ettermiddag (mobil 375 px, enkel visning)
+Stavanger lufthavn → Haugesund bussterminal 13:30 (40, 46), Trondheim
+lufthavn → Solsiden 14:00 (ok: bare flybuss, «vet ikke hvor ofte»),
+Jernbanetorget → Ljabru trikk 15:30 (41), Haugesund bussterminal → Karmsund
+vgs fremme 08:00 (42, 43), Festplassen → Loddefjord 01:15 natt til lørdag
+(ok), Sandvika → Fornebu 16:00 (ok: stramt bytte med reserve buss 81),
+Hamar → Oslo lufthavn fremme 07:00 «Viktig avtale» (ok: F6 05:34 nevnt; tog
+06:18 er fremme 07:01, så det stemmer at ingen senere rekker det), stoppsøk
+«<by> sentrum» for åtte byer (44) og søk fra «Stavanger» (by) → Stavanger
+lufthavn (ok, 4 min gange til flybussen).

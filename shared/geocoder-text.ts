@@ -67,6 +67,36 @@ export async function firstFallbackHit<T extends { properties?: { name?: string 
   return [];
 }
 
+type GeoFeature = { properties?: { id?: string; name?: string; label?: string } };
+
+/**
+ * «Oslo sentrum», «Stavanger sentrum», «Tromsø sentrum» fant tannlegevakter,
+ * politistasjoner, Gausel sentrum og Førde sentrum i Sveio — ikke byen
+ * (brukertest runde 7). Bynavnet alene gir derimot NSR sin stoppestedsgruppe
+ * for byen (NSR:GroupOfStopPlaces, punkt midt i sentrum). Legg den øverst når
+ * ingen treff faktisk HETER «<by> sentrum…» (Bodø sentrum og Sandnes sentrum
+ * stasjon finnes og beholdes).
+ */
+export async function withCityCentre<T extends GeoFeature>(
+  text: string,
+  features: T[],
+  query: (t: string) => Promise<T[] | null>,
+): Promise<T[]> {
+  const m = text.trim().match(/^(.+?)\s+sentrum$/i);
+  if (!m) return features;
+  const place = m[1].trim().toLowerCase();
+  // Bare STOPPESTEDER teller — «Trondheim sentrum politistasjon» gjør ikke.
+  // (NSR-gruppen «Bergen sentrum» gjør.)
+  const has = features.some((f) => /^NSR:(StopPlace|GroupOfStopPlaces):/.test(f.properties?.id ?? "")
+    && (f.properties?.name ?? "").toLowerCase().startsWith(`${place} sentrum`));
+  if (has) return features;
+  const city = ((await query(m[1]).catch(() => null)) ?? []).find((f) =>
+    (f.properties?.id ?? "").startsWith("NSR:GroupOfStopPlaces:")
+    && (f.properties?.name ?? "").toLowerCase() === place);
+  if (!city) return features;
+  return [city, ...features.filter((f) => f.properties?.id !== city.properties?.id)];
+}
+
 /**
  * Fjern treff som ser identiske ut for brukeren (samme navn, etikett og
  * type) — «Apotek 1 Lagunen» kom to ganger med ulik OSM-id. Stoppesteder

@@ -947,7 +947,7 @@ export default function Methodology() {
                   />
                   <WiringRow
                     ui="Estimert avgang/ankomst øverst på kortet"
-                    source="Per-avgang-persentil matchet på stabil avgangs-ID; faller tilbake på ±1t, så ±2t, så aggregatet"
+                    source="Per-avgang-persentil matchet på stabil avgangs-ID; så samme linje og rutetid (±3 min) når ID-en er ny; så ±1t, ±2t og aggregatet"
                     file="legTimingSql()"
                   />
                   <WiringRow

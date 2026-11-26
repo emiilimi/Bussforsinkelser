@@ -453,7 +453,9 @@ export type LocalLegTimingSpec = {
  */
 export async function localLegTiming(
   s: LocalLegTimingSpec,
-  delta: number | undefined,
+  /** undefined = samme avgang (stabil id), "aimed" = samme linje + plattform
+   *  med rutetid innen AIMED_MATCH_TOL_MIN, tall = ±timer. */
+  delta: number | "aimed" | undefined,
   latest?: string | null,
 ): Promise<{
   p50: number | null; p80: number | null; n: number;
@@ -475,6 +477,10 @@ export async function localLegTiming(
         const a = s.kind === "dep" ? g[4] : g[3];
         if (a == null || aimedCircDist(a, s.aimedMin) > AIMED_MATCH_TOL_MIN) continue;
       }
+    } else if (delta === "aimed") {
+      if (qd.shard.L[g[0]] !== s.lineRef || s.aimedMin == null) continue;
+      const a = s.kind === "dep" ? g[4] : g[3];
+      if (a == null || aimedCircDist(a, s.aimedMin) > AIMED_MATCH_TOL_MIN) continue;
     } else {
       if (qd.shard.L[g[0]] !== s.lineRef) continue;
       const aimed = s.kind === "dep" ? g[4] : g[3];

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { firstFallbackHit, dedupeGeocoder } from "@shared/geocoder-text";
+import { firstFallbackHit, withCityCentre, dedupeGeocoder } from "@shared/geocoder-text";
 import { createServer, type Server } from "http";
 import { subDays, format } from "date-fns";
 import path from "path";
@@ -668,6 +668,7 @@ export async function registerRoutes(
       }
       // Samme reserve som Pages-proxyen (shared/geocoder-text.ts).
       if (features.length === 0) features = await firstFallbackHit(text, query);
+      features = await withCityCentre(text, features, query);
       const results = dedupeGeocoder(features.map((f: any) => ({
         id: f.properties.id,
         name: f.properties.name,

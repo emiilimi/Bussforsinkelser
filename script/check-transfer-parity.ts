@@ -38,10 +38,13 @@ function distSql(s: TransferSpec): string {
 }
 
 /** Kopi av legTimingSql i trip-planner.tsx (ankomstsiden av overgangen). */
-function legSql(s: TransferSpec, delta?: number): string {
+function legSql(s: TransferSpec, delta?: number | "aimed"): string {
   const win = statsWindowSql(s.statsWindow!);
   const hour = Math.floor(s.arrAimedMin! / 60);
-  const where = delta != null
+  const where = delta === "aimed"
+    ? `line_ref = '${s.arrLineRef}' AND stop_ref = '${s.arrQuayRef}' ${win}
+       ${aimedNearClause("aimed_arrival", s.arrAimedMin)}`
+    : delta != null
     ? `line_ref = '${s.arrLineRef}' AND stop_ref = '${s.arrQuayRef}' ${win}
        AND CAST(SUBSTR(aimed_arrival, 1, 2) AS INTEGER) BETWEEN ${hour - delta} AND ${hour + delta}`
     : `${stableSjPredicate(stableSjId(s.arrSjId!))} AND stop_ref = '${s.arrQuayRef}' ${win}
@@ -55,7 +58,7 @@ if (mode === "sql") {
   writeFileSync(join(work, "sql.json"), JSON.stringify(
     specs.map((s) => ({ key: s.key, sql: transferGapSql(s), distSql: distSql(s),
                         winSql: statsWindowSql(s.statsWindow!),
-                        legSql: [legSql(s), legSql(s, 1), legSql(s, 2)] }))));
+                        legSql: [legSql(s), legSql(s, "aimed"), legSql(s, 1), legSql(s, 2)] }))));
   process.exit(0);
 }
 
@@ -98,8 +101,8 @@ for (const s of specs) {
     if (ok) distOk++;
     else problems.push(`${s.key} persentil ${k}: lokal ${JSON.stringify(l && [l.n, l.p50_dep, l.p80_dep, l.p50_arr, l.p80_arr])} ≠ duck ${JSON.stringify(d && [d[8], d[2], d[3], d[5], d[6]])}`);
   }
-  // Estimert ankomst per legg: samme avgang, ±1 t, ±2 t (legTimingSql)
-  for (const [i, delta] of [undefined, 1, 2].entries()) {
+  // Estimert ankomst per legg: samme avgang, samme rutetid, ±1 t, ±2 t (legTimingSql)
+  for (const [i, delta] of ([undefined, "aimed", 1, 2] as const).entries()) {
     legN++;
     const l = await localLegTiming({ serviceJourneyId: s.arrSjId!, quayRef: s.arrQuayRef!, lineRef: s.arrLineRef!,
       kind: "arr", aimedHour: Math.floor(s.arrAimedMin! / 60), aimedMin: s.arrAimedMin, window: s.statsWindow! }, delta, null);
@@ -165,6 +168,6 @@ console.log(`Overganger: ${gapOk}/${specs.length} like (${withData} med data; ki
 console.log(`  herav ${ambiguousSpecs} der DuckDB velger vilkårlig (lik rutetid / uavgjort nabo) — rådata like, sluttsvaret ikke sammenlignbart`);
 console.log(`  ${tiedRows / 2} nivå 3-rader på uavgjorte datoer (to naboavganger like nær) — kun datoen sammenlignet`);
 console.log(`Persentiler: ${distOk}/${distPairs} (stopp, linje)-par like`);
-console.log(`Estimert ankomst: ${legOk}/${legN} like (samme avgang, ±1 t, ±2 t)`);
+console.log(`Estimert ankomst: ${legOk}/${legN} like (samme avgang, samme rutetid, ±1 t, ±2 t)`);
 for (const p of problems.slice(0, 25)) console.log("  ✗", p);
 process.exit(problems.length ? 1 : 0);

@@ -255,7 +255,7 @@ type LegTimingResult = {
   p50: number | null;
   p80: number | null;
   n: number;
-  method: "sj" | "hour1" | "hour2" | "none";
+  method: "sj" | "aimed" | "hour1" | "hour2" | "none";
   /** Nedre hale (gikk FØR rutetid) og andel > 1 min før — for «vær på
    *  holdeplassen N min før» (live-model.boardingBufferMin). Bare «dep». */
   p02?: number | null;
@@ -276,11 +276,19 @@ const lowTail = (r: { p02?: number | null; p05?: number | null; early1?: number 
 
 /** Build SQL for per-SJ (delta=undefined) or hour-window (delta=1|2) leg timing query.
  *  aimed_departure / aimed_arrival columns in Parquet are "HH:MM:SS" time strings. */
-function legTimingSql(s: LegTimingSpec, delta?: number): string {
+function legTimingSql(s: LegTimingSpec, delta?: number | "aimed"): string {
   const col = s.kind === "dep" ? "delay_departure_min" : "delay_arrival_min";
   const aimedCol = s.kind === "dep" ? "aimed_departure" : "aimed_arrival";
   const win = statsWindowSql(s.statsWindow ?? defaultWindowForDayType(s.dayType));
-  const where = delta != null
+  const where = delta === "aimed"
+    // Samme rutetid på samme linje og plattform: «samme avgang» for
+    // operatører der HELE id-en byttes med ruteplanen (Kolumbus:
+    // 3009_250903…_1001 → 3009_260817…_1001). Uten dette nivået falt
+    // buss 208 07:49 (12–22 min sen HVER dag) til linjens timespool og fikk
+    // «to av tre dager» i stedet for ~1 av 8 (brukertest runde 7).
+    ? `line_ref = '${esc(s.lineRef)}' AND stop_ref = '${esc(s.quayRef)}'
+       ${win} ${aimedNearClause(aimedCol, s.aimedMin ?? null)}`
+    : delta != null
     ? `line_ref = '${esc(s.lineRef)}' AND stop_ref = '${esc(s.quayRef)}'
        ${win}
        AND CAST(SUBSTR(${aimedCol}, 1, 2) AS INTEGER) BETWEEN ${s.aimedHour - delta} AND ${s.aimedHour + delta}`
@@ -314,6 +322,11 @@ async function legTimingLocal(s: LegTimingSpec): Promise<LegTimingResult | null>
   const r0 = await localLegTiming(spec, undefined);
   if (!r0) return null;
   if (r0.n >= SPECIFIC_MIN_DAYS) return { p50: r0.p50, p80: r0.p80, n: r0.n, method: "sj", ...lowTail(r0) };
+  if (s.aimedMin != null) {
+    const ra = await localLegTiming(spec, "aimed");
+    if (!ra) return null;
+    if (ra.n >= SPECIFIC_MIN_DAYS) return { p50: ra.p50, p80: ra.p80, n: ra.n, method: "aimed", ...lowTail(ra) };
+  }
   const r1 = await localLegTiming(spec, 1);
   if (!r1) return null;
   if (r1.n >= SPECIFIC_MIN_DAYS) return { p50: r1.p50, p80: r1.p80, n: r1.n, method: "hour1", ...lowTail(r1) };
@@ -390,6 +403,13 @@ function useEstimatedLegTimes(
         if ((r0[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
           out.set(s.key, { p50: r0[0].p50, p80: r0[0].p80, n: r0[0].n, method: "sj", ...lowTail(r0[0]) });
           continue;
+        }
+        if (s.aimedMin != null) {
+          const ra = await duckQuery(legTimingSql(s, "aimed"), undefined, opts);
+          if ((ra[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
+            out.set(s.key, { p50: ra[0].p50, p80: ra[0].p80, n: ra[0].n, method: "aimed", ...lowTail(ra[0]) });
+            continue;
+          }
         }
         const r1 = await duckQuery(legTimingSql(s, 1), undefined, opts);
         if ((r1[0]?.n ?? 0) >= SPECIFIC_MIN_DAYS) {
@@ -1288,6 +1308,7 @@ function addMinutesToIso(iso: string, minutes: number): string {
 
 function legTimingTooltip(r: LegTimingResult): string {
   if (r.method === "sj") return `Median av ${r.n} avganger med samme rute-ID`;
+  if (r.method === "aimed") return `Median av ${r.n} avganger med samme rutetid (avgangs-ID-en er ny)`;
   if (r.method === "hour1") return `Median av ${r.n} avganger ±1 time (for få treff på eksakt avgang)`;
   if (r.method === "hour2") return `Median av ${r.n} avganger ±2 timer (utvidet søk)`;
   return "Ingen historisk data";
@@ -2945,6 +2966,9 @@ function TripCard({
     const planAEndMs = new Date(pattern.expectedEndTime).getTime();
     // Plan B arver forsinkelsen på SISTE strekning (som regel samme linje inn
     // til målet) — ikke plan A sin samlede, som domineres av første buss.
+    // Også når reserven tar en ANNEN linje inn (buss 81 i stedet for 31 til
+    // Fornebu): i byene er plan A sin forsinkelse et bedre anslag enn rutetid
+    // (rutetid prøvd og forkastet i brukertest runde 7).
     const bGrid = planBInfo ? shiftGrid(lastGrid ?? ZERO_GRID, (planBInfo.arrMs - planAEndMs) / 60000) : null;
     // Ukjent bytte: med plan B regnes verste fall (du mister det). Uten plan B
     // (full visning henter den ikke) vises plan A ujustert, merket med *.
