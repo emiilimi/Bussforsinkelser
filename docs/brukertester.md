@@ -49,7 +49,8 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 35 | Ny bruker ser bare et tomt skjema — ingenting viser hva siden kan før man har funnet to stopp. | Forside | ✅ «Prøv et eksempel – fra nå»: fire ett-trykks søk (Oslo, Bergen, Trondheim, Stavanger) |
 | 36 | «Ålesund rutebilstasjon» ga NULL treff; heller ikke busstasjon/bussterminal/skysstasjon. Terminalen heter ulikt fra by til by (Molde trafikkterminal, Gjøvik skysstasjon, Førde rutebilstasjon). | Søk | ✅ reserven prøver alle fem navnene parallelt, krever at stedsnavnet står i stoppnavnet (ellers ga Ålesund → Moa trafikkterminal, 7 km unna), og faller til slutt tilbake på stedet alene («Ålesund») |
 | 37 | Fredrikstad → Sarpsborg 23:40: buss 1 00:00 → 00:34, men «Fremme innen **01:34** fire av fem dager». Dataene: 1,3 min FØR rute på nest siste stopp, så **+61 min** på endestasjonen ett minutt senere — på 10 av 22 netter. Fysisk umulig. | Data | 🟡 G — trenger pipeline-fiks |
-| 38 | Ferja Halhjem–Sandvikvåg heter «båt 1018». Folk sier «ferja». | Enkel visning | lav prioritet |
+| 38 | Ferja Halhjem–Sandvikvåg heter «båt 1018», Moss–Horten «båt 1000». Folk sier «ferja». | Enkel visning | ✅ bilferjer (`transportSubmode` *CarFerry*) heter «ferja»; hurtigbåter beholder «båt B10» |
+| 39 | Oslo S → Lillehammer fremme 16:00: «senere avganger er for risikable» — men den eneste senere (tog F6 14:02 → 15:59) mangler vi data om; den ble ikke nevnt. | Enkel visning | ✅ «Senere etter rutetiden: kl. 14:02 (tog F6) er fremme 15:59, men vi har for lite data …» + «Det er den seneste avgangen vi har nok data til å regne på» |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -128,3 +129,12 @@ holder), Bergen lufthavn → Oslo lufthavn fremme 10:00 (ok — «senere avgange
 er ikke fremme før 10:00» stemmer: ingen fly 08:00–09:20 torsdag, sjekket mot
 Entur), Fredrikstad bussterminal → Sarpsborg stasjon 23:40 over midnatt (37),
 Drammen → Kongsberg 06:30 (ok, VY1 merket «mangler data»).
+
+### Runde 6 — 2026-11-26 formiddag (mobil 375 px, enkel visning)
+Lerkendal → Trondheim S og Thorvald Meyers gate 50F → Oslo S i rushet
+(ok; et passert klokkeslett i lenka flyttes bevisst til «nå» og vises i
+Tid-feltet), Fyllingsdalen → Festplassen fremme 09:30 (ok), Madla → UiS
+adresse→adresse fremme 09:15 (ok, belegg-merker), Moss → Horten ferje 10:00
+(38), Tromsø lufthavn → Prostneset 09:40 (ok), Aker brygge → Nesoddtangen
+hurtigbåt (ok, «båt B10»), Oslo S → Lillehammer fremme 16:00 + bytte til
+«Viktig avtale» (knappen virker, teksten endres; 39).

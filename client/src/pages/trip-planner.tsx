@@ -506,6 +506,9 @@ const SIMPLE_MODE_WORDS: Record<string, string> = {
 /** «buss 22», «tog R40», «fly DY750» — men «Flytoget», som folk sier (ikke «tog FLY2»). */
 function simpleLegName(l: TripLeg): string {
   if (l.line?.id?.startsWith("FLT:")) return "Flytoget";
+  // Bilferjer har rutenummer (Moss–Horten = 1000, Halhjem–Sandvikvåg = 1018)
+  // som ingen bruker — «båt 1000» leser rart. Hurtigbåter beholder nummeret.
+  if (l.mode === "water" && /carferry/i.test(l.transportSubmode ?? "")) return "ferja";
   return `${simpleModeWord(l)}${l.line?.publicCode ? ` ${l.line.publicCode}` : ""}`;
 }
 function simpleModeWord(l: TripLeg): string {
@@ -5142,6 +5145,23 @@ export default function TripPlanner() {
                   const l = faster.legs.find((x) => x.mode !== "foot");
                   return l ? simpleLegName(l) : "gange";
                 })() : "";
+                // «Fremme kl.»-søk: en SENERE avgang uten data som etter rutetiden
+                // rekker fristen. «Senere avganger er for risikable» stemte ikke da
+                // — vi vet ingenting om dem (Oslo S → Lillehammer fremme 16:00:
+                // F6 14:02 → 15:59 ble ikke nevnt, brukertest runde 6).
+                const pDepMs = new Date(p.expectedStartTime).getTime();
+                const laterPats = arrivalDeadline != null
+                  ? tripPatterns.filter((q) => new Date(q.expectedStartTime).getTime() > pDepMs)
+                  : [];
+                const laterUnknown = laterPats
+                  .filter((q) => arrOf(q) == null && new Date(q.expectedEndTime).getTime() <= arrivalDeadline!)
+                  .sort((x, y) => new Date(y.expectedStartTime).getTime() - new Date(x.expectedStartTime).getTime())[0] ?? null;
+                const laterUnknownMissing = laterUnknown ? p80Reports.get(patternKey(laterUnknown))?.missing ?? [] : [];
+                const laterUnknownWhat = laterUnknown ? (() => {
+                  const l = laterUnknown.legs.find((x) => x.mode !== "foot");
+                  return l ? simpleLegName(l) : "gange";
+                })() : "";
+                const allLaterUnknown = laterPats.length > 0 && laterPats.every((q) => arrOf(q) == null);
                 const hasAir = p.legs.some((l) => l.mode === "air");
                 const pm = r?.pMakeAll;
                 const tw = pm != null && pm < 0.999 ? transferWords(pm) : null;
@@ -5189,6 +5209,13 @@ export default function TripPlanner() {
                         {fasterMissing.length > 0 ? <> om {fasterMissing.join(", ")}</> : null} til å si hvor ofte den holder.
                       </p>
                     )}
+                    {laterUnknown && (
+                      <p className="text-sm text-amber-900 dark:text-amber-200">
+                        Senere etter rutetiden: kl. {formatTime(laterUnknown.expectedStartTime)} ({laterUnknownWhat}) er
+                        fremme {formatTime(laterUnknown.expectedEndTime)}, men vi har for lite data
+                        {laterUnknownMissing.length > 0 ? <> om {laterUnknownMissing.join(", ")}</> : null} til å si hvor ofte den holder.
+                      </p>
+                    )}
                     {refs.length > 0 && (
                       <p className="text-xs text-emerald-900/80 dark:text-emerald-200/80">
                         {refs.map((x) => referenceSentence(x)).join(" ")}
@@ -5203,6 +5230,8 @@ export default function TripPlanner() {
                       {arrivalDeadline != null
                         ? !tripPatterns.some((q) => new Date(q.expectedStartTime).getTime() > new Date(p.expectedStartTime).getTime())
                           ? `Senere avganger er ikke fremme før ${t(arrivalDeadline)} etter rutetiden.`
+                          : allLaterUnknown
+                            ? "Det er den seneste avgangen vi har nok data til å regne på."
                           : certainty === "high"
                             ? "Valgt fordi senere avganger gir for stor risiko for en viktig avtale, og tidligere bare gir mer venting."
                             : "Valgt som beste balanse: senere avganger er for risikable, og tidligere gir bare mer venting."
