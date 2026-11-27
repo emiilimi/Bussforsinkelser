@@ -61,6 +61,8 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 47 | Nesttun terminal → Bergen lufthavn (bare Bybanen): kortene sto på «Sjekker hvor ofte den holder …» for alltid. Bybane-parene filtreres bort fra statistikken, og med null par igjen ble spørringen aldri startet. | Enkel + full visning | ✅ tom statistikk med en gang når alle legg er kildebelagte |
 | 48 | Kristiansand → Arendal fremme 19:00: anbefaler 17:30 FX651 + buss 150 med bytte som ryker 8 av 10 dager (reddes av buss 105, fremme 18:50), foran direkte buss 100 kl. 17:15 (fremme 18:40, ingen bytte). Kostregelen: 15 min senere avreise veier mer enn PLAN_B_RELIANCE_MIN (3 min). Teksten sier ærlig fra, men mange ville valgt direktebussen. | Enkel visning | 🟡 H |
 | 49 | Dragvoll → Pirbadet: «Stramt bytte – ryker ca. 3 av 10 dager» + «Mister du byttet: fremme ca. 16:38» (= planlagt ankomst). Samme som 46. | Kort | lav prioritet (46) |
+| 50 | Trondheim S → Trondheim lufthavn fremme 18:30: «Raskere etter rutetiden: kl. 17:02 (buss FB73) er fremme 17:50» — den går 19 min FØR den anbefalte og er ikke raskere. I et «Fremme kl.»-søk der valget holder fristen er den linja bare støy. | Enkel visning | ✅ vises ikke når valget holder fristen (≥ fire av fem); ellers «Fremme tidligere etter rutetiden» |
+| 51 | Samme søk: flybussen FB73 mangler data. Anbefalt blir buss 79 + FB73 fra Gildheim («nesten alltid», FB73 regnet etter rutetiden), mens direkte FB73 fra Trondheim S 17:32 «ikke kan» anbefales. Et forslag med NOEN data slår ett uten, selv når det ukjente legget er det lengste. | Enkel visning | 🟡 I |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -99,6 +101,12 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
   alternativ bare vinner når det er ≤ ~2–3 min tidligere. Skal straffen
   være større (f.eks. 10 min) når byttet ryker mer enn halvparten av dagene?
   Krever ny kjøring av reiselaboratoriet før endring.
+- **I. Forslag der det viktigste legget mangler data.** Trondheim S →
+  Værnes (51): bytte-varianten med flybussen regnet etter rutetiden
+  anbefales, mens samme flybuss direkte ikke kan anbefales. Alternativer:
+  (a) som nå; (b) regn også forslag helt uten data etter rutetiden, merket
+  «vi vet ikke hvor ofte»; (c) ikke anbefal forslag der et legg uten data
+  er mer enn halve reisetiden. Jeg heller mot (c).
 - **B. Overgangsfilene i produksjon** er fra 23.11. Start nattjobben på nytt
   (`Start-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'`) med
   lokket åpent og strøm tilkoblet.
@@ -171,7 +179,7 @@ Hamar → Oslo lufthavn fremme 07:00 «Viktig avtale» (ok: F6 05:34 nevnt; tog
 lufthavn (ok, 4 min gange til flybussen).
 
 ### Runde 8 — 2026-11-27 formiddag (mobil 375 px, enkel visning)
-Nettleserpanelets klokke gikk 4 t foran (15:43), så søkene er lagt etter det.
+(Runden gikk ca. 15:45 — systemklokka i skallet viste feilaktig 11:45, så søkene ble lagt etter 16:00.)
 Majorstuen → Ullevål stadion T-bane 5 (ok), Nesttun → Bergen lufthavn
 Bybanen (47, rettet), Dragvoll → Pirbadet fremme 17:30 (ok, 49), Sandnes
 sentrum stasjon → Stavanger stasjon tog L5 (ok), Kristiansand
@@ -180,3 +188,11 @@ Lillestrøm 23:50 over midnatt (ok, R12/R14/R13), Strandkaiterminalen →
 Kleppestø båt 490 (ok; «Kleppestø» gir nå også terminalen i søket, jf. 33),
 Storgata 50 Tromsø (adresse) → UiT fremme 10:00 lørdag (ok, belegg-merker),
 Lagunen → Åsane fremme 18:30 (ok: Bybane-forslag med bytte regnes som før).
+
+### Runde 9 — 2026-11-27 ettermiddag (mobil 375 px, enkel visning)
+Storo → Sinsen T-bane 4 ringlinje (ok), Jernbanetorget → Frogner plass
+fremme 17:30 (ok: T-bane 2 + trikk 15, reserve trikk 12), Trondheim S →
+Trondheim lufthavn fremme 18:30 (50 rettet, 51), Bodø sentrum → Bodø
+lufthavn (ok), Moa trafikkterminal → «Ålesund» (byen) (ok), Tromsø lufthavn
+→ Kvaløysletta 00:20 natt til lørdag (ok, belegg-merker), Bergen lufthavn →
+Trondheim lufthavn fly 19:00 (ok: WF684/SK4196, innsjekkingsnotis).

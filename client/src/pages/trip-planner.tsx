@@ -5163,7 +5163,12 @@ export default function TripPlanner() {
                 // 10:59 → 19:35 uten et ord om at 10:27 er fremme 17:50
                 // (Oslo lufthavn → Trondheim lufthavn, brukertest runde 3).
                 const pickArr = ans.arrMs ?? new Date(p.expectedEndTime).getTime();
-                const faster = tripPatterns
+                // «Fremme kl.»-søk: når den valgte avgangen holder fristen, er en
+                // TIDLIGERE avgang uten data bare støy — Trondheim S → Værnes fremme
+                // 18:30 fikk «Raskere etter rutetiden: kl. 17:02 … fremme 17:50» om
+                // en buss som går 19 min før den anbefalte (brukertest runde 9).
+                const deadlineSafe = arrivalDeadline != null && (ans.pOnTime ?? 0) >= 0.775;
+                const faster = deadlineSafe ? null : tripPatterns
                   .filter((q) => q !== p && arrOf(q) == null)
                   .filter((q) => new Date(q.expectedEndTime).getTime() <= pickArr - 15 * 60_000)
                   .sort((x, y) => new Date(x.expectedEndTime).getTime() - new Date(y.expectedEndTime).getTime())[0] ?? null;
@@ -5231,7 +5236,7 @@ export default function TripPlanner() {
                     )}
                     {faster && (
                       <p className="text-sm text-amber-900 dark:text-amber-200">
-                        Raskere etter rutetiden: kl. {formatTime(faster.expectedStartTime)} ({fasterWhat}) er
+                        Fremme tidligere etter rutetiden: kl. {formatTime(faster.expectedStartTime)} ({fasterWhat}) er
                         fremme {formatTime(faster.expectedEndTime)}, men vi har for lite data
                         {fasterMissing.length > 0 ? <> om {fasterMissing.join(", ")}</> : null} til å si hvor ofte den holder.
                       </p>
