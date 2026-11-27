@@ -1219,7 +1219,10 @@ function useTripDelayDistribution(
       }
       return map;
     },
-    enabled: source !== "off" && pairs.length > 0,
+    // Ingen par igjen (bare Bybanen, kildebelagt) → tom Map med en gang. Før
+    // 2026-11-27 var spørringen da AV, data forble undefined, og Nesttun →
+    // Bergen lufthavn sto på «Sjekker hvor ofte …» for alltid (brukertest runde 8).
+    enabled: pairs.length === 0 || source !== "off",
     staleTime: Infinity,
     // Paret-settet vokser når et kort utvides (mellomstopp kommer til), og
     // ny nøkkel = ny spørring. Uten dette ville alle allerede hentede

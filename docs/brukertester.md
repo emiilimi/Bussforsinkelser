@@ -58,6 +58,9 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
 | 44 | «Oslo sentrum», «Trondheim sentrum», «Stavanger sentrum», «Tromsø sentrum» ga tannlegevakt, politistasjon, Gausel sentrum, legekontor. | Søk | ✅ byens NSR-gruppe («Stavanger», punkt midt i sentrum) legges øverst når ingen stoppested heter «<by> sentrum» (Bodø/Sandnes/Bergen sentrum beholdes) |
 | 45 | Paritetssjekken: 1 av 95 overganger ulik (weekday-11, Vy `DatedServiceJourney:…_26-11-24`): `stableSjId` tar siste bindestrek-ledd, som for Vy er DATOEN. Fantes før runde 7. | Overgang | lav prioritet — se på Vy-id-er |
 | 46 | «Stramt bytte – ryker ca. 10 av 10 dager» + «Mister du byttet: fremme ca. 17:50» (samme som planlagt) — sant, men rart å lese. | Kort | lav prioritet |
+| 47 | Nesttun terminal → Bergen lufthavn (bare Bybanen): kortene sto på «Sjekker hvor ofte den holder …» for alltid. Bybane-parene filtreres bort fra statistikken, og med null par igjen ble spørringen aldri startet. | Enkel + full visning | ✅ tom statistikk med en gang når alle legg er kildebelagte |
+| 48 | Kristiansand → Arendal fremme 19:00: anbefaler 17:30 FX651 + buss 150 med bytte som ryker 8 av 10 dager (reddes av buss 105, fremme 18:50), foran direkte buss 100 kl. 17:15 (fremme 18:40, ingen bytte). Kostregelen: 15 min senere avreise veier mer enn PLAN_B_RELIANCE_MIN (3 min). Teksten sier ærlig fra, men mange ville valgt direktebussen. | Enkel visning | 🟡 H |
+| 49 | Dragvoll → Pirbadet: «Stramt bytte – ryker ca. 3 av 10 dager» + «Mister du byttet: fremme ca. 16:38» (= planlagt ankomst). Samme som 46. | Kort | lav prioritet (46) |
 | 12 | Full visning: forklaringsboksen nederst snakker om «Parquet (ZSTD)», «DuckDB-WASM», «89. persentil» — teknisk for vanlige brukere. | Full visning | 🟡 C — greit for fornerder.sentur.no? |
 
 ## Trenger Emilies beslutning
@@ -90,6 +93,12 @@ mobilbredde). Status: ✅ rettet · 🟡 trenger beslutning · 🔍 under arbeid
   logges nesten bare på avviksdager, så timespoolen der er skjev (P80 +27 min
   mot +6 på stoppet før). En app-side vakt kunne vært: bruk stoppet før
   endestasjonen når endestasjonen har langt færre målinger enn det.
+- **H. Bytte som nesten alltid ryker, mot direkte avgang litt tidligere.**
+  Kristiansand → Arendal (48): plan B redder deg, så appen velger den
+  senere avreisen. `PLAN_B_RELIANCE_MIN = 3` gjør at et sikkert direkte
+  alternativ bare vinner når det er ≤ ~2–3 min tidligere. Skal straffen
+  være større (f.eks. 10 min) når byttet ryker mer enn halvparten av dagene?
+  Krever ny kjøring av reiselaboratoriet før endring.
 - **B. Overgangsfilene i produksjon** er fra 23.11. Start nattjobben på nytt
   (`Start-ScheduledTask -TaskName 'Bussforsinkelser Reise nightly'`) med
   lokket åpent og strøm tilkoblet.
@@ -160,3 +169,14 @@ Hamar → Oslo lufthavn fremme 07:00 «Viktig avtale» (ok: F6 05:34 nevnt; tog
 06:18 er fremme 07:01, så det stemmer at ingen senere rekker det), stoppsøk
 «<by> sentrum» for åtte byer (44) og søk fra «Stavanger» (by) → Stavanger
 lufthavn (ok, 4 min gange til flybussen).
+
+### Runde 8 — 2026-11-27 formiddag (mobil 375 px, enkel visning)
+Nettleserpanelets klokke gikk 4 t foran (15:43), så søkene er lagt etter det.
+Majorstuen → Ullevål stadion T-bane 5 (ok), Nesttun → Bergen lufthavn
+Bybanen (47, rettet), Dragvoll → Pirbadet fremme 17:30 (ok, 49), Sandnes
+sentrum stasjon → Stavanger stasjon tog L5 (ok), Kristiansand
+rutebilstasjon → Arendal bussterminal fremme 19:00 (48), Oslo S →
+Lillestrøm 23:50 over midnatt (ok, R12/R14/R13), Strandkaiterminalen →
+Kleppestø båt 490 (ok; «Kleppestø» gir nå også terminalen i søket, jf. 33),
+Storgata 50 Tromsø (adresse) → UiT fremme 10:00 lørdag (ok, belegg-merker),
+Lagunen → Åsane fremme 18:30 (ok: Bybane-forslag med bytte regnes som før).
